@@ -1,8 +1,8 @@
 import type { PostgresTransaction } from "../../../common/database/postgres";
 import {
   requireManagementAlertSourceId,
-  requireManagementAlertSourceScope,
 } from "./management-alert-source-contract";
+import { requireRetrievalPhaseSourceScope } from "./retrieval-phase-source-authority";
 import {
   validateRetrievalPhaseAlertInput,
   type RetrievalPhaseAlertCase,
@@ -22,7 +22,7 @@ async function fetchReadyCases(
 ): Promise<RetrievalPhaseAlertCase[]> {
   validateRetrievalPhaseAlertInput(input);
   if (exactId !== undefined) requireManagementAlertSourceId(exactId);
-  const scope = await requireManagementAlertSourceScope(tx, input);
+  const scope = await requireRetrievalPhaseSourceScope(tx, input);
   // The append-only VALET_SESSION_READY Audit ID identifies this committed
   // transition. No timestamp or random UUID is used as a sequence tie breaker.
   // Multiple READY events, including a later same-millisecond correction,
@@ -71,8 +71,15 @@ async function fetchReadyCases(
              AND audit.metadata_json->>'taskId'=candidate.task_id::text
              AND jsonb_typeof(audit.metadata_json->'toVersion')='number'
              AND jsonb_typeof(audit.metadata_json->'fromVersion')='number'
-             AND (audit.metadata_json->>'fromVersion')::text =
-                 ((audit.metadata_json->>'toVersion')::integer-1)::text
+             -- CASE guards conversion: malformed or extreme numeric JSON
+             -- must produce no case, not fail the entire Dashboard read.
+             AND CASE WHEN
+               audit.metadata_json->>'toVersion' ~ '^[1-9][0-9]{0,9}$'
+               AND audit.metadata_json->>'fromVersion' ~ '^[0-9]{1,10}$'
+             THEN
+               (audit.metadata_json->>'fromVersion')::bigint + 1 =
+                 (audit.metadata_json->>'toVersion')::bigint
+             ELSE FALSE END
            )::integer AS valid,
            min(audit.id::text) AS episode_id
          FROM audit_events AS audit

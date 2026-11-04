@@ -9,12 +9,17 @@ import {
 import { DashboardOverviewTestContext } from "./dashboard-overview-test-context";
 import {
   phaseReaderInput,
+  restoreTrustedPhaseTestCutover,
   seedPhaseReady,
+  setTrustedPhaseTestCutover,
 } from "./issue414-retrieval-phase-source-fixture";
 
 const db = new DashboardOverviewTestContext("414-p2-ready-source");
 beforeAll(() => db.setup(), 120_000);
-afterAll(() => db.teardown(), 120_000);
+afterAll(async () => {
+  restoreTrustedPhaseTestCutover();
+  await db.teardown();
+}, 120_000);
 
 describe("Issue #414 ALT-06 original READY phase source proof", () => {
   it("retains same audited READY anchor across handoff, abort and reinitiate", async () => {
@@ -72,14 +77,17 @@ describe("Issue #414 ALT-06 original READY phase source proof", () => {
     );
     expect((await read()).some(x => x.sourceId === source.sessionId)).toBe(false);
     const newer = await seedPhaseReady(db);
+    setTrustedPhaseTestCutover(newer.at);
     const equalCutover = await inPostgresTransaction(db.runtimePool, tx =>
       queryRetrievalReadyAlertCases(tx, {
         ...input, postLockClockCutover: newer.at,
       }));
     expect(equalCutover.some(x => x.sourceId === newer.sessionId)).toBe(false);
+    setTrustedPhaseTestCutover(new Date());
     const gated = await inPostgresTransaction(db.runtimePool, tx =>
       queryRetrievalReadyAlertCases(tx, {
-        ...input, postLockClockCutover: new Date(),
+        ...input, postLockClockCutover:
+          new Date(process.env.MANAGEMENT_ALERTS_PHASE1_DISPATCH_POST_LOCK_CUTOVER!),
       }));
     expect(gated.some(x => x.sourceId === newer.sessionId)).toBe(false);
   });
@@ -94,5 +102,39 @@ describe("Issue #414 ALT-06 original READY phase source proof", () => {
     await expect(inPostgresTransaction(db.runtimePool, tx =>
       queryRetrievalReadyAlertCases(tx, input)))
       .rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
+  });
+
+  it("does not expose a READY Session through another granted LM Location", async () => {
+    const input = await phaseReaderInput(db);
+    const source = await seedPhaseReady(db);
+    const fixture = await db.managerFixture();
+    const otherLocationId = await db.addLocation(fixture);
+    const otherScope = {
+      ...input,
+      scope: { ...input.scope, locationId: otherLocationId },
+    };
+    expect((await inPostgresTransaction(db.runtimePool, tx =>
+      queryRetrievalReadyAlertCases(tx, otherScope)))
+      .some(item => item.sourceId === source.sessionId)).toBe(false);
+    expect(await inPostgresTransaction(db.runtimePool, tx =>
+      findRetrievalReadyAlertCaseById(tx, otherScope,
+        source.sessionId, source.auditId))).toBeNull();
+  });
+
+  it("fails closed without throwing on a persisted out-of-range JSON version", async () => {
+    const input = await phaseReaderInput(db);
+    const valid = await seedPhaseReady(db);
+    const corrupt = await seedPhaseReady(db);
+    await db.adminPool.query(
+      `UPDATE audit_events
+       SET metadata_json=jsonb_set(metadata_json,'{toVersion}',
+         '9999999999999999999999999999999999999999999999'::jsonb)
+       WHERE id=$1`,
+      [corrupt.auditId],
+    );
+    const actual = await inPostgresTransaction(db.runtimePool, tx =>
+      queryRetrievalReadyAlertCases(tx, input));
+    expect(actual.some(item => item.sourceId === valid.sessionId)).toBe(true);
+    expect(actual.some(item => item.sourceId === corrupt.sessionId)).toBe(false);
   });
 });

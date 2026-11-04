@@ -5,6 +5,21 @@ import type { DashboardActor } from "./dashboard-test-context";
 import { DashboardOverviewTestContext } from "./dashboard-overview-test-context";
 
 const staffByDatabase = new WeakMap<DashboardOverviewTestContext, Promise<DashboardActor>>();
+const originalCutover = process.env.MANAGEMENT_ALERTS_PHASE1_DISPATCH_POST_LOCK_CUTOVER;
+
+/** PG tests exercise the *same* env-bound cutover fence as real readers. */
+export function setTrustedPhaseTestCutover(value: Date): void {
+  process.env.MANAGEMENT_ALERTS_PHASE1_DISPATCH_POST_LOCK_CUTOVER =
+    value.toISOString();
+}
+
+export function restoreTrustedPhaseTestCutover(): void {
+  if (originalCutover === undefined) {
+    delete process.env.MANAGEMENT_ALERTS_PHASE1_DISPATCH_POST_LOCK_CUTOVER;
+  } else {
+    process.env.MANAGEMENT_ALERTS_PHASE1_DISPATCH_POST_LOCK_CUTOVER = originalCutover;
+  }
+}
 
 async function sourceStaff(db: DashboardOverviewTestContext) {
   const existing = staffByDatabase.get(db);
@@ -28,6 +43,8 @@ export async function phaseReaderInput(
   const cutoff = await db.adminPool.query<{ cutoff: Date }>(
     "SELECT (clock_timestamp() - interval '2 hours')::timestamptz(3) AS cutoff",
   );
+  const trustedCutover = cutoff.rows[0]!.cutoff;
+  setTrustedPhaseTestCutover(trustedCutover);
   return {
     context,
     scope: {
@@ -37,7 +54,7 @@ export async function phaseReaderInput(
     },
     delaySeconds: 60,
     alt01GraceSeconds: graceSeconds,
-    postLockClockCutover: cutoff.rows[0]!.cutoff,
+    postLockClockCutover: trustedCutover,
     limit: 21,
   };
 }

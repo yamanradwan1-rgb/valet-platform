@@ -1,8 +1,8 @@
 import type { PostgresTransaction } from "../../../common/database/postgres";
 import {
   requireManagementAlertSourceId,
-  requireManagementAlertSourceScope,
 } from "./management-alert-source-contract";
+import { requireRetrievalPhaseSourceScope } from "./retrieval-phase-source-authority";
 import {
   validateRetrievalPhaseAlertInput,
   type RetrievalPhaseAlertCase,
@@ -24,7 +24,7 @@ async function fetchStageCases(
   if (exactId !== undefined) requireManagementAlertSourceId(exactId);
   // Revalidates Staff session, exact CA/LM Location grant, MFA and entitlement
   // before any Task, Dispatch, Retrieval or Audit row is selected.
-  const scope = await requireManagementAlertSourceScope(tx, input);
+  const scope = await requireRetrievalPhaseSourceScope(tx, input);
   const rows = await tx.query<StageRow>(
     `WITH instant AS MATERIALIZED (SELECT clock_timestamp() AS at),
      candidate AS (

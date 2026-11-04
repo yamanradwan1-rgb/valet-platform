@@ -1,4 +1,5 @@
 import type { ManagementAlertReaderInput } from "./management-alert-source-contract";
+import { requireManagementAlertClockCutover } from "../management-alert-clock-cutover";
 
 /** Release-gated from a DB-side millisecond clock after all old writers stop. */
 export interface RetrievalPhaseAlertInput extends ManagementAlertReaderInput {
@@ -19,7 +20,8 @@ export interface RetrievalPhaseAlertCase {
   readonly title: string;
 }
 
-/** Never accept user-supplied cutovers or unbounded personal delays. */
+/** Direct readers must prove their supplied cutover against trusted server
+ * release configuration. A finite Date or caller claim alone is NOT proof. */
 export function validateRetrievalPhaseAlertInput(
   input: RetrievalPhaseAlertInput,
 ): void {
@@ -34,5 +36,11 @@ export function validateRetrievalPhaseAlertInput(
     !Number.isFinite(input.postLockClockCutover.getTime())
   ) {
     throw new RangeError("Unproven or unbounded retrieval phase source clock.");
+  }
+  // Fail closed if the post-quiescence server release gate is absent, invalid,
+  // or not the *exact* millisecond cutover passed by the management facade.
+  if (input.postLockClockCutover.getTime() !==
+    requireManagementAlertClockCutover().getTime()) {
+    throw new RangeError("Unproven retrieval phase source-clock cutover.");
   }
 }

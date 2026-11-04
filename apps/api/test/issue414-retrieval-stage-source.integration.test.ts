@@ -9,12 +9,17 @@ import {
 import { DashboardOverviewTestContext } from "./dashboard-overview-test-context";
 import {
   phaseReaderInput,
+  restoreTrustedPhaseTestCutover,
   seedPhaseStage,
+  setTrustedPhaseTestCutover,
 } from "./issue414-retrieval-phase-source-fixture";
 
 const db = new DashboardOverviewTestContext("414-p2-stage-source");
 beforeAll(() => db.setup(), 120_000);
-afterAll(() => db.teardown(), 120_000);
+afterAll(async () => {
+  restoreTrustedPhaseTestCutover();
+  await db.teardown();
+}, 120_000);
 
 describe("Issue #414 ALT-04 current stage source proof", () => {
   it("projects current ACCEPTED then IN_PROGRESS using versioned source evidence", async () => {
@@ -69,12 +74,14 @@ describe("Issue #414 ALT-04 current stage source proof", () => {
     );
     expect((await read()).some(x => x.sourceId === drift.taskId)).toBe(false);
     const old = await seedPhaseStage(db, "ACCEPTED");
+    setTrustedPhaseTestCutover(old.at);
     const equalCutover = await inPostgresTransaction(db.runtimePool, tx =>
       queryRetrievalStageAlertCases(tx, {
         ...input, postLockClockCutover: old.at,
       }));
     expect(equalCutover.some(x => x.sourceId === old.taskId)).toBe(false);
     const afterClock = { ...input, postLockClockCutover: new Date() };
+    setTrustedPhaseTestCutover(afterClock.postLockClockCutover);
     const filtered = await inPostgresTransaction(db.runtimePool, tx =>
       queryRetrievalStageAlertCases(tx, afterClock));
     expect(filtered.some(x => x.sourceId === old.taskId)).toBe(false);
@@ -184,5 +191,38 @@ describe("Issue #414 ALT-04 current stage source proof", () => {
     await expect(inPostgresTransaction(db.runtimePool, tx =>
       queryRetrievalStageAlertCases(tx, input)))
       .rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
+  });
+
+  it("does not leak a Task outside the LM's selected owning Location even with a current exact grant", async () => {
+    const input = await phaseReaderInput(db);
+    const task = await seedPhaseStage(db, "ACCEPTED");
+    const fixture = await db.managerFixture();
+    // Same LM is legitimately granted this *other* Location, but the
+    // persisted Task remains owned by the original Location.
+    const otherLocationId = await db.addLocation(fixture);
+    const otherScope = {
+      ...input,
+      scope: { ...input.scope, locationId: otherLocationId },
+    };
+    const actual = await inPostgresTransaction(db.runtimePool, tx =>
+      queryRetrievalStageAlertCases(tx, otherScope));
+    expect(actual.some(item => item.sourceId === task.taskId)).toBe(false);
+    expect(await inPostgresTransaction(db.runtimePool, tx =>
+      findRetrievalStageAlertCaseById(tx, otherScope,
+        task.taskId, `${task.taskId}:3`))).toBeNull();
+  });
+
+  it("rejects a Company Admin's source read without established MFA", async () => {
+    const input = await phaseReaderInput(db);
+    await seedPhaseStage(db, "ACCEPTED");
+    const fixture = await db.managerFixture();
+    const admin = await db.createActor(fixture, "ORG_ADMIN");
+    const adminInput = {
+      ...input,
+      context: await db.staffSessionContext(admin.userId),
+      scope: { ...input.scope, membershipId: admin.membershipId },
+    };
+    await expect(inPostgresTransaction(db.runtimePool, tx =>
+      queryRetrievalStageAlertCases(tx, adminInput))).rejects.toThrow();
   });
 });
