@@ -15,6 +15,8 @@ import { SettingsScope } from "./SettingsScope";
 import { sectionGuidance } from "./setting-guidance";
 import { SectionIcon } from "./SectionIcon";
 import { PresenceReadiness } from "./PresenceReadiness";
+import { AlertTimingPane } from "../../../management-alerts/alert-timing-pane";
+import { AlertExactSourceSurface } from "../../../management-alerts/alert-exact-source-dialog";
 
 export function Workspace() {
   const studio = useStudio();
@@ -56,7 +58,7 @@ export function Workspace() {
           <ReadState />
         ) : (
           <>
-            <SettingsScope />
+            {route.section !== "alertsTiming" ? <SettingsScope /> : null}
             <div className="ps-layout">
               <aside
                 className="ps-section-index"
@@ -127,7 +129,9 @@ export function Workspace() {
                 <header className="ps-pane-header">
                   <div>
                     <div className="ps-overline">
-                      {route.scope === "company" ? copy.company : copy.location}
+                      {route.section === "alertsTiming"
+                        ? ar ? "شخصي" : "Personal"
+                        : route.scope === "company" ? copy.company : copy.location}
                     </div>
                     <h2 id="studio-heading" tabIndex={-1}>
                       {section[locale]}
@@ -145,15 +149,18 @@ export function Workspace() {
                     scopeIdentity={identity}
                   />
                 </header>
-                {
+                {route.section !== "alertsTiming" ? (
                   <div className="ps-scope-note">
                     {readonly ? (
                       <LockKeyhole size={15} aria-hidden="true" />
                     ) : null}
                     <span>{readonly ? copy.readNote : hint}</span>
                   </div>
-                }
+                ) : null}
                 <div className="ps-pane-body">
+                  {route.section === "alertsTiming" ? (
+                    <AlertTimingPane key={identity} />
+                  ) : (
                   <ReadState>
                     {route.section === "hours" ? (
                       <HoursPane key={identity} />
@@ -212,10 +219,14 @@ export function Workspace() {
                       </div>
                     ) : null}
                   </ReadState>
+                  )}
                 </div>
                 <div className="ps-notice" role="status" aria-live="polite">
                   {notice}
                 </div>
+                {route.section === "presence" ? (
+                  <AlertExactSourceSurface kind="PRESENCE" />
+                ) : null}
               </section>
             </div>
           </>

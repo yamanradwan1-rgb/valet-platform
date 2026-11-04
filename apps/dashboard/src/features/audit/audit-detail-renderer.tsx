@@ -11,6 +11,9 @@ import styles from "./audit-drawer.module.css";
 const labels = {
   en: {
     acceptingIntake: "Accepting intake",
+    changedKeys: "Changed timing fields",
+    beforeRevision: "Previous revision",
+    afterRevision: "New revision",
     attempt: "Attempt",
     customerPresent: "Customer present",
     effectivePhotosRequired: "Effective photos required",
@@ -47,6 +50,9 @@ const labels = {
   },
   ar: {
     acceptingIntake: "استقبال المركبات",
+    changedKeys: "حقول التوقيت المتغيرة",
+    beforeRevision: "المراجعة السابقة",
+    afterRevision: "المراجعة الجديدة",
     attempt: "المحاولة",
     customerPresent: "وجود جهة الاتصال",
     effectivePhotosRequired: "الصور المطلوبة فعليًا",
@@ -93,7 +99,7 @@ export function AuditDetailRenderer({
   if (event.details.kind === "UNKNOWN") {
     return <p className={styles.safeEmpty}>{t.unknownDetails}</p>;
   }
-  const detailRows = safeAuditDetailRows(event.details);
+  const detailRows = safeAuditDetailRows(event.details, event.eventType);
   return (
     <div className={styles.detailSection}>
       <div className={styles.fact}>

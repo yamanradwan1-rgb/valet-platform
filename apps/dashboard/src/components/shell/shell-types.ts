@@ -20,6 +20,7 @@ export interface DashboardShellLabels {
 
 export interface DashboardShellProps {
   readonly accountControl?: ReactNode;
+  readonly alertsControl?: ReactNode;
   readonly children: ReactNode;
   readonly currentPath: string;
   readonly labels: DashboardShellLabels;

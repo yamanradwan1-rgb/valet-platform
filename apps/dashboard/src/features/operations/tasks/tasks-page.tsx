@@ -6,6 +6,7 @@ import { TaskTableBody } from "./task-table-body";
 import { EmergencyTaskDrawer } from "./emergency-task-drawer";
 import { EmergencyTakeoverDialogController } from "./emergency-takeover-dialog-controller";
 import { supervisorEmergencyTaskVisible } from "./emergency-tasks-visibility";
+import { AlertExactSourceSurface } from "../../management-alerts/alert-exact-source-dialog";
 
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
 import { ScopedContextHelp } from "../../help/scoped-context-help";
@@ -231,6 +232,7 @@ function TasksContent() {
           timezone={location.timezone}
         />
       ) : null}
+      <AlertExactSourceSurface kind="TASK" />
     </OperationsPage>
   );
 }

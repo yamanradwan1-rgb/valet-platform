@@ -12,6 +12,7 @@ import {
 import type { Section } from "./catalog";
 
 const icons: Record<Section, LucideIcon> = {
+  alertsTiming: Bell,
   operations: CarFront,
   payments: CreditCard,
   hours: CalendarClock,

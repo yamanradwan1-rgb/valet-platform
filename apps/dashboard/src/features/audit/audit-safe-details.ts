@@ -3,7 +3,44 @@ import type { ManagementAuditEvent } from "@valet/contracts";
 type Detail = ManagementAuditEvent["details"];
 export type AuditDetailRow = readonly [string, string | number | boolean];
 
-export function safeAuditDetailRows(detail: Detail): readonly AuditDetailRow[] {
+const alertTimingFields = new Set([
+  "alt01GraceSeconds",
+  "alt02QueueSeconds",
+  "alt03DeclineSeconds",
+  "alt04StageSeconds",
+  "alt06HandoffSeconds",
+  "alt11UnknownPaymentSeconds",
+]);
+
+function alertTimingAuditRows(detail: Detail): readonly AuditDetailRow[] {
+  if (detail.kind !== "MANAGEMENT") return [];
+  const metadata: Record<string, unknown> = detail;
+  const changedKeys = metadata.changedKeys;
+  const beforeRevision = metadata.beforeRevision;
+  const afterRevision = metadata.afterRevision;
+  if (
+    !Array.isArray(changedKeys) || changedKeys.length === 0 ||
+    changedKeys.length > alertTimingFields.size ||
+    !changedKeys.every(
+      (key: unknown) => typeof key === "string" && alertTimingFields.has(key),
+    ) ||
+    new Set(changedKeys).size !== changedKeys.length ||
+    typeof beforeRevision !== "number" || !Number.isSafeInteger(beforeRevision) ||
+    beforeRevision < 0 ||
+    typeof afterRevision !== "number" || !Number.isSafeInteger(afterRevision) ||
+    afterRevision <= beforeRevision
+  ) return [];
+  return [
+    ["changedKeys", changedKeys.join(", ")],
+    ["beforeRevision", beforeRevision],
+    ["afterRevision", afterRevision],
+  ];
+}
+
+export function safeAuditDetailRows(
+  detail: Detail,
+  eventType?: string,
+): readonly AuditDetailRow[] {
   switch (detail.kind) {
     case "CHECK_IN":
       return compact([
@@ -68,7 +105,8 @@ export function safeAuditDetailRows(detail: Detail): readonly AuditDetailRow[] {
         ["previousStatus", detail.previousStatus],
       ]);
     case "MANAGEMENT":
-      return compact([
+      return [
+        ...compact([
         ["acceptingIntake", detail.acceptingIntake],
         ["fromAcceptingIntake", detail.fromAcceptingIntake],
         ["toAcceptingIntake", detail.toAcceptingIntake],
@@ -83,7 +121,10 @@ export function safeAuditDetailRows(detail: Detail): readonly AuditDetailRow[] {
         ["normalizationVersion", detail.normalizationVersion],
         ["operation", detail.operation],
         ["settingKey", detail.settingKey],
-      ]);
+        ]),
+        ...(eventType === "MANAGEMENT_ALERT_TIMING_PREFERENCES_CHANGED"
+          ? alertTimingAuditRows(detail) : []),
+      ];
     case "FINANCIAL":
     case "PRESENCE":
     case "MAP":

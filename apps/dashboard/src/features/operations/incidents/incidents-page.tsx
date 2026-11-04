@@ -17,6 +17,7 @@ import {
   incidentSeverityLabel,
 } from "./incident-presentation";
 import { IncidentDrawer } from "./incident-drawer";
+import { AlertExactSourceSurface } from "../../management-alerts/alert-exact-source-dialog";
 import incidentControls from "./incident-drawer.module.css";
 import localStyles from "../accountability.module.css";
 import { operationsCopy } from "../operations-copy";
@@ -240,6 +241,7 @@ function IncidentsContent() {
           }}
         />
       ) : null}
+      <AlertExactSourceSurface kind="INCIDENT" />
     </OperationsPage>
   );
 }

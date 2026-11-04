@@ -35,6 +35,7 @@ import { useSelectedScopeRevalidation } from "./use-selected-scope-revalidation"
 import { useNestedMfaBridge } from "./use-nested-mfa-bridge";
 import { useSelectedManagementShellTransition } from "./selected-management-shell-transition";
 import { useSelectedManagementDraftMemory } from "./use-selected-management-draft-memory";
+import { ManagementAlertsControl } from "../../features/management-alerts/management-alerts-control";
 
 export function SelectedManagementShell({
   accessRequirement,
@@ -212,6 +213,15 @@ export function SelectedManagementShell({
 
   return (
     <DashboardShell
+      alertsControl={
+        <ManagementAlertsControl
+          key={`${presentationBindingKey}:${routeRevalidation.status}:${routeRevalidation.routeAccess?.commercial.dashboardAccess}`}
+          api={api}
+          authorized={Boolean(routeRevalidation.status === "valid" && routeRevalidation.routeAccess?.commercial.dashboardAccess)}
+          selectionRevision={selectionRevision}
+          selectedScope={selectedScope}
+        />
+      }
       accountControl={
         <Button
           disabled={logoutPending}

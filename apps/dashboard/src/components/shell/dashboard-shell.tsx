@@ -9,6 +9,7 @@ import { DashboardTopbar } from "./topbar";
 
 export function DashboardShell({
   accountControl,
+  alertsControl,
   children,
   currentPath,
   labels,
@@ -45,6 +46,7 @@ export function DashboardShell({
       <div className="shell-main">
         <DashboardTopbar
           accountControl={accountControl}
+          alertsControl={alertsControl}
           labels={labels}
           localeControl={localeControl}
           locationControl={locationControl}

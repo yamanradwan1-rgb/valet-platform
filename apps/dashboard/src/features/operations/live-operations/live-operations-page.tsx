@@ -24,6 +24,7 @@ import {
 import { LiveOperationsTable } from "./live-operations-table";
 import { RetrievalQueueTable } from "./retrieval-queue-table";
 import { useLiveReadAvailability } from "./use-live-read-availability";
+import { AlertExactSourceSurface } from "../../management-alerts/alert-exact-source-dialog";
 
 type LiveOperationsView = "SESSIONS" | "RETRIEVAL_QUEUE";
 
@@ -207,6 +208,7 @@ function LiveOperationsContent() {
           />
         )}
       </OperationsPage>
+      <AlertExactSourceSurface kind="RETRIEVAL" />
     </div>
   );
 }

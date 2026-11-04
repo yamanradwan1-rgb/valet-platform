@@ -233,6 +233,10 @@ const events = {
     "Location service target changed",
     "تغيير هدف الخدمة للموقع",
   ],
+  MANAGEMENT_ALERT_TIMING_PREFERENCES_CHANGED: [
+    "Personal alert timing changed",
+    "تغيير توقيت التنبيهات الشخصية",
+  ],
   MANAGEMENT_COMPANY_BRANDING_DEFAULT_CHANGED: [
     "Company branding default changed",
     "تغيير هوية الشركة الافتراضية",
@@ -272,10 +276,16 @@ const events = {
   KEY_SLOT_CREATED: ["Key Slot created", "إنشاء خانة مفتاح"],
   PARKING_SPOT_CREATED: ["Parking Spot created", "إنشاء موقف سيارة"],
   PARKING_ZONE_CREATED: ["Parking Zone created", "إنشاء منطقة وقوف"],
-} satisfies Record<ManagementAuditKnownEvent, readonly [string, string]>;
+} satisfies Record<
+  ManagementAuditKnownEvent | "MANAGEMENT_ALERT_TIMING_PREFERENCES_CHANGED",
+  readonly [string, string]
+>;
 
 export function auditEventLabel(
-  eventType: ManagementAuditKnownEvent | "UNKNOWN",
+  eventType:
+    | ManagementAuditKnownEvent
+    | "MANAGEMENT_ALERT_TIMING_PREFERENCES_CHANGED"
+    | "UNKNOWN",
   locale: DashboardLocale,
 ): string {
   if (eventType === "UNKNOWN")
