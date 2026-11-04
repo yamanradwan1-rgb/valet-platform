@@ -189,3 +189,26 @@ only examines current QUEUED tasks and verifies the current version before
 the bound. Real pilot-scale query plans and bounded latency remain required
 before any activation. No index migration is inferred from a test-scale
 success.
+
+**W7 follow-up PG17 evidence (2026-11-04):** the separate
+`issue414-dispatch-cutover-precision.integration.test.ts` suite
+**passed 3/3** under the repository's exclusive harness lease: (1)
+old legacy episode leak with raw fractional cutoff vs strict exclusion
+with DB-side millisecond-rounded cutoff; (2) fail-closed ALT-03 when
+the matching current-version `DECLINED` Dispatch event is missing despite
+the Audit proof; (3) fail-closed ALT-03 on two identical-millisecond,
+identical-actor previous-assignee decline events with distinct UUIDs.
+No event UUID was treated as sequence evidence.
+
+The scoped synthetic reader benchmark on genuine PG17.11 also **passed
+36/36** 20-warmup/100-measured scenarios under one exclusive harness
+lease, with 12 `EXPLAIN (ANALYZE, BUFFERS)` plans, 0 SQL errors and
+complete disposable cleanup. The worst list p95 was 70.822 ms at 16
+requested callers but **4 actual pool connections**. The dense list
+plan executed 120 correlated Audit bitmap scans via the existing
+Session-time index. Full evidence and unsupported workload limits are
+recorded in `docs/validation/issue414/W7_DISPATCH_PG17_PERFORMANCE.md`.
+This synthetic-tier pass does **not** establish production capacity,
+pilot-scale index sufficiency, or authorization and release readiness;
+the corrected cutover capture and all remaining Phase-1 gates above
+still apply.

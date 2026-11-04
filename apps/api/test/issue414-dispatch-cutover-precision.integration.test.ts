@@ -1,5 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { createAssignTaskCommandExecutor } from "../src/modules/dispatch/assign-task-command";
+import { createDeclineTaskCommandExecutor } from "../src/modules/dispatch/decline-task-command";
 import { readCurrentUncoveredTaskAlertById } from "../src/modules/dispatch/uncovered-task-alert-query";
 import { DispatchTestContext } from "./dispatch-test-context";
 
@@ -73,6 +75,108 @@ describe("Issue #414 W1 PG17 fractional cutover precision falsifier", () => {
       ).toBeNull();
     } finally {
       client.release();
+    }
+  });
+
+  it("fails closed when the current versioned decline Audit lacks its matching DispatchEvent", async () => {
+    const fixture = await context.createDispatchFixture();
+    const viewer = await context.addMember(fixture, "ORG_ADMIN", false);
+    const queued = await context.queue(fixture);
+    const assigned = await createAssignTaskCommandExecutor(context.runtimePool)(
+      {
+        authenticatedUserId: fixture.userId,
+        expectedVersion: queued.version,
+        taskId: queued.taskId,
+      },
+    );
+    const declined = await createDeclineTaskCommandExecutor(
+      context.runtimePool,
+    )({
+      authenticatedUserId: fixture.userId,
+      expectedVersion: assigned.version,
+      taskId: queued.taskId,
+    });
+    const scope = {
+      organizationId: fixture.organizationId,
+      locationId: fixture.locationId,
+      viewerUserId: viewer.userId,
+      viewerMembershipId: viewer.membershipId,
+      limit: 21,
+      initialQueueDelaySeconds: 0,
+      postDeclineDelaySeconds: 0,
+      postLockClockCutover: new Date(0),
+    };
+    const tx = await context.runtimePool.connect();
+    try {
+      expect(
+        await readCurrentUncoveredTaskAlertById(tx, scope, queued.taskId),
+      ).toMatchObject({
+        category: "ALT-03",
+        episodeId: `${queued.taskId}:${declined.version}`,
+      });
+      const deleted = await context.adminPool.query(
+        "DELETE FROM dispatch_events WHERE task_id=$1 AND event_type='DECLINED' RETURNING id",
+        [queued.taskId],
+      );
+      expect(deleted.rowCount).toBe(1);
+      expect(
+        await readCurrentUncoveredTaskAlertById(tx, scope, queued.taskId),
+      ).toBeNull();
+    } finally {
+      tx.release();
+    }
+  });
+
+  it("fails closed when two current-version declines collide at exactly the same millisecond", async () => {
+    const fixture = await context.createDispatchFixture();
+    const viewer = await context.addMember(fixture, "LOCATION_MANAGER", false);
+    const queued = await context.queue(fixture);
+    const assigned = await createAssignTaskCommandExecutor(context.runtimePool)(
+      {
+        authenticatedUserId: fixture.userId,
+        expectedVersion: queued.version,
+        taskId: queued.taskId,
+      },
+    );
+    await createDeclineTaskCommandExecutor(context.runtimePool)({
+      authenticatedUserId: fixture.userId,
+      expectedVersion: assigned.version,
+      taskId: queued.taskId,
+    });
+    const scope = {
+      organizationId: fixture.organizationId,
+      locationId: fixture.locationId,
+      viewerUserId: viewer.userId,
+      viewerMembershipId: viewer.membershipId,
+      limit: 21,
+      initialQueueDelaySeconds: 0,
+      postDeclineDelaySeconds: 0,
+      postLockClockCutover: new Date(0),
+    };
+    const tx = await context.runtimePool.connect();
+    try {
+      expect(
+        await readCurrentUncoveredTaskAlertById(tx, scope, queued.taskId),
+      ).toMatchObject({ category: "ALT-03" });
+      const duplicate = await context.adminPool.query(
+        `INSERT INTO dispatch_events (
+           id,organization_id,location_id,task_id,valet_session_id,event_type,
+           actor_membership_id,previous_assignee_membership_id,
+           new_assignee_membership_id,occurred_at)
+         SELECT gen_random_uuid(),organization_id,location_id,task_id,
+                valet_session_id,event_type,actor_membership_id,
+                previous_assignee_membership_id,new_assignee_membership_id,
+                occurred_at
+         FROM dispatch_events
+         WHERE task_id=$1 AND event_type='DECLINED' RETURNING occurred_at`,
+        [queued.taskId],
+      );
+      expect(duplicate.rowCount).toBe(1);
+      expect(
+        await readCurrentUncoveredTaskAlertById(tx, scope, queued.taskId),
+      ).toBeNull();
+    } finally {
+      tx.release();
     }
   });
 });
