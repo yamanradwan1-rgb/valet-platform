@@ -20,6 +20,7 @@ import {
 import { verifyRuntimeFeaturePrivileges } from "./runtime-feature-privilege-verification.mjs";
 import { verifyIncidentResolutionPrivileges } from "./incident-resolution-runtime-privileges.mjs";
 import { verifyManagementAlertTimingPrivileges } from "./management-alert-timing-runtime-privileges.mjs";
+import { verifyManagementAlertSeenPrivileges } from "./management-alert-seen-runtime-privileges.mjs";
 
 const tablePrivileges = [
   ...incidentRecoveryPrivileges.table,
@@ -295,4 +296,5 @@ export async function verifyRuntimeTablePrivileges(client, runtimeRole) {
     }
   }
   await verifyRuntimeFeaturePrivileges(client, runtimeRole);
+  await verifyManagementAlertSeenPrivileges(client, runtimeRole);
 }
