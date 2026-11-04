@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { performance } from "node:perf_hooks";
+import {
+  managementAlertPreviewResponseSchema,
+  managementAlertSourceDetailResponseSchema,
+} from "@valet/contracts";
 import type { Pool } from "pg";
 
 import {
@@ -12,6 +16,7 @@ import {
   type Issue414TabCohort,
 } from "./issue414-http-foreground-cadence";
 import { issue414ObserveHttpPool } from "./issue414-http-load-observer";
+import { issue414HttpTelemetryValid } from "./issue414-http-telemetry";
 import type { ManagementControlPlaneTestFixture } from "./management-control-plane-test-fixture";
 
 interface MeasuredResponse {
@@ -27,6 +32,7 @@ interface Endpoint {
   readonly locationId: string;
   readonly bearer: Record<Issue414Audience, string>;
   readonly pool: Pool;
+  readonly allowedTaskIds?: ReadonlySet<string>;
 }
 
 /** HTTP network + authentication + aggregate SQL + JSON parse, not SQL-only. */
@@ -46,45 +52,33 @@ export async function issue414HttpGet(
       signal: AbortSignal.timeout(10_000),
     },
   );
-  const body = (await response.json()) as Record<string, unknown>;
-  const items = body.items;
-  const count = body.count;
-  const hasMore = body.hasMore;
+  const body = managementAlertPreviewResponseSchema.safeParse(
+    await response.json(),
+  );
+  const preview = body.success ? body.data : null;
+  const count = preview?.count;
+  const hasMore = preview?.hasMore;
   const validEnvelope =
-    Array.isArray(items) &&
-    Number.isSafeInteger(count) &&
-    typeof hasMore === "boolean" &&
-    count === items.length &&
+    preview !== null &&
     count === 20 &&
     hasMore === true &&
-    items.every(
+    preview.items.every(
       (item) =>
-        typeof item === "object" &&
-        item !== null &&
-        "sourceId" in item &&
-        "episodeId" in item,
+        item.locationId === target.locationId &&
+        (item.sourceKind !== "TASK" ||
+          (target.allowedTaskIds?.has(item.sourceId) ?? false)),
     ) &&
-    items.some(
-      (item) =>
-        typeof item === "object" &&
-        item !== null &&
-        "category" in item &&
-        item.category === "ALT-08",
-    ) &&
-    items.some(
-      (item) =>
-        typeof item === "object" &&
-        item !== null &&
-        "category" in item &&
-        (item.category === "ALT-02" || item.category === "ALT-03"),
+    preview.items.some((item) => item.category === "ALT-08") &&
+    preview.items.some(
+      (item) => item.category === "ALT-02" || item.category === "ALT-03",
     );
   return {
     status: response.status,
     noStore:
       response.headers.get("cache-control")?.includes("no-store") ?? false,
     validEnvelope,
-    count: typeof count === "number" ? count : null,
-    hasMore: typeof hasMore === "boolean" ? hasMore : null,
+    count: count ?? null,
+    hasMore: hasMore ?? null,
   };
 }
 
@@ -111,12 +105,14 @@ export async function issue414AssertLiveExactTaskReasons(
         },
       );
       assert.equal(response.status, 200, "Task reason retired under HTTP load");
-      const body = (await response.json()) as {
-        item?: { category?: string; sourceId?: string; episodeId?: string };
-      };
-      assert.equal(body.item?.category, category);
-      assert.equal(body.item?.sourceId, taskId);
-      assert.equal(body.item?.episodeId, `${taskId}:${version}`);
+      const parsed = managementAlertSourceDetailResponseSchema.safeParse(
+        await response.json(),
+      );
+      assert.ok(parsed.success, "Strict exact-detail DTO was invalid");
+      assert.equal(parsed.data.item.category, category);
+      assert.equal(parsed.data.item.sourceId, taskId);
+      assert.equal(parsed.data.item.episodeId, `${taskId}:${version}`);
+      assert.equal(parsed.data.item.locationId, target.locationId);
     }
   }
 }
@@ -198,6 +194,7 @@ export async function issue414ProfileForegroundCohort(
     measured.length > 0
       ? Math.max(...measuredEnd) - Math.min(...measuredStart)
       : null;
+  const telemetryValid = issue414HttpTelemetryValid(pool);
   return {
     classification: "SIMULATED_FOREGROUND_TABS_REAL_LOCAL_BEARER_HTTP_PG17",
     tabs,
@@ -235,11 +232,13 @@ export async function issue414ProfileForegroundCohort(
         : null,
     peakHttpInFlight,
     pool,
+    telemetryValid,
     complete:
       warmups.length === tabs &&
       warmupSuccess.length === tabs &&
       measured.length === tabs &&
       success.length === tabs &&
-      result.skipped.length === 0,
+      result.skipped.length === 0 &&
+      telemetryValid,
   };
 }

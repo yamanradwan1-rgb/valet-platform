@@ -5,6 +5,7 @@ import { dirname, resolve } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { ManagementControlPlaneTestFixture } from "./management-control-plane-test-fixture";
+import { issue414HttpEvidenceComplete } from "./issue414-http-evidence";
 import {
   issue414CreateAuthorizedLoadActors,
   issue414SeedAuthorizedHttpLoad,
@@ -31,21 +32,27 @@ const original = {
 const results: Record<string, unknown>[] = [];
 let actors: Issue414LoadActors;
 let taskProbes: Issue414LoadTaskProbes;
-let target: ReturnType<typeof issue414MountedApp>;
+let target: ReturnType<typeof issue414MountedApp> & {
+  readonly allowedTaskIds: ReadonlySet<string>;
+};
 let startAttempted = false;
 let databaseVersion = 0;
+// The artifact must not claim a complete PASS until every post-cohort
+// source, session, MFA and admin-idle assertion has returned successfully.
+let allAssertionsPassed = false;
 
 function ensureExclusiveLocalPG17Lease(): void {
   assert.ok(
     process.env.VAYLET_TEST_CLUSTER_RUN_ID,
     "Only repository run-owned-tests exclusive PG17 harness is permitted",
   );
-  // Match the canonical owned-harness/StaffAuthNativeFixture target selection:
-  // a local default is permitted only under VAYLET_TEST_CLUSTER_RUN_ID.
-  const url =
-    process.env.TEST_DATABASE_URL ??
-    process.env.MIGRATION_DATABASE_URL ??
-    "postgresql://valet:valet@127.0.0.1:5432/valet";
+  // This opt-in load test additionally requires explicit local target consent;
+  // never inherit an ambiguous migration URL or silently use a default DB.
+  const url = process.env.TEST_DATABASE_URL;
+  assert.ok(
+    url,
+    "Explicit local TEST_DATABASE_URL is required for this profile",
+  );
   const parsed = new URL(url);
   assert.equal(
     parsed.hostname,
@@ -108,7 +115,10 @@ describe.skipIf(!enabled)(
         clock.rows[0]!.cutover.toISOString();
       actors = await issue414CreateAuthorizedLoadActors(fixture);
       taskProbes = await issue414SeedAuthorizedHttpLoad(fixture, actors);
-      target = issue414MountedApp(fixture);
+      target = {
+        ...issue414MountedApp(fixture),
+        allowedTaskIds: new Set(taskProbes.activeTaskIds),
+      };
       const tokens: Record<Issue414Audience, string> = {
         CA: actors.ca.accessToken,
         LM: actors.lm.accessToken,
@@ -135,6 +145,20 @@ describe.skipIf(!enabled)(
         { ...target, locationId: actors.locationId, bearer: tokens },
         taskProbes,
       );
+      const wrongLocation = await fixture.managementGet(
+        `/v1/staff/dashboard/locations/${actors.otherLocationId}/alerts/preview`,
+        tokens.LM,
+      );
+      assert.equal(wrongLocation.status, 404);
+      assert.equal(wrongLocation.body?.items, undefined);
+      // Broad negative: synthetic legacy Task is noncurrent on multiple
+      // independent predicates; NOT a status-only decline regression proof.
+      const nonCurrent = await fixture.managementGet(
+        `/v1/staff/dashboard/locations/${actors.locationId}/alerts/sources/ALT-03/${taskProbes.nonCurrentTaskId}?episodeId=${encodeURIComponent(`${taskProbes.nonCurrentTaskId}:2`)}`,
+        tokens.CA,
+      );
+      assert.equal(nonCurrent.status, 404);
+      assert.equal(nonCurrent.body?.item, undefined);
       const denied = await fixture.managementGet(
         `/v1/staff/dashboard/locations/${actors.locationId}/alerts/preview`,
         "not-a-valid-bearer",
@@ -146,6 +170,10 @@ describe.skipIf(!enabled)(
     afterAll(async () => {
       try {
         if (startAttempted) await fixture.stop();
+      } catch (error) {
+        // A failed teardown is also an incomplete local evidence run.
+        allAssertionsPassed = false;
+        throw error;
       } finally {
         restoreEnvironment();
         const path = resolve(
@@ -158,11 +186,15 @@ describe.skipIf(!enabled)(
           JSON.stringify(
             {
               category: "SIMULATED_TABS_REAL_HTTP_PG17",
+              runId: process.env.VAYLET_TEST_CLUSTER_RUN_ID ?? null,
               databaseVersion,
               resultCount: results.length,
-              complete:
-                results.length === 3 &&
-                results.every((row) => row.complete === true),
+              inSuiteComplete: issue414HttpEvidenceComplete(
+                allAssertionsPassed,
+                results,
+              ),
+              cleanupVerified: false,
+              complete: false,
               results,
               caveat: "Never a production capacity SLO; no actual browser tabs",
             },
@@ -240,6 +272,7 @@ describe.skipIf(!enabled)(
           originalMfa[audience].last_admin_activity_at,
         );
       }
+      allAssertionsPassed = true;
     }, 800_000);
   },
 );

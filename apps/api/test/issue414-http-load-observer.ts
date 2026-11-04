@@ -95,6 +95,33 @@ export async function issue414ObserveHttpPool(
       cumulativePoolPeakWaiting: after.peakWaiting,
       acquisitionTimeoutsDelta:
         (after.acquisitionTimeouts ?? 0) - (before.acquisitionTimeouts ?? 0),
+      transactionTimeoutsDelta:
+        (after.transactionTimeouts ?? Number.NaN) -
+        (before.transactionTimeouts ?? Number.NaN),
+      leaseExpirationsDelta:
+        (after.leaseExpirations ?? Number.NaN) -
+        (before.leaseExpirations ?? Number.NaN),
+      rejectedDelta:
+        (after.rejected ?? Number.NaN) - (before.rejected ?? Number.NaN),
+      connectionFailuresDelta:
+        (after.connectionFailures ?? Number.NaN) -
+        (before.connectionFailures ?? Number.NaN),
+      poolErrorsDelta:
+        (after.poolErrors ?? Number.NaN) - (before.poolErrors ?? Number.NaN),
+      clientErrorsDelta:
+        (after.clientErrors ?? Number.NaN) -
+        (before.clientErrors ?? Number.NaN),
+      leaseSetupFailuresDelta:
+        (after.leaseSetupFailures ?? Number.NaN) -
+        (before.leaseSetupFailures ?? Number.NaN),
+      expiredAcquisitionsDelta:
+        (after.expiredAcquisitions ?? Number.NaN) -
+        (before.expiredAcquisitions ?? Number.NaN),
+      releaseFailuresDelta:
+        (after.releaseFailures ?? Number.NaN) -
+        (before.releaseFailures ?? Number.NaN),
+      failuresDelta:
+        (after.failures ?? Number.NaN) - (before.failures ?? Number.NaN),
       queryTimeoutsDelta:
         (after.queryTimeouts ?? 0) - (before.queryTimeouts ?? 0),
       lockTimeoutsDelta: (after.lockTimeouts ?? 0) - (before.lockTimeouts ?? 0),

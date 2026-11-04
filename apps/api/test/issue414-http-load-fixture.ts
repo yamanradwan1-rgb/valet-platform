@@ -5,6 +5,7 @@ import { ManagementControlPlaneTestFixture } from "./management-control-plane-te
 
 export interface Issue414LoadActors {
   readonly locationId: string;
+  readonly otherLocationId: string;
   readonly organizationId: string;
   readonly ca: {
     readonly accessToken: string;
@@ -21,6 +22,9 @@ export interface Issue414LoadActors {
 export interface Issue414LoadTaskProbes {
   readonly alt02TaskId: string;
   readonly alt03TaskId: string;
+  /** Legacy terminal Task excluded by several eligibility predicates. */
+  readonly nonCurrentTaskId: string;
+  readonly activeTaskIds: readonly string[];
 }
 
 export async function issue414CreateAuthorizedLoadActors(
@@ -30,7 +34,7 @@ export async function issue414CreateAuthorizedLoadActors(
   const membership = await fixture.createMembership(caUser.id);
   const location = await fixture.addLocation(membership.organizationId);
   // A second Location exists, but is not selected for either bearer.
-  await fixture.addLocation(membership.organizationId);
+  const otherLocation = await fixture.addLocation(membership.organizationId);
   const ca = await fixture.nativeLogin(caUser);
   await fixture.enrollAndAssure(ca);
   const lmUser = await fixture.createUser();
@@ -48,6 +52,7 @@ export async function issue414CreateAuthorizedLoadActors(
   return {
     organizationId: membership.organizationId,
     locationId: location.locationId,
+    otherLocationId: otherLocation.locationId,
     ca,
     lm,
   };
@@ -188,13 +193,17 @@ export async function issue414SeedAuthorizedHttpLoad(
     );
     const sourceIds = await admin.query<{ kind: string; taskId: string }>(
       `SELECT kind,task_id::text AS "taskId"
-       FROM issue414_http_seed WHERE seq IN (1,21) ORDER BY seq`,
+       FROM issue414_http_seed WHERE seq <= 41 ORDER BY seq`,
     );
+    assert.equal(sourceIds.rows.length, 41);
     assert.equal(sourceIds.rows[0]?.kind, "ALT02");
-    assert.equal(sourceIds.rows[1]?.kind, "ALT03");
+    assert.equal(sourceIds.rows[20]?.kind, "ALT03");
+    assert.equal(sourceIds.rows[40]?.kind, "OLD");
     taskProbes = {
       alt02TaskId: sourceIds.rows[0]!.taskId,
-      alt03TaskId: sourceIds.rows[1]!.taskId,
+      alt03TaskId: sourceIds.rows[20]!.taskId,
+      nonCurrentTaskId: sourceIds.rows[40]!.taskId,
+      activeTaskIds: sourceIds.rows.slice(0, 40).map((row) => row.taskId),
     };
     await admin.query("COMMIT");
   } catch (error) {
