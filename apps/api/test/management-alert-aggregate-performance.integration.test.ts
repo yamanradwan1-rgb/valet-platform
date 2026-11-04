@@ -94,6 +94,16 @@ async function measure(
   }
   expect(samples).toHaveLength(measured);
   const after = runtimePoolSnapshot(pool);
+  const metricDelta = (
+    key: "lockTimeouts" | "queryTimeouts" | "acquisitionTimeouts",
+  ) => {
+    const initial = before[key];
+    const final = after[key];
+    if (initial === undefined || final === undefined) {
+      throw new Error("Bounded PostgreSQL pool metrics are unavailable.");
+    }
+    return final - initial;
+  };
   console.info(
     JSON.stringify({
       suite: "issue414-pg17-authorized-aggregate",
@@ -108,10 +118,9 @@ async function measure(
       groupPeakActiveObserved,
       poolLifetimePeakAdmitted: after.peakAdmitted,
       poolLifetimePeakActive: after.peakActive,
-      lockTimeoutDelta: after.lockTimeouts - before.lockTimeouts,
-      queryTimeoutDelta: after.queryTimeouts - before.queryTimeouts,
-      acquisitionTimeoutDelta:
-        after.acquisitionTimeouts - before.acquisitionTimeouts,
+      lockTimeoutDelta: metricDelta("lockTimeouts"),
+      queryTimeoutDelta: metricDelta("queryTimeouts"),
+      acquisitionTimeoutDelta: metricDelta("acquisitionTimeouts"),
     }),
   );
 }
