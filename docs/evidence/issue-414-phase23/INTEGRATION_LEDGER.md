@@ -41,7 +41,14 @@ One worker can have multiple WBS rows; the IDs above are **physical** COS worker
 - Prime `97b845266700b3066033bf06d9b67863c690b344` adds an **unexposed pure predicate** for ALT-16 current `ACTIVE && !acceptingIntake`, never a stopped-since clock or new Location reader/permission. Exact API Vitest `test/issue414-location-intake-alert-eligibility.test.ts`: **3/3 PASS**; API typecheck, targeted ESLint and `git diff --check` exit 0. Independent read-only reviewer `worker-18` inspected SHA `97b84526` and reported **CLEAN** (no edits/no independently rerun tests). OD-08 remains open.
 - Worker `worker-17` source `20159483b11dc8cab67ef8f33a6503469238e0c6` adds internal READY/HANDOFF_PENDING candidate without unique episode ID or threshold eligibility. Worker focused 4/4 PASS, API lint/typecheck/build and architecture check exit 0; independent read-only `worker-19` checked exact commit and reported **CLEAN**. Prime serially cherry-picked it as `bf5325ba3e0f11811b05c33c44f049cd7aa902e4`, then **Prime integrated API Vitest 7/7 PASS** across this and ALT-16 sources. No real PG or browser Phase2/3 test claimed.
 - Prime `f52fc80c` contains Prettier-only formatting correction of category inventory test; re-executed inventory unit test **4/4 PASS**, scoped Prettier check PASS. No logic modified by formatting.
+- Final combined review: independent read-only COS `worker-20` inspected exact immutable integration diff `5a844f70..305b6562054e2933a03117d752cede817e313af7`, 11 changed files, 647 additions / 0 deletions, source lifecycle, DEC-109/107, new helpers and all decision/evidence documents. Verdict **CLEAN** without any BLOCKER/MAJOR for the *preparatory diff only*. Worker did not edit or rerun full regression, and explicitly did **not** approve Phase 2, Phase 3 or production enablement. Subsequent changes to this ledger are documentation-only.
 - GitHub Actions `main` **baseline** push checks on `5a844f70`: CI run `41889681920` **completed success**, Security CI run `41889683483` **completed success**. These are **NOT** CI checks of new Phase 2/3 integration commits.
+
+## GitHub draft-only review and security CI differential
+
+- Prime pushed local `feature/issue-414-management-alerts-phase2-phase3` at `305b6562054e2933a03117d752cede817e313af7`. Draft **PR #431**: `https://github.com/yamanradwan1-rgb/valet-platform/pull/431`, target main base `5a844f70`, **draft=true, merged=false**. This is an Owner decision/evidence review surface, **not** a ready-to-merge completed Phase 2/3 implementation.
+- The new-branch **push** Security CI `41898973715` ran with empty `BASE_TREE`: OSV reported 32 total / 32 new / 12 blocking and Trivy 26 total / 26 new / 10 blocking, despite no `pnpm-lock.yaml` or scanner-config diff in the integration commits. This is **a real push Security CI failure**, not a new-category security pass; the missing baseline causes existing findings to be counted as new in this mode. Semgrep push scanned and returned one finding but the gate failed closed due scan/parser `errors` field absent/incomplete. Do not suppress scanners or classify the incomplete Semgrep run as clean.
+- The separate **PR** Security CI `41899138635` initially reported OSV, Trivy, Semgrep and Gitleaks jobs success while CodeQL remained in progress; CI `41899138822` was also in progress at that observation. These statuses are time-scoped observations, **not** proof of completion or a replacement for the failed push run. Recheck after any later SHA.
 
 ## Final local integration quality (Prime checkout `bf5325ba` plus evidence-only ledger adjustment)
 
@@ -70,6 +77,6 @@ The verification build/non-Postgres tests regenerated three Next `next-env.d.ts`
 
 - Phase 2: **NOT PASSED**. Requires five source-authorized categories, approved Seen transaction, true current-event/condition semantics, real PG/browser/UI-Freeze/perf, clean independent review.
 - Phase 3: **NOT PASSED**. Requires six source-authorized categories, OD-08 payment/staff/commercial audience, financial overlap, complete Phase-1/2 regressions, real PG/browser/perf and clean review.
-- GitHub owner PR: **NOT CREATED**. `main` remains outside this execution's changes.
+- GitHub Owner PR: **#431 CREATED AS DRAFT ONLY**, explicitly `PARTIAL / NOT READY TO MERGE`; `main` remains unchanged by this execution.
 
 Every future row update must link `WBS -> requirement -> owning source -> accepted authority -> identity -> eligibility -> retirement -> implementation -> tests -> reviewer -> SHA -> state`; never replace missing proof with green status.
