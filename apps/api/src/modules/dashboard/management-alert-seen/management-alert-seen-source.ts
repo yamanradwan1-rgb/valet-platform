@@ -148,9 +148,7 @@ const sourceSql: Record<SeenOccurrenceCategory, string> = {
           AND jsonb_typeof(audit.metadata_json->'newRole') = 'string'
           AND audit.metadata_json->>'previousRole' <> audit.metadata_json->>'newRole')
         OR (audit.event_type = 'STAFF_LOCATION_ACCESS_REVOKED'
-          AND length(audit.metadata_json->>'locationCount') BETWEEN 1 AND 10
-          AND (audit.metadata_json->>'locationCount') ~ '^[0-9]+$'
-          AND (audit.metadata_json->>'locationCount')::numeric > 0)
+          AND (audit.metadata_json->>'locationCount') ~ '^[1-9][0-9]*$')
       )`,
 };
 

@@ -279,4 +279,19 @@ describe("Issue #414 DEC-110 source-typed Seen receipts (PG17)", () => {
     expect(await receiptCount(actor.organizationId, actor.user.id)).toBe(0);
     expect((await mark(actor, "ALT-15", source)).episodeId).toBe(source.episodeId);
   });
+
+  it("denies leading-zero staff location revocation and accepts canonical positive count", async () => {
+    const actor = await admin();
+    const source = (locationCount: string) => staffOccurrence(actor, {
+      eventType: "STAFF_LOCATION_ACCESS_REVOKED", metadata: { locationCount },
+    });
+    for (const count of ["0001", "0"]) {
+      await expect(mark(actor, "ALT-15", await source(count)))
+        .rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
+    }
+    expect(await receiptCount(actor.organizationId, actor.user.id)).toBe(0);
+    const valid = await source("1");
+    expect((await mark(actor, "ALT-15", valid)).episodeId).toBe(valid.episodeId);
+    expect(await receiptCount(actor.organizationId, actor.user.id)).toBe(1);
+  });
 });
