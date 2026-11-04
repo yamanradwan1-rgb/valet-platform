@@ -19,6 +19,16 @@ From the repository root, **only after obtaining the test-cluster lease**:
 pnpm --filter @valet/api exec node ../../scripts/test-harness/run-owned-tests.mjs api vitest.config.mjs test/management-alert-source-performance.integration.test.ts
 ```
 
+Normal runs profile in memory and **do not overwrite tracked evidence**.
+To intentionally replace the JSON with new machine- and time-specific
+measurements, opt in explicitly:
+
+```powershell
+$env:ISSUE414_CAPTURE_PG_EVIDENCE = "enabled"
+pnpm --filter @valet/api exec node ../../scripts/test-harness/run-owned-tests.mjs api vitest.config.mjs test/management-alert-source-performance.integration.test.ts
+Remove-Item Env:ISSUE414_CAPTURE_PG_EVIDENCE
+```
+
 Successful run: `api-postgres-race` **1/1 PASS**, Vitest duration 35.66 s;
 owned harness cleanup run `run_focused-api_gw0_8f858b0558a6` reported
 `db=0 roles=0 children=0`, exit code 0; lease released and Prime notified.
@@ -40,7 +50,7 @@ already overdue. `ANALYZE` refreshes synthetic test-database statistics;
 | Sparse | 2 | 2 | 2 | 4 | 2 | 1 | 1 | 1 |
 | Dense | 42 | 600 | 42 | 1,200 | 42 | 300 | 300 | 280 |
 
-Dense incident noise has 600 recent LOW/OPEN and 600 RESOLVED/HIGH records,
+Dense incident noise has 599 recent LOW/OPEN and 601 RESOLVED/HIGH records,
 while 42 qualified CRITICAL incidents have older timestamps. Thus source
 filtering and severity order are exercised **before the 21-row LIMIT**.
 Presence includes current START requests, pending exceptions whose requester

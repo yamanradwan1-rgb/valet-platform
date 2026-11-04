@@ -247,10 +247,16 @@ describe("Issue #414 W8 source read performance (real PG17, isolated DB)", () =>
       serial: results,
       concurrency,
     };
-    mkdirSync(resolve(evidencePath, ".."), { recursive: true });
-    writeFileSync(evidencePath, JSON.stringify(document, null, 2) + "\n");
-    console.log(
-      `W8 PG17 source performance evidence saved: ${evidencePath} (12 serial groups, 18 concurrency groups)`,
-    );
+    if (process.env.ISSUE414_CAPTURE_PG_EVIDENCE === "enabled") {
+      mkdirSync(resolve(evidencePath, ".."), { recursive: true });
+      writeFileSync(evidencePath, JSON.stringify(document, null, 2) + "\n");
+      console.log(
+        `W8 PG17 source performance evidence saved: ${evidencePath} (12 serial groups, 18 concurrency groups)`,
+      );
+    } else {
+      console.log(
+        "W8 PG17 benchmark completed: 12 serial + 18 concurrency groups. Set ISSUE414_CAPTURE_PG_EVIDENCE=enabled to explicitly refresh tracked evidence.",
+      );
+    }
   }, 300_000);
 });
