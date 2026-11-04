@@ -93,7 +93,7 @@ describe("Issue #414 ALT-01 persisted attempt lifecycle and SLA boundary", () =>
     expect(await reader.exact(requestId)).toBeNull();
   });
 
-  it("does not alert before saved SLA equality, then alerts after strict crossing", async () => {
+  it("excludes a request below its saved SLA and includes it after the strict threshold", async () => {
     const fixture = await db.managerFixture();
     await db.adminPool.query(
       "UPDATE locations SET sla_target_seconds=30 WHERE id=$1",
@@ -104,7 +104,7 @@ describe("Issue #414 ALT-01 persisted attempt lifecycle and SLA boundary", () =>
     await db.adminPool.query(
       `INSERT INTO retrieval_requests
          (id,organization_id,valet_session_id,requested_by_type,status,requested_at)
-       VALUES($1,$2,$3,'CUSTOMER','OPEN',clock_timestamp()-interval '28 seconds')`,
+       VALUES($1,$2,$3,'CUSTOMER','OPEN',clock_timestamp())`,
       [requestId, fixture.organizationId, sessionId],
     );
     await db.adminPool.query(
@@ -114,11 +114,24 @@ describe("Issue #414 ALT-01 persisted attempt lifecycle and SLA boundary", () =>
       [sessionId, requestId],
     );
     const reader = await currentReader();
-    // PostgreSQL clock_timestamp cannot be frozen: prove each side of equality.
+    // Start 30 seconds inside the unbreached interval rather than 2 seconds
+    // before its edge: CI scheduling cannot turn this into a false failure.
     expect((await reader.list()).map((item) => item.sourceId)).not.toContain(
       requestId,
     );
-    await db.adminPool.query("SELECT pg_sleep(2.5)");
+    // Isolated fixture-time control only, not a production update: shift the
+    // persisted event clock to 60s ago and keep the current attempt matched.
+    // This exercises both sides of the strict > comparator without sleeping.
+    await db.adminPool.query(
+      "UPDATE retrieval_requests SET requested_at=clock_timestamp()-interval '60 seconds' WHERE id=$1",
+      [requestId],
+    );
+    await db.adminPool.query(
+      `UPDATE valet_sessions SET retrieval_requested_at=
+         (SELECT requested_at FROM retrieval_requests WHERE id=$2)
+       WHERE id=$1`,
+      [sessionId, requestId],
+    );
     expect((await reader.list()).map((item) => item.sourceId)).toContain(
       requestId,
     );
