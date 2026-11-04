@@ -8,7 +8,7 @@ import {
   type PersistedCustodyAuditScope,
 } from "../audit/custody-audit-event-writer";
 import { appendDispatchEvent } from "../dispatch/dispatch-event-writer";
-import { loadDispatchOperationTime } from "../dispatch/dispatch-transaction";
+import { loadPostLockQueueEpisodeTime } from "../dispatch/queue-episode-operation-time";
 import { persistRetrievalPushAttention } from "../staff-push/retrieval-push-attention-writer";
 import type { StaffPushIntentCreationPolicy } from "../staff-push/staff-push-operational-policy";
 import type { LockedGuestAccessSessionScope } from "../valet-sessions/guest-access-session-resolution";
@@ -144,13 +144,15 @@ export async function requestGuestRetrieval(
     throw new GuestRetrievalRequestError();
   }
 
-  const operationTime = await loadDispatchOperationTime(transaction);
   const taskId = randomUUID();
   await lockManagementSettingsOrganization(
     transaction,
     session.organizationId,
     "SHARED",
   );
+  // The same authoritative instant starts Retrieval, Task queue and custody
+  // history. Capture it after Session and Management policy lock contention.
+  const operationTime = await loadPostLockQueueEpisodeTime(transaction);
   await transaction.query(
     `INSERT INTO retrieval_requests
        (id, organization_id, valet_session_id, requested_by_type,
