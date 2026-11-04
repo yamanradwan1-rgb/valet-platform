@@ -200,6 +200,7 @@ export class ManagementContextService {
               scope.locationId,
             )
           : null;
+      await recordAdminActivityInTransaction(transaction, context);
       return {
         capabilities: [...companyAdminManagementCapabilities],
         organization,
