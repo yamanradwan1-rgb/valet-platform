@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Bell } from "lucide-react";
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent } from "react";
 import type { DashboardApiClient } from "../../lib/api/dashboard-api-client";
 import { useStaffAuth } from "../../lib/auth/staff-auth-context";
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
@@ -40,7 +40,9 @@ export function ManagementAlertsControl({
   const owner = useRef<AlertPollOwner | null>(null);
   const liveScopeRevision = useSelectedScope().selectionRevision;
   const scopeRevisionRef = useRef(liveScopeRevision);
-  scopeRevisionRef.current = liveScopeRevision;
+  useLayoutEffect(() => {
+    scopeRevisionRef.current = liveScopeRevision;
+  }, [liveScopeRevision]);
   const locationId = managementAlertsLocation(selectedScope);
   const organizationId = selectedScope.authority === "COMPANY_ADMIN"
     ? selectedScope.context.organization.organizationId

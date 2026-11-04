@@ -4,6 +4,21 @@ import type { ManagementAlertPreview } from "./alert-model";
 import { AlertPollOwner, type AlertPollState } from "./alert-poll-owner";
 
 const empty: ManagementAlertPreview = { items: [], count: 0, hasMore: false };
+const stale: ManagementAlertPreview = {
+  items: [{
+    id: "old-alert",
+    category: "ALT-08",
+    severity: "CRITICAL",
+    sourceKind: "INCIDENT",
+    sourceId: "incident-old",
+    episodeId: "episode-old",
+    locationId: "location-old",
+    occurredAt: "2026-11-04T08:00:00.000Z",
+    title: "Old scope incident",
+  }],
+  count: 1,
+  hasMore: false,
+};
 function deferred<T>() {
   let resolve!: (value: T) => void;
   let reject!: (reason: unknown) => void;
@@ -69,7 +84,7 @@ describe("foreground Management Alerts poll", () => {
     s.owner.dispose();
   });
 
-  it("discards stale A1 across A→B→A and never paints late success", async () => {
+  it("holds A1 in-flight across A→B→A until stale success settles", async () => {
     const a1 = deferred<ManagementAlertPreview>();
     const a2 = deferred<ManagementAlertPreview>();
     const load = vi.fn().mockImplementationOnce(() => a1.promise)
@@ -79,12 +94,16 @@ describe("foreground Management Alerts poll", () => {
     await Promise.resolve();
     s.owner.setForeground(false);
     s.owner.setForeground(true);
-    await Promise.resolve();
-    a1.resolve({ items: [], count: 13, hasMore: false });
     await vi.advanceTimersByTimeAsync(0);
+    expect(load).toHaveBeenCalledTimes(1);
+    expect(s.onState).toHaveBeenLastCalledWith({
+      status: "unavailable", preview: null,
+    });
+    a1.resolve(stale);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(load).toHaveBeenCalledTimes(2);
     expect(s.onState).not.toHaveBeenCalledWith({
-      status: "ready",
-      preview: { items: [], count: 13, hasMore: false },
+      status: "ready", preview: stale,
     });
     a2.resolve(empty);
     await vi.advanceTimersByTimeAsync(0);
@@ -94,7 +113,7 @@ describe("foreground Management Alerts poll", () => {
     s.owner.dispose();
   });
 
-  it("retires in-flight data and re-reads once after a preference revision", async () => {
+  it("waits for an abort-ignoring read before refreshing changed preferences", async () => {
     const old = deferred<ManagementAlertPreview>();
     const load = vi.fn().mockImplementationOnce(() => old.promise)
       .mockResolvedValue(empty);
@@ -103,9 +122,42 @@ describe("foreground Management Alerts poll", () => {
     await Promise.resolve();
     s.owner.invalidatePreferences();
     await vi.advanceTimersByTimeAsync(0);
+    expect(load).toHaveBeenCalledTimes(1);
+    s.owner.invalidatePreferences();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(load).toHaveBeenCalledTimes(1);
     old.reject(new Error("Old response ignored"));
     await vi.advanceTimersByTimeAsync(0);
     expect(load).toHaveBeenCalledTimes(2);
+    expect(s.onState).toHaveBeenLastCalledWith({
+      status: "ready", preview: empty,
+    });
+    s.owner.dispose();
+  });
+
+  it("pauses while hidden and starts exactly one fresh read after old settlement", async () => {
+    const old = deferred<ManagementAlertPreview>();
+    const fresh = deferred<ManagementAlertPreview>();
+    const load = vi.fn()
+      .mockImplementationOnce(() => old.promise)
+      .mockImplementationOnce(() => fresh.promise);
+    const s = setup(load);
+    s.owner.setForeground(true);
+    await Promise.resolve();
+    s.owner.setForeground(false);
+    await vi.advanceTimersByTimeAsync(120_000);
+    expect(load).toHaveBeenCalledTimes(1);
+    old.resolve(stale);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(load).toHaveBeenCalledTimes(1);
+    expect(s.onState).not.toHaveBeenCalledWith({
+      status: "ready", preview: stale,
+    });
+    s.owner.setForeground(true);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(load).toHaveBeenCalledTimes(2);
+    fresh.resolve(empty);
+    await vi.advanceTimersByTimeAsync(0);
     expect(s.onState).toHaveBeenLastCalledWith({
       status: "ready", preview: empty,
     });
@@ -120,6 +172,12 @@ describe("foreground Management Alerts poll", () => {
     const s = setup(load);
     s.owner.setForeground(true);
     await vi.advanceTimersByTimeAsync(0);
+    expect(s.onState).toHaveBeenLastCalledWith({
+      status: "suspended", preview: null,
+    });
+    s.owner.setForeground(false);
+    s.owner.setForeground(true);
+    s.owner.invalidatePreferences();
     expect(s.onState).toHaveBeenLastCalledWith({
       status: "suspended", preview: null,
     });
@@ -189,18 +247,17 @@ describe("foreground Management Alerts poll", () => {
     });
     await vi.advanceTimersByTimeAsync(10 * 60_000);
     expect(load).toHaveBeenCalledTimes(1);
-    stuck.resolve({ items: [], count: 12, hasMore: false });
+    stuck.resolve(stale);
     await vi.advanceTimersByTimeAsync(0);
     expect(s.onState).not.toHaveBeenCalledWith({
-      status: "ready",
-      preview: { items: [], count: 12, hasMore: false },
+      status: "ready", preview: stale,
     });
     await vi.advanceTimersByTimeAsync(60_000);
     expect(load).toHaveBeenCalledTimes(2);
     s.owner.dispose();
   });
 
-  it("drops late non-cooperative error after A→B→A", async () => {
+  it("does not start A2 until A1's non-cooperative late error settles", async () => {
     const old = deferred<ManagementAlertPreview>();
     const next = deferred<ManagementAlertPreview>();
     const load = vi.fn().mockImplementationOnce(() => old.promise)
@@ -210,11 +267,13 @@ describe("foreground Management Alerts poll", () => {
     await Promise.resolve();
     s.owner.setForeground(false);
     s.owner.setForeground(true);
-    await Promise.resolve();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(load).toHaveBeenCalledTimes(1);
     old.reject(new Error("stale protected error"));
     await vi.advanceTimersByTimeAsync(0);
-    expect(s.onState).not.toHaveBeenCalledWith({
-      status: "unavailable", preview: old.promise,
+    expect(load).toHaveBeenCalledTimes(2);
+    expect(s.onState).toHaveBeenLastCalledWith({
+      status: "loading", preview: null,
     });
     next.resolve(empty);
     await vi.advanceTimersByTimeAsync(0);

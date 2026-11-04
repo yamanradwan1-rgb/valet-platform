@@ -21,17 +21,55 @@ const incident = {
 };
 
 describe("Phase-1 preview boundary", () => {
-  it("accepts bounded scope-correct cases and displays 20+ overflow", () => {
+  const items = (count: number) => Array.from({ length: count }, (_, index) => ({
+    ...incident,
+    id: `alert-${index + 1}`,
+    sourceId: `incident-${index + 1}`,
+  }));
+
+  it.each([
+    [0, false, "0"],
+    [19, false, "19"],
+    [20, false, "20"],
+    // 21+ source cases are represented by 20 returned rows plus hasMore.
+    [20, true, "20+"],
+  ] as const)("decodes %i returned cases with overflow=%s as %s", (count, hasMore, badge) => {
     const parsed = previewSchemaForLocation("location-a").safeParse({
-      items: [{ ...incident }, { ...incident, id: "alert-2", severity: "CRITICAL" }],
-      count: 20,
-      hasMore: true,
+      items: items(count), count, hasMore,
     });
     expect(parsed.success).toBe(true);
-    if (!parsed.success) return;
-    expect(alertBadge(parsed.data)).toBe("20+");
-    expect(parsed.data.items[0]?.severity).toBe("CRITICAL");
-    expect(alertBadge({ items: [], count: 0, hasMore: false })).toBe("0");
+    if (parsed.success) {
+      expect(parsed.data.items).toHaveLength(count);
+      expect(alertBadge(parsed.data)).toBe(badge);
+    }
+  });
+
+  it("sorts CRITICAL before IMPORTANT on a count-consistent preview", () => {
+    const parsed = previewSchemaForLocation("location-a").safeParse({
+      items: [{ ...incident }, { ...incident, id: "alert-2", severity: "CRITICAL" }],
+      count: 2,
+      hasMore: false,
+    });
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.items[0]?.severity).toBe("CRITICAL");
+      expect(alertBadge(parsed.data)).toBe("2");
+    }
+  });
+
+  it("rejects inconsistent counts, impossible overflow and a raw 21-row payload", () => {
+    const schema = previewSchemaForLocation("location-a");
+    for (const candidate of [
+      { items: [], count: 20, hasMore: false },
+      { items: items(2), count: 20, hasMore: true },
+      { items: items(2), count: 1, hasMore: false },
+      { items: items(19), count: 19, hasMore: true },
+      { items: items(20), count: 21, hasMore: true },
+      { items: items(21), count: 21, hasMore: false },
+      { items: [], count: 0, hasMore: true },
+    ]) {
+      expect(schema.safeParse(candidate).success).toBe(false);
+    }
   });
 
   it("rejects foreign Location and mismatched source/category even in a count", () => {

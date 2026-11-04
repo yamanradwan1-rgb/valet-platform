@@ -37,6 +37,7 @@ export class AlertPollOwner {
   private suspended = false;
   private serial = 0;
   private failures = 0;
+  private readAfterSettle = false;
   private pending: Promise<void> | undefined;
   private controller: AbortController | undefined;
   private timer: ReturnType<typeof setTimeout> | undefined;
@@ -51,8 +52,12 @@ export class AlertPollOwner {
     this.foreground = foreground;
     this.clearTimer();
     this.invalidate();
-    this.publish({ status: "unavailable", preview: null });
-    if (foreground && !this.suspended) void this.read();
+    if (!foreground) this.readAfterSettle = false;
+    this.publish({
+      status: this.suspended ? "suspended" : "unavailable",
+      preview: null,
+    });
+    if (foreground && !this.suspended) this.readWhenAvailable();
   }
 
   refresh(): Promise<void> {
@@ -66,9 +71,13 @@ export class AlertPollOwner {
   /** Preference revision changed: retire even a non-cooperative prior response. */
   invalidatePreferences(): void {
     if (this.disposed) return;
-    const active = this.foreground;
-    this.setForeground(false);
-    if (active) this.setForeground(true);
+    this.clearTimer();
+    this.invalidate();
+    this.publish({
+      status: this.suspended ? "suspended" : "unavailable",
+      preview: null,
+    });
+    if (this.foreground && !this.suspended) this.readWhenAvailable();
   }
 
   /** Only an explicit user retry may leave definitive-denial suspension. */
@@ -78,14 +87,27 @@ export class AlertPollOwner {
     }
     this.suspended = false;
     this.failures = 0;
+    if (this.pending) {
+      this.readAfterSettle = true;
+      return this.pending;
+    }
     return this.refresh();
   }
 
   dispose(): void {
     this.disposed = true;
     this.foreground = false;
+    this.readAfterSettle = false;
     this.clearTimer();
     this.invalidate();
+  }
+
+  private readWhenAvailable(): void {
+    if (this.pending) {
+      this.readAfterSettle = true;
+    } else {
+      void this.read();
+    }
   }
 
   private read(): Promise<void> {
@@ -140,10 +162,16 @@ export class AlertPollOwner {
     ).finally(() => {
       if (this.pending === pending) {
         this.pending = undefined;
+        const restart = this.readAfterSettle;
+        this.readAfterSettle = false;
         if (
-          timedOut && this.foreground && !this.disposed &&
-          this.options.currentAuthority()
-        ) this.scheduleFailure();
+          !this.foreground || this.disposed || this.suspended ||
+          !this.options.currentAuthority()
+        ) return;
+        // A timed-out request retains the in-flight slot until settlement,
+        // and retries only after the bounded failure backoff.
+        if (timedOut) this.scheduleFailure();
+        else if (restart) void this.read();
       }
     });
     this.pending = pending;
@@ -185,7 +213,8 @@ export class AlertPollOwner {
     this.serial += 1;
     this.controller?.abort();
     this.controller = undefined;
-    this.pending = undefined;
+    // Cancellation retires UI authority, not transport ownership. A fetch
+    // that ignores AbortSignal still occupies the only slot until it settles.
     this.clearDeadline();
   }
 

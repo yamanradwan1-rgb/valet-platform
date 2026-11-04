@@ -63,7 +63,12 @@ export function previewSchemaForLocation(
         ) return { success: false };
         items.push(item as unknown as ManagementAlertItem);
       }
-      if ((data.count as number) < items.length) return { success: false };
+      // Count is the number of returned items, not the uncapped source total.
+      // With a 20-item cap, overflow is coherent only on a full page.
+      if (
+        data.count !== items.length ||
+        (data.hasMore === true && items.length !== 20)
+      ) return { success: false };
       return {
         success: true,
         data: {
@@ -78,5 +83,5 @@ export function previewSchemaForLocation(
 }
 
 export function alertBadge(preview: ManagementAlertPreview): string {
-  return preview.hasMore || preview.count >= 20 ? "20+" : String(preview.count);
+  return preview.hasMore ? "20+" : String(preview.count);
 }
