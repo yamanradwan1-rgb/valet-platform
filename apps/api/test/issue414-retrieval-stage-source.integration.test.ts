@@ -59,7 +59,8 @@ describe("Issue #414 ALT-04 current stage source proof", () => {
         event_type,actor_membership_id,new_assignee_membership_id,occurred_at)
        VALUES ($1,$2,$3,$4,$5,'ACCEPTED',$6,$6,$7)`,
       [randomUUID(), fixture.organizationId, fixture.locationId,
-        ambiguous.taskId, ambiguous.sessionId, fixture.membershipId, ambiguous.at],
+        ambiguous.taskId, ambiguous.sessionId, ambiguous.actorMembershipId,
+        ambiguous.at],
     );
     expect((await read()).some(x => x.sourceId === ambiguous.taskId)).toBe(false);
     const drift = await seedPhaseStage(db, "IN_PROGRESS");
@@ -109,7 +110,7 @@ describe("Issue #414 ALT-04 current stage source proof", () => {
        VALUES($1,$2,$3,$4,$5,'VALET_SESSION_RETRIEVAL_STARTED',
          'VALET_SESSION',$4,$6::jsonb,$7)`,
       [randomUUID(), fixture.organizationId, fixture.locationId,
-        stage.sessionId, fixture.membershipId,
+        stage.sessionId, stage.actorMembershipId,
         JSON.stringify({ fromTaskVersion: 3, toTaskVersion: 4,
           fromTaskStatus: "ACCEPTED", toTaskStatus: "IN_PROGRESS",
           toSessionState: "RETRIEVING", taskId: stage.taskId }), next],
@@ -120,7 +121,7 @@ describe("Issue #414 ALT-04 current stage source proof", () => {
         event_type,actor_membership_id,new_assignee_membership_id,occurred_at)
        VALUES($1,$2,$3,$4,$5,'IN_PROGRESS',$6,$6,$7)`,
       [randomUUID(), fixture.organizationId, fixture.locationId,
-        stage.taskId, stage.sessionId, fixture.membershipId, next],
+        stage.taskId, stage.sessionId, stage.actorMembershipId, next],
     );
     const projected = (await read()).filter(x => x.sourceId === stage.taskId);
     expect(projected).toHaveLength(1);

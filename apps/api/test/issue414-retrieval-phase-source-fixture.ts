@@ -1,7 +1,23 @@
 import { randomUUID } from "node:crypto";
 
 import type { RetrievalPhaseAlertInput } from "../src/modules/dashboard/management-alert-sources/retrieval-phase-alert-types";
+import type { DashboardActor } from "./dashboard-test-context";
 import { DashboardOverviewTestContext } from "./dashboard-overview-test-context";
+
+const staffByDatabase = new WeakMap<DashboardOverviewTestContext, Promise<DashboardActor>>();
+
+async function sourceStaff(db: DashboardOverviewTestContext) {
+  const existing = staffByDatabase.get(db);
+  if (existing !== undefined) return existing;
+  const staff = (async () => {
+    const fixture = await db.managerFixture();
+    const actor = await db.createActor(fixture, "VALET_EMPLOYEE");
+    await db.startActiveShift(fixture, actor);
+    return actor;
+  })();
+  staffByDatabase.set(db, staff);
+  return staff;
+}
 
 export async function phaseReaderInput(
   db: DashboardOverviewTestContext,
@@ -33,6 +49,7 @@ export async function seedPhaseStage(
   fixedSourceTime?: Date,
 ) {
   const fixture = await db.managerFixture();
+  const actor = await sourceStaff(db);
   const sessionId = await db.seedSession({
     state: status === "ACCEPTED" ? "REQUESTED" : "RETRIEVING",
   });
@@ -40,7 +57,7 @@ export async function seedPhaseStage(
     sessionId,
     status,
     taskType: "RETRIEVAL",
-    assigneeMembershipId: fixture.membershipId,
+    assigneeMembershipId: actor.membershipId,
   });
   const requestId = await db.seedRetrievalRequest({
     sessionId,
@@ -75,7 +92,7 @@ export async function seedPhaseStage(
         metadata_json, occurred_at)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10)`,
     [randomUUID(), fixture.organizationId, fixture.locationId, sessionId,
-      fixture.membershipId,
+      actor.membershipId,
       status === "ACCEPTED" ? "TASK_ACCEPTED" : "VALET_SESSION_RETRIEVAL_STARTED",
       status === "ACCEPTED" ? "Task" : "VALET_SESSION",
       status === "ACCEPTED" ? taskId : sessionId,
@@ -88,17 +105,19 @@ export async function seedPhaseStage(
         event_type,actor_membership_id,new_assignee_membership_id,occurred_at)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$7,$8)`,
     [dispatchId, fixture.organizationId, fixture.locationId, taskId,
-      sessionId, status, fixture.membershipId, at],
+      sessionId, status, actor.membershipId, at],
   );
-  return { at, dispatchId, requestId, sessionId, taskId };
+  return { at, actorMembershipId: actor.membershipId, dispatchId,
+    requestId, sessionId, taskId };
 }
 
 export async function seedPhaseReady(db: DashboardOverviewTestContext) {
   const fixture = await db.managerFixture();
+  const actor = await sourceStaff(db);
   const sessionId = await db.seedSession({ state: "READY" });
   const taskId = await db.seedTask({
     sessionId, status: "IN_PROGRESS", taskType: "RETRIEVAL",
-    assigneeMembershipId: fixture.membershipId,
+    assigneeMembershipId: actor.membershipId,
   });
   const requestId = await db.seedRetrievalRequest({
     sessionId, status: "ACCEPTED", requestedAgoMinutes: 12,
@@ -121,9 +140,9 @@ export async function seedPhaseReady(db: DashboardOverviewTestContext) {
         metadata_json,occurred_at)
      VALUES($1,$2,$3,$4,$5,'VALET_SESSION_READY','VALET_SESSION',$4,$6::jsonb,$7)`,
     [auditId, fixture.organizationId, fixture.locationId, sessionId,
-      fixture.membershipId,
+      actor.membershipId,
       JSON.stringify({ fromState: "RETRIEVING", toState: "READY",
         fromVersion: 6, toVersion: 7, taskId }), at],
   );
-  return { at, auditId, sessionId, taskId };
+  return { at, actorMembershipId: actor.membershipId, auditId, sessionId, taskId };
 }
