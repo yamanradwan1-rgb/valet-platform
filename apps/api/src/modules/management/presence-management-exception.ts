@@ -7,25 +7,14 @@ import type { PresenceManagementActor } from "./presence-management-authority";
 import { appendPresenceManagementAudit } from "./presence-management-audit";
 import { PresenceManagementError } from "./presence-management-errors";
 import { ManagementAccessDeniedError } from "./management-authorization";
+import { presenceManagementCanReviewPredicateSql } from "./presence-management-reviewability";
 
 const projectionColumns = `e.id::text AS "exceptionId", e.location_id::text AS "locationId",e.action,e.shift_id::text AS "shiftId",
   e.reason,e.status,e.revision,e.requested_at AS "requestedAt",e.expires_at AS "expiresAt",
   e.reviewed_at AS "reviewedAt",e.terminal_at AS "terminalAt",l.timezone,
   e.user_id::text AS "requesterUserId",e.membership_id::text AS "requesterMembershipId",
   m.first_name AS "firstName",m.last_name AS "lastName",u.email,
-  (e.status='PENDING' AND clock_timestamp()<e.expires_at AND e.user_id<>$3
-    AND u.status='ACTIVE' AND EXISTS (
-      SELECT 1 FROM organization_memberships m WHERE m.id=e.membership_id
-        AND m.organization_id=e.organization_id AND m.user_id=e.user_id
-        AND m.role IN ('VALET_EMPLOYEE','VALET_SUPERVISOR')
-        AND ((e.action='START' AND m.status='ACTIVE' AND l.status='ACTIVE' AND EXISTS (
-          SELECT 1 FROM membership_location_access a WHERE a.membership_id=m.id
-            AND a.organization_id=e.organization_id AND a.location_id=e.location_id))
-          OR (e.action='END' AND EXISTS (SELECT 1 FROM shifts s WHERE s.id=e.shift_id
-            AND s.membership_id=m.id AND s.location_id=e.location_id AND s.organization_id=e.organization_id AND s.status='ACTIVE'))))
-    AND EXISTS (SELECT 1 FROM shift_presence_challenges c JOIN shift_presence_operations o ON o.id=c.operation_row_id
-      WHERE c.id=e.challenge_id AND c.consumed_at IS NULL AND clock_timestamp()<c.expires_at
-        AND o.status='PENDING' AND clock_timestamp()<o.expires_at)) AS "canReview"`;
+  ${presenceManagementCanReviewPredicateSql} AS "canReview"`;
 const projectionJoin = `FROM shift_presence_exceptions e JOIN locations l ON l.id=e.location_id AND l.organization_id=e.organization_id
   JOIN users u ON u.id=e.user_id
   JOIN organization_memberships m ON m.id=e.membership_id AND m.user_id=e.user_id AND m.organization_id=e.organization_id

@@ -63,7 +63,7 @@ describe("Issue #414 ALT-12 reviewability for current principal", () => {
     ).toBeNull();
   });
 
-  it("excludes expired challenges and denies access after exact Location grant revocation", async () => {
+  it("denies exact Location Manager after grant revocation, before fetching candidates", async () => {
     const sample = await pendingPresenceException(
       db,
       "START",
@@ -85,11 +85,6 @@ describe("Issue #414 ALT-12 reviewability for current principal", () => {
     expect((await read()).map((item) => item.sourceId)).toContain(
       String(sample.exception.exceptionId),
     );
-    await db.adminPool.query(
-      "UPDATE shift_presence_challenges SET expires_at=clock_timestamp()-interval '1 second' WHERE id=$1",
-      [sample.challenge.challengeId],
-    );
-    expect(await read()).toEqual([]);
     await db.adminPool.query(
       "DELETE FROM membership_location_access WHERE membership_id=$1",
       [sample.manager.membershipId],

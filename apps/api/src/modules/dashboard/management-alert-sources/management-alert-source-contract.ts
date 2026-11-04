@@ -1,5 +1,6 @@
 import type { PostgresTransaction } from "../../../common/database/postgres";
 import type { StaffSessionContext } from "../../auth/staff-session-context";
+import { lockAndRecheckStaffSessionContext } from "../../auth/staff-session-revalidation";
 import { authorizeDashboardReadLocation } from "../dashboard-read-authorization";
 import type { DashboardLocationScope } from "../dashboard-location-authorization";
 import { DashboardOverviewError } from "../dashboard-overview-error";
@@ -19,7 +20,7 @@ export interface ManagementAlertSourceCase {
 export interface ManagementAlertReaderInput {
   readonly context: StaffSessionContext;
   readonly scope: DashboardLocationScope;
-  /** Hard per-family budget: 21 proves the 20+ badge after aggregation. */
+  /** Per-family cap; the aggregator alone decides the folded global 20+ count. */
   readonly limit: number;
 }
 
@@ -48,6 +49,15 @@ export async function requireManagementAlertSourceScope(
 ): Promise<DashboardLocationScope> {
   if (!Number.isInteger(input.limit) || input.limit < 1 || input.limit > 21) {
     throw new RangeError("Management alert source limit must be 1..21.");
+  }
+  // The ordinary LM Dashboard read checks its grant, but does not revalidate
+  // Staff tokens. Lock user/session BEFORE the management-org authorization
+  // fence, even when this reader is invoked without the aggregate facade.
+  if (
+    (await lockAndRecheckStaffSessionContext(transaction, input.context)) ===
+    undefined
+  ) {
+    throw new DashboardOverviewError("AUTHORIZATION_DENIED");
   }
   const scope = await authorizeDashboardReadLocation(transaction, {
     authenticatedUserId: input.context.userId,

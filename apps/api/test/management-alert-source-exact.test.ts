@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { PostgresTransaction } from "../src/common/database/postgres";
+import { lockAndRecheckStaffSessionContext } from "../src/modules/auth/staff-session-revalidation";
 import { authorizeDashboardReadLocation } from "../src/modules/dashboard/dashboard-read-authorization";
 import { findRetrievalSlaAlertCaseById } from "../src/modules/dashboard/management-alert-sources/retrieval-sla-alert-reader";
 import { findIncidentAlertCaseById } from "../src/modules/dashboard/management-alert-sources/incident-alert-reader";
@@ -9,6 +10,9 @@ import type { ManagementAlertExactReaderInput } from "../src/modules/dashboard/m
 
 vi.mock("../src/modules/dashboard/dashboard-read-authorization", () => ({
   authorizeDashboardReadLocation: vi.fn(),
+}));
+vi.mock("../src/modules/auth/staff-session-revalidation", () => ({
+  lockAndRecheckStaffSessionContext: vi.fn(),
 }));
 
 const sourceId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
@@ -28,6 +32,7 @@ const input: ManagementAlertExactReaderInput = {
   sourceId,
 };
 const authorize = vi.mocked(authorizeDashboardReadLocation);
+const staffSession = vi.mocked(lockAndRecheckStaffSessionContext);
 
 function fakeTransaction(rows: Record<string, unknown>[], enabled = true) {
   const calls: Array<{ sql: string; args?: readonly unknown[] }> = [];
@@ -46,9 +51,33 @@ function fakeTransaction(rows: Record<string, unknown>[], enabled = true) {
 beforeEach(() => {
   vi.resetAllMocks();
   authorize.mockResolvedValue(input.scope);
+  staffSession.mockResolvedValue({
+    id: input.context.staffAuthSessionId,
+    user_id: input.context.userId,
+    created_at: input.context.createdAt,
+  });
 });
 
 describe("Issue #414 exact-source navigation lookup", () => {
+  it("rejects stale Staff tokens before every exact-source authorization or lookup", async () => {
+    const { transaction, calls } = fakeTransaction([]);
+    staffSession.mockResolvedValue(undefined);
+    await expect(
+      findIncidentAlertCaseById(transaction, input),
+    ).rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
+    await expect(
+      findRetrievalSlaAlertCaseById(transaction, {
+        ...input,
+        graceSeconds: 0,
+      }),
+    ).rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
+    await expect(
+      findPresenceReviewAlertCaseById(transaction, input),
+    ).rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
+    expect(authorize).not.toHaveBeenCalled();
+    expect(calls).toHaveLength(0);
+  });
+
   it("returns exact current retrieval source with safe session ID only on detail", async () => {
     const { transaction, calls } = fakeTransaction([
       {
@@ -124,7 +153,7 @@ describe("Issue #414 exact-source navigation lookup", () => {
     });
     expect(JSON.stringify(found)).not.toContain("private reason");
     expect(allowed.calls[1]!.sql).toContain("AND e.id=$5::uuid");
-    expect(allowed.calls[1]!.sql).toContain("challenge.consumed_at IS NULL");
+    expect(allowed.calls[1]!.sql).toContain("c.consumed_at IS NULL");
     expect(allowed.calls[1]!.args).toEqual([
       "organization",
       "location",

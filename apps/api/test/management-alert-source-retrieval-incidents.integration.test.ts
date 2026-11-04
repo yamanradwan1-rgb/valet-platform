@@ -157,16 +157,27 @@ describe("Issue #414 P1 authoritative ALT-01 and ALT-08 source probes", () => {
   });
 
   it("filters severity/status before LIMIT, preserves exact incident ID and redacts narrative", async () => {
-    await db.managerFixture();
+    const fixture = await db.managerFixture();
     const sessionId = await db.seedSession({ state: "PARKED" });
     const qualified = await Promise.all(
       Array.from({ length: 22 }, () =>
         db.seedIncident({ sessionId, status: "OPEN" }),
       ),
     );
+    const critical = randomUUID();
     await db.adminPool.query(
-      "UPDATE incidents SET severity='CRITICAL',created_at=clock_timestamp()-interval '1 day' WHERE id=$1",
-      [qualified[21]],
+      `INSERT INTO incidents
+        (id,organization_id,location_id,valet_session_id,status,severity,type,
+         description,reported_by_membership_id,created_at)
+       VALUES($1,$2,$3,$4,'OPEN','CRITICAL','KEY_MISSING','private incident',$5,
+         clock_timestamp()-interval '1 day')`,
+      [
+        critical,
+        fixture.organizationId,
+        fixture.locationId,
+        sessionId,
+        fixture.membershipId,
+      ],
     );
     const investigating = await db.seedIncident({
       sessionId,
@@ -174,10 +185,18 @@ describe("Issue #414 P1 authoritative ALT-01 and ALT-08 source probes", () => {
     });
     const resolved = await db.seedIncident({ sessionId, status: "RESOLVED" });
     for (let i = 0; i < 26; i++) {
-      const noise = await db.seedIncident({ sessionId, status: "OPEN" });
       await db.adminPool.query(
-        "UPDATE incidents SET severity='LOW' WHERE id=$1",
-        [noise],
+        `INSERT INTO incidents
+          (id,organization_id,location_id,valet_session_id,status,severity,type,
+           description,reported_by_membership_id)
+         VALUES($1,$2,$3,$4,'OPEN','LOW','OTHER','private incident',$5)`,
+        [
+          randomUUID(),
+          fixture.organizationId,
+          fixture.locationId,
+          sessionId,
+          fixture.membershipId,
+        ],
       );
     }
     const input = await readerInput();
@@ -197,8 +216,7 @@ describe("Issue #414 P1 authoritative ALT-01 and ALT-08 source probes", () => {
     ).toBe(true);
     expect(
       cases.some(
-        (item) =>
-          item.sourceId === qualified[21] && item.severity === "CRITICAL",
+        (item) => item.sourceId === critical && item.severity === "CRITICAL",
       ),
     ).toBe(true);
     expect(
