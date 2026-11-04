@@ -1,28 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { PostgresTransaction } from "../src/common/database/postgres";
-import { lockAndRecheckStaffSessionContext } from "../src/modules/auth/staff-session-revalidation";
-import { requireMfaAssuranceInTransaction } from "../src/modules/auth/mfa/mfa-assurance-policy";
 import { ManagementAccessDeniedError } from "../src/modules/management/management-authorization";
-import { authorizeStaffManagement } from "../src/modules/management/staff-management-authorization";
+import { authorizeForceEndedShiftAlert } from "../src/modules/dashboard/management-alert-sources/administrative-occurrence-authority";
 import {
   queryForcedShiftEndOccurrences,
   findForcedShiftEndOccurrence,
 } from "../src/modules/dashboard/management-alert-sources/force-ended-shift-occurrence-reader";
 
-vi.mock("../src/modules/auth/staff-session-revalidation", () => ({
-  lockAndRecheckStaffSessionContext: vi.fn(),
-}));
-vi.mock("../src/modules/auth/mfa/mfa-assurance-policy", () => ({
-  requireMfaAssuranceInTransaction: vi.fn(),
-}));
-vi.mock("../src/modules/management/staff-management-authorization", () => ({
-  authorizeStaffManagement: vi.fn(),
-}));
+vi.mock(
+  "../src/modules/dashboard/management-alert-sources/administrative-occurrence-authority",
+  async (importOriginal) => ({
+    ...(await importOriginal<
+      typeof import("../src/modules/dashboard/management-alert-sources/administrative-occurrence-authority")
+    >()),
+    authorizeForceEndedShiftAlert: vi.fn(),
+  }),
+);
 
 const org = "11111111-1111-4111-8111-111111111111";
 const site = "22222222-2222-4222-8222-222222222222";
-const otherSite = "33333333-3333-4333-8333-333333333333";
-const member = "44444444-4444-4444-8444-444444444444";
 const subject = "55555555-5555-4555-8555-555555555555";
 const eventId = "66666666-6666-4666-8666-666666666666";
 const context = {
@@ -37,9 +33,6 @@ function database(rows: readonly Record<string, unknown>[] = []) {
   const statements: Array<{ sql: string; values: readonly unknown[] }> = [];
   const query = vi.fn(async (sql: string, values: readonly unknown[]) => {
     statements.push({ sql, values });
-    if (sql.includes("SELECT 1 FROM locations")) {
-      return { rowCount: 1, rows: [{ "?column?": 1 }] };
-    }
     if (sql.includes("FROM audit_events")) {
       return { rowCount: rows.length, rows };
     }
@@ -50,19 +43,7 @@ function database(rows: readonly Record<string, unknown>[] = []) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(lockAndRecheckStaffSessionContext).mockResolvedValue({
-    id: context.staffAuthSessionId,
-    user_id: context.userId,
-    created_at: context.createdAt,
-  });
-  vi.mocked(requireMfaAssuranceInTransaction).mockResolvedValue(undefined);
-  vi.mocked(authorizeStaffManagement).mockResolvedValue({
-    kind: "COMPANY_ADMIN",
-    membershipId: member,
-    organizationId: org,
-    activeLocationIds: null,
-    scopeFingerprint: "test",
-  });
+  vi.mocked(authorizeForceEndedShiftAlert).mockResolvedValue(undefined);
 });
 
 describe("ALT-13 guarded Shift force-end source", () => {
@@ -101,39 +82,24 @@ describe("ALT-13 guarded Shift force-end source", () => {
     expect(source.sql).not.toMatch(
       /shift_force_end_closures|metadata_json|reason/i,
     );
-    expect(source.values).toEqual([org, site, 21]);
-    expect(vi.mocked(authorizeStaffManagement)).toHaveBeenCalledTimes(2);
+    expect(source.values).toEqual([org, site, 21, context.userId]);
+    expect(source.sql).toContain("NOT EXISTS");
+    expect(source.sql).toContain("management_alert_seen_receipts");
+    expect(source.sql).toContain("seen.category='ALT-13'");
+    expect(source.sql.indexOf("NOT EXISTS")).toBeLessThan(
+      source.sql.indexOf("ORDER BY"),
+    );
+    const exact = db.statements.filter((s) =>
+      s.sql.includes("FROM audit_events"),
+    )[1]!;
+    expect(exact.sql).not.toContain("management_alert_seen_receipts");
+    expect(exact.sql).toContain("event.id=$4::uuid");
+    expect(exact.values).toEqual([org, site, 1, eventId]);
+    expect(vi.mocked(authorizeForceEndedShiftAlert)).toHaveBeenCalledTimes(2);
   });
 
-  it("fails closed on revoked LM grant before querying source rows", async () => {
-    vi.mocked(authorizeStaffManagement).mockResolvedValue({
-      kind: "LOCATION_MANAGER",
-      membershipId: member,
-      organizationId: org,
-      activeLocationIds: [otherSite],
-      scopeFingerprint: "test",
-    });
-    const db = database();
-    await expect(
-      queryForcedShiftEndOccurrences(db.tx, {
-        context,
-        organizationId: org,
-        locationId: site,
-        limit: 21,
-      }),
-    ).rejects.toBeInstanceOf(ManagementAccessDeniedError);
-    expect(db.statements).toHaveLength(0);
-  });
-
-  it("requires protected LM MFA before querying any Shift occurrence", async () => {
-    vi.mocked(authorizeStaffManagement).mockResolvedValue({
-      kind: "LOCATION_MANAGER",
-      membershipId: member,
-      organizationId: org,
-      activeLocationIds: [site],
-      scopeFingerprint: "test",
-    });
-    vi.mocked(requireMfaAssuranceInTransaction).mockRejectedValueOnce(
+  it("fails closed on source authorization rejection before querying rows", async () => {
+    vi.mocked(authorizeForceEndedShiftAlert).mockRejectedValueOnce(
       new ManagementAccessDeniedError(),
     );
     const db = database();
@@ -148,9 +114,9 @@ describe("ALT-13 guarded Shift force-end source", () => {
     expect(db.statements).toHaveLength(0);
   });
 
-  it("fails closed on role downgrade or invalid session before source query", async () => {
+  it("rejects denied exact source and invalid UUID before selecting rows", async () => {
     const db = database();
-    vi.mocked(authorizeStaffManagement).mockRejectedValueOnce(
+    vi.mocked(authorizeForceEndedShiftAlert).mockRejectedValueOnce(
       new ManagementAccessDeniedError(),
     );
     await expect(
@@ -162,15 +128,12 @@ describe("ALT-13 guarded Shift force-end source", () => {
       }),
     ).rejects.toBeInstanceOf(ManagementAccessDeniedError);
     expect(db.statements).toHaveLength(0);
-    vi.mocked(lockAndRecheckStaffSessionContext).mockResolvedValueOnce(
-      undefined,
-    );
     await expect(
-      queryForcedShiftEndOccurrences(db.tx, {
+      findForcedShiftEndOccurrence(db.tx, {
         context,
         organizationId: org,
         locationId: site,
-        limit: 21,
+        eventId: "invalid",
       }),
     ).rejects.toBeInstanceOf(ManagementAccessDeniedError);
     expect(db.statements).toHaveLength(0);

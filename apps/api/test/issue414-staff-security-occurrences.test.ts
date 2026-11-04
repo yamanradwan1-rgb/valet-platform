@@ -1,28 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { PostgresTransaction } from "../src/common/database/postgres";
-import { lockAndRecheckStaffSessionContext } from "../src/modules/auth/staff-session-revalidation";
-import {
-  authorizeCompanyAdminManagement,
-  ManagementAccessDeniedError,
-} from "../src/modules/management/management-authorization";
+import { ManagementAccessDeniedError } from "../src/modules/management/management-authorization";
+import { authorizeStaffSecurityAlert } from "../src/modules/dashboard/management-alert-sources/administrative-occurrence-authority";
 import {
   queryStaffSecurityOccurrences,
   findStaffSecurityOccurrence,
 } from "../src/modules/dashboard/management-alert-sources/staff-security-occurrence-reader";
 
-vi.mock("../src/modules/auth/staff-session-revalidation", () => ({
-  lockAndRecheckStaffSessionContext: vi.fn(),
-}));
-vi.mock("../src/modules/auth/mfa/mfa-assurance-policy", () => ({
-  requireMfaAssuranceInTransaction: vi.fn(),
-}));
 vi.mock(
-  "../src/modules/management/management-authorization",
+  "../src/modules/dashboard/management-alert-sources/administrative-occurrence-authority",
   async (importOriginal) => ({
     ...(await importOriginal<
-      typeof import("../src/modules/management/management-authorization")
+      typeof import("../src/modules/dashboard/management-alert-sources/administrative-occurrence-authority")
     >()),
-    authorizeCompanyAdminManagement: vi.fn(),
+    authorizeStaffSecurityAlert: vi.fn(),
   }),
 );
 
@@ -52,18 +43,7 @@ function database(rows: readonly Record<string, unknown>[] = []) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(lockAndRecheckStaffSessionContext).mockResolvedValue({
-    id: context.staffAuthSessionId,
-    user_id: context.userId,
-    created_at: context.createdAt,
-  });
-  vi.mocked(authorizeCompanyAdminManagement).mockResolvedValue({
-    membershipId: member,
-    organizationId: org,
-    locationId: null,
-    userId: context.userId,
-    staffAuthSessionId: context.staffAuthSessionId,
-  });
+  vi.mocked(authorizeStaffSecurityAlert).mockResolvedValue(undefined);
 });
 describe("ALT-15 current Company Admin sensitive staff source", () => {
   it("exposes exactly two committed allowlisted families without private metadata", async () => {
@@ -110,12 +90,18 @@ describe("ALT-15 current Company Admin sensitive staff source", () => {
     expect(source.sql).toContain("event.metadata_json->>'locationCount'");
     expect(source.sql).not.toContain("SELECT event.metadata_json");
     expect(source.sql).toContain("statement_timestamp()-INTERVAL '7 days'");
-    expect(source.values).toEqual([org, 21]);
+    expect(source.values).toEqual([org, 21, context.userId]);
+    expect(source.sql).toContain("NOT EXISTS");
+    expect(source.sql).toContain("management_alert_seen_receipts");
+    expect(source.sql).toContain("seen.category='ALT-15'");
+    expect(source.sql.indexOf("NOT EXISTS")).toBeLessThan(
+      source.sql.indexOf("ORDER BY"),
+    );
   });
 
-  it("denies LM and revoked CA before source selection", async () => {
+  it("denies rejected source authority before source selection", async () => {
     const db = database();
-    vi.mocked(authorizeCompanyAdminManagement).mockRejectedValueOnce(
+    vi.mocked(authorizeStaffSecurityAlert).mockRejectedValueOnce(
       new ManagementAccessDeniedError(),
     );
     await expect(
@@ -126,7 +112,7 @@ describe("ALT-15 current Company Admin sensitive staff source", () => {
       }),
     ).rejects.toBeInstanceOf(ManagementAccessDeniedError);
     expect(db.statements).toHaveLength(0);
-    vi.mocked(authorizeCompanyAdminManagement).mockRejectedValueOnce(
+    vi.mocked(authorizeStaffSecurityAlert).mockRejectedValueOnce(
       new ManagementAccessDeniedError(),
     );
     await expect(
@@ -136,7 +122,7 @@ describe("ALT-15 current Company Admin sensitive staff source", () => {
         limit: 21,
       }),
     ).rejects.toBeInstanceOf(ManagementAccessDeniedError);
-    expect(vi.mocked(authorizeCompanyAdminManagement)).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(authorizeStaffSecurityAlert)).toHaveBeenCalledTimes(2);
   });
 
   it("rechecks exact event identity instead of opening an audit page", async () => {
@@ -155,6 +141,9 @@ describe("ALT-15 current Company Admin sensitive staff source", () => {
     });
     expect(exact?.eventId).toBe(eventId);
     expect(db.statements[0]?.sql).toContain("event.id=$3::uuid");
+    expect(db.statements[0]?.sql).not.toContain(
+      "management_alert_seen_receipts",
+    );
     expect(db.statements[0]?.values).toEqual([org, 1, eventId]);
   });
 
@@ -175,6 +164,6 @@ describe("ALT-15 current Company Admin sensitive staff source", () => {
       }),
     ).rejects.toBeInstanceOf(RangeError);
     expect(db.statements).toHaveLength(0);
-    expect(vi.mocked(lockAndRecheckStaffSessionContext)).not.toHaveBeenCalled();
+    expect(vi.mocked(authorizeStaffSecurityAlert)).not.toHaveBeenCalled();
   });
 });

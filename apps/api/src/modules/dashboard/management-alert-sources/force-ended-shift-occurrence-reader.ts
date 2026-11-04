@@ -47,14 +47,24 @@ async function forceEndOccurrences(
        AND event.actor_membership_id IS NOT NULL
        AND event.occurred_at>=statement_timestamp()-INTERVAL '7 days'
        AND event.occurred_at<=statement_timestamp()
-       ${eventId === undefined ? "" : "AND event.id=$4::uuid"}
+       ${
+         eventId === undefined
+           ? `AND NOT EXISTS (
+           SELECT 1 FROM management_alert_seen_receipts AS seen
+           WHERE seen.organization_id=event.organization_id
+             AND seen.user_id=$4::uuid
+             AND seen.category='ALT-13'
+             AND seen.source_id=event.id
+         )`
+           : "AND event.id=$4::uuid"
+       }
      ORDER BY event.occurred_at DESC, event.id DESC
      LIMIT $3`,
     [
       input.organizationId,
       input.locationId,
       input.limit,
-      ...(eventId === undefined ? [] : [eventId]),
+      eventId ?? input.context.userId,
     ],
   );
   return result.rows.map((row) => ({
