@@ -112,9 +112,13 @@ throw for missing/invalid configuration. They fail closed on every episode
 where `occurred_at <= cutover`; comparison is **strict `> cutover`** so
 millisecond ties cannot admit a legacy event. Before activating alerts,
 Operators must quiesce every old writer and in-flight transaction, deploy
-the post-lock fix, capture `clock_timestamp()` on the database server
-**after** quiescence, configure the resulting trusted cutover, and then
-enable P1. If that gate cannot be proved, P1 ALT-02/03 must remain disabled.
+the post-lock fix, capture
+`SELECT clock_timestamp()::timestamptz(3) AS post_lock_clock_cutover`
+**on the database server AFTER quiescence**, persist the exact rounded
+millisecond cutover and verify its provenance before enabling P1.
+Do not sample raw `clock_timestamp()` and truncate it in JavaScript: a
+fractional-millisecond legacy episode can otherwise cross the cutoff.
+If that gate cannot be proved, P1 ALT-02/03 must remain disabled.
 No schema marker, persistence rewrite, automatic cutover guess or
 unstated release-time value is introduced.
 
@@ -166,8 +170,8 @@ No deployment, CI, pilot-scale query-plan check or product runtime was
 verified.
 
 **W1 cutover precision BLOCKER (subsequent review, 2026-11-04):** the
-instruction above to sample raw `clock_timestamp()` is not safe when that
-unrounded microsecond-resolution timestamp passes through a JavaScript
+original raw-`clock_timestamp()` capture instruction, now corrected above,
+is not safe when that unrounded microsecond-resolution timestamp passes through a JavaScript
 `Date` (whose parser truncates to milliseconds). An old QUEUED episode
 whose actual pre-quiescence instant was `.500800` is persisted through
 `::timestamptz(3)` as `.501`; a later raw server cutoff `.500900`

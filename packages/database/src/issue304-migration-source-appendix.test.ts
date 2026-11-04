@@ -11,7 +11,7 @@ import {
 import { expectedMigrationDirectories } from "./migration-manifest.js";
 
 describe("append-only migration source history", () => {
-  it("preserves migrations 1..103 and records 104..106 in exact order", () => {
+  it("preserves migrations 1..103 and records 104..107 in exact order", () => {
     expect(expectedMigrationDirectories).toHaveLength(93);
     expect(issue300AppendedMigrationDirectories).toEqual([
       "20261018009400_issue_300_u05_birth_xid",
@@ -31,8 +31,9 @@ describe("append-only migration source history", () => {
       "20261029010400_issue352_emergency_dispatch_type",
       "20261029010500_issue352_emergency_takeover_persistence",
       "20261030010600_issue363_session_bound_pending_mfa",
+      "20261104010700_issue414_personal_alert_timing_preferences",
     ]);
-    expect(expectedCurrentMigrationDirectories).toHaveLength(106);
+    expect(expectedCurrentMigrationDirectories).toHaveLength(107);
     const migrationRoot = fileURLToPath(
       new URL("../prisma/migrations/", import.meta.url),
     );

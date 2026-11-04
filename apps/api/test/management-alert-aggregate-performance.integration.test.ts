@@ -8,8 +8,17 @@ import {
 import { runtimePoolSnapshot } from "../src/common/database/bounded-postgres-pool";
 import type { StaffSessionContext } from "../src/modules/auth/staff-session-context";
 import { listManagementAlertPreview } from "../src/modules/dashboard/management-alert-preview-query";
+import { assertCurrentMixedTaskReasons } from "./management-alert-aggregate-exact";
 import { ManagementAlertMfaFixture } from "./management-alert-mfa-fixture";
 import { seedAlertAggregateIncidentHistory } from "./management-alert-aggregate-perf-seed";
+import { seedManagementAlertMixedSources } from "./management-alert-aggregate-mixed-seed";
+import { seedManagementAlertTaskHistory } from "./management-alert-aggregate-task-seed";
+import {
+  captureAggregatePlans,
+  persistAggregateMetrics,
+  recordAggregateMetric,
+} from "./management-alert-aggregate-evidence";
+import { assertScenarioPresenceStillLive } from "./management-alert-aggregate-liveness";
 
 /**
  * Explicit opt-in only: local PG17, runtime-role, MFA bypass OFF, 2 densities
@@ -24,7 +33,13 @@ let observedPostgresVersion = 0;
 
 interface Scenario {
   readonly density: "sparse" | "dense";
+  readonly organizationId: string;
   readonly locationId: string;
+  readonly caMembershipId: string;
+  readonly lmMembershipId: string;
+  readonly expectedPresenceCount: number;
+  readonly alt02TaskId: string;
+  readonly alt03TaskId: string;
   readonly ca: StaffSessionContext;
   readonly lm: StaffSessionContext;
   readonly expectedCount: number;
@@ -59,6 +74,8 @@ async function measure(
 ): Promise<void> {
   const warmups = 20;
   const measured = 100;
+  // A five-source profile cannot begin with an already expired Presence case.
+  await assertScenarioPresenceStillLive(pool, scenario, role);
   for (let i = 0; i < warmups; i += 1) await readOne(scenario, role);
   const samples: number[] = [];
   let groupPeakWaitingObserved = 0;
@@ -94,6 +111,9 @@ async function measure(
   }
   expect(samples).toHaveLength(measured);
   const after = runtimePoolSnapshot(pool);
+  // Source reviewability expires independently of Incident/Task state. The
+  // 420s test timeout must NEVER allow a stale benchmark to report success.
+  await assertScenarioPresenceStillLive(pool, scenario, role);
   const metricDelta = (
     key: "lockTimeouts" | "queryTimeouts" | "acquisitionTimeouts",
   ) => {
@@ -104,25 +124,23 @@ async function measure(
     }
     return final - initial;
   };
-  console.info(
-    JSON.stringify({
-      suite: "issue414-pg17-authorized-aggregate",
-      postgresServerVersionNum: observedPostgresVersion,
-      density: scenario.density,
-      audience: role === "ca" ? "COMPANY_ADMIN_MFA" : "LOCATION_MANAGER",
-      concurrency,
-      warmups,
-      measured,
-      ...percentiles(samples),
-      groupPeakWaitingObserved,
-      groupPeakActiveObserved,
-      poolLifetimePeakAdmitted: after.peakAdmitted,
-      poolLifetimePeakActive: after.peakActive,
-      lockTimeoutDelta: metricDelta("lockTimeouts"),
-      queryTimeoutDelta: metricDelta("queryTimeouts"),
-      acquisitionTimeoutDelta: metricDelta("acquisitionTimeouts"),
-    }),
-  );
+  recordAggregateMetric({
+    suite: "issue414-pg17-authorized-aggregate",
+    postgresServerVersionNum: observedPostgresVersion,
+    density: scenario.density,
+    audience: role === "ca" ? "COMPANY_ADMIN_MFA" : "LOCATION_MANAGER",
+    concurrency,
+    warmups,
+    measured,
+    ...percentiles(samples),
+    groupPeakWaitingObserved,
+    groupPeakActiveObserved,
+    poolLifetimePeakAdmitted: after.peakAdmitted,
+    poolLifetimePeakActive: after.peakActive,
+    lockTimeoutDelta: metricDelta("lockTimeouts"),
+    queryTimeoutDelta: metricDelta("queryTimeouts"),
+    acquisitionTimeoutDelta: metricDelta("acquisitionTimeouts"),
+  });
 }
 
 describe.skipIf(!profileEnabled)(
@@ -144,8 +162,11 @@ describe.skipIf(!profileEnabled)(
         serverClock.rows[0]!.now.toISOString();
 
       const specifications = [
-        { density: "sparse" as const, active: 2, history: 10 },
-        { density: "dense" as const, active: 80, history: 400 },
+        { density: "sparse" as const, active: 2, mixed: 2, history: 10 },
+        // Ten cases per family keep BOTH folded ALT-02/03 reasons inside
+        // their shared LIMIT 21 while 80 current Incidents and 400 historic
+        // Tasks still exercise dense scan and critical-first pagination.
+        { density: "dense" as const, active: 80, mixed: 10, history: 400 },
       ];
       scenarios = [];
       for (const spec of specifications) {
@@ -165,9 +186,41 @@ describe.skipIf(!profileEnabled)(
           activeCount: spec.active,
           historicalCount: spec.history,
         });
+        const worker = await seedManagementAlertMixedSources(
+          fixture.databasePool(),
+          {
+            organizationId: admin.membership.organizationId,
+            locationId: admin.location.locationId,
+            reporterMembershipId: admin.membership.membershipId,
+            ownerUserIds: [admin.user.id, manager.user.id],
+            eligiblePerFamily: spec.mixed,
+            historicalTasks: spec.history,
+          },
+        );
+        const tasks = await seedManagementAlertTaskHistory(
+          fixture.databasePool(),
+          {
+            organizationId: admin.membership.organizationId,
+            locationId: admin.location.locationId,
+            workerMembershipId: worker.membershipId,
+            eligiblePerReason: spec.mixed,
+            historicalTasks: spec.history,
+          },
+        );
+        await fixture.query(
+          `ANALYZE tasks; ANALYZE dispatch_events; ANALYZE audit_events;
+           ANALYZE retrieval_requests; ANALYZE incidents;
+           ANALYZE shift_presence_exceptions`,
+        );
         scenarios.push({
           density: spec.density,
+          organizationId: admin.membership.organizationId,
           locationId: admin.location.locationId,
+          caMembershipId: admin.membership.membershipId,
+          lmMembershipId: manager.membershipId,
+          expectedPresenceCount: spec.mixed,
+          alt02TaskId: tasks.alt02Id,
+          alt03TaskId: tasks.alt03Id,
           ca: await fixture.contextFor(
             admin.auth.accessToken,
             admin.auth.sessionId,
@@ -178,9 +231,33 @@ describe.skipIf(!profileEnabled)(
             manager.auth.sessionId,
             manager.user.id,
           ),
-          expectedCount: Math.min(20, spec.active),
-          expectedHasMore: spec.active > 20,
+          expectedCount: Math.min(20, spec.active + 4 * spec.mixed),
+          expectedHasMore: spec.active + 4 * spec.mixed > 20,
         });
+      }
+      await assertCurrentMixedTaskReasons(pool, scenarios);
+      // The sparse cohort fits in a 20-row preview: unlike an incident-only
+      // benchmark it proves that all five approved sources are LIVE together.
+      const sparse = scenarios.find((entry) => entry.density === "sparse")!;
+      for (const role of ["ca", "lm"] as const) {
+        const result = await listManagementAlertPreview(pool, {
+          context: sparse[role],
+          locationId: sparse.locationId,
+        });
+        expect(result.items.map((item) => item.category).sort()).toEqual(
+          [
+            "ALT-01",
+            "ALT-01",
+            "ALT-02",
+            "ALT-02",
+            "ALT-03",
+            "ALT-03",
+            "ALT-08",
+            "ALT-08",
+            "ALT-12",
+            "ALT-12",
+          ].sort(),
+        );
       }
     }, 180_000);
 
@@ -211,6 +288,10 @@ describe.skipIf(!profileEnabled)(
           }
         }
       }
+      // No complete EXPLAIN/metric artifacts are written before the entire
+      // measured workload and source-liveness validations pass.
+      await captureAggregatePlans(pool, scenarios, observedPostgresVersion);
+      persistAggregateMetrics();
     }, 420_000);
   },
 );
