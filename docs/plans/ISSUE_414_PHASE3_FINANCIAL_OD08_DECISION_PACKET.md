@@ -1,6 +1,6 @@
 # Issue #414 — Workstream E: Financial Alerts OD-08 Decision Packet
 
-**Status: PROPOSED — DECISION REQUIRED. No Phase-3 financial source authorization or alert activation is approved.**
+**Current status (2026-11-04): Owner approved OD-08A–G in [Accepted DEC-111](../decisions/DEC-111_ISSUE_414_PHASE3_FINANCIAL_SECURITY_COMMERCIAL_POLICY.md).** This file retains **historical pre-approval** source analysis and options below; those options no longer require reapproval. Narrow CA/exact-granted LM financial projections are approved; `REFERENCE_ATTACHED` is unresolved ALT-11 (not retired), with original `dispatch_guarded_at`; unresolved payments suppress ALT-10 even before ALT-11 threshold. Source failure generation, actual SQL, privacy and PG/browser validation remain unproven. No Phase-3 production feature activation is authorized.
 
 **Inspection baseline:** `5a844f70d5efcda0a618f153b46871e6137a1d36` (`feature/414-p23-e-finance`). **Scope:** WBS 414-03-01/03-02, ALT-10/11 only. This is a reviewable proposal, not an Accepted Decision, new API, migration or claim of runtime validation.
 

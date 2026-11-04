@@ -1,6 +1,6 @@
-# Issue #414 — OD-07 and OD-08 Owner Decision Packet (DRAFT)
+# Issue #414 — Historical OD-07 / OD-08 Proposal and Accepted-Decision Crosswalk
 
-**State: PROPOSED / NOT ACCEPTED.** Neither this file nor implementation authorization accepts any permissions, event grouping, Seen persistence or financial projection. The team must stop affected code until the Owner approves exact focused contracts.
+**CURRENT STATUS (2026-11-04): OWNER-APPROVED POLICY IS ACCEPTED IN [DEC-110](../../decisions/DEC-110_ISSUE_414_PHASE2_SOURCE_OCCURRENCE_SEEN_POLICY.md) AND [DEC-111](../../decisions/DEC-111_ISSUE_414_PHASE3_FINANCIAL_SECURITY_COMMERCIAL_POLICY.md).** The proposal text below is retained as historic source analysis, **not** the operative approval request. OD-07A–D and OD-08A–G were explicitly approved by the Owner. In particular: Seen is **explicit per-item and server-confirmed**; `REFERENCE_ATTACHED` **remains ALT-11 unresolved** with the original guard clock; ALT-15 is CA-only; ALT-17 is CA-only within the subscription-only utility. The prior “DECISION REQUIRED” phrasing below is **superseded for these choices**; source chronology, proof-episode grouping, transaction/schema and runtime acceptance are **technical evidence still pending**, not new reapproval of the same policy. Do not promote unproven source mechanics into Accepted truth.
 
 **Provenance:** Prime baseline `5a844f70d5efcda0a618f153b46871e6137a1d36` (PR #430); Master Plan §14, Issue #414, Accepted DEC-109 and other source-specific Accepted Decisions. Prior Master Plan descriptions of Phase 1 as unimplemented are historical; PR #430 merged five Phase-1 categories. DEC-107 is explicitly **Proposed**, though Issue #352 takeover behavior has separately approved directions.
 

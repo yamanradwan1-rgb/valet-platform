@@ -7,6 +7,7 @@
 **Immutable inspection baseline:** [`3ab80f98940147a71ab37262eeff5080234eb6e8`](https://github.com/yamanradwan1-rgb/valet-platform/tree/3ab80f98940147a71ab37262eeff5080234eb6e8).
 **Authority:** Issue #414 §§0–11 and §10A, **Accepted DEC-109 (2026-11-04; later binding Phase-1 Owner policy supersedes relevant §10A candidates)**, other Accepted Decisions and source-of-truth hierarchy, and the historic pinned source inspection.
 **Scope boundary:** Exactly 17 eventual categories, IMPORTANT/CRITICAL only; ALT-14 remains EXTERNAL DEPENDENCY / DEFERRED / DISABLED; no Cash Reconciliation implementation or Issue #415 Live Operations auto-refresh.
+**CURRENT POST-PLAN STATUS — 2026-11-04 Owner follow-up:** Phase 0/1 code was merged via PR #430 (baseline `5a844f70`) and Phase 2/3 source-only preparatory work is in Draft PR #431. The Owner has **now approved OD-07A–D in [Accepted DEC-110](../decisions/DEC-110_ISSUE_414_PHASE2_SOURCE_OCCURRENCE_SEEN_POLICY.md)** and **OD-08A–G in [Accepted DEC-111](../decisions/DEC-111_ISSUE_414_PHASE3_FINANCIAL_SECURITY_COMMERCIAL_POLICY.md)**. Earlier “OD-07/08 OPEN” policy notes, “P1 not implemented” and “planning only” implementation statuses in this pinned historic plan do **not** represent current Git/policy truth. Evidence-first timestamp, source/group identity, PG/browser/performance gates remain open. This note supersedes historical status statements without inventing completion.
 **Evidence legend:** `LOCKED` = binding contract; `DERIVED` = mechanics that follow from LOCKED contracts and verified source; `UNRESOLVED` = choices or recommendations requiring Owner/source verification; `CONTRADICTED` = evidence conflicts with a stated claim. Tests and runtime checks are explicitly distinguished from source inspection.
 
 **Executive technical verdict (2026-11-04):** Owner-approved **Phase-1 product/contract policy** is now binding through DEC-109: T-01 ranges, folded ALT-02/03, current-source CA/LM audience for five categories, typed own-user preferences/CAS/MFA/audit, and additive UI placement. This approval does not implement alerts or prove Dispatch ordering, exact source queries, atomic writer compatibility, MFA-neutral reads, navigation or real PG/browser/performance checks. Phase 1 is **NOT READY TO RELEASE**; code implementation remains separately authorized.
@@ -538,9 +539,9 @@ The original review applied the VAYLET Code Review adversarial checklist to **ex
 
 **Prime resolution:** The eight principal security/contract objections were accepted and integrated into Sections 5–12 and the WBS. The broader audit added UI placement, stale response and governance gates. None requires rewriting an Accepted Decision; **material gaps remain unresolved**. The correct verdict is `DECISION REQUIRED` rather than a false `READY TO IMPLEMENT` or an unproven `REPOSITORY CONTRADICTION`. When later implementation commits exist, repeat this adversarial checklist against the **actual diff**, its source contracts, live migrations and executed PG/browser tests.
 
-## 14. Owner Decisions — Phase 1 Accepted, Later Phases Open
+## 14. Owner Decisions — Phase 1, OD-07 and OD-08 Accepted (current supersession)
 
-OD-01..OD-06 are now **Owner-accepted in DEC-109**. This register retains later-phase OD-07/08 and the external ALT-14 dependency; all prior binding product, UI Freeze, MFA and #415 exclusions remain in force.
+OD-01..OD-06 are Owner-accepted in DEC-109. The Owner **subsequently explicitly approved OD-07A–D in DEC-110 and OD-08A–G in DEC-111** on 2026-11-04. All older option tables below are retained for decision provenance, **not pending approvals**. Current source clock/grouping evidence is not automatically Accepted. ALT-14, UI Freeze, MFA and #415 exclusions remain in force.
 
 
 ### OD-01..OD-06 — Accepted Phase-1 policy (DEC-109; 2026-11-04)
@@ -556,9 +557,11 @@ OD-01..OD-06 are now **Owner-accepted in DEC-109**. This register retains later-
 | **OD-05 ACCEPTED FOR PHASE 1** | CA and exact-granted LM for ALT-01/02/03/08/12 **only**; source authorization before preview/count/navigation; no Supervisor/Employee/Guest bell | Exact source-reader queries/negative tests, current grant/MFA/entitlement validation |
 | **OD-06 ACCEPTED** | Isolated personal Timing subsection on mounted `/policies`; minimal management bell/panel and narrow safe exact source navigation within UI Freeze | UI/browsers, no frozen layout changes, AR/EN and a11y proof |
 
-OD-07/08 remain later-phase decisions. **No implementation has been authorized by this plan/Decision**, and policy acceptance does not close the Dispatch chronology technical blocker.
+**Updated:** OD-07/08 policy approvals were recorded as DEC-110/111 and the Owner separately authorized Phase 2/3 implementation in the current task. The historical statements below are not current authority; approval still does not close Dispatch chronology technical blockers.
 
 ### OD-07 — Phase 2 occurrence rights and DEC-107 compatibility (Later Phase 0/P2 gate)
+
+**CURRENT: POLICY ACCEPTED — DEC-110.** Narrow source-specific CA/LM rights; explicit per-item seven-day source-authorized Seen; committed takeover/terminal handoff/override/geofence occurrences; ALT-04/06 evidence-first fail-closed chronology. Exact grouping/clock proof and any substantial source-model expansion remain gated. The proposed alternatives below are historical.
 
 - **Issue and evidence:** ALT-05/07/09 expose takeover, handoff and tracking event evidence. DEC-107 standalone remains Proposed despite approved Issue #352 directions and committed takeover source; existing raw audit/route visibility is not alert source authority.
 - **Viable options:** A: approve focused event-type allowlist, CA/LM exact eligible source projections, minimal fields and stable seven-day Seen identity, while reconciling DEC-107's applicable contract first. B: restrict sensitive categories until each source contract becomes Accepted. C: reuse broad audit/route permissions as a blanket alert grant.
@@ -568,6 +571,8 @@ OD-07/08 remain later-phase decisions. **No implementation has been authorized b
 - **Can proceed without it:** Phase 1 after its gates, source-read performance analysis, generic occurrence receipt contract planning (no P2 activation).
 
 ### OD-08 — Phase 3 financial, security and restricted-shell policy (Later Phase 0/P3 gate)
+
+**CURRENT: POLICY ACCEPTED — DEC-111.** Source-specific CA/LM safe financial alert readers, unresolved `OUTCOME_UNKNOWN` **and** `REFERENCE_ATTACHED` (original guard clock), ALT-10 definitive failure/uncertainty suppression, bounded force-end, CA-only staff security, active Location stop, CA-only subscription utility restriction. No 900s CRITICAL. The alternatives below are historical.
 
 - **Issue and evidence:** CA financial Dashboard read is aggregate; exact CA payment operation access is absent; ALT-15 staff privilege event recipient and ALT-17 restricted subscription utility are recommendations, not Accepted T-02 policy.
 - **Viable options:** A: approve narrowly scoped safe CA/LM payment status/operation projections for ALT-10/11, CA-only ALT-15/17, active Location eligibility for ALT-16 and force-end source authority for ALT-13. B: omit individual categories until proven. C: expand a generic financial/audit capability to all details.
@@ -582,11 +587,11 @@ ALT-14's eventual source retirement remains **EXTERNAL / DEFERRED / DISABLED**, 
 
 ### Decision sequencing and smallest Phase 1 approval set
 
-**Owner's Phase-1 OD-01..OD-06 policy decisions are accepted.** What remains is **technical source proof and separately authorized implementation**, not a second approval of the same policies. OD-03's accepted fail-closed rule does not prove chronology; any new atomic marker/migration requires a separate focused Owner contract. OD-07/08 remain later-phase decision gates.
+**Current supersession:** Owner policies OD-01..OD-06 (DEC-109), OD-07 (DEC-110) and OD-08 (DEC-111) are accepted, and Phase 2/3 implementation is expressly authorized. What remains is **technical source proof, actual implementation and separate acceptance gates**, not a second approval of those same policies. OD-03 fail-closed alone does not prove chronology; a substantial new domain marker/model requires a separate focused contract.
 
 ## 15. Final Planning Verdict — Updated after Owner Approval (2026-11-04)
 
-**Final planning verdict: `DECISION REQUIRED` for technical evidence and later phases; DEC-109 now resolves OD-01 through OD-06 policy.**
+**Historical planning verdict only. Current verdict:** OD-07/08 policy **ACCEPTED** under DEC-110/111; actual 11-category functional implementation and Phase 2/3 gates remain incomplete pending source proof/tests. This document's old rows below describe its earlier audit baseline, **not** present authorization or code readiness.
 
 The Owner approved the actual Phase-1 policy for T-01 and the five-category T-02 recipients, their exact personal timing, ALT-02/03 one-case handling, preference/CAS/MFA/audit contract and feature-additive placement. **This is not evidence of implementation or authority to start coding.** Dispatch same-ms event ordering, source authorization/DTO/writer compatibility, correct source episode attribution, neutral MFA renewal, counted/paginated SQL performance, exact-detail navigation and actual PG/browser tests still need proof. Do not describe ALT-02/03 as READY until the source chronology is proven; a new source marker is not authorized without separate focused approval.
 
@@ -594,8 +599,8 @@ The Owner approved the actual Phase-1 policy for T-01 and the five-category T-02
 |---|---|---|
 | **Phase 0** | **OD-01..OD-06 ACCEPTED in DEC-109** | Prove Dispatch ordering; align current source readers and safe audit writer; record any necessary separate marker decision |
 | **Phase 1 / ALT-01/02/03/08/12** | **Owner audience and timing LOCKED; NOT READY for activation** | Actual typed preferences and source queries, MFA-neutral reads, bell/panel, exact navigation, race/security/PG/browser and performance gates |
-| **Phase 2 / ALT-04/05/06/07/09** | **OD-07 OPEN; BLOCKED** | Phase 1 foundation, stage order, Seen contract, DEC-107 reconciliation, tracking/custody privacy |
-| **Phase 3 / ALT-10/11/13/15/16/17** | **OD-08 OPEN; BLOCKED** | Finance/staff/subscription source-specific rights and tests; no ALT-11 CRITICAL escalation |
+| **Phase 2 / ALT-04/05/06/07/09** | **OD-07 ACCEPTED in DEC-110; implementation NOT COMPLETE** | Proven stage clocks, Seen implementation, DEC-107 reconciliation, tracking/custody privacy and PG/browser/perf |
+| **Phase 3 / ALT-10/11/13/15/16/17** | **OD-08 ACCEPTED in DEC-111; implementation NOT COMPLETE** | Safe finance/staff/subscription readers, source identity, and PG/browser/perf; no ALT-11 CRITICAL escalation |
 | **ALT-14** | **EXTERNAL / DEFERRED / DISABLED** | No Cash Reconciliation work under #414, no false 17/17 claim |
 | **CI and release** | **NOT RUN for feature implementation** | Real code diff, actual migrations/tests/performance/CI and separate activation approval |
 
