@@ -3,30 +3,47 @@
 import Link from "next/link";
 import { Bell } from "lucide-react";
 import {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type MouseEvent,
-} from "react";
+  managementAlertUnifiedPreviewResponseSchema,
+  type ManagementAlertUnifiedPreviewResponse,
+} from "@valet/contracts";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { DashboardApiClient } from "../../lib/api/dashboard-api-client";
 import { useStaffAuth } from "../../lib/auth/staff-auth-context";
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
 import type { SelectedDashboardScope } from "../../components/scope";
 import { FocusDialog } from "../../components/presentation/focus-dialog";
-import { managementAlertsEnabled } from "./alert-feature-gate";
-import { alertBadge } from "./alert-model";
+import {
+  managementAlertsEnabled,
+  managementAlertsPhase23Enabled,
+} from "./alert-feature-gate";
+import {
+  alertBadge,
+  previewSchemaForLocation,
+  type ManagementAlertPreview,
+} from "./alert-model";
 import { readManagementAlertsPreview } from "./alert-preview-api";
+import { readUnifiedManagementAlertsPreview } from "./alert-unified-preview-api";
+import { useUnifiedAlertActions } from "./alert-unified-actions";
+import { UnifiedAlertList } from "./alert-unified-list";
 import { readWithAlertTransportLease } from "./alert-read-lease";
 import { AlertPollOwner, type AlertPollState } from "./alert-poll-owner";
 import { managementAlertsLocation } from "./alert-scope";
 import { managementAlertCopy } from "./alert-copy";
 import { subscribeAlertTimingChanges } from "./alert-timing-changes";
 import { alertSourceHref } from "./alert-source-intent";
+import {
+  isOrdinaryAlertSourceClick,
+  navigateLegacyAlertSource,
+} from "./alert-legacy-source-click";
 import { useSelectedScope } from "../../components/foundation/selected-scope-provider";
 import "./management-alerts.css";
 
-const unavailable: AlertPollState = { status: "unavailable", preview: null };
+type AlertPreview =
+  ManagementAlertPreview | ManagementAlertUnifiedPreviewResponse;
+const unavailable: AlertPollState<AlertPreview> = {
+  status: "unavailable",
+  preview: null,
+};
 
 export function ManagementAlertsControl({
   api,
@@ -42,9 +59,10 @@ export function ManagementAlertsControl({
   const auth = useStaffAuth();
   const { locale } = useDashboardLocale();
   const copy = managementAlertCopy[locale];
-  const [state, setState] = useState<AlertPollState>(unavailable);
+  const [state, setState] = useState<AlertPollState<AlertPreview>>(unavailable);
   const [open, setOpen] = useState(false);
-  const owner = useRef<AlertPollOwner | null>(null);
+  const [openEpoch, setOpenEpoch] = useState(0);
+  const owner = useRef<AlertPollOwner<AlertPreview> | null>(null);
   const liveScopeRevision = useSelectedScope().selectionRevision;
   const scopeRevisionRef = useRef(liveScopeRevision);
   useLayoutEffect(() => {
@@ -66,6 +84,30 @@ export function ManagementAlertsControl({
     locationId !== null &&
     auth.status === "authenticated" &&
     authClient.getStaffAuthSessionId() !== null;
+  const stillCurrent = () =>
+    allowed &&
+    authClient.getIdentityGeneration() === identity &&
+    authClient.getSessionGeneration() === session &&
+    scopeRevisionRef.current === selectionRevision &&
+    authClient.getStaffAuthSessionId() !== null;
+  const actions = useUnifiedAlertActions({
+    api,
+    locationId,
+    isCurrentAuthority: stillCurrent,
+    scopeKey: [
+      identity,
+      session,
+      selectionRevision,
+      locationId,
+      openEpoch,
+    ].join(":"),
+    panelOpen: open,
+    onServerConfirmedSeen: () => owner.current?.invalidatePreferences(),
+  });
+  const closePanel = () => {
+    actions.cancelPending();
+    setOpen(false);
+  };
 
   useEffect(() => {
     if (!allowed || locationId === null) return;
@@ -76,15 +118,26 @@ export function ManagementAlertsControl({
       authClient.getSessionGeneration() === session &&
       scopeRevisionRef.current === selectionRevision &&
       authClient.getStaffAuthSessionId() !== null;
-    const coordinator = new AlertPollOwner({
+    const coordinator = new AlertPollOwner<AlertPreview>({
       load: (signal) =>
-        readWithAlertTransportLease(signal, currentAuthority, (activeSignal) =>
-          readManagementAlertsPreview(
-            api,
-            locationId,
-            activeSignal,
-            currentAuthority,
-          ),
+        readWithAlertTransportLease<AlertPreview>(
+          signal,
+          currentAuthority,
+          (activeSignal) =>
+            managementAlertsPhase23Enabled
+              ? readUnifiedManagementAlertsPreview(
+                  api,
+                  locationId,
+                  selectedScope.authority === "COMPANY_ADMIN",
+                  activeSignal,
+                  currentAuthority,
+                )
+              : readManagementAlertsPreview(
+                  api,
+                  locationId,
+                  activeSignal,
+                  currentAuthority,
+                ),
         ),
       currentAuthority,
       onState: (next) => {
@@ -129,34 +182,25 @@ export function ManagementAlertsControl({
     organizationId,
     selectionRevision,
     session,
+    selectedScope.authority,
   ]);
 
   if (!allowed) return null;
   const preview = state.status === "ready" ? state.preview : null;
-  const badge = preview === null ? "—" : alertBadge(preview);
-  const onSourceLink = (
-    event: MouseEvent<HTMLAnchorElement>,
-    item: NonNullable<typeof preview>["items"][number],
-  ) => {
-    if (
-      event.button !== 0 ||
-      event.ctrlKey ||
-      event.metaKey ||
-      event.shiftKey ||
-      event.altKey
-    )
-      return;
-    if (
-      item.sourceKind === "PRESENCE" &&
-      window.location.pathname === "/policies"
-    ) {
-      event.preventDefault();
-      // The already-mounted Studio owns section history and draft confirmation.
-      window.history.pushState(window.history.state, "", alertSourceHref(item));
-      window.dispatchEvent(new PopStateEvent("popstate"));
-    }
-    setOpen(false);
-  };
+  const unifiedResult =
+    managementAlertsPhase23Enabled && preview !== null
+      ? managementAlertUnifiedPreviewResponseSchema.safeParse(preview)
+      : null;
+  const legacyResult =
+    !managementAlertsPhase23Enabled && preview !== null && locationId !== null
+      ? previewSchemaForLocation(locationId).safeParse(preview)
+      : null;
+  const unified = unifiedResult?.success ? unifiedResult.data : null;
+  const legacy = legacyResult?.success ? legacyResult.data : null;
+  const badge =
+    preview === null || (unified === null && legacy === null)
+      ? "—"
+      : alertBadge(preview);
   return (
     <>
       <button
@@ -165,7 +209,10 @@ export function ManagementAlertsControl({
         aria-label={`${copy.title}: ${preview === null ? copy.unavailable : badge}`}
         aria-haspopup="dialog"
         aria-expanded={open}
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setOpenEpoch((value) => value + 1);
+          setOpen(true);
+        }}
       >
         <Bell size={18} aria-hidden="true" />
         <span className="management-alert-badge" aria-hidden="true">
@@ -173,24 +220,34 @@ export function ManagementAlertsControl({
         </span>
       </button>
       {open ? (
-        <FocusDialog label={copy.title} onClose={() => setOpen(false)}>
+        <FocusDialog label={copy.title} onClose={closePanel}>
           <div
-            className="management-alert-panel"
+            className={
+              managementAlertsPhase23Enabled
+                ? "management-alert-panel management-alert-panel--unified"
+                : "management-alert-panel"
+            }
             dir={locale === "ar" ? "rtl" : "ltr"}
           >
             <div className="management-alert-panel-heading">
               <h2>{copy.title}</h2>
-              <button type="button" onClick={() => setOpen(false)}>
+              <button type="button" onClick={closePanel}>
                 {copy.close}
               </button>
             </div>
-            {preview === null ? (
+            {preview === null || (unified === null && legacy === null) ? (
               <p role="status">{copy.unavailable}</p>
-            ) : preview.items.length === 0 ? (
+            ) : (unified?.items.length ?? legacy?.items.length) === 0 ? (
               <p role="status">{copy.none}</p>
+            ) : unified !== null ? (
+              <UnifiedAlertList
+                items={unified.items}
+                locale={locale}
+                {...actions}
+              />
             ) : (
               <ol className="management-alert-list">
-                {preview.items.map((item) => (
+                {legacy?.items.map((item) => (
                   <li key={item.id}>
                     <span className="management-alert-severity">
                       {item.severity === "CRITICAL"
@@ -201,7 +258,11 @@ export function ManagementAlertsControl({
                     <small>{item.category}</small>
                     <Link
                       href={alertSourceHref(item)}
-                      onClick={(event) => onSourceLink(event, item)}
+                      onClick={(event) => {
+                        if (!isOrdinaryAlertSourceClick(event)) return;
+                        navigateLegacyAlertSource(event, item);
+                        closePanel();
+                      }}
                     >
                       {copy.details}
                     </Link>
