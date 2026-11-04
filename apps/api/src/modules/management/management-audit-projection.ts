@@ -53,7 +53,8 @@ function projectVehicle(row: ManagementAuditQueryRow) {
   if (
     !row.eventType.startsWith("VALET_SESSION_") ||
     (row.entityType !== "ValetSession" && row.entityType !== "VALET_SESSION")
-  ) return null;
+  )
+    return null;
   const safeValue = (value: string | null | undefined, maxLength: number) =>
     typeof value === "string" &&
     value.length > 0 &&
@@ -67,7 +68,9 @@ function projectVehicle(row: ManagementAuditQueryRow) {
     make: safeValue(row.vehicleMake, 100),
     model: safeValue(row.vehicleModel, 100),
   };
-  return Object.values(vehicle).some((value) => value !== null) ? vehicle : null;
+  return Object.values(vehicle).some((value) => value !== null)
+    ? vehicle
+    : null;
 }
 
 function projectEntity(row: ManagementAuditQueryRow) {
@@ -116,6 +119,14 @@ export function projectManagementAuditEvent(
   viewer: ManagementAuditAuthorization,
 ): ManagementAuditEvent {
   assertViewerScope(row, viewer);
+  // Organization-scoped personal preference history is CA-only, even if
+  // incorrectly attributed to a Location by a future/foreign writer.
+  if (
+    row.eventType === "MANAGEMENT_ALERT_TIMING_PREFERENCES_CHANGED" &&
+    (viewer.role !== "ORG_ADMIN" || row.locationId !== null)
+  ) {
+    throw new Error("Personal alert timing audit is not location-visible.");
+  }
   const family = managementAuditFamilyFor(row.eventType);
   if (
     viewer.role === "VALET_SUPERVISOR" &&

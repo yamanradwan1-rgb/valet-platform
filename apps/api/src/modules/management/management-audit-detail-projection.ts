@@ -1,6 +1,7 @@
 import { projectPresenceAuditDetails } from "./management-audit-presence-projection";
 import type { ManagementAuditEventFamily } from "./management-audit-event-catalog";
 import { projectManagementShiftAuditDetails } from "./management-audit-shift-projection";
+import { projectManagementAlertTimingAuditDetails } from "./management-alert-timing-audit-projection";
 
 const sessionStates = new Set([
   "CHECKING_IN",
@@ -183,6 +184,9 @@ export function projectManagementAuditDetails(
   eventType?: string,
 ): unknown {
   const source = metadata(value);
+  if (eventType === "MANAGEMENT_ALERT_TIMING_PREFERENCES_CHANGED") {
+    return projectManagementAlertTimingAuditDetails(source);
+  }
   if (eventType === "MANAGEMENT_GUEST_INFORMATION_CHANGED") {
     return compact({
       kind: "GUEST_INFORMATION",

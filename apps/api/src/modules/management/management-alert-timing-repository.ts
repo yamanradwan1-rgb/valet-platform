@@ -130,7 +130,7 @@ export async function saveOwnAlertTimingPreferences(
            alt01_grace_seconds, alt02_queue_seconds, alt03_decline_seconds,
            alt04_stage_seconds, alt06_handoff_seconds,
            alt11_unknown_payment_seconds, revision, updated_at)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,transaction_timestamp()::timestamptz(3))
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,clock_timestamp()::timestamptz(3))
          RETURNING ${columns}`,
           [scope.organizationId, scope.userId, ...params, newRevision],
         )
@@ -139,7 +139,7 @@ export async function saveOwnAlertTimingPreferences(
          SET alt01_grace_seconds=$3, alt02_queue_seconds=$4,
              alt03_decline_seconds=$5, alt04_stage_seconds=$6,
              alt06_handoff_seconds=$7, alt11_unknown_payment_seconds=$8,
-             revision=$9, updated_at=transaction_timestamp()::timestamptz(3)
+             revision=$9, updated_at=clock_timestamp()::timestamptz(3)
          WHERE organization_id=$1 AND user_id=$2 AND revision=$10
          RETURNING ${columns}`,
           [

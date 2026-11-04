@@ -4,6 +4,11 @@ import { managementAlertTimingPreferenceDefaults as defaults } from "@valet/cont
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
 import { ManagementControlPlaneTestFixture } from "./management-control-plane-test-fixture";
+import {
+  blockAlertTimingPreference,
+  releaseAlertTimingBlock,
+  waitForAlertTimingAdvisoryWait,
+} from "./management-alert-timing-blocked-lane";
 
 const fixture = new ManagementControlPlaneTestFixture();
 beforeAll(() => fixture.start(), 120_000);
@@ -21,14 +26,59 @@ async function actor() {
   const membership = await fixture.createMembership(user.id);
   const location = await fixture.addLocation(membership.organizationId);
   const auth = await fixture.nativeLogin(user);
-  await fixture.enrollAndAssure(auth);
+  const factor = await fixture.enrollAndAssure(auth);
   return {
     auth,
+    factor,
     ...membership,
     ...location,
     user,
     path: `/v1/staff/management/organizations/${membership.organizationId}/locations/${location.locationId}/alert-timing-preferences`,
   };
+}
+
+async function contestedFirstSave(
+  subject: Awaited<ReturnType<typeof actor>>,
+  firstValues: Record<string, number>,
+  secondValues: Record<string, number>,
+) {
+  const second = await fixture.nativeLogin(subject.user);
+  expect(second.sessionId).not.toBe(subject.auth.sessionId);
+  expect(second.accessToken).not.toBe(subject.auth.accessToken);
+  expect((await fixture.stepUp(second, subject.factor.secret)).status).toBe(
+    200,
+  );
+  const blocker = await blockAlertTimingPreference(
+    fixture,
+    subject.organizationId,
+    subject.user.id,
+  );
+  let released = false;
+  let firstRequest: ReturnType<typeof save> | undefined;
+  let secondRequest: ReturnType<typeof save> | undefined;
+  try {
+    firstRequest = save(subject, firstValues);
+    void firstRequest.catch(() => undefined);
+    await waitForAlertTimingAdvisoryWait(fixture, "management-alert-timing:");
+    secondRequest = fixture.managementPut(subject.path, second.accessToken, {
+      expectedRevision: 0,
+      values: secondValues,
+    });
+    void secondRequest.catch(() => undefined);
+    // The second valid session is truly pending, but cannot pass the
+    // accepted user-security lock while the first session holds it.
+    await waitForAlertTimingAdvisoryWait(fixture, "staff-user-security:");
+    await releaseAlertTimingBlock(blocker);
+    released = true;
+    return await Promise.all([firstRequest, secondRequest]);
+  } finally {
+    if (!released) {
+      await blocker.query("ROLLBACK").catch(() => undefined);
+      blocker.release();
+    }
+    await firstRequest?.catch(() => undefined);
+    await secondRequest?.catch(() => undefined);
+  }
 }
 
 function save(
@@ -59,10 +109,7 @@ describe("Issue #414 preferences: real PostgreSQL concurrency and constraints", 
   it("converges duplicate concurrent first writes into one revision and audit", async () => {
     const subject = await actor();
     const values = { ...defaults, alt01GraceSeconds: 12 };
-    const [first, second] = await Promise.all([
-      save(subject, values),
-      save(subject, values),
-    ]);
+    const [first, second] = await contestedFirstSave(subject, values, values);
     expect(first.status).toBe(200);
     expect(second.status).toBe(200);
     expect(first.body).toEqual(second.body);
@@ -71,10 +118,11 @@ describe("Issue #414 preferences: real PostgreSQL concurrency and constraints", 
 
   it("rejects one of two conflicting concurrent first writes, and does not lose increments", async () => {
     const subject = await actor();
-    const [first, second] = await Promise.all([
-      save(subject, { ...defaults, alt01GraceSeconds: 8 }),
-      save(subject, { ...defaults, alt01GraceSeconds: 9 }),
-    ]);
+    const [first, second] = await contestedFirstSave(
+      subject,
+      { ...defaults, alt01GraceSeconds: 8 },
+      { ...defaults, alt01GraceSeconds: 9 },
+    );
     expect([first.status, second.status].sort()).toEqual([200, 409]);
     expect(await count(subject)).toEqual({ preferences: 1, events: 1 });
     const current = await fixture.managementGet(

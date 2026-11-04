@@ -3,6 +3,7 @@ import { incidentSeveritySchema, incidentTypeSchema } from "./incidents.js";
 import { staffValetSessionStateSchema } from "./staff-valet-session.js";
 import { staffShiftForceEndReasonSchema } from "./staff-shift-force-end.js";
 import { managementPresenceAuditDetailSchema } from "./management-audit-presence.js";
+import { managementAlertTimingPreferenceValuesSchema } from "./management-alert-timing-preferences.js";
 const uuidSchema = z.string().uuid();
 const positiveVersionSchema = z.number().int().positive();
 const nonNegativeCountSchema = z.number().int().nonnegative();
@@ -144,6 +145,16 @@ export const managementAuditKnownDetailSchema = z.discriminatedUnion("kind", [
   z
     .object({
       kind: z.literal("MANAGEMENT"),
+      // Only the Issue #414 event projection emits these fields; strict
+      // allowlist prevents any raw preference values or arbitrary key names.
+      changedKeys: z
+        .array(managementAlertTimingPreferenceValuesSchema.keyof())
+        .min(1)
+        .max(6)
+        .refine((keys) => new Set(keys).size === keys.length)
+        .optional(),
+      beforeRevision: nonNegativeCountSchema.optional(),
+      afterRevision: positiveVersionSchema.optional(),
       acceptingIntake: z.boolean().optional(),
       fromAcceptingIntake: z.boolean().optional(),
       fromStatus: z.enum(["ACTIVE", "INACTIVE"]).optional(),
