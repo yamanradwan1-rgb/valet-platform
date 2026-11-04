@@ -35,7 +35,7 @@ jobs:
       - name: Gitleaks scan (redacted; raw stays on runner)
         run: |
           docker run --rm -v "$PWD:/src:ro" -v "$RUNNER_TEMP:/out" -w /src \
-            ghcr.io/gitleaks/gitleaks:v8.30.1 git --log-opts="$SCAN_RANGE" \
+            ghcr.io/gitleaks/gitleaks:v8.30.1 git --config /src/.gitleaks.toml --log-opts="$SCAN_RANGE" \
             --redact=100 --exit-code 0 --report-format json \
             --report-path /out/gitleaks-raw.json /src
       - name: Gate leaked secrets
