@@ -1,9 +1,10 @@
 import { randomUUID } from "node:crypto";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { ManagementAlertMfaFixture } from "./management-alert-mfa-fixture";
 
 const fixture = new ManagementAlertMfaFixture();
+let validCutover: string;
 const oldFlags = {
   enabled: process.env.MANAGEMENT_ALERTS_PHASE1_ENABLED,
   cutover: process.env.MANAGEMENT_ALERTS_PHASE1_DISPATCH_POST_LOCK_CUTOVER,
@@ -20,9 +21,16 @@ beforeAll(async () => {
   const serverClock = await fixture.query<{ now: Date }>(
     "SELECT clock_timestamp() AS now",
   );
+  validCutover = serverClock.rows[0]!.now.toISOString();
   process.env.MANAGEMENT_ALERTS_PHASE1_DISPATCH_POST_LOCK_CUTOVER =
-    serverClock.rows[0]!.now.toISOString();
+    validCutover;
 }, 180_000);
+
+beforeEach(() => {
+  process.env.MANAGEMENT_ALERTS_PHASE1_ENABLED = "enabled";
+  process.env.MANAGEMENT_ALERTS_PHASE1_DISPATCH_POST_LOCK_CUTOVER =
+    validCutover;
+});
 
 afterAll(async () => {
   await fixture.stop();
@@ -85,6 +93,7 @@ async function seedIncident(input: {
 
 describe("Issue #414 mounted HTTP preview and exact detail (PG17 MFA ON)", () => {
   it("keeps rollout OFF by default and preserves no-store on denial", async () => {
+    process.env.MANAGEMENT_ALERTS_PHASE1_ENABLED = "disabled";
     const admin = await fixture.createAssuredAdmin();
     const mfaBefore = (await fixture.sessionSnapshot(admin.auth.sessionId))
       .rows[0]!;
@@ -191,18 +200,18 @@ describe("Issue #414 mounted HTTP preview and exact detail (PG17 MFA ON)", () =>
   it("does not represent a bad source-clock boundary as authoritative zero", async () => {
     const admin = await fixture.createAssuredAdmin();
     delete process.env.MANAGEMENT_ALERTS_PHASE1_DISPATCH_POST_LOCK_CUTOVER;
-    const failed = await fixture.managementGet(
-      previewPath(admin.location.locationId),
-      admin.auth.accessToken,
-    );
-    expect(failed.status).toBe(500);
-    expect(failed.body?.code).not.toBe("SUCCESS");
-    expect(failed.body?.items).toBeUndefined();
-    const clock = await fixture.query<{ now: Date }>(
-      "SELECT clock_timestamp() AS now",
-    );
-    process.env.MANAGEMENT_ALERTS_PHASE1_DISPATCH_POST_LOCK_CUTOVER =
-      clock.rows[0]!.now.toISOString();
+    try {
+      const failed = await fixture.managementGet(
+        previewPath(admin.location.locationId),
+        admin.auth.accessToken,
+      );
+      expect(failed.status).toBe(500);
+      expect(failed.body?.code).not.toBe("SUCCESS");
+      expect(failed.body?.items).toBeUndefined();
+    } finally {
+      process.env.MANAGEMENT_ALERTS_PHASE1_DISPATCH_POST_LOCK_CUTOVER =
+        validCutover;
+    }
   });
 
   it("denies revoked exact Location grant and non-Management roles", async () => {
