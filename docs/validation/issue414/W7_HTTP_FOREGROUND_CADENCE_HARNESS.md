@@ -2,15 +2,27 @@
 
 **Status:** The original isolated W7 branch only implemented the harness and did **not** execute HTTP+PG. After independent review, Prime integrated its test-only files into the feature route branch, tightened each measured response's live payload checks and both Task reason exact HTTP proofs, and **ran an actual local PG17.11 + mounted Nest HTTP profile on 2026-11-04**. All three simulated-tab cohorts passed, including token rotation, CA/LM HTTP authorization and MFA-neutral read checks. This is local evidence, **not** a browser-tab or production SLA certification.
 
+**Provenance boundary:** The measurements below are from final hardened local
+PostgreSQL 17.11 + mounted HTTP run `run_focused-api_5wg_6912db922465`
+on 2026-11-04, with test corrections captured in `1936662a` (parent
+`e455ff74`).
+The run exercised strict contract parsing, current Task allowlisting,
+wrong-Location 404, broad noncurrent historical Task 404, source-detail
+ALT-02/03 CA/LM rechecks, MFA-neutral reads and telemetry validity.
+The resulting evidence has `inSuiteComplete=true`, all three cohorts
+`telemetryValid=true`, and `cleanupVerified=true` after successful
+outer harness cleanup. Previous runs used different code/results and are not
+interchangeable with this evidence.
+
 ### Actual Prime integrated HTTP evidence (all synthetic data, no production traffic)
 
 | Simulated visible tabs | Warmup successful | Measured successful | HTTP p95 | HTTP max | Observed successful GET/s | Peak active runtime PG | Peak waiting PG |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 25 | 25/25 | 25/25 | 222.148ms | 239.015ms | 0.4240 | 2 | 0 |
-| 100 | 100/100 | 100/100 | 84.203ms | 136.497ms | 1.6673 | 2 | 0 |
-| 200 | 200/200 | 200/200 | 101.788ms | 239.064ms | 3.2591 | 3 | 0 |
+| 25 | 25/25 | 25/25 | 85.088ms | 87.271ms | 0.4240 | 2 | 0 |
+| 100 | 100/100 | 100/100 | 84.989ms | 97.268ms | 1.6674 | 2 | 0 |
+| 200 | 200/200 | 200/200 | 91.995ms | 147.606ms | 3.2588 | 2 | 0 |
 
-Real bearer HTTP response codes: 200 for all **650 warmup+measured GETs**; each validated no-store, a full current 20-item overflow envelope, current Incident + Task content, with both Task reasons independently reauthorized by exact CA/LM HTTP source detail before/after the cohorts. Missed in-flight ticks 0, pool maximum 4, deadlock/statement/lock/query/acquisition timeout deltas 0, sampler errors 0. The 200ms sampler observed 2 positive lock-wait samples in the 100-tab cohort and 3 in the 200-tab cohort (peak 1 backend each): these are **observations, not proof of absence of shorter waits**. No request error was observed. After successful suite completion the repository exclusive PG17 harness cleaned **db=0 roles=0 children=0**. Source record: `docs/validation/issue414/ISSUE414_HTTP_FOREGROUND_TABS_PG17_METRICS.json`; test-only commit provenance is in the Phase-1 integration ledger.
+Real bearer HTTP response codes: 200 for all **650 warmup+measured GETs**; each validated no-store, a full current 20-item overflow envelope, current Incident + Task content, with both Task reasons independently reauthorized by exact CA/LM HTTP source detail before/after the cohorts. Missed in-flight ticks 0, pool maximum 4, **all 15 checked PG pool timeout/rejection/failure/deadlock deltas 0**, and sampler errors 0. The 200ms sampler observed **0/2/5** positive lock-wait samples for 25/100/200 tabs respectively (peak 1 locked backend at 100/200 tabs): these are observations, **not proof of absence of shorter waits**. Sampler counts were 605/606/612. The repository exclusive PG17 harness exited 0 and cleaned **db=0 roles=0 children=0**. Source record: `docs/validation/issue414/ISSUE414_HTTP_FOREGROUND_TABS_PG17_METRICS.json`; this is local simulated-tab evidence only, not a production/browser or five-source HTTP SLA.
 This is a new, separate capacity question from W7's already measured
 ALT-02/ALT-03 SQL reader microbenchmark. Do **not** copy the SQL benchmark
 p95 into a full bearer HTTP/aggregate/polling performance claim.
@@ -110,8 +122,11 @@ deadline, real bearer, and validates response shape/no-store.
 The harness writes only **aggregate redacted metrics** to the isolated
 test working directory's `tmp/issue414-w7-owned/http-foreground-tabs.json`;
 it neither prints nor persists bearer tokens, user email, session IDs,
-Location IDs, incident descriptions or guest details. Failure writes
-`complete=false` rather than a successful benchmark. Synthetic source
+Location IDs, incident descriptions or guest details. The in-suite writer
+records `inSuiteComplete` and deliberately leaves `complete=false`;
+only the focused runner sets `cleanupVerified=true` and `complete=true`
+after successful outer cleanup and lease release. Failure does not attest
+success. Synthetic source
 seeding is **not proof of canonical production writer behavior**.
 
 ## Reproduction requirements — originally NOT EXECUTED on isolated W7
@@ -119,17 +134,18 @@ seeding is **not proof of canonical production writer behavior**.
 Run only **after independent test review**, on an integration worktree
 that actually contains the alert preview controller and approved
 dispatch reader, with Prime-confirmed *currently free* exclusive PG
-lease. The test **must be invoked through** the repository's
+lease. For cleanup-attested evidence the test **must be invoked through** the repository's
 `run-owned-tests.mjs`; do not manually fabricate
-`VAYLET_TEST_CLUSTER_RUN_ID`. Use a local PG17 parent URL via
-`TEST_DATABASE_URL` if explicitly configured; otherwise the harness and
-native fixture share the project's standard **local-only** PostgreSQL
-target fallback. The test guard requires loopback `127.0.0.1`, a valid
-nonprivileged port and the actual owned lease; never use production.
+`VAYLET_TEST_CLUSTER_RUN_ID`. The opt-in HTTP harness additionally requires
+**an explicit `TEST_DATABASE_URL`** for a task-owned local PostgreSQL 17 parent.
+It rejects an implicit/default database target, non-loopback addresses,
+invalid ports and missing exclusive lease. This W7 opt-in preflight is
+centralized before lease acquisition across focused, package-wide and direct
+Vitest entrypoints. Never use a production database.
 
 ```text
 # Illustrative environment names; do not use a production DB or print its credentials.
-# Optional if the canonical local PG17 test cluster is configured:
+# Required even if the standard local PG17 cluster is configured:
 TEST_DATABASE_URL=<task-owned local PostgreSQL 17 parent URL>
 ISSUE414_W7_HTTP_TABS_PROFILE=I_OWN_EXCLUSIVE_LOCAL_PG17
 

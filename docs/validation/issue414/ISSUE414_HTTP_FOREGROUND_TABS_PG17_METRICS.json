@@ -1,7 +1,10 @@
 {
   "category": "SIMULATED_TABS_REAL_HTTP_PG17",
+  "runId": "run_focused-api_5wg_6912db922465",
   "databaseVersion": 170011,
   "resultCount": 3,
+  "inSuiteComplete": true,
+  "cleanupVerified": true,
   "complete": true,
   "results": [
     {
@@ -25,22 +28,22 @@
         "LM": 12
       },
       "measuredEndToEndHttp": {
-        "p50Ms": 74.07,
-        "p95Ms": 222.148,
-        "maxMs": 239.015
+        "p50Ms": 57.646,
+        "p95Ms": 85.088,
+        "maxMs": 87.271
       },
       "measuredSuccessfulHttp": {
-        "p50Ms": 74.07,
-        "p95Ms": 222.148,
-        "maxMs": 239.015
+        "p50Ms": 57.646,
+        "p95Ms": 85.088,
+        "maxMs": 87.271
       },
       "measuredScheduleLateness": {
-        "p50Ms": 0.912,
-        "p95Ms": 2.503,
-        "maxMs": 2.97
+        "p50Ms": 1.024,
+        "p95Ms": 2.382,
+        "maxMs": 2.386
       },
-      "measuredDispatchSpanMs": 58894.4004,
-      "actualFirstSendToLastCompletionMs": 58961.10830000001,
+      "measuredDispatchSpanMs": 58894.61459999999,
+      "actualFirstSendToLastCompletionMs": 58967.718400000005,
       "observedSuccessfulGetsPerSecond": 0.424,
       "peakHttpInFlight": 2,
       "pool": {
@@ -50,6 +53,16 @@
         "cumulativePoolPeakAdmitted": 3,
         "cumulativePoolPeakWaiting": 1,
         "acquisitionTimeoutsDelta": 0,
+        "transactionTimeoutsDelta": 0,
+        "leaseExpirationsDelta": 0,
+        "rejectedDelta": 0,
+        "connectionFailuresDelta": 0,
+        "poolErrorsDelta": 0,
+        "clientErrorsDelta": 0,
+        "leaseSetupFailuresDelta": 0,
+        "expiredAcquisitionsDelta": 0,
+        "releaseFailuresDelta": 0,
+        "failuresDelta": 0,
         "queryTimeoutsDelta": 0,
         "lockTimeoutsDelta": 0,
         "statementTimeoutsDelta": 0,
@@ -61,6 +74,7 @@
         "peakPgActiveBackends": 1,
         "samplerErrors": []
       },
+      "telemetryValid": true,
       "complete": true
     },
     {
@@ -84,23 +98,23 @@
         "LM": 50
       },
       "measuredEndToEndHttp": {
-        "p50Ms": 55.199,
-        "p95Ms": 84.203,
-        "maxMs": 136.497
+        "p50Ms": 50.138,
+        "p95Ms": 84.989,
+        "maxMs": 97.268
       },
       "measuredSuccessfulHttp": {
-        "p50Ms": 55.199,
-        "p95Ms": 84.203,
-        "maxMs": 136.497
+        "p50Ms": 50.138,
+        "p95Ms": 84.989,
+        "maxMs": 97.268
       },
       "measuredScheduleLateness": {
-        "p50Ms": 0.719,
-        "p95Ms": 1.996,
-        "maxMs": 2.995
+        "p50Ms": 0.948,
+        "p95Ms": 2.23,
+        "maxMs": 3.118
       },
-      "measuredDispatchSpanMs": 59926.076900000015,
-      "actualFirstSendToLastCompletionMs": 59976.86520000003,
-      "observedSuccessfulGetsPerSecond": 1.6673,
+      "measuredDispatchSpanMs": 59927.87209999998,
+      "actualFirstSendToLastCompletionMs": 59975.31660000002,
+      "observedSuccessfulGetsPerSecond": 1.6674,
       "peakHttpInFlight": 3,
       "pool": {
         "actualMountedPoolMax": 4,
@@ -109,6 +123,16 @@
         "cumulativePoolPeakAdmitted": 5,
         "cumulativePoolPeakWaiting": 1,
         "acquisitionTimeoutsDelta": 0,
+        "transactionTimeoutsDelta": 0,
+        "leaseExpirationsDelta": 0,
+        "rejectedDelta": 0,
+        "connectionFailuresDelta": 0,
+        "poolErrorsDelta": 0,
+        "clientErrorsDelta": 0,
+        "leaseSetupFailuresDelta": 0,
+        "expiredAcquisitionsDelta": 0,
+        "releaseFailuresDelta": 0,
+        "failuresDelta": 0,
         "queryTimeoutsDelta": 0,
         "lockTimeoutsDelta": 0,
         "statementTimeoutsDelta": 0,
@@ -117,9 +141,10 @@
         "pgActivitySamples": 606,
         "positiveLockSamples": 2,
         "peakLockedBackends": 1,
-        "peakPgActiveBackends": 1,
+        "peakPgActiveBackends": 2,
         "samplerErrors": []
       },
+      "telemetryValid": true,
       "complete": true
     },
     {
@@ -143,44 +168,56 @@
         "LM": 100
       },
       "measuredEndToEndHttp": {
-        "p50Ms": 52.434,
-        "p95Ms": 101.788,
-        "maxMs": 239.064
+        "p50Ms": 51.269,
+        "p95Ms": 91.995,
+        "maxMs": 147.606
       },
       "measuredSuccessfulHttp": {
-        "p50Ms": 52.434,
-        "p95Ms": 101.788,
-        "maxMs": 239.064
+        "p50Ms": 51.269,
+        "p95Ms": 91.995,
+        "maxMs": 147.606
       },
       "measuredScheduleLateness": {
-        "p50Ms": 0.796,
-        "p95Ms": 2.507,
-        "maxMs": 3.783
+        "p50Ms": 0.899,
+        "p95Ms": 2.24,
+        "maxMs": 3.434
       },
-      "measuredDispatchSpanMs": 61321.46650000004,
-      "actualFirstSendToLastCompletionMs": 61367.3248,
-      "observedSuccessfulGetsPerSecond": 3.2591,
-      "peakHttpInFlight": 3,
+      "measuredDispatchSpanMs": 61323.836699999985,
+      "actualFirstSendToLastCompletionMs": 61371.77779999998,
+      "observedSuccessfulGetsPerSecond": 3.2588,
+      "peakHttpInFlight": 4,
       "pool": {
         "actualMountedPoolMax": 4,
-        "observedPeakPoolActive": 3,
+        "observedPeakPoolActive": 2,
         "observedPeakPoolWaiting": 0,
         "cumulativePoolPeakAdmitted": 5,
         "cumulativePoolPeakWaiting": 1,
         "acquisitionTimeoutsDelta": 0,
+        "transactionTimeoutsDelta": 0,
+        "leaseExpirationsDelta": 0,
+        "rejectedDelta": 0,
+        "connectionFailuresDelta": 0,
+        "poolErrorsDelta": 0,
+        "clientErrorsDelta": 0,
+        "leaseSetupFailuresDelta": 0,
+        "expiredAcquisitionsDelta": 0,
+        "releaseFailuresDelta": 0,
+        "failuresDelta": 0,
         "queryTimeoutsDelta": 0,
         "lockTimeoutsDelta": 0,
         "statementTimeoutsDelta": 0,
         "deadlocksDelta": 0,
         "pgActivitySamplerIntervalMs": 200,
         "pgActivitySamples": 612,
-        "positiveLockSamples": 3,
+        "positiveLockSamples": 5,
         "peakLockedBackends": 1,
         "peakPgActiveBackends": 2,
         "samplerErrors": []
       },
+      "telemetryValid": true,
       "complete": true
     }
   ],
-  "caveat": "Never a production capacity SLO; no actual browser tabs"
+  "caveat": "Never a production capacity SLO; no actual browser tabs",
+  "cleanupProof": "focused runner finished owned PostgreSQL cleanup and lease release"
 }
