@@ -8,7 +8,7 @@ Status: IN PROGRESS / NOT ACCEPTED. This is evidence, not an Accepted Decision o
 - Verified remote `origin/main` at task start: `5a844f70d5efcda0a618f153b46871e6137a1d36` (Phase 0/1 PR #430).
 - Prime integration branch: `feature/issue-414-management-alerts-phase2-phase3`.
 - Prime worktree: `D:/kndoom/valet-platform/tmp/issue-414-phase23-prime`.
-- COS family: `eec10549-7769-45f9-b6b5-578da9e50698`.
+- COS initial family: `eec10549-7769-45f9-b6b5-578da9e50698`; after Core2-native continuation the status response reported `e18410ab-9088-4a53-8a0d-b897e169758c` for the same physical worker IDs. Preserve both identifiers; no duplicate 17–23 cohort was spawned.
 - The original local `main` checkout and two untracked files were preserved. No `main` mutation, production migration, rollout or feature activation is authorized.
 - Shared facade, contracts, migration integration and UI are **Prime-owned**. Workers must not edit these shared files without serial authorization.
 
@@ -17,7 +17,7 @@ Status: IN PROGRESS / NOT ACCEPTED. This is evidence, not an Accepted Decision o
 | WBS | Source / contract target | COS worker | Worktree (suffix under `tmp/`) | Commit | Tests | Independent review | State |
 |---|---|---|---|---|---|---|---|
 | 414-02-01 | ALT-04 current Task stage-entry order + READY/ALT-01 retirement | worker-17 | issue-414-p23-a-dispatch | — | NOT RUN | — | SOURCE CLOCK BEFORE LOCK / DECISION REQUIRED |
-| 414-02-02 | ALT-06 canonical readiness episode | worker-17 | issue-414-p23-a-dispatch | `20159483` (unexposed candidate) | 4/4 pure PASS per W17 | worker-19 requested, pending | INTERNAL HELPER REVIEW; CLOCK/OD-07 GATED |
+| 414-02-02 | ALT-06 canonical readiness episode | worker-17 | issue-414-p23-a-dispatch | source `20159483` → Prime `bf5325ba` | 4/4 pure PASS (Worker + Prime) | worker-19 CLEAN | UNEXPOSED CANDIDATE INTEGRATED; CLOCK/OD-07 GATED |
 | 414-02-03 | Seen own-User + Organization occurrence receipt, seven-day and source reauthorization | worker-18 | issue-414-p23-b-seen | — | NOT RUN | — | SOURCE REVIEW COMPLETE; OD-07 DECISION REQUIRED |
 | 414-02-04 | ALT-05 takeover committed operation + DEC-107 reconciliation | worker-19 | issue-414-p23-c-custody | — | NOT RUN | — | SOURCE REVIEW COMPLETE; OD-07 DECISION REQUIRED |
 | 414-02-05 | ALT-07 terminalized handoff failure / distinct override | worker-19 | issue-414-p23-c-custody | — | NOT RUN | — | SOURCE REVIEW COMPLETE; EPISODE/OD-07 OPEN |
@@ -27,7 +27,7 @@ Status: IN PROGRESS / NOT ACCEPTED. This is evidence, not an Accepted Decision o
 | 414-03-02 | ALT-10 definitive FAILED vs ALT-11 unresolved UNKNOWN, overlap | worker-21 | issue-414-p23-e-finance | `61afe52d` (decision doc only) | NOT RUN | — | REFERENCE_ATTACHED / OD-08 OPEN |
 | 414-03-03 | ALT-13 committed forced Shift closure | worker-22 | issue-414-p23-f-shift-staff | — | NOT RUN | — | SOURCE REVIEW COMPLETE; RUNTIME TABLE SELECT REVOKED; OD-08 OPEN |
 | 414-03-04 | ALT-15 allowlisted staff-security audit events | worker-22 | issue-414-p23-f-shift-staff | — | NOT RUN | — | SOURCE REVIEW COMPLETE; OD-08 OPEN |
-| 414-03-05 | ALT-16 active Location not accepting intake | worker-23 (source review); Prime (pure helper) | issue-414-p23-g-location-commercial; issue-414-phase23-prime | `97b84526` (unexposed predicate) | Prime 3/3 pure PASS | worker-18 requested, pending | INTERNAL PREDICATE REVIEW; OD-08 OPEN |
+| 414-03-05 | ALT-16 active Location not accepting intake | worker-23 (source review); Prime (pure helper) | issue-414-p23-g-location-commercial; issue-414-phase23-prime | `97b84526` (unexposed predicate) | Prime 3/3 pure PASS | worker-18 CLEAN | UNEXPOSED PREDICATE INTEGRATED; OD-08 OPEN |
 | 414-03-06 | ALT-17 effective commercial restriction / CA-only utility | worker-23 | issue-414-p23-g-location-commercial | — | NOT RUN | — | SOURCE REVIEW COMPLETE; OD-08 OPEN |
 | 414-03-07 | Phase 3 integrated 16/17 target regression/perf/CI gate | Prime | issue-414-phase23-prime | — | NOT RUN | — | NOT PASSED |
 
@@ -38,8 +38,25 @@ One worker can have multiple WBS rows; the IDs above are **physical** COS worker
 - Prime source commit `527ad36d3ee38ed668d12261032d51aec32d99ab`: additive selected-category metadata for the target 16, Phase1/2/3 distinct, ALT14 explicitly excluded, no widening of existing Phase1 preview schema or source permissions. No active new category exposed.
 - Verified from Prime worktree: `corepack pnpm --filter @valet/contracts exec vitest run src/management-alert-category-inventory.test.ts src/management-alert-timing-preferences.test.ts` **2 test files, 7/7 PASS**; `corepack pnpm --filter @valet/contracts typecheck`, `lint`, `build`, root `corepack pnpm architecture:check` and `git diff --cached --check` exit 0. Architecture check reported only grandfathered pre-existing oversized-file warnings.
 - Real COS independent **read-only** reviewer `worker-22` inspected exact immutable `527ad36d` against `5a844f70` and reported **CLEAN**, no BLOCKER/MAJOR. Reviewer did not rerun tests and did not edit the code. No PostgreSQL or browser test was necessary for metadata-only change.
-- Prime `97b845266700b3066033bf06d9b67863c690b344` adds an **unexposed pure predicate** for ALT-16 current `ACTIVE && !acceptingIntake`, never a stopped-since clock or new Location reader/permission. Exact API Vitest `test/issue414-location-intake-alert-eligibility.test.ts`: **3/3 PASS**; API typecheck, targeted ESLint and `git diff --check` exit 0. Independent read-only review requested from `worker-18`, not yet accepted. OD-08 remains open.
+- Prime `97b845266700b3066033bf06d9b67863c690b344` adds an **unexposed pure predicate** for ALT-16 current `ACTIVE && !acceptingIntake`, never a stopped-since clock or new Location reader/permission. Exact API Vitest `test/issue414-location-intake-alert-eligibility.test.ts`: **3/3 PASS**; API typecheck, targeted ESLint and `git diff --check` exit 0. Independent read-only reviewer `worker-18` inspected SHA `97b84526` and reported **CLEAN** (no edits/no independently rerun tests). OD-08 remains open.
+- Worker `worker-17` source `20159483b11dc8cab67ef8f33a6503469238e0c6` adds internal READY/HANDOFF_PENDING candidate without unique episode ID or threshold eligibility. Worker focused 4/4 PASS, API lint/typecheck/build and architecture check exit 0; independent read-only `worker-19` checked exact commit and reported **CLEAN**. Prime serially cherry-picked it as `bf5325ba3e0f11811b05c33c44f049cd7aa902e4`, then **Prime integrated API Vitest 7/7 PASS** across this and ALT-16 sources. No real PG or browser Phase2/3 test claimed.
+- Prime `f52fc80c` contains Prettier-only formatting correction of category inventory test; re-executed inventory unit test **4/4 PASS**, scoped Prettier check PASS. No logic modified by formatting.
 - GitHub Actions `main` **baseline** push checks on `5a844f70`: CI run `41889681920` **completed success**, Security CI run `41889683483` **completed success**. These are **NOT** CI checks of new Phase 2/3 integration commits.
+
+## Final local integration quality (Prime checkout `bf5325ba` plus evidence-only ledger adjustment)
+
+| Exact command from Prime worktree | Exit | Recorded result |
+|---|---|---|
+| `corepack pnpm lint` | 0 | 11/11 packages PASS, 4 Turbo cache hits |
+| `corepack pnpm typecheck` | 0 | 11/11 packages PASS, 4 Turbo cache hits |
+| `corepack pnpm test:non-postgres` | 0 | All applicable packages/harness stages PASS, including API 1,501 tests passed / 6 skipped, database 65 passed, contracts 541 passed, Dashboard 1,217 passed and employee-client 928 passed; other packages also completed successfully |
+| `corepack pnpm test:build-contract` | 0 | 8/8 PASS |
+| `corepack pnpm build` | 0 | Verification build 10/10 PASS, 4 Turbo cache hits; **not** deployed |
+| `corepack pnpm architecture:check` | 0 | PASS with grandfathered warnings only; new authored files each under 300 lines |
+
+These checks execute **no Phase2/3 authorized alert reads**: all 11 new categories remain unexposed. No PostgreSQL 17, mounted HTTP bearer, browser/Playwright or new full-category/performance gate tests were run because OD-07/08 and stage chronology remain unresolved. Do not record PG/browser/performance as PASS.
+
+The verification build/non-Postgres tests regenerated three Next `next-env.d.ts` import lines and an unrelated Issue345 render-comparison JSON. Before the commands, Prime worktree was clean; these four **run-generated** changes alone were reverted in the isolated Prime worktree with precise path-scoped `git restore --source=HEAD --worktree -- [four exact paths]`. Original root main checkout and user-untracked files were untouched. Ledger was the only remaining in-scope local diff.
 
 ## Binding versus unresolved
 
