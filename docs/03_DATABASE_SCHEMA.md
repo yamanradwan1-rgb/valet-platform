@@ -3312,7 +3312,7 @@ before/after; no threshold values or secrets.
 
 The preferences do not alter SLA, Task, Shift, Incident or Payment source
 state; they are used only when server projections decide when a Management
- alert becomes visible to an eligible user. This migration does not add a
+alert becomes visible to an eligible user. This migration does not add a
 Dispatch episode marker, Seen receipts, Phase 2/3 alerts or polling.
 
 ### Issue #429 — private shared OCR admission schema (DEC-074 amendment)
