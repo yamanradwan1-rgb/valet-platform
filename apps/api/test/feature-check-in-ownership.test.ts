@@ -16,6 +16,7 @@ import { PlateOcrController } from "../src/modules/check-in-api/plate-ocr.contro
 import { PlateOcrCostGuard } from "../src/modules/check-in-api/plate-ocr-cost-guard";
 import { PLATE_OCR_PROVIDER } from "../src/modules/check-in-api/plate-ocr-provider";
 import { PlateOcrService } from "../src/modules/check-in-api/plate-ocr.service";
+import { PlateOcrAdmissionExecutor } from "../src/modules/check-in-api/plate-ocr-admission/plate-ocr-admission-executor";
 import { ReturningCheckInController } from "../src/modules/check-in-api/returning-check-in.controller";
 
 function metadata<T>(key: string): T[] {
@@ -40,6 +41,7 @@ describe("dedicated Check-In feature module ownership", () => {
       CheckInOperationRunner,
       PlateOcrAuthGuard,
       PlateOcrService,
+      PlateOcrAdmissionExecutor,
       ConditionPhotoBackendService,
       ConditionPhotoMetricsPulse,
       ConditionPhotoAuthGuard,
