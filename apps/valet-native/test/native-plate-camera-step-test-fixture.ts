@@ -118,6 +118,19 @@ export function plateCameraFixture(
   const pendingPermission = new Promise<typeof permission>((resolve) => {
     resolvePermission = resolve;
   });
+  const ocr = ocrUnavailable
+    ? {
+        accept: vi.fn(),
+        capture: vi.fn(async () => "cache://plate.jpg"),
+        recognize: vi.fn(async () => ({
+          status:
+            ocrUnavailable === "no-match"
+              ? ("NO_MATCH" as const)
+              : ("UNAVAILABLE" as const),
+        })),
+        remove: vi.fn(async (): Promise<void> => undefined),
+      }
+    : undefined;
   const controller = new NativePlateCameraController(
     {
       get: vi.fn(async () =>
@@ -125,19 +138,7 @@ export function plateCameraFixture(
       ),
       request: vi.fn(async () => permission),
     },
-    ocrUnavailable
-      ? {
-          accept: vi.fn(),
-          capture: vi.fn(async () => "cache://plate.jpg"),
-          recognize: vi.fn(async () => ({
-            status:
-              ocrUnavailable === "no-match"
-                ? ("NO_MATCH" as const)
-                : ("UNAVAILABLE" as const),
-          })),
-          remove: vi.fn(async () => undefined),
-        }
-      : undefined,
+    ocr,
   );
   const open = vi.spyOn(controller, "open");
   cameraHooks.controller = controller;
@@ -179,6 +180,7 @@ export function plateCameraFixture(
     controller,
     onManual,
     onNoPlate,
+    ocr,
     open,
     press,
     render,

@@ -131,7 +131,6 @@ describe("Native Plate OCR diagnostic trace", () => {
       "PLATE_OCR_NATIVE picture-size-remount",
       "PLATE_OCR_NATIVE camera-ready",
       "PLATE_OCR_NATIVE preview-ready",
-      "PLATE_OCR_NATIVE loop-start",
     ]);
     binding.controller.close();
   });

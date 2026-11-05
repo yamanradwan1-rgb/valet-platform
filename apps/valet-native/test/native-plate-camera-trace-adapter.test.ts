@@ -103,10 +103,12 @@ describe("real adapter callback attribution", () => {
       "remount-transition",
       "metadata-start",
       "preview-validated",
-      "ocr-started",
     ].map((event) => records.findIndex((r) => r.event === event));
     expect(order.every((n) => n >= 0)).toBe(true);
     expect(order).toEqual([...order].sort((a, b) => a - b));
+    expect(records.some((record) => record.event === "ocr-started")).toBe(
+      false,
+    );
     expect(c.sizes).toHaveBeenCalledOnce();
     c.binding.controller.close();
   });

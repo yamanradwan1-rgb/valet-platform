@@ -4,12 +4,16 @@ export const nativeEmployeeArabicCheckInDictionary = {
   continueWithoutRecognition: "متابعة بدون التحقق من المركبة",
   correctVehicleDetails: "تصحيح بيانات المركبة",
   differentCustomer: "عميل مختلف",
-  locationIntakeStopped: "هذا الفرع لا يستقبل سيارات جديدة حاليًا. تواصل مع إدارة الفرع.",
+  locationIntakeStopped:
+    "هذا الفرع لا يستقبل سيارات جديدة حاليًا. تواصل مع إدارة الفرع.",
   make: "الشركة المصنّعة",
   model: "الطراز",
   phoneEnding: "رقم الهاتف ينتهي بـ",
   plateCameraBusy:
     "الكاميرا مشغولة أو غير متاحة. أغلق تطبيقات الكاميرا الأخرى وحاول مجددًا.",
+  plateCameraCapture: "تصوير اللوحة",
+  plateCameraNoMatchHint:
+    "لم يتم العثور على اللوحة. عدّل موضعها واضغط تصوير اللوحة مجددًا.",
   plateCameraCapturedHint:
     "تم التقاط الصورة كمرجع فقط. أدخل اللوحة وأكدها يدويًا.",
   plateCameraCapturedLabel: "صورة مرجعية ملتقطة للوحة المركبة",
@@ -22,7 +26,7 @@ export const nativeEmployeeArabicCheckInDictionary = {
   plateCameraOpen: "فتح كاميرا اللوحة",
   plateCameraPermissionDenied:
     "تم رفض إذن الكاميرا. عدّل أذونات المتصفح أو أدخل اللوحة يدويًا.",
-  plateCameraPreviewHint: "جارٍ القراءة تلقائيًا… ضع اللوحة كاملة داخل الإطار.",
+  plateCameraPreviewHint: "ضع اللوحة داخل الإطار ثم اضغط تصوير اللوحة.",
   plateCameraPreviewLabel: "معاينة مباشرة لكاميرا لوحة المركبة",
   plateCameraRetake: "إعادة التقاط الصورة",
   plateCameraRetry: "إعادة محاولة تشغيل الكاميرا",

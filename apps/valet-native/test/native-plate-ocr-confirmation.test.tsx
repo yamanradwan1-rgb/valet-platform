@@ -147,7 +147,13 @@ describe("OCR integrates the real Check-In trust boundary", () => {
       const c = await setup();
       const confirm = vi.spyOn(c.session, "confirmIdentity");
       expect(c.camera.takePictureAsync).not.toHaveBeenCalled();
-      await vi.advanceTimersByTimeAsync(1200);
+      expect(
+        c.controller.capture(
+          c.controller.current().generation,
+          c.controller.current().mountId,
+        ),
+      ).toBe(true);
+      await vi.advanceTimersByTimeAsync(0);
       expect(c.camera.takePictureAsync).toHaveBeenCalledWith({
         quality: 1,
         skipProcessing: false,
@@ -193,7 +199,13 @@ describe("OCR integrates the real Check-In trust boundary", () => {
   );
   it("allows Edit before explicit confirmation", async () => {
     const c = await setup();
-    await vi.advanceTimersByTimeAsync(1200);
+    expect(
+      c.controller.capture(
+        c.controller.current().generation,
+        c.controller.current().mountId,
+      ),
+    ).toBe(true);
+    await vi.advanceTimersByTimeAsync(0);
     c.session.editIdentity();
     c.session.setVehicle({ plateNumberRaw: "EDITED" });
     c.session.reviewIdentity();
@@ -221,7 +233,13 @@ describe("OCR integrates the real Check-In trust boundary", () => {
         resolve = done;
       }),
     );
-    await vi.advanceTimersByTimeAsync(1200);
+    expect(
+      c.controller.capture(
+        c.controller.current().generation,
+        c.controller.current().mountId,
+      ),
+    ).toBe(true);
+    await vi.advanceTimersByTimeAsync(0);
     switch (reason) {
       case "back":
         c.session.clear();
@@ -261,7 +279,13 @@ describe("OCR integrates the real Check-In trust boundary", () => {
   it("does not upload oversize local files and still deletes them", async () => {
     const c = await setup();
     mocks.size = 1048577;
-    await vi.advanceTimersByTimeAsync(1200);
+    expect(
+      c.controller.capture(
+        c.controller.current().generation,
+        c.controller.current().mountId,
+      ),
+    ).toBe(true);
+    await vi.advanceTimersByTimeAsync(0);
     expect(mocks.request).not.toHaveBeenCalled();
     expect(c.camera.takePictureAsync).toHaveBeenCalledOnce();
     expect(mocks.remove).toHaveBeenCalledTimes(3);
