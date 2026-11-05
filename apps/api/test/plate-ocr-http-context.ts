@@ -121,7 +121,8 @@ export class PlateOcrHttpContext extends ReturningCheckInTestContext {
     this.calls = 0;
     this.time = 0;
     this.mode = mode;
-    this.guard = new PlateOcrCostGuard(mode, () => this.time);
+    // This harness injects a synthetic provider only; its API binds loopback.
+    this.guard = new PlateOcrCostGuard(mode, () => this.time, 1024, true);
     this.result = async () => ({ status: "NO_MATCH" });
   }
   override async stop() {

@@ -51,6 +51,7 @@ import { PlateRecognizerSnapshotProvider } from "./plate-recognizer-snapshot.pro
     {
       provide: PlateOcrCostGuard,
       useFactory: () =>
+        // Live providers always enter shared A/S, including misconfigured test.
         new PlateOcrCostGuard(process.env.NODE_ENV, () => performance.now()),
     },
     {

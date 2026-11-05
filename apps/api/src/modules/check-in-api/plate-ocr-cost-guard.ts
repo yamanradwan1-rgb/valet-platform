@@ -15,15 +15,21 @@ export class PlateOcrCostGuard {
     private readonly mode: string | undefined,
     private readonly now: () => number,
     private readonly maxIdentities = 1024,
+    // Only explicitly constructed local synthetic-provider test harnesses may
+    // use process-local accounting. The real API module never enables this.
+    private readonly syntheticTestProvider = false,
   ) {}
 
-  /** Legacy ephemeral path is authorized only in controlled dev/test mode. */
+  /** NODE_ENV alone never selects the unshared provider dispatch path. */
   isControlledNonProduction(): boolean {
-    return this.mode === "development" || this.mode === "test";
+    return (
+      this.syntheticTestProvider &&
+      (this.mode === "development" || this.mode === "test")
+    );
   }
 
   acquire(identity: PlateOcrCostIdentity): (() => void) | undefined {
-    if (this.mode !== "development" && this.mode !== "test") return undefined;
+    if (!this.isControlledNonProduction()) return undefined;
     const now = this.now();
     if (!Number.isFinite(now)) return undefined;
     for (const [key, entry] of this.entries) {

@@ -76,7 +76,7 @@ describe("private OCR dispatch and observation", () => {
       () => "true",
     ]) {
       const result = await provider.recognizeObserved(input, {
-        permit: { consumeIfFresh: consumeIfFresh as () => boolean },
+        permit: { consumeIfFresh: consumeIfFresh as unknown as () => boolean },
         signal: new AbortController().signal,
       });
       expect(result).toMatchObject({
