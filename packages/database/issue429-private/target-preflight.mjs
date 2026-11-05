@@ -72,23 +72,35 @@ async function verifyPostgres(url) {
   }
 }
 
-function verifyLocalDocker() {
-  const inspected = JSON.parse(execFileSync("docker", [
-    "inspect", "vaylet-test-postgres",
-  ], { encoding: "utf8", timeout: 5000, windowsHide: true, stdio: "pipe" }));
+export function assertIssue429DockerIdentity(inspected) {
   const target = inspected.length === 1 ? inspected[0] : undefined;
   const ports = target?.NetworkSettings?.Ports?.["5432/tcp"];
+  const volumes = target?.Mounts;
   if (target?.Name !== "/vaylet-test-postgres" ||
       !/^postgres:17(?:[.-]|$)/.test(target.Config?.Image ?? "") ||
       target.State?.Status !== "running" ||
       !target.Config?.Env?.includes("POSTGRES_USER=vaylet_test_admin") ||
       !target.Config?.Env?.includes("POSTGRES_DB=vaylet_test") ||
+      target.Config?.Labels?.["vaylet.environment"] !== "isolated-test" ||
+      target.Config?.Labels?.["com.docker.compose.project"] !== "vaylet-test" ||
+      target.Config?.Labels?.["com.docker.compose.service"] !== "postgres" ||
       !Array.isArray(ports) || ports.length !== 1 ||
       ports[0].HostIp !== "127.0.0.1" ||
       ports[0].HostPort !== "45432" ||
-      target.Mounts?.some((mount) => mount.Type === "bind")) {
+      !Array.isArray(volumes) || volumes.length !== 1 ||
+      volumes[0].Type !== "volume" ||
+      volumes[0].Name !== "vaylet-test_postgres_data" ||
+      volumes[0].Destination !== "/var/lib/postgresql/data" ||
+      volumes[0].RW !== true) {
     throw new Error("Issue429 OCR dedicated Docker PostgreSQL17 identity mismatch.");
   }
+}
+
+function verifyLocalDocker() {
+  const inspected = JSON.parse(execFileSync("docker", [
+    "inspect", "vaylet-test-postgres",
+  ], { encoding: "utf8", timeout: 5000, windowsHide: true, stdio: "pipe" }));
+  assertIssue429DockerIdentity(inspected);
 }
 
 /**

@@ -5,7 +5,8 @@ import { test } from "node:test";
 
 import { classifyPackageTests } from "../../../scripts/test-harness/test-classification.mjs";
 import {
-  assertIssue429PrivateTarget, preflightIssue429BeforeLease,
+  assertIssue429DockerIdentity, assertIssue429PrivateTarget,
+  preflightIssue429BeforeLease,
 } from "./target-preflight.mjs";
 
 const packageRoot = fileURLToPath(new URL("../", import.meta.url));
@@ -63,6 +64,54 @@ test("Docker and live PG17 failures refuse target without lease", async () => {
     verifyDatabase: () => { events.push("database"); throw Error("wrong PG17"); },
   }), /attestation failed/);
   assert.deepEqual(events, ["docker", "docker", "database"]);
+});
+
+test("Docker identity insists on both isolated-test and Compose project labels", () => {
+  const target = {
+    Name: "/vaylet-test-postgres",
+    Config: {
+      Image: "postgres:17",
+      Env: ["POSTGRES_USER=vaylet_test_admin", "POSTGRES_DB=vaylet_test"],
+      Labels: {
+        "vaylet.environment": "isolated-test",
+        "com.docker.compose.project": "vaylet-test",
+        "com.docker.compose.service": "postgres",
+      },
+    },
+    State: { Status: "running" },
+    NetworkSettings: {
+      Ports: { "5432/tcp": [{ HostIp: "127.0.0.1", HostPort: "45432" }] },
+    },
+    Mounts: [{
+      Type: "volume", Name: "vaylet-test_postgres_data",
+      Destination: "/var/lib/postgresql/data", RW: true,
+    }],
+  };
+  assert.doesNotThrow(() => assertIssue429DockerIdentity([target]));
+  for (const [label, wrong] of [
+    ["vaylet.environment", "development"],
+    ["com.docker.compose.project", "production"],
+    ["com.docker.compose.service", "dashboard"],
+  ]) {
+    const changed = structuredClone(target);
+    changed.Config.Labels[label] = wrong;
+    assert.throws(() => assertIssue429DockerIdentity([changed]), /identity mismatch/);
+    delete changed.Config.Labels[label];
+    assert.throws(() => assertIssue429DockerIdentity([changed]), /identity mismatch/);
+  }
+  for (const mount of [
+    { ...target.Mounts[0], Type: "bind" },
+    { ...target.Mounts[0], Name: "valet_postgres_data" },
+    { ...target.Mounts[0], Destination: "/var/lib/postgresql/other" },
+    { ...target.Mounts[0], RW: false },
+  ]) {
+    assert.throws(() => assertIssue429DockerIdentity([
+      { ...target, Mounts: [mount] },
+    ]), /identity mismatch/);
+  }
+  assert.throws(() => assertIssue429DockerIdentity([
+    { ...target, Mounts: [target.Mounts[0],target.Mounts[0]] },
+  ]), /identity mismatch/);
 });
 
 test("ordinary package classifier cannot discover any private Issue429 PG suite", () => {
