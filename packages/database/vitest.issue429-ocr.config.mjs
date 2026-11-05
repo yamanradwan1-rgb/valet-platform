@@ -26,7 +26,7 @@ export default defineConfig(async () => {
             maxWorkers: 1,
             env: {
               VAYLET_TEST_PROJECT: "database-postgres-issue429-ocr",
-              VAYLET_POSTGRES_PROFILE: "database-provision",
+              VAYLET_POSTGRES_PROFILE: "database-ocr",
             },
             setupFiles: [`${harness}vitest-postgres-setup.mjs`],
             globalSetup: [privateSetup],

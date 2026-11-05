@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { test } from "node:test";
 
 import { classifyPackageTests } from "../../../scripts/test-harness/test-classification.mjs";
+import { assertPostgresBudget, postgresProfileForProject } from "../../../scripts/test-harness/resource-budget.mjs";
 import {
   assertIssue429DockerIdentity, assertIssue429PrivateTarget,
   preflightIssue429BeforeLease,
@@ -17,6 +18,16 @@ const safeBase = {
   TEST_DATABASE_URL:
     "postgresql://vaylet_test_admin:synthetic-only@127.0.0.1:45432/vaylet_test",
 };
+
+test("private OCR fixture has a bounded single-file six-client resource profile", () => {
+  const profile = postgresProfileForProject("database-postgres-issue429-ocr");
+  assert.equal(profile.name, "database-ocr");
+  assert.equal(profile.directClients, 6);
+  assert.equal(profile.fileWorkers, 1);
+  assert.equal(profile.subprocessMax, 1);
+  assert.ok(assertPostgresBudget({ profile, workers: 1, maxConnections: 100,
+    reservedConnections: 0, superuserReservedConnections: 3 }).headroom > 0);
+});
 
 test("strict target scope validates before any Docker or database probe", async () => {
   const malformed = [
