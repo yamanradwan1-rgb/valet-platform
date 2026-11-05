@@ -79,6 +79,37 @@ enum ShiftStatus {
   @@map("shift_status")
 }
 
+enum OcrAttemptState {
+  SEND_POSSIBLE
+  UNKNOWN
+  COMPLETED
+  NOT_SENT
+  RECONCILED
+
+  @@map("ocr_attempt_state")
+}
+
+enum OcrControlAction {
+  PROVISION_PERIOD
+  ALLOCATE_ORG
+  SET_PLATFORM
+  SET_ORG
+  ACTIVATE_PERIOD
+  RECONCILE_ATTEMPT
+
+  @@map("ocr_control_action")
+}
+
+enum OcrControlScope {
+  PLATFORM
+  ORGANIZATION
+  PERIOD
+  ALLOCATION
+  ATTEMPT
+
+  @@map("ocr_control_scope")
+}
+
 enum ParkingSpotStatus {
   ACTIVE
   INACTIVE
@@ -579,6 +610,10 @@ model Organization {
   guestContactOverrides GuestContactLocation[]
 
   onboardingInvitations StaffOnboardingInvitation[]
+  ocrControl OcrOrganizationControl?
+  ocrAllocations OcrOrganizationAllocation[]
+  ocrAttempts OcrAttempt[]
+  ocrControlHistory OcrControlHistory[]
 
   shiftStartPresenceMode ShiftPresenceMode @default(OFF) @map("shift_start_presence_mode")
   shiftEndPresenceMode ShiftPresenceMode @default(OFF) @map("shift_end_presence_mode")
@@ -654,6 +689,7 @@ model Location {
   guestPrivacy             GuestLocationPrivacy?
   guestPrivacyPublications GuestPrivacyPublication[]
   guestContactOverrides    GuestContactLocation?
+  ocrAttempts OcrAttempt[]
 
   shiftStartPresenceModeOverride ShiftPresenceMode? @map("shift_start_presence_mode_override")
   shiftEndPresenceModeOverride ShiftPresenceMode? @map("shift_end_presence_mode_override")
@@ -813,6 +849,7 @@ model StaffAuthSession {
   mfaFactor          UserMfaTotpFactor?       @relation(fields: [userId, mfaFactorId], references: [userId, id], onDelete: Restrict, onUpdate: Restrict, map: "staff_auth_sessions_user_mfa_factor_id_fkey")
   refreshCredentials StaffRefreshCredential[]
   pushRegistrations  StaffPushRegistration[]
+  ocrAttempts OcrAttempt[]
 
   @@index([userId, revokedAt, absoluteExpiresAt], map: "staff_auth_sessions_user_id_status_idx")
   @@map("staff_auth_sessions")
@@ -923,6 +960,7 @@ model OrganizationMembership {
   previousDispatchEvents      DispatchEvent[]            @relation("DispatchEventPreviousAssignee")
   newDispatchEvents           DispatchEvent[]            @relation("DispatchEventNewAssignee")
   staffPushDeliveries         StaffPushDelivery[]
+  ocrAttempts OcrAttempt[]
 
   @@unique([organizationId, userId], map: "organization_memberships_organization_id_user_id_key")
   @@unique([organizationId, id], map: "organization_memberships_organization_id_id_key")
@@ -2798,4 +2836,136 @@ model ShiftPresenceManagementResult {
   actor OrganizationMembership @relation(fields: [organizationId,actorMembershipId,actorUserId], references: [organizationId,id,userId], onDelete: Restrict, onUpdate: Restrict, map: "shift_presence_management_results_actor_fkey")
   audit AuditEvent? @relation(fields: [auditEventId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   @@map("shift_presence_management_results")
+}
+
+// #429 OCR admission is a private accounting/control boundary. Runtime access is
+// limited to SECURITY DEFINER functions; these models are not API DTOs.
+model OcrPlatformControl {
+  id                   Int              @id @default(1) @db.SmallInt
+  enabled              Boolean          @default(false)
+  accountAlias         String?          @map("account_alias")
+  activePeriodId       String?          @map("active_period_id") @db.Uuid
+  concurrencyCap       Int              @default(0) @map("concurrency_cap")
+  revision             BigInt           @default(1)
+  clockFloor           DateTime         @default(now()) @map("clock_floor") @db.Timestamptz(3)
+  updatedAt            DateTime         @default(now()) @map("updated_at") @db.Timestamptz(3)
+  activePeriod         OcrBudgetPeriod? @relation("OcrActivePeriod", fields: [activePeriodId, accountAlias], references: [id, accountAlias], onDelete: Restrict, onUpdate: Restrict)
+
+  @@map("ocr_platform_control")
+}
+
+model OcrOrganizationControl {
+  organizationId String       @id @map("organization_id") @db.Uuid
+  enabled        Boolean      @default(false)
+  concurrencyCap Int          @default(0) @map("concurrency_cap")
+  revision       BigInt       @default(1)
+  updatedAt      DateTime     @default(now()) @map("updated_at") @db.Timestamptz(3)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@map("ocr_organization_control")
+}
+
+model OcrBudgetPeriod {
+  id             String                       @id @default(uuid()) @db.Uuid
+  accountAlias   String                       @map("account_alias")
+  startsAt       DateTime                     @map("starts_at") @db.Timestamptz(3)
+  endsAt         DateTime                     @map("ends_at") @db.Timestamptz(3)
+  quotaUnits     BigInt                       @map("quota_units")
+  spentUnits     BigInt                       @default(0) @map("spent_units")
+  revision       BigInt                       @default(1)
+  createdAt      DateTime                     @default(now()) @map("created_at") @db.Timestamptz(3)
+  platformActive OcrPlatformControl[]         @relation("OcrActivePeriod")
+  allocations    OcrOrganizationAllocation[]
+  attempts       OcrAttempt[]
+  controlHistory OcrControlHistory[]
+
+  @@unique([id, accountAlias], map: "ocr_budget_periods_id_account_key")
+  @@unique([accountAlias, startsAt], map: "ocr_budget_periods_account_start_key")
+  @@map("ocr_budget_periods")
+}
+
+model OcrOrganizationAllocation {
+  periodId       String         @map("period_id") @db.Uuid
+  organizationId String         @map("organization_id") @db.Uuid
+  quotaUnits     BigInt         @map("quota_units")
+  spentUnits     BigInt         @default(0) @map("spent_units")
+  revision       BigInt         @default(1)
+  updatedAt      DateTime       @default(now()) @map("updated_at") @db.Timestamptz(3)
+  period         OcrBudgetPeriod @relation(fields: [periodId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  attempts       OcrAttempt[]
+
+  @@id([periodId, organizationId], map: "ocr_organization_allocations_pkey")
+  @@index([organizationId, periodId], map: "ocr_allocations_org_period_idx")
+  @@map("ocr_organization_allocations")
+}
+
+model OcrAttempt {
+  id                   String                   @id @default(uuid()) @db.Uuid
+  organizationId       String                   @map("organization_id") @db.Uuid
+  membershipId         String                   @map("membership_id") @db.Uuid
+  locationId           String                   @map("location_id") @db.Uuid
+  staffSessionId       String                   @map("staff_session_id") @db.Uuid
+  periodId             String                   @map("period_id") @db.Uuid
+  accountAlias         String                   @map("account_alias")
+  units                Int                      @default(1)
+  state                OcrAttemptState          @default(SEND_POSSIBLE)
+  ownerNonce           String                   @map("owner_nonce") @db.Uuid
+  revision             BigInt                   @default(1)
+  admittedAt           DateTime                 @map("admitted_at") @db.Timestamptz(3)
+  executionDeadline    DateTime                 @map("execution_deadline") @db.Timestamptz(3)
+  firstUnknownAt       DateTime?                @map("first_unknown_at") @db.Timestamptz(3)
+  settledAt            DateTime?                @map("settled_at") @db.Timestamptz(3)
+  observationClass     String?                  @map("observation_class")
+  httpClass            String?                  @map("http_class")
+  failureClass         String?                  @map("failure_class")
+  durationMs           Int?                     @map("duration_ms")
+  organization         Organization             @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  membership           OrganizationMembership  @relation(fields: [organizationId, membershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict)
+  location             Location                 @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict)
+  staffSession         StaffAuthSession         @relation(fields: [staffSessionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  period               OcrBudgetPeriod          @relation(fields: [periodId, accountAlias], references: [id, accountAlias], onDelete: Restrict, onUpdate: Restrict)
+  allocation           OcrOrganizationAllocation @relation(fields: [periodId, organizationId], references: [periodId, organizationId], onDelete: Restrict, onUpdate: Restrict)
+  controlHistory       OcrControlHistory[]
+
+  @@index([organizationId, admittedAt], map: "ocr_attempts_org_recent_idx")
+  @@index([periodId, state], map: "ocr_attempts_period_state_idx")
+  @@map("ocr_attempts")
+}
+
+model OcrControlHistory {
+  operationId       String             @id @map("operation_id") @db.Uuid
+  actorLogin        String             @map("actor_login")
+  action            OcrControlAction
+  scope             OcrControlScope
+  organizationId    String?            @map("organization_id") @db.Uuid
+  periodId          String?            @map("period_id") @db.Uuid
+  attemptId         String?            @map("attempt_id") @db.Uuid
+  expectedRevision  BigInt             @map("expected_revision")
+  appliedRevision   BigInt             @map("applied_revision")
+  oldEnabled        Boolean?           @map("old_enabled")
+  newEnabled        Boolean?           @map("new_enabled")
+  oldCap            Int?               @map("old_cap")
+  newCap            Int?               @map("new_cap")
+  oldQuotaUnits     BigInt?            @map("old_quota_units")
+  newQuotaUnits     BigInt?            @map("new_quota_units")
+  oldActivePeriodId String?            @map("old_active_period_id") @db.Uuid
+  newActivePeriodId String?            @map("new_active_period_id") @db.Uuid
+  oldAccountAlias   String?            @map("old_account_alias")
+  newAccountAlias   String?            @map("new_account_alias")
+  accountAlias      String?            @map("account_alias")
+  startsAt          DateTime?          @map("starts_at") @db.Timestamptz(3)
+  endsAt            DateTime?          @map("ends_at") @db.Timestamptz(3)
+  oldAttemptState   OcrAttemptState?   @map("old_attempt_state")
+  newAttemptState   OcrAttemptState?   @map("new_attempt_state")
+  proofCode         String?            @map("proof_code")
+  reasonCode        String             @map("reason_code")
+  evidenceRef       String?            @map("evidence_ref")
+  occurredAt        DateTime           @default(now()) @map("occurred_at") @db.Timestamptz(3)
+  organization      Organization?      @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  period            OcrBudgetPeriod?   @relation(fields: [periodId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  attempt           OcrAttempt?        @relation(fields: [attemptId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([occurredAt, operationId], map: "ocr_control_history_occurred_idx")
+  @@map("ocr_control_history")
 }

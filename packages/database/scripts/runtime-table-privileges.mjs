@@ -17,6 +17,7 @@ import { provisionGuestInformationPrivileges } from "./guest-information-runtime
 import { provisionIncidentResolutionPrivileges } from "./incident-resolution-runtime-privileges.mjs";
 import { provisionManagementAlertTimingPrivileges } from "./management-alert-timing-runtime-privileges.mjs";
 import { provisionManagementAlertSeenPrivileges } from "./management-alert-seen-runtime-privileges.mjs";
+import { provisionOcrRuntimePrivileges } from "./ocr-runtime-privileges.mjs";
 
 const runtimeReadOnlyTables = [
   "organizations",
@@ -284,6 +285,7 @@ export async function provisionRuntimeTablePrivileges(
   await provisionConditionPhotoRuntimePrivileges(client, executeFormatted, runtimeRole);
   await provisionOutboundRuntimePrivileges(client, executeFormatted, runtimeRole);
   await provisionGuestInformationPrivileges(client, executeFormatted, runtimeRole);
+  await provisionOcrRuntimePrivileges(client, executeFormatted, runtimeRole);
   for (const column of runtimeRefundInsertColumns) {
     await executeFormatted(client, "GRANT INSERT (%I) ON TABLE refunds TO %I", [
       column,
