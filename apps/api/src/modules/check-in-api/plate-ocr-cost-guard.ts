@@ -8,15 +8,14 @@ interface Entry {
   calls: number[];
 }
 
-/** DEC-074 §22: controlled non-production only; not shared/durable authority. */
+/** Per-process duplicate/burst protection; NOT billing or shared quota. */
 export class PlateOcrCostGuard {
   private readonly entries = new Map<string, Entry>();
   constructor(
     private readonly mode: string | undefined,
     private readonly now: () => number,
     private readonly maxIdentities = 1024,
-    // Only explicitly constructed local synthetic-provider test harnesses may
-    // use process-local accounting. The real API module never enables this.
+    // Non-production synthetic tests explicitly opt in; production is direct.
     private readonly syntheticTestProvider = false,
   ) {}
 
@@ -29,7 +28,8 @@ export class PlateOcrCostGuard {
   }
 
   acquire(identity: PlateOcrCostIdentity): (() => void) | undefined {
-    if (!this.isControlledNonProduction()) return undefined;
+    if (this.mode !== "production" && !this.isControlledNonProduction())
+      return undefined;
     const now = this.now();
     if (!Number.isFinite(now)) return undefined;
     for (const [key, entry] of this.entries) {

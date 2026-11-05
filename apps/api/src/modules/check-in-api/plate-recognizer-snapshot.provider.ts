@@ -112,10 +112,6 @@ export class PlateRecognizerSnapshotProvider
     return this.config !== undefined;
   }
 
-  admissionTimeoutMs(): number | undefined {
-    return this.config?.timeoutMs;
-  }
-
   onModuleInit(): void {
     if (!this.config)
       this.logger.warn(`PLATE_OCR_READINESS ${this.configIssue}`);
@@ -136,7 +132,7 @@ export class PlateRecognizerSnapshotProvider
     _input: Parameters<PlateOcrProvider["recognize"]>[0],
   ): Promise<PlateOcrResponse> {
     void _input;
-    // Legacy entrypoint lacks admission; never dispatch.
+    // Unguarded entrypoint lacks Staff/Location/Shift proof; never dispatch.
     return unavailable;
   }
 

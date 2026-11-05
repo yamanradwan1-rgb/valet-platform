@@ -3,14 +3,14 @@ import type { PlateOcrDispatchPermit } from "./plate-ocr-provider-transport";
 
 export const PLATE_OCR_PROVIDER = Symbol("PLATE_OCR_PROVIDER");
 interface PlateOcrObservedBase {
-  /** Neutral public projection, never the authority for settlement. */
+  /** Neutral public response; observation metadata remains diagnostic only. */
   readonly response: PlateOcrResponse;
   readonly httpResponseComplete: boolean;
   readonly durationMs: number;
 }
 type OcrObservedFailure =
   "NONE" | "TIMEOUT" | "CANCELLED" | "NETWORK" | "PROVIDER" | "PARSE" | "OTHER";
-/** Shapes are aligned with W5 settlement and the persisted SQL allowlists. */
+/** Transport observations retained for provider diagnostics and regression tests. */
 export type PlateOcrObservedResult = PlateOcrObservedBase &
   (
     | {
@@ -44,7 +44,6 @@ export interface PlateOcrObservedOptions {
 export interface PlateOcrProvider {
   /** Local-only readiness; never probes or consumes provider account quota. */
   canDispatch(): boolean;
-  admissionTimeoutMs(): number | undefined;
   recognize(input: {
     readonly image: Uint8Array;
     readonly plateCountry: PlateOcrRequest["plateCountry"];

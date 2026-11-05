@@ -1,7 +1,16 @@
 # Issue #429 — OCR operating and UNKNOWN recovery runbook
 
-Status: **Implementation guidance only. Production activation is NOT authorized.**
-Source: Accepted DEC-074 (2026-11-05 amendment), Issue #429 approved plan.
+Status: **Historical shared-admission/recovery procedures; not the current direct
+OCR request path.** DEC-074 §24 (2026-11-06) supersedes this runbook for new OCR
+requests. Do not run OCR operator provisioning/activation as a prerequisite for
+direct Plate Recognizer. Retain historical database state; this document does
+not authorize a migration, rollback, deployment or paid request. The live path
+requires normal Staff `DATABASE_URL`, HTTPS `PLATE_OCR_ENDPOINT`,
+`PLATE_OCR_TOKEN`, and optional score/timeout settings. Only the existing
+Organization/Location `ocrAssistEnabled` policy enables assistance after Staff
+and Shift authorization. Rate protection is per API process, not a spending
+quota across replicas.
+Source: Accepted DEC-074 (2026-11-05 historical amendment; §24 supersession).
 
 ## Preconditions before *any* production change
 

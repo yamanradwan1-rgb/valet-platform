@@ -15,7 +15,6 @@ import { PlateOcrAuthGuard } from "../src/modules/check-in-api/plate-ocr-auth.gu
 import { PlateOcrController } from "../src/modules/check-in-api/plate-ocr.controller";
 import { PlateOcrService } from "../src/modules/check-in-api/plate-ocr.service";
 import { PlateOcrCostGuard } from "../src/modules/check-in-api/plate-ocr-cost-guard";
-import { PlateOcrAdmissionExecutor } from "../src/modules/check-in-api/plate-ocr-admission/plate-ocr-admission-executor";
 import { PLATE_OCR_PROVIDER } from "../src/modules/check-in-api/plate-ocr-provider";
 import {
   STAFF_SESSION_CONTEXT_RESOLVER,
@@ -66,17 +65,10 @@ export class PlateOcrHttpContext extends ReturningCheckInTestContext {
           useValue: { acquire, isControlledNonProduction },
         },
         {
-          provide: PlateOcrAdmissionExecutor,
-          useValue: {
-            admit: async () => ({ status: "UNAVAILABLE", reason: "DISABLED" }),
-          },
-        },
-        {
           provide: PLATE_OCR_PROVIDER,
           useValue: {
             recognize,
             canDispatch: () => true,
-            admissionTimeoutMs: () => 4_000,
             recognizeObserved: async (
               _input: unknown,
               options: {

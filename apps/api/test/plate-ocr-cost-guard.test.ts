@@ -33,8 +33,8 @@ describe("DEC-074 non-production cost guard", () => {
     (mode) => {
       const c = setup(mode, 1024, false);
       expect(c.guard.isControlledNonProduction()).toBe(false);
-      expect(c.call()).toBe(false);
-      expect(c.provider).not.toHaveBeenCalled();
+      expect(c.call()).toBe(mode === "production");
+      expect(c.provider).toHaveBeenCalledTimes(mode === "production" ? 1 : 0);
     },
   );
   it("allows first and denies concurrent calls before I/O", () => {
@@ -88,8 +88,8 @@ describe("DEC-074 non-production cost guard", () => {
     c.at(120002);
     expect(c.call()).toBe(true);
   });
-  it.each(["production", "staging", ""])(
-    "fails closed in %s without provider calls",
+  it.each(["staging", ""])(
+    "fails closed in unsupported %s without provider calls",
     (mode) => {
       const c = setup(mode);
       expect(c.call()).toBe(false);

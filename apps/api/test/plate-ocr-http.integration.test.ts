@@ -211,7 +211,7 @@ describe("authenticated OCR HTTP route with real persisted authority", () => {
     ).toBe(400);
     expect(c.calls).toBe(0);
   });
-  it("production fails closed even with configured provider credentials", async () => {
+  it("production uses direct authenticated OCR without billing admission", async () => {
     c.reset("production");
     vi.stubEnv("PLATE_OCR_ENDPOINT", "https://ocr.example.test/read");
     vi.stubEnv("PLATE_OCR_TOKEN", "test-only-secret");
@@ -222,8 +222,8 @@ describe("authenticated OCR HTTP route with real persisted authority", () => {
         plateCountry: "JO",
       });
       expect(response.status).toBe(200);
-      expect(await response.json()).toEqual({ status: "UNAVAILABLE" });
-      expect(c.calls).toBe(0);
+      expect(await response.json()).toEqual({ status: "NO_MATCH" });
+      expect(c.calls).toBe(1);
     } finally {
       vi.unstubAllEnvs();
     }

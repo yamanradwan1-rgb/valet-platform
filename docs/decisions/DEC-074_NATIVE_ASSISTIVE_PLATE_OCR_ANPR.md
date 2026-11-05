@@ -4,6 +4,7 @@ Status: Accepted
 Date: 2026-09-05
 Amended: 2026-09-05 — no-migration OCR cost-guard policy locked for MOB-010A
 Amended: 2026-11-05 — Issue #429 production-safe shared admission and manual Capture execution decision
+Amended: 2026-11-06 — Owner-directed direct Plate Recognizer runtime supersedes §23 shared accounting for new OCR requests
 Task: MOB-010A — Assistive Plate OCR / ANPR Native Integration; Issue #429 focused evolution
 
 ## 1. Context and decision scope
@@ -630,3 +631,33 @@ reporting its sample and one-sided 95% confidence upper bound; noisy or
 missing data are not a PASS. The engineering design's six typed OCR tables,
 lock choices, initial deadlines and maintenance frequency must satisfy these
 gates rather than being claimed experimentally validated by this decision.
+
+## 24. Owner-directed direct production OCR (2026-11-06)
+
+The Owner expressly replaced the **new-request runtime** part of §23: a Capture
+no longer depends on shared `ocr_admit` / `ocr_settle`, platform/Organization
+budget controls, billing period, allocations, or an OCR operator database login.
+The six historical OCR tables and migration are left intact; do not drop
+historical state or grants as a side effect of restoring recognition. The §23
+shared-admission-specific performance and recovery experiments do not qualify
+the direct path and cannot be claimed as completed. This change does not
+authorize production deployment or an actual paid provider call.
+
+The direct path still revalidates the current authenticated Staff session,
+authorizes the persisted Location and active Shift, and honors the effective
+Organization-to-Location `ocrAssistEnabled` policy in the existing runtime
+database transaction before provider I/O. Preserve bounded proof age and a
+one-use dispatch fence, cancellation and one HTTPS POST per accepted Capture;
+deny redirects, malformed JPEG/metadata and missing/invalid provider config.
+No automatic paid retry, client-exposed provider secret, server-side plate
+persistence or new Check-In side effect is authorized. Keep explicit Native
+Capture, editable Human Confirm, NO_MATCH same-preview retry, Manual and No
+Plate fallbacks, and all existing EN/AR/theme/accessibility behavior.
+
+The old process-local identity rate/concurrency guard remains as best-effort
+anti-duplicate protection, **not** as a global/tenant billing limit. Without
+shared accounting there is no durable cross-replica spending ceiling, and a
+timeout/cancel cannot prove the remote provider stopped work or charges. These
+limitations must not be represented as quota enforcement or production cost
+qualification. Android physical acceptance and real-provider behavior remain
+unverified until independently exercised.

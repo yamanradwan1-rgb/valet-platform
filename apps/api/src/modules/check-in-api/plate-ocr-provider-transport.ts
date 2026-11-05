@@ -11,7 +11,7 @@ const regionHints: Record<PlateOcrRequest["plateCountry"], string | undefined> =
     OTHER: undefined,
   };
 
-/** Private, synchronous dispatch gate: never await between permit and fetch. */
+/** Private one-use send fence, not database admission or billing authority. */
 export interface PlateOcrDispatchPermit {
   consumeIfFresh(): boolean;
 }

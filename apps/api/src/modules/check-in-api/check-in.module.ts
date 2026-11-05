@@ -18,7 +18,6 @@ import { ReturningCheckInController } from "./returning-check-in.controller";
 import { PlateOcrController } from "./plate-ocr.controller";
 import { PlateOcrAuthGuard } from "./plate-ocr-auth.guard";
 import { PlateOcrService } from "./plate-ocr.service";
-import { PlateOcrAdmissionExecutor } from "./plate-ocr-admission/plate-ocr-admission-executor";
 import { PlateOcrCostGuard } from "./plate-ocr-cost-guard";
 import { PLATE_OCR_PROVIDER } from "./plate-ocr-provider";
 import { resolvePlateOcrConfig } from "./plate-ocr-config";
@@ -44,14 +43,13 @@ import { PlateRecognizerSnapshotProvider } from "./plate-recognizer-snapshot.pro
     CheckInOperationRunner,
     PlateOcrAuthGuard,
     PlateOcrService,
-    PlateOcrAdmissionExecutor,
     ConditionPhotoBackendService,
     ConditionPhotoMetricsPulse,
     ConditionPhotoAuthGuard,
     {
       provide: PlateOcrCostGuard,
       useFactory: () =>
-        // Live providers always enter shared A/S, including misconfigured test.
+        // Local rate/concurrency guard; not a billing or shared quota authority.
         new PlateOcrCostGuard(process.env.NODE_ENV, () => performance.now()),
     },
     {
