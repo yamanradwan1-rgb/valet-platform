@@ -28,6 +28,7 @@ function safePrincipal(overrides: Record<string, unknown> = {}) {
     can_create_database: false,
     can_create_schema: false,
     has_direct_ocr_table_access: false,
+    has_unapproved_security_definer_access: false,
     ...overrides,
   };
 }
@@ -91,6 +92,94 @@ describe("Issue #429 direct OCR restricted DB principals", () => {
     expect(client.end).toHaveBeenCalledOnce();
   });
 
+  it("checks effective column privileges and exact approved function OIDs", async () => {
+    const { dependencies, client } = fakeConnection();
+    await withRestrictedOcrClient(
+      "operator",
+      environment,
+      async () => undefined,
+      dependencies,
+    );
+    const [sql, values] = vi.mocked(client.query).mock.calls[0]! as [
+      string,
+      unknown[],
+    ];
+    expect(sql).toContain(
+      "has_any_column_privilege(session_user,relation.oid,",
+    );
+    expect(sql).toContain("'SELECT,INSERT,UPDATE,REFERENCES'");
+    expect(sql).toContain(
+      "has_function_privilege(session_user,function.oid,'EXECUTE')",
+    );
+    expect(sql).toContain("function.prosecdef");
+    expect(sql).toContain(
+      "function.oid=to_regprocedure(allowed.signature)::oid",
+    );
+    expect(values[0]).toEqual([
+      "public.ocr_operator_provision_period(uuid,text,timestamptz,timestamptz,bigint,text,text)",
+      "public.ocr_operator_set_org(uuid,uuid,bigint,boolean,integer,text,text)",
+      "public.ocr_operator_allocate(uuid,uuid,uuid,bigint,bigint,text,text)",
+      "public.ocr_operator_set_platform(uuid,bigint,boolean,text,integer,text,text)",
+      "public.ocr_operator_activate_period(uuid,bigint,uuid,text,text)",
+      "public.ocr_operator_resolve_attempt(uuid,uuid,uuid,bigint,text,text,text)",
+    ]);
+  });
+
+  it("maintenance authorizes only its own bounded detector", async () => {
+    const { dependencies, client } = fakeConnection({
+      session_role: "ocr_maintenance_qa",
+    });
+    const action = vi.fn(async () => 0);
+    expect(
+      await withRestrictedOcrClient(
+        "maintenance",
+        environment,
+        action,
+        dependencies,
+      ),
+    ).toBe(0);
+    const [sql, values] = vi.mocked(client.query).mock.calls[0]! as [
+      string,
+      unknown[],
+    ];
+    expect(sql).toContain("has_any_column_privilege");
+    expect(values).toEqual([["public.ocr_detect_expired(integer)"]]);
+    expect(action).toHaveBeenCalledOnce();
+    expect(client.end).toHaveBeenCalledOnce();
+  });
+
+  it.each(["operator", "maintenance"] as const)(
+    "%s CLI refuses a column-level OCR grant before any action",
+    async (role) => {
+      const { dependencies, client } = fakeConnection({
+        session_role: role === "operator" ? identity : "ocr_maintenance_qa",
+        has_direct_ocr_table_access: true,
+      });
+      const action = vi.fn(async () => "never");
+      await expect(
+        withRestrictedOcrClient(role, environment, action, dependencies),
+      ).rejects.toThrow("Restricted OCR database principal is unsafe.");
+      expect(action).not.toHaveBeenCalled();
+      expect(client.end).toHaveBeenCalledOnce();
+    },
+  );
+
+  it.each(["operator", "maintenance"] as const)(
+    "%s CLI refuses unrelated effective PUBLIC SECURITY DEFINER execution",
+    async (role) => {
+      const { dependencies, client } = fakeConnection({
+        session_role: role === "operator" ? identity : "ocr_maintenance_qa",
+        has_unapproved_security_definer_access: true,
+      });
+      const action = vi.fn(async () => "never");
+      await expect(
+        withRestrictedOcrClient(role, environment, action, dependencies),
+      ).rejects.toThrow("Restricted OCR database principal is unsafe.");
+      expect(action).not.toHaveBeenCalled();
+      expect(client.end).toHaveBeenCalledOnce();
+    },
+  );
+
   it.each([
     { session_role: "runtime_role" },
     { unchanged_role: false },
@@ -102,6 +191,7 @@ describe("Issue #429 direct OCR restricted DB principals", () => {
     { can_create_database: true },
     { can_create_schema: true },
     { has_direct_ocr_table_access: true },
+    { has_unapproved_security_definer_access: true },
   ])("rejects untrusted DB role or elevated privileges", async (unsafe) => {
     const { dependencies, client } = fakeConnection(unsafe);
     const action = vi.fn();

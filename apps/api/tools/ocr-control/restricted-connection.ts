@@ -34,6 +34,19 @@ const defaults: OcrToolConnectionDependencies = {
     verifyMigrationConnectionTls(client as unknown as Client, environment),
 };
 const ocrLoginPattern = /^[a-z_][a-z0-9_]{0,62}$/;
+// Exact SQL identities from W2's ocr-privilege-policy.mjs. Never whitelist
+// overloaded names or unrelated PUBLIC SECURITY DEFINER entry points.
+const approvedFunctions: Record<OcrToolRole, readonly string[]> = {
+  operator: [
+    "public.ocr_operator_provision_period(uuid,text,timestamptz,timestamptz,bigint,text,text)",
+    "public.ocr_operator_set_org(uuid,uuid,bigint,boolean,integer,text,text)",
+    "public.ocr_operator_allocate(uuid,uuid,uuid,bigint,bigint,text,text)",
+    "public.ocr_operator_set_platform(uuid,bigint,boolean,text,integer,text,text)",
+    "public.ocr_operator_activate_period(uuid,bigint,uuid,text,text)",
+    "public.ocr_operator_resolve_attempt(uuid,uuid,uuid,bigint,text,text,text)",
+  ],
+  maintenance: ["public.ocr_detect_expired(integer)"],
+};
 
 export class OcrToolError extends Error {
   constructor(message: string) {
@@ -63,6 +76,7 @@ interface RoleSafety extends Record<string, unknown> {
   readonly can_create_database: boolean;
   readonly can_create_schema: boolean;
   readonly has_direct_ocr_table_access: boolean;
+  readonly has_unapproved_security_definer_access: boolean;
 }
 
 /** The DB session identity, not a caller string, authenticates every tool call. */
@@ -139,15 +153,27 @@ export async function withRestrictedOcrClient<T>(
                   AND relation.relkind IN ('r','p')
                   AND (
                     relation.relowner=role.oid OR
-                    has_table_privilege(session_user,relation.oid,'SELECT') OR
-                    has_table_privilege(session_user,relation.oid,'INSERT') OR
-                    has_table_privilege(session_user,relation.oid,'UPDATE') OR
-                    has_table_privilege(session_user,relation.oid,'DELETE') OR
-                    has_table_privilege(session_user,relation.oid,'TRUNCATE')
+                    has_table_privilege(session_user,relation.oid,
+                      'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') OR
+                    has_any_column_privilege(session_user,relation.oid,
+                      'SELECT,INSERT,UPDATE,REFERENCES')
                   )
-              ) AS has_direct_ocr_table_access
+              ) AS has_direct_ocr_table_access,
+              EXISTS (
+                SELECT 1 FROM pg_catalog.pg_proc AS function
+                JOIN pg_catalog.pg_namespace AS function_namespace
+                  ON function_namespace.oid=function.pronamespace
+                WHERE function_namespace.nspname='public'
+                  AND function.prosecdef
+                  AND has_function_privilege(session_user,function.oid,'EXECUTE')
+                  AND NOT EXISTS (
+                    SELECT 1 FROM unnest($1::text[]) AS allowed(signature)
+                    WHERE function.oid=to_regprocedure(allowed.signature)::oid
+                  )
+              ) AS has_unapproved_security_definer_access
        FROM pg_catalog.pg_roles AS role
        WHERE role.rolname=session_user`,
+      [approvedFunctions[role]],
     );
     const principal = safety.rows[0];
     if (
@@ -162,6 +188,7 @@ export async function withRestrictedOcrClient<T>(
       principal.can_create_database !== false ||
       principal.can_create_schema !== false ||
       principal.has_direct_ocr_table_access !== false ||
+      principal.has_unapproved_security_definer_access !== false ||
       principal.session_role !== databaseRole(environment[variable])
     ) {
       throw new OcrToolError("Restricted OCR database principal is unsafe.");
