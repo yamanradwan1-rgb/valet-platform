@@ -1,11 +1,17 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { mkdirSync, writeFileSync, unlinkSync } from "node:fs";
-import { resolve } from "node:path";
+import {
+  mkdirSync, mkdtempSync, realpathSync, rmSync,
+  writeFileSync, unlinkSync,
+} from "node:fs";
+import { join, resolve, sep } from "node:path";
 import { test } from "node:test";
 
 import {
+  assertIssue429ProductionArtifact,
   checkIssue429ProductionInputs,
+  issue429ArtifactDigest,
   readIssue429SyntheticActors,
 } from "./issue429-qa-production-target.mjs";
 
@@ -95,4 +101,50 @@ test("real fixture must include 2 tenants and distinct third eligible identity",
   assert.equal(readIssue429SyntheticActors(fixture, "issue429_qa_synthetic").length, 3);
   assert.throws(() =>
     readIssue429SyntheticActors(fixture, "production"), /preprovisioned synthetic/);
+});
+
+test("sealed build refuses untracked authored TS and ignored build input", () => {
+  const ownedPrefix = resolve(root, "tmp", "issue429-qa-git-");
+  const owned = mkdtempSync(ownedPrefix);
+  const git = (...args) => execFileSync("git", args, {
+    cwd: owned, encoding: "utf8", timeout: 10_000, windowsHide: true,
+  }).trim();
+  const src = join(owned, "apps", "api", "src");
+  const dist = join(owned, "apps", "api", "dist");
+  try {
+    mkdirSync(src, { recursive: true });
+    mkdirSync(dist, { recursive: true });
+    git("init", "-q");
+    writeFileSync(join(owned, ".gitignore"),
+      "apps/api/dist/\napps/api/src/ignored.ts\n");
+    writeFileSync(join(src, "tracked.ts"), "export const baseline = true;\n");
+    writeFileSync(join(dist, "main.js"), "console.log('synthetic build');\n");
+    git("add", ".gitignore", "apps/api/src/tracked.ts");
+    git("-c", "user.name=Issue429 QA", "-c",
+      "user.email=issue429-qa@example.invalid", "commit", "-qm", "baseline");
+    const sha = git("rev-parse", "HEAD");
+    const hash = issue429ArtifactDigest(dist);
+    assert.equal(
+      assertIssue429ProductionArtifact(sha, owned, hash).sourceSha, sha,
+    );
+    writeFileSync(join(src, "untracked.ts"), "export const newCode = true;\n");
+    assert.throws(
+      () => assertIssue429ProductionArtifact(sha, owned, hash),
+      /zero tracked or untracked source changes/,
+    );
+    unlinkSync(join(src, "untracked.ts"));
+    writeFileSync(join(src, "ignored.ts"), "export const hiddenCode = true;\n");
+    assert.throws(
+      () => assertIssue429ProductionArtifact(sha, owned, hash),
+      /ignored authored source/,
+    );
+  } finally {
+    const canonical = realpathSync(owned);
+    if (!canonical.startsWith(realpathSync(resolve(root, "tmp")) + sep) ||
+        !canonical.startsWith(realpathSync(resolve(root, "tmp")) +
+          sep + "issue429-qa-git-")) {
+      throw new Error("Refusing cleanup outside owned Issue429 QA fixture.");
+    }
+    rmSync(canonical, { recursive: true, force: false });
+  }
 });

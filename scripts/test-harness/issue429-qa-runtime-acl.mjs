@@ -29,7 +29,12 @@ export async function observeIssue429RuntimeAcl(runtimeClient, adminClient) {
         has_table_privilege($2, $1, 'INSERT') AS can_insert,
         has_table_privilege($2, $1, 'UPDATE') AS can_update,
         has_table_privilege($2, $1, 'DELETE') AS can_delete,
-        has_table_privilege($2, $1, 'TRUNCATE') AS can_truncate`,
+        has_table_privilege($2, $1, 'TRUNCATE') AS can_truncate,
+        has_table_privilege($2, $1, 'REFERENCES') AS can_references,
+        has_any_column_privilege($2, $1, 'SELECT') AS column_can_select,
+        has_any_column_privilege($2, $1, 'INSERT') AS column_can_insert,
+        has_any_column_privilege($2, $1, 'UPDATE') AS column_can_update,
+        has_any_column_privilege($2, $1, 'REFERENCES') AS column_can_references`,
       [`public.${name}`, role],
     );
     tablePrivileges.push({ table: name, ...result.rows[0] });
@@ -70,11 +75,12 @@ export function verifyIssue429AclSnapshot(snapshot) {
     }
     tableNames.add(row.table);
     if (row.exists !== true) failures.push(`${row.table}:missing`);
-    for (const action of ["can_insert", "can_update", "can_delete", "can_truncate"]) {
+    for (const action of [
+      "can_select", "can_insert", "can_update", "can_delete",
+      "can_truncate", "can_references", "column_can_select",
+      "column_can_insert", "column_can_update", "column_can_references",
+    ]) {
       if (row[action] !== false) failures.push(`${row.table}:${action}`);
-    }
-    if (row.table === "ocr_attempts" || row.table === "ocr_control_history") {
-      if (row.can_select !== false) failures.push(`${row.table}:can_select`);
     }
   }
   if (tableNames.size !== privateTables.length ||

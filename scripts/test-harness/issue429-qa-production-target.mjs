@@ -115,10 +115,26 @@ export function assertIssue429ProductionArtifact(buildSha, repoRoot, digest) {
     cwd: repoRoot, encoding: "utf8", windowsHide: true, timeout: 4_000,
   }).trim();
   if (head !== buildSha) throw new Error("Issue429 QA requires a named integrated source build SHA.");
-  const status = execFileSync("git", ["status", "--porcelain", "--untracked-files=no"], {
+  // Include untracked files: a new authored TS file can be consumed by tsc
+  // without appearing in git diff or a tracked-files-only status query.
+  const status = execFileSync("git",
+    ["status", "--porcelain=v1", "--untracked-files=all"], {
     cwd: repoRoot, encoding: "utf8", windowsHide: true, timeout: 4_000,
   }).trim();
-  if (status) throw new Error("Issue429 QA requires clean tracked source for build attestation.");
+  if (status) {
+    throw new Error("Issue429 QA requires zero tracked or untracked source changes.");
+  }
+  // Even ignored authored source may be compiled. Restrict this check to the
+  // source roots so ignored dependency/build trees cannot hide it or add noise.
+  const ignoredSource = execFileSync("git", [
+    "ls-files", "--others", "--ignored", "--exclude-standard", "--",
+    "apps/api/src", ":(glob)packages/*/src/**",
+  ], {
+    cwd: repoRoot, encoding: "utf8", windowsHide: true, timeout: 4_000,
+  }).split(/\r?\n/).some((path) => /\.(?:ts|tsx|js|mjs|cjs|json)$/.test(path));
+  if (ignoredSource) {
+    throw new Error("Issue429 QA refuses ignored authored source in production build.");
+  }
   const actual = issue429ArtifactDigest(resolve(repoRoot, "apps", "api", "dist"));
   if (actual !== digest) {
     throw new Error("Production API distribution content differs from sealed QA build digest.");

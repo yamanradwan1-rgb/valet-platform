@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import { acquireInvocationLease } from "./invocation-lease.mjs";
 import { preflightIssue414Phase23HttpBeforeLease } from "./issue414-phase23-http-target.mjs";
 import { startIssue429HttpsMock } from "./issue429-qa-https-mock.mjs";
+import { releaseIssue429LeaseAfterChildExits } from "./issue429-qa-child-lifecycle.mjs";
 import { createIssue429TlsFixture } from "./issue429-qa-tls-fixture.mjs";
 import {
   assertIssue429ProductionArtifact,
@@ -84,14 +85,15 @@ async function main() {
     });
     stage = "TWO_PRODUCTION_API_PROCESSES";
     for (let i = 0; i < 2; i += 1) {
-      processes.push(await startIssue429ProductionApi({
+      await startIssue429ProductionApi({
         distributionPath: artifact.distributionPath,
         runtimeUrl: inputs.runtimeUrl,
         mockEndpoint: mock.endpoint,
         token, caPath: tls.certificatePath,
         databaseCa: process.env.ISSUE429_QA_DATABASE_TLS_CA_PEM,
         root: resolve(root, "apps", "api"),
-      }));
+        onSpawn: (owner) => processes.push(owner),
+      });
     }
     assert.notEqual(processes[0].pid, processes[1].pid,
       "Two separate API OS processes are mandatory.");
@@ -167,6 +169,8 @@ async function main() {
     for (const child of processes.reverse()) {
       try { await child.close(); } catch { cleanupErrors.push("api-child"); }
     }
+    const allChildExitsConfirmed = processes.every((child) => child.exitConfirmed());
+    if (!allChildExitsConfirmed) cleanupErrors.push("unconfirmed-api-child-exit");
     if (mock) {
       try { await mock.close(); } catch { cleanupErrors.push("https-mock"); }
     }
@@ -177,9 +181,11 @@ async function main() {
       try { tls.close(); } catch { cleanupErrors.push("tls-fixture"); }
     }
     try {
-      await lease.release();
+      await releaseIssue429LeaseAfterChildExits(lease, processes, cleanupErrors);
       released = true;
-    } catch { cleanupErrors.push("postgres-lease"); }
+    } catch {
+      cleanupErrors.push("exclusive-pg-lease-not-released");
+    }
     if (cleanupErrors.length) {
       throw new Error(`Owned QA cleanup incomplete: ${cleanupErrors.join(",")}`);
     }

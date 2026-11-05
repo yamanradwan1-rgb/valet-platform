@@ -4,6 +4,7 @@ import { performance } from "node:perf_hooks";
 import { createRequire } from "node:module";
 import { issue429ProductionChildEnvironment } from "./issue429-qa-production-child-env.mjs";
 import { issue429SyntheticJpeg } from "./issue429-qa-synthetic-jpeg.mjs";
+import { startIssue429TrackedChild } from "./issue429-qa-child-lifecycle.mjs";
 
 const requireApi = createRequire(new URL("../../apps/api/package.json", import.meta.url));
 
@@ -35,8 +36,11 @@ async function waitReady(origin, child) {
 /** The child is actual dist/main.js, NODE_ENV=production, independent OS PID. */
 export async function startIssue429ProductionApi({
   distributionPath, runtimeUrl, mockEndpoint, token, caPath,
-  databaseCa, root,
+  databaseCa, root, onSpawn,
 }) {
+  if (typeof onSpawn !== "function") {
+    throw new Error("Issue429 API requires an owned-child registration callback.");
+  }
   const port = await reserveCandidatePort();
   const origin = `http://127.0.0.1:${port}`;
   const env = issue429ProductionChildEnvironment({
@@ -54,25 +58,11 @@ export async function startIssue429ProductionApi({
   // Never echo startup stdout/stderr: this harness handles credentials.
   child.stdout.on("data", () => {});
   child.stderr.on("data", () => {});
-  try {
-    await waitReady(origin, child);
-    return {
-      pid: child.pid,
-      origin,
-      async close() {
-        if (child.exitCode !== null) return;
-        child.kill();
-        await Promise.race([
-          new Promise((resolve) => child.once("exit", resolve)),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("Owned API shutdown deadline expired.")), 8000)),
-        ]);
-      },
-    };
-  } catch (error) {
-    if (child.exitCode === null) child.kill();
-    throw error;
-  }
+  const owner = await startIssue429TrackedChild(
+    child, () => waitReady(origin, child),
+    (tracked) => onSpawn({ ...tracked, origin }),
+  );
+  return { ...owner, origin };
 }
 
 export async function requestIssue429PlateOcr(origin, actor, locationId, {
@@ -141,8 +131,10 @@ export async function openIssue429Ledger(adminUrl, runtimeUrl, databaseCa) {
     return {
       admin, runtime, database: db.database, role: db.role,
       async close() {
-        await runtime.end();
-        await admin.end();
+        const endings = await Promise.allSettled([runtime.end(), admin.end()]);
+        if (endings.some((result) => result.status === "rejected")) {
+          throw new Error("Issue429 QA PostgreSQL client closure unconfirmed.");
+        }
       },
     };
   } catch (error) {
