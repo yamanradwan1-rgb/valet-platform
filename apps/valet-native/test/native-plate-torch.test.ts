@@ -107,7 +107,13 @@ describe("Plate camera requested torch state", () => {
     await controller.open();
     controller.ready(controller.current().generation);
     toggle(controller); // Native no-flash hardware may ignore the property.
-    await vi.advanceTimersByTimeAsync(1200);
+    expect(
+      controller.capture(
+        controller.current().generation,
+        controller.current().mountId,
+      ),
+    ).toBe(true);
+    await vi.advanceTimersByTimeAsync(0);
     expect(recognize).toHaveBeenCalledOnce();
     expect(accept).toHaveBeenCalledExactlyOnceWith("12-34567");
     expect(controller.current()).toMatchObject({

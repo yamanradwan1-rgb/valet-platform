@@ -73,9 +73,7 @@ export function NativePlateCameraStep({
   );
   const mounted = snapshot.phase === "starting" || snapshot.phase === "preview";
   const opened = snapshot.phase !== "idle";
-  const failed = ["denied", "error", "no-match", "unavailable"].includes(
-    snapshot.phase,
-  );
+  const failed = ["denied", "error", "unavailable"].includes(snapshot.phase);
   const closeThen = (action: () => void) => {
     controller.close();
     action();
@@ -111,8 +109,20 @@ export function NativePlateCameraStep({
       ) : null}
       {snapshot.phase === "preview" ? (
         <CheckInStatus textAlign={textAlign}>
-          {camera.phases.preview}
+          {snapshot.noMatchSinceCapture
+            ? camera.capturedNoMatch
+            : camera.phases.preview}
         </CheckInStatus>
+      ) : null}
+      {snapshot.phase === "preview" ? (
+        <CheckInButton
+          label={camera.capture}
+          busy={snapshot.captureBusy}
+          disabled={snapshot.captureBusy}
+          onPress={() =>
+            controller.capture(snapshot.generation, snapshot.mountId)
+          }
+        />
       ) : null}
       {!opened ? (
         <>

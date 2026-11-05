@@ -74,7 +74,10 @@ export class NativePlateRoiBinding {
       current: this.isMount(generation, mountId),
     });
     if (!this.isMount(generation, mountId)) return;
-    if (this.camera !== value || this.cameraMount !== mountId) {
+    const changed = this.camera !== value || this.cameraMount !== mountId;
+    const changedDuringPreview =
+      changed && this.controller.current().phase === "preview";
+    if (changed) {
       this.validated = undefined;
       this.readyMount = -1;
       this.reading += 1;
@@ -82,6 +85,7 @@ export class NativePlateRoiBinding {
     this.camera = value;
     this.cameraMount = mountId;
     this.traceState();
+    if (changedDuringPreview) this.controller.geometryUnavailable(generation);
   }
 
   layout(

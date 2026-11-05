@@ -63,12 +63,15 @@ describe("trace of existing lifecycle fences", () => {
     await c.controller.open();
     const old = c.mount();
     await c.roi.ready(old.generation, old.mountId);
-    await vi.advanceTimersByTimeAsync(1200);
+    expect(c.controller.capture(old.generation, old.mountId)).toBe(true);
     c.background();
     c.background("active");
     await c.controller.open();
     const replacement = c.mount();
     await c.roi.ready(replacement.generation, replacement.mountId);
+    expect(
+      c.controller.capture(replacement.generation, replacement.mountId),
+    ).toBe(false);
     expect(
       c.records().find((r) => r.event === "ocr-start-blocked")?.details,
     ).toMatchObject({
@@ -107,7 +110,7 @@ describe("trace of existing lifecycle fences", () => {
     await c.controller.open();
     const old = c.mount();
     await c.roi.ready(old.generation, old.mountId);
-    await vi.advanceTimersByTimeAsync(1200);
+    expect(c.controller.capture(old.generation, old.mountId)).toBe(true);
     c.scope("scope-B");
     capture.resolve("PRIVATE_RETIRED_CAPTURE_PATH");
     await vi.advanceTimersByTimeAsync(0);

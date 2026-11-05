@@ -7,6 +7,8 @@ export interface NativePlateCameraCopy {
   readonly close: string;
   readonly enter: string;
   readonly retry: string;
+  readonly capture: string;
+  readonly capturedNoMatch: string;
   readonly settings: string;
   readonly phases: Readonly<
     Record<
@@ -33,6 +35,8 @@ export function getNativePlateCameraCopy(
     close: d.plateCameraClose,
     enter: d.enterManually,
     retry: d.plateCameraRetry,
+    capture: d.plateCameraCapture,
+    capturedNoMatch: d.plateCameraNoMatchHint,
     settings: platform.camera.settings,
     phases: {
       idle: platform.camera.idle,

@@ -61,14 +61,18 @@ describe("Native central employee dictionary parity", () => {
         );
         const webEntries = dictionaryEntries(web, `web-${locale}${fragment}`);
         const acceptedPlatformDifferences = new Set(
-          fragment === "-check-in" ? ["plateCameraPreviewHint"] : [],
+          fragment === "-check-in"
+            ? ["plateCameraPreviewHint", "plateCameraCapture"]
+            : [],
         );
         const nativeOnly = new Set(
-          fragment === "" ? ["invalidJordanMobile"] : [],
+          fragment === ""
+            ? ["invalidJordanMobile"]
+            : fragment === "-check-in"
+              ? ["plateCameraNoMatchHint"]
+              : [],
         );
-        const webOnly = new Set(
-          fragment === "-check-in" ? ["plateCameraCapture"] : [],
-        );
+        const webOnly = new Set();
         expect(
           sharedDictionaryEntries(
             nativeEntries,
@@ -84,7 +88,10 @@ describe("Native central employee dictionary parity", () => {
         expect([...webOnly].every((key) => key in webEntries)).toBe(true);
         if (fragment === "-check-in") {
           expect(nativeEntries.plateCameraPreviewHint).toContain(
-            locale === "en" ? "automatically" : "تلقائيًا",
+            locale === "en" ? "press Capture Plate" : "اضغط تصوير اللوحة",
+          );
+          expect(nativeEntries.plateCameraCapture).toBe(
+            locale === "en" ? "Capture Plate" : "تصوير اللوحة",
           );
         }
       });
