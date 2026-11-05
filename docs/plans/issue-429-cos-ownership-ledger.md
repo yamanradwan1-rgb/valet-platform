@@ -4,7 +4,8 @@ This ledger records **observed** execution assignments and evidence, not
 completion or permission to activate the production feature. Update status
 and reviewed commits as work arrives; no worker may edit another worktree.
 
-- COS run: `3a5ecd6c-2b03-42a1-92ca-4ffc52c96623`; Prime identity: `prime`.
+- Initial COS run: `3a5ecd6c-2b03-42a1-92ca-4ffc52c96623`; later resumed run:
+  `26e7af10-0496-40eb-84f6-1bf322a99407`; Prime identity: `prime`.
 - Fetched baseline `origin/main`: `ac758ffff7181efa6cad1311c40aca731171770e`.
 - Fetched planning `origin/plan/issue-429-production-ocr-admission`:
   `95ea194099c0e48c417a90956a89fdd22048d79f`.
@@ -14,15 +15,23 @@ and reviewed commits as work arrives; no worker may edit another worktree.
 
 | Worker | COS ID | Assignment | Branch / worktree suffix | Owned files | Dependencies | Commit | Independent reviewer | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | `worker-1` (failed startup) | Phase 0 decisions/docs (Prime substitute) | `feat/429-w1-dec-docs` / `issue-429-ocr-w1-docs` | Focused DEC-074, decision-log, Schema, Security, Traceability, plan matrix | Owner direction + source | `d93c962d70ecc2f46d051efec697436e90db32c0` (authored by Prime) | W2 / W7 requested, pending | Doc edit committed; COS launch failure explicitly recorded |
-| 2 | `worker-2` | PostgreSQL schema/constraints/functions/grants | `feat/429-w2-db` / `issue-429-ocr-w2-db` | New OCR migration, Prisma schema, narrow privilege policy | Reviewed Phase 0, A/S interfaces | Pending | W1 originally; Prime or W5 read-only due W1 failure | Prep only |
-| 3 | `worker-3` | One-transaction Staff authority + Admission | `feat/429-w3-admission` / `issue-429-ocr-w3-admission` | Private admission executor/permit and its focused tests | W2 SQL contract, reviewed Phase 0 | Pending | W4 read-only | Prep only |
-| 4 | `worker-4` | OCR API/provider and Management readiness | `feat/429-w4-api` / `issue-429-ocr-w4-api` | OCR service/guard/controller/provider/config/private observation and focused tests, Management projection | W3 A permit, W5 S interface, reviewed Phase 0 | Pending | W3 read-only | Prep only |
-| 5 | `worker-5` | Settlement, UNKNOWN recovery, operator CLI | `feat/429-w5-recovery` / `issue-429-ocr-w5-recovery` | New settlement/maintenance/control CLI and own tests, no W2-owned SQL | W2 SQL/ACL contract, reviewed Phase 0 | Pending | W2 read-only | Prep complete; COS sleeping until gate |
-| 6 | `worker-6` | Native manual Capture and visual freeze | `feat/429-w6-native` / `issue-429-ocr-w6-native` | Native src/test and EN/AR dictionary | Reviewed Phase 0, existing private OCR public union | Pending | W7 read-only | Prep complete; COS sleeping until gate |
-| 7 | `worker-7` | Independent backend security/DB/multiprocess/perf QA | `feat/429-w7-qa` / `issue-429-ocr-w7-qa` | New independent backend QA harness/evidence; no Native code/test edits | Reviewed Phase 0, W2–W5 contracts, attested exclusive QA PG | Pending | W5 or Prime read-only | Prep/review in progress |
+| 1 | `worker-1` (COS startup failed; Prime substitute) | Phase 0 decisions/docs | `feat/429-w1-dec-docs` / `issue-429-ocr-w1-docs` | Focused DEC-074, decision log, Schema, Security, Traceability, plan matrix | Source-of-truth and Owner instruction | `d93c962d`, whitespace correction `9c38b7a5` (Prime authored) | W2 independent read-only **CLEAN** | Phase 0 accepted, docs-first gate complete; actual W1 COS launch failed |
+| 2 | `worker-2` | Shared PostgreSQL schema, Admission SQL/settlement, restrictions and private test prelease | `feat/429-w2-db` / `issue-429-ocr-w2-db` | New six-table migration, Prisma representation, scoped grants and private PG17 test fixture/target | Phase 0 and W3/W5 SQL contracts | `f120f072`, `b2938901`, `f3e83172`, `12d486bc`, `d8170aab`, `725890e0` | W3 + W5 SQL reviews **CLEAN after fixes**; W7 private PG17 prelease/identity reviews **CLEAN** | Source and static Prisma/typecheck/lint and seven prelease negatives PASS; real PG/privilege/concurrency/migration **NOT RUN** |
+| 3 | `worker-3` | One combined Staff authority + Admission and immediate one-use permit | `feat/429-w3-admission` / `issue-429-ocr-w3-admission` | Private Admission executor, authority checks, sealed permit and focused tests | W2 SQL A interface | `c7690039` | W4 independent read-only **CLEAN** | Integrated; 16/16 focused Vitest PASS; real transaction tests NOT RUN |
+| 4 | `worker-4` | Authenticated OCR API/provider and truthful Management readiness | `feat/429-w4-api` / `issue-429-ocr-w4-api` | Service/guard/controller, provider HTTPS/abort observation, cost guard and tests, management status | W3 permit, W5 settlement | `7abc1e54`, `1c6922c3`, `4ec21f9c`, `7ad9890a` | W3 independent read-only **CLEAN after mandatory permit and NODE_ENV fixes**; Prime reviewed single-line TS negative-test correction | Integrated; provider local non-PG 69/69 PASS, API integration mock 36/36 PASS, root typecheck PASS; actual two-API PG HTTPS test NOT RUN |
+| 5 | `worker-5` | Guarded S/UNKNOWN and restricted operator/maintenance CLI | `feat/429-w5-recovery` / `issue-429-ocr-w5-recovery` | Settlement, authenticated restricted CLI, bounded off-path detector, associated focused tests | W2 typed SQL and ACL contract | `378f7e1e`, `175cc863`, `12f7cb13` | W2 independent read-only **CLEAN after two security corrections** | Integrated; 71/71 focused Vitest PASS; real PostgreSQL, remote proof and operator account provisioning NOT RUN |
+| 6 | `worker-6` | Native deliberate Capture and frozen appearance | `feat/429-w6-native` / `issue-429-ocr-w6-native` | Native code/tests and English/Arabic dictionaries only | Phase 0, existing OCR union | `7df57894` | W7 independent read-only **CLEAN** | Integrated; 260 Native files and 1881 tests PASS (15s per-test timeout), TypeScript/lint/style freeze PASS; physical-device QA **NOT RUN**, Phase 7 removed |
+| 7 | `worker-7` | Independent synthetic TLS, multi-process QA and registered latency/NOWAIT harness | `feat/429-w7-qa` / `issue-429-ocr-w7-qa` | Only `scripts/test-harness/issue429-qa-*` new files; no production ownership | W2 SQL/ACL and real isolated PG17, approved representative load | `aa3bce89`, `e3436845` (artifact-provenance follow-up pending) | W5 read-only: child lifecycle and ACL **CLEAN**, artifact provenance **MAJOR pending correction** | Harness integrated provisionally; Node offline 31/31 PASS; production-built two-process/PG17 and performance NOT RUN; pre-registered load approval absent |
 
-Phase execution: 0 awaiting independent docs review; 1–6 and 8 pending.
-Phase 7 removed explicitly; physical-device evidence `NOT RUN`. No PR,
-merge, deployment, production migration, paid OCR traffic, production OCR ON,
-or final integration push has occurred at this ledger revision.
+Phase 0 complete; Phases 1–4 source implemented, reviewed and integrated.
+Phase 5 source/local static and Native automated checks have evidence, but
+isolated DB/security/multiprocess proof remains blocked. Phase 6 paired ordinary
+Check-In and eligible-headroom NOWAIT benchmarks remain `NOT RUN`, with no
+confidence bounds or credible performance verdict. Phase 8 integrated source
+review in progress, including the open W7 artifact-provenance finding. Phase 7
+was removed by Owner; physical-device evidence `NOT RUN`. PostgreSQL runtime
+testing became unavailable (`Docker Desktop is unable to start`, no exclusive
+leased test credentials). Production account, period, provider cost/privacy,
+operator identities and activation require independently approved setup.
+No PR, merge to `main`, deployment, live database migration, paid provider
+traffic or production OCR activation has occurred at this ledger revision.
