@@ -68,6 +68,7 @@ interface RoleSafety extends Record<string, unknown> {
   readonly session_role: string;
   readonly unchanged_role: boolean;
   readonly rolcanlogin: boolean;
+  readonly rolinherit: boolean;
   readonly rolsuper: boolean;
   readonly rolcreatedb: boolean;
   readonly rolcreaterole: boolean;
@@ -75,7 +76,9 @@ interface RoleSafety extends Record<string, unknown> {
   readonly rolbypassrls: boolean;
   readonly can_create_database: boolean;
   readonly can_create_schema: boolean;
+  readonly member_role_names: string[];
   readonly has_direct_ocr_table_access: boolean;
+  readonly has_unapproved_public_relation_access: boolean;
   readonly has_unapproved_security_definer_access: boolean;
 }
 
@@ -134,8 +137,16 @@ export async function withRestrictedOcrClient<T>(
     const safety = await client.query<RoleSafety>(
       `SELECT session_user::text AS session_role,
               (session_user = current_user) AS unchanged_role,
-              role.rolcanlogin, role.rolsuper, role.rolcreatedb,
+              role.rolcanlogin, role.rolinherit, role.rolsuper, role.rolcreatedb,
               role.rolcreaterole, role.rolreplication, role.rolbypassrls,
+              ARRAY(
+                SELECT granted.rolname::text
+                FROM pg_catalog.pg_auth_members AS membership
+                JOIN pg_catalog.pg_roles AS granted
+                  ON granted.oid=membership.roleid
+                WHERE membership.member=role.oid
+                ORDER BY granted.rolname
+              ) AS member_role_names,
               has_database_privilege(session_user,current_database(),'CREATE')
                 AS can_create_database,
               has_schema_privilege(session_user,'public','CREATE')
@@ -160,6 +171,25 @@ export async function withRestrictedOcrClient<T>(
                   )
               ) AS has_direct_ocr_table_access,
               EXISTS (
+                SELECT 1 FROM pg_catalog.pg_class AS unrelated
+                JOIN pg_catalog.pg_namespace AS unrelated_namespace
+                  ON unrelated_namespace.oid=unrelated.relnamespace
+                WHERE unrelated_namespace.nspname='public'
+                  AND unrelated.relkind IN ('r','p','v','m','S')
+                  AND unrelated.relname NOT IN (
+                    'ocr_platform_control', 'ocr_organization_control',
+                    'ocr_budget_periods', 'ocr_organization_allocations',
+                    'ocr_attempts', 'ocr_control_history'
+                  )
+                  AND (
+                    unrelated.relowner=role.oid OR
+                    has_table_privilege(session_user,unrelated.oid,
+                      'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') OR
+                    has_any_column_privilege(session_user,unrelated.oid,
+                      'SELECT,INSERT,UPDATE,REFERENCES')
+                  )
+              ) AS has_unapproved_public_relation_access,
+              EXISTS (
                 SELECT 1 FROM pg_catalog.pg_proc AS function
                 JOIN pg_catalog.pg_namespace AS function_namespace
                   ON function_namespace.oid=function.pronamespace
@@ -176,10 +206,18 @@ export async function withRestrictedOcrClient<T>(
       [approvedFunctions[role]],
     );
     const principal = safety.rows[0];
+    const expectedMemberships =
+      role === "operator" ? ["vaylet_ocr_operator"] : [];
     if (
       safety.rowCount !== 1 ||
       !principal?.unchanged_role ||
       principal.rolcanlogin !== true ||
+      principal.rolinherit !== false ||
+      !Array.isArray(principal.member_role_names) ||
+      principal.member_role_names.length !== expectedMemberships.length ||
+      !principal.member_role_names.every(
+        (value, index) => value === expectedMemberships[index],
+      ) ||
       principal.rolsuper !== false ||
       principal.rolcreatedb !== false ||
       principal.rolcreaterole !== false ||
@@ -188,6 +226,7 @@ export async function withRestrictedOcrClient<T>(
       principal.can_create_database !== false ||
       principal.can_create_schema !== false ||
       principal.has_direct_ocr_table_access !== false ||
+      principal.has_unapproved_public_relation_access !== false ||
       principal.has_unapproved_security_definer_access !== false ||
       principal.session_role !== databaseRole(environment[variable])
     ) {
