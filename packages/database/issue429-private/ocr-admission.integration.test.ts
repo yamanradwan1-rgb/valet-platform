@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { Client } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { Issue429OcrFixture, type OcrScope } from "./issue429-ocr-test-fixture.js";
+import { Issue429OcrFixture, type OcrScope } from "../src/issue429-ocr-test-fixture.js";
 
 type Admission = {
   decision: string;

@@ -21,7 +21,7 @@ export class Issue429OcrOwnedTarget {
   constructor(env: NodeJS.ProcessEnv = process.env) {
     const raw = env.TEST_DATABASE_URL;
     if (!raw || env.NODE_ENV !== "test" ||
-        env.VAYLET_TEST_PROJECT !== "database-postgres-provision" ||
+        env.VAYLET_TEST_PROJECT !== "database-postgres-issue429-ocr" ||
         !env.VAYLET_TEST_RUN_ID ||
         env.ISSUE429_W2_PG17_LEASE !== "ATTESTED_EXCLUSIVE") {
       throw new Error("Issue429 W2 requires attested exclusive PostgreSQL17 lease.");
