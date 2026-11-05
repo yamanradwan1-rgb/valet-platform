@@ -347,8 +347,8 @@ BEGIN
 
   -- NOWAIT is deliberate: the API maps 55P03 specifically to LOCK_BUSY.
   -- All SQL after acquiring the platform lock uses fresh DB time.
-  SELECT * INTO v_platform FROM public.ocr_platform_control
-    WHERE id=1 FOR UPDATE NOWAIT;
+  SELECT * INTO v_platform FROM public.ocr_platform_control AS platform
+    WHERE platform.id=1 FOR UPDATE NOWAIT;
   IF NOT FOUND OR NOT v_platform.enabled OR
      v_platform.active_period_id IS NULL OR
      v_platform.account_alias IS NULL OR v_platform.concurrency_cap<=0 THEN
@@ -356,22 +356,23 @@ BEGIN
     RETURN NEXT; RETURN;
   END IF;
 
-  SELECT * INTO v_org FROM public.ocr_organization_control
-    WHERE organization_id=v_scope.org_id FOR UPDATE NOWAIT;
+  SELECT * INTO v_org FROM public.ocr_organization_control AS org_control
+    WHERE org_control.organization_id=v_scope.org_id FOR UPDATE NOWAIT;
   IF NOT FOUND OR NOT v_org.enabled OR v_org.concurrency_cap<=0 THEN
     decision := 'DISABLED';
     RETURN NEXT; RETURN;
   END IF;
-  SELECT * INTO v_period FROM public.ocr_budget_periods
-    WHERE id=v_platform.active_period_id
-      AND account_alias=v_platform.account_alias
+  SELECT * INTO v_period FROM public.ocr_budget_periods AS period
+    WHERE period.id=v_platform.active_period_id
+      AND period.account_alias=v_platform.account_alias
     FOR UPDATE NOWAIT;
   IF NOT FOUND THEN
     decision := 'NO_PERIOD';
     RETURN NEXT; RETURN;
   END IF;
-  SELECT * INTO v_allocation FROM public.ocr_organization_allocations
-    WHERE period_id=v_period.id AND organization_id=v_scope.org_id
+  SELECT * INTO v_allocation FROM public.ocr_organization_allocations AS allocation
+    WHERE allocation.period_id=v_period.id
+      AND allocation.organization_id=v_scope.org_id
     FOR UPDATE NOWAIT;
   IF NOT FOUND THEN
     decision := 'NO_PERIOD';
@@ -568,10 +569,15 @@ CREATE FUNCTION public.ocr_detect_expired(p_limit INTEGER)
 RETURNS INTEGER LANGUAGE plpgsql SECURITY DEFINER
 SET search_path = pg_catalog, public AS $$
 DECLARE v_count INTEGER;
+DECLARE v_sweep_locked BOOLEAN;
 BEGIN
-  IF p_limit IS NULL OR p_limit NOT BETWEEN 1 AND 100 THEN
+  IF p_limit IS NULL OR p_limit NOT BETWEEN 1 AND 10 THEN
     RAISE EXCEPTION 'OCR maintenance batch invalid' USING ERRCODE='22023';
   END IF;
+  -- One shared, transaction-scoped sweep across all maintenance replicas.
+  -- Failure to acquire it never stalls Check-In or triggers paid retries.
+  SELECT pg_try_advisory_xact_lock(429,2101) INTO v_sweep_locked;
+  IF NOT v_sweep_locked THEN RETURN 0; END IF;
   WITH due AS (
     SELECT a.id FROM public.ocr_attempts AS a
     WHERE a.state='SEND_POSSIBLE'
