@@ -52,11 +52,20 @@ export class PlateOcrProviderTransport {
     }, config.timeoutMs);
   }
 
-  dispatch(permit?: PlateOcrDispatchPermit): Promise<Response> | undefined {
-    if (this.signal.aborted) return undefined;
-    // With a sealed permit, a stale/used authorization must fail without I/O.
-    // The only statements after consumeIfFresh are the invocation flag and fetch.
-    if (permit && !permit.consumeIfFresh()) return undefined;
+  dispatch(permit: PlateOcrDispatchPermit): Promise<Response> | undefined {
+    if (
+      this.signal.aborted ||
+      !permit ||
+      typeof permit.consumeIfFresh !== "function"
+    )
+      return undefined;
+    // Missing, invalid, stale or throwing permits cannot reach the HTTP client.
+    // A valid permit is consumed synchronously at the final dispatch boundary.
+    try {
+      if (permit.consumeIfFresh() !== true) return undefined;
+    } catch {
+      return undefined;
+    }
     this.fetchInvoked = true;
     const request = this.http(this.config.endpoint, {
       method: "POST",

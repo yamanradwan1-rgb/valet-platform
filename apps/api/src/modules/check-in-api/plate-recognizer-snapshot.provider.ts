@@ -133,16 +133,11 @@ export class PlateRecognizerSnapshotProvider
   }
 
   async recognize(
-    input: Parameters<PlateOcrProvider["recognize"]>[0],
+    _input: Parameters<PlateOcrProvider["recognize"]>[0],
   ): Promise<PlateOcrResponse> {
-    // The old neutral-only interface is retained for controlled local tests.
-    // Production callers must present a sealed one-use permit instead.
-    if (
-      process.env.NODE_ENV !== "development" &&
-      process.env.NODE_ENV !== "test"
-    )
-      return unavailable;
-    return (await this.perform(input)).response;
+    void _input;
+    // Legacy entrypoint lacks admission; never dispatch.
+    return unavailable;
   }
 
   recognizeObserved(
@@ -215,14 +210,21 @@ export class PlateRecognizerSnapshotProvider
       this.diagnostic(this.configIssue);
       return observed();
     }
+    // Internal JS/casts can omit options: deny transport without a permit.
+    if (
+      !options?.permit ||
+      typeof options.permit.consumeIfFresh !== "function" ||
+      !options.signal
+    )
+      return observed();
     try {
       transport = new PlateOcrProviderTransport(
         config,
         input,
         this.http,
-        options?.signal,
+        options.signal,
       );
-      const pending = transport.dispatch(options?.permit);
+      const pending = transport.dispatch(options.permit);
       if (!pending) return observed();
       this.diagnostic("request-start");
       const providerResponse = await pending;

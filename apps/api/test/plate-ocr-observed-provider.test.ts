@@ -14,18 +14,77 @@ const input = {
 afterEach(() => vi.useRealTimers());
 
 describe("private OCR dispatch and observation", () => {
-  it("does not permit the legacy unobserved entrypoint in production", async () => {
-    vi.stubEnv("NODE_ENV", "production");
+  it.each(["production", "development", "test"])(
+    "never dispatches through the unobserved entrypoint in %s",
+    async (mode) => {
+      vi.stubEnv("NODE_ENV", mode);
+      const http = vi.fn<typeof fetch>();
+      try {
+        const result = await new PlateRecognizerSnapshotProvider(
+          config,
+          http,
+        ).recognize(input);
+        expect(result).toEqual({ status: "UNAVAILABLE" });
+        expect(http).not.toHaveBeenCalled();
+      } finally {
+        vi.unstubAllEnvs();
+      }
+    },
+  );
+
+  it.each(["production", "development", "test"])(
+    "rejects missing observed options and permit with zero fetch in %s",
+    async (mode) => {
+      vi.stubEnv("NODE_ENV", mode);
+      const http = vi.fn<typeof fetch>();
+      const provider = new PlateRecognizerSnapshotProvider(config, http);
+      try {
+        for (const options of [
+          undefined,
+          { signal: new AbortController().signal },
+          { signal: new AbortController().signal, permit: {} },
+          {
+            signal: new AbortController().signal,
+            permit: { consumeIfFresh: true },
+          },
+        ]) {
+          const observed = await provider.recognizeObserved(
+            input,
+            options as never,
+          );
+          expect(observed).toMatchObject({
+            response: { status: "UNAVAILABLE" },
+            fetchInvoked: false,
+            disposition: "NOT_SENT",
+            observationClass: "NOT_INVOKED",
+          });
+          expect(http).not.toHaveBeenCalled();
+        }
+      } finally {
+        vi.unstubAllEnvs();
+      }
+    },
+  );
+
+  it("rejects a throwing or non-boolean permit before any HTTP", async () => {
     const http = vi.fn<typeof fetch>();
-    try {
-      const result = await new PlateRecognizerSnapshotProvider(
-        config,
-        http,
-      ).recognize(input);
-      expect(result).toEqual({ status: "UNAVAILABLE" });
+    const provider = new PlateRecognizerSnapshotProvider(config, http);
+    for (const consumeIfFresh of [
+      () => {
+        throw new Error("private permit failure");
+      },
+      () => "true",
+    ]) {
+      const result = await provider.recognizeObserved(input, {
+        permit: { consumeIfFresh: consumeIfFresh as () => boolean },
+        signal: new AbortController().signal,
+      });
+      expect(result).toMatchObject({
+        response: { status: "UNAVAILABLE" },
+        fetchInvoked: false,
+        disposition: "NOT_SENT",
+      });
       expect(http).not.toHaveBeenCalled();
-    } finally {
-      vi.unstubAllEnvs();
     }
   });
   it("never invokes HTTP when the sealed permit is stale", async () => {

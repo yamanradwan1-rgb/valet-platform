@@ -2,6 +2,7 @@ import { Logger } from "@nestjs/common";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { readPlateOcrConfig } from "../src/modules/check-in-api/plate-ocr-config";
 import { PlateRecognizerSnapshotProvider } from "../src/modules/check-in-api/plate-recognizer-snapshot.provider";
+import { recognizeWithTestPermit } from "./plate-ocr-test-provider-permit";
 
 const env = {
   NODE_ENV: "test",
@@ -45,7 +46,7 @@ describe("Plate OCR provider diagnostics", () => {
       ),
     );
 
-    expect(await setup(http).recognize(input)).toEqual({
+    expect(await recognizeWithTestPermit(setup(http), input)).toEqual({
       status: "MATCH",
       candidate: { plateNumberRaw: plate, confidence: 0.91 },
     });
@@ -69,7 +70,9 @@ describe("Plate OCR provider diagnostics", () => {
       .fn<typeof fetch>()
       .mockResolvedValue(new Response('{"results":[]}', { status: 201 }));
 
-    expect(await setup(http).recognize(input)).toEqual({ status: "NO_MATCH" });
+    expect(await recognizeWithTestPermit(setup(http), input)).toEqual({
+      status: "NO_MATCH",
+    });
     expect(messages(logger)).toEqual([
       "PLATE_OCR_PROVIDER request-start",
       "PLATE_OCR_PROVIDER http-success status=201 results=0",
@@ -87,7 +90,7 @@ describe("Plate OCR provider diagnostics", () => {
         .fn<typeof fetch>()
         .mockResolvedValue(new Response("secret response", { status }));
 
-      expect(await setup(http).recognize(input)).toEqual({
+      expect(await recognizeWithTestPermit(setup(http), input)).toEqual({
         status: "UNAVAILABLE",
       });
       expect(messages(logger)).toEqual([
@@ -111,7 +114,7 @@ describe("Plate OCR provider diagnostics", () => {
           );
         }),
     );
-    const timeoutResponse = setup(timeoutHttp).recognize(input);
+    const timeoutResponse = recognizeWithTestPermit(setup(timeoutHttp), input);
     await vi.advanceTimersByTimeAsync(4000);
     expect(await timeoutResponse).toEqual({ status: "UNAVAILABLE" });
     expect(messages(logger)).toContain("PLATE_OCR_PROVIDER timeout");
@@ -119,7 +122,7 @@ describe("Plate OCR provider diagnostics", () => {
     const networkHttp = vi
       .fn<typeof fetch>()
       .mockRejectedValue(new Error(`network ${env.PLATE_OCR_TOKEN}`));
-    expect(await setup(networkHttp).recognize(input)).toEqual({
+    expect(await recognizeWithTestPermit(setup(networkHttp), input)).toEqual({
       status: "UNAVAILABLE",
     });
     expect(messages(logger)).toContain("PLATE_OCR_PROVIDER network-error");
@@ -149,7 +152,7 @@ describe("Plate OCR provider diagnostics", () => {
       .mockImplementation(() => {});
     const http = vi.fn<typeof fetch>().mockResolvedValue(response);
 
-    expect(await setup(http).recognize(input)).toEqual({
+    expect(await recognizeWithTestPermit(setup(http), input)).toEqual({
       status: "UNAVAILABLE",
     });
     expect(messages(logger)).toContain(
@@ -176,7 +179,7 @@ describe("Plate OCR provider diagnostics", () => {
         new Response(JSON.stringify(payload), { status: 201 }),
       );
 
-    expect(await setup(http).recognize(input)).toEqual({
+    expect(await recognizeWithTestPermit(setup(http), input)).toEqual({
       status: "UNAVAILABLE",
     });
     expect(messages(logger)).toContain(
@@ -192,7 +195,8 @@ describe("Plate OCR provider diagnostics", () => {
     const http = vi.fn<typeof fetch>();
 
     expect(
-      await new PlateRecognizerSnapshotProvider(undefined, http).recognize(
+      await recognizeWithTestPermit(
+        new PlateRecognizerSnapshotProvider(undefined, http),
         input,
       ),
     ).toEqual({ status: "UNAVAILABLE" });
