@@ -30,9 +30,11 @@ export function checkIssue429ProductionInputs(environment, root) {
   }
   if (!environment.ISSUE429_QA_DATABASE_TLS_CA_PEM?.includes("BEGIN CERTIFICATE") ||
       !environment.ISSUE429_QA_EGRESS_POLICY_REF ||
-      !environment.ISSUE429_QA_BUILD_SHA?.match(/^[a-f0-9]{40}$/i) ||
-      !environment.ISSUE429_QA_ARTIFACT_SHA256?.match(/^[a-f0-9]{64}$/i)) {
+      !environment.ISSUE429_QA_BUILD_SHA?.match(/^[a-f0-9]{40}$/i)) {
     throw new Error("Issue429 QA TLS/egress/build evidence is incomplete.");
+  }
+  if (environment.ISSUE429_QA_ARTIFACT_SHA256 !== undefined) {
+    throw new Error("Issue429 QA refuses caller-supplied artifact digests.");
   }
   const fixturePath = resolve(environment.ISSUE429_QA_FIXTURE_PATH ?? "");
   const fixtureRoot = resolve(root, "tmp", "issue429-qa");
@@ -108,9 +110,8 @@ export function issue429ArtifactDigest(directory) {
   return hash.digest("hex");
 }
 
-export function assertIssue429ProductionArtifact(buildSha, repoRoot, digest) {
-  const dist = resolve(repoRoot, "apps", "api", "dist", "main.js");
-  if (!existsSync(dist)) throw new Error("Production API artifact is missing; build before QA.");
+/** Git HEAD and all source must be pristine; checking a dist digest is NOT proof. */
+export function assertIssue429CleanSource(buildSha, repoRoot) {
   const head = execFileSync("git", ["rev-parse", "HEAD"], {
     cwd: repoRoot, encoding: "utf8", windowsHide: true, timeout: 4_000,
   }).trim();
@@ -135,9 +136,5 @@ export function assertIssue429ProductionArtifact(buildSha, repoRoot, digest) {
   if (ignoredSource) {
     throw new Error("Issue429 QA refuses ignored authored source in production build.");
   }
-  const actual = issue429ArtifactDigest(resolve(repoRoot, "apps", "api", "dist"));
-  if (actual !== digest) {
-    throw new Error("Production API distribution content differs from sealed QA build digest.");
-  }
-  return { sourceSha: head, distributionPath: dist, distributionSha256: actual };
+  return head;
 }

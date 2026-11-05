@@ -12,11 +12,14 @@ import { startIssue429HttpsMock } from "./issue429-qa-https-mock.mjs";
 import { releaseIssue429LeaseAfterChildExits } from "./issue429-qa-child-lifecycle.mjs";
 import { createIssue429TlsFixture } from "./issue429-qa-tls-fixture.mjs";
 import {
-  assertIssue429ProductionArtifact,
   checkIssue429ProductionInputs,
   inspectIssue429QaDocker,
   readIssue429SyntheticActors,
 } from "./issue429-qa-production-target.mjs";
+import {
+  buildIssue429FreshArtifact,
+  verifyIssue429FreshArtifact,
+} from "./issue429-qa-source-build.mjs";
 import {
   observeIssue429Debits, openIssue429Ledger, requestIssue429PlateOcr,
   startIssue429ProductionApi,
@@ -49,10 +52,6 @@ function assertDebits(before, after, actors) {
 async function main() {
   stage = "INPUT_FENCE";
   const inputs = checkIssue429ProductionInputs(process.env, root);
-  stage = "BUILD_ATTESTATION";
-  const artifact = assertIssue429ProductionArtifact(
-    process.env.ISSUE429_QA_BUILD_SHA, root,
-    process.env.ISSUE429_QA_ARTIFACT_SHA256);
   const actors = readIssue429SyntheticActors(inputs.fixturePath,
     new URL(inputs.runtimeUrl).pathname.slice(1));
   stage = "DOCKER_IDENTITY";
@@ -60,6 +59,11 @@ async function main() {
   // Target verification before lease: inherited/unknown default 5432 is forbidden.
   stage = "PG17_PREFLIGHT";
   await preflightIssue414Phase23HttpBeforeLease();
+  stage = "FRESH_SOURCE_BUILD";
+  // A caller digest or a previously built dist can never confer QA status.
+  // Both workspaces must have absent outputs before controlled, serial builds.
+  const artifact = buildIssue429FreshArtifact(
+    process.env.ISSUE429_QA_BUILD_SHA, root);
   stage = "EXCLUSIVE_LEASE";
   const lease = await acquireInvocationLease("issue429-qa-production",
     { selectedProjects: ["api-postgres-race"] });
@@ -85,6 +89,7 @@ async function main() {
     });
     stage = "TWO_PRODUCTION_API_PROCESSES";
     for (let i = 0; i < 2; i += 1) {
+      verifyIssue429FreshArtifact(artifact, root);
       await startIssue429ProductionApi({
         distributionPath: artifact.distributionPath,
         runtimeUrl: inputs.runtimeUrl,
@@ -94,6 +99,7 @@ async function main() {
         root: resolve(root, "apps", "api"),
         onSpawn: (owner) => processes.push(owner),
       });
+      verifyIssue429FreshArtifact(artifact, root);
     }
     assert.notEqual(processes[0].pid, processes[1].pid,
       "Two separate API OS processes are mandatory.");
@@ -138,10 +144,14 @@ async function main() {
     const after = await observeIssue429Debits(ledger.admin,
       actors.map((actor) => actor.organizationId));
     assertDebits(before, after, actors);
+    verifyIssue429FreshArtifact(artifact, root);
     smoke = {
       status: "SMOKE_PASS_ONLY",
       issue: 429,
       sourceSha: artifact.sourceSha,
+      buildProvenance: "FRESH_CONTROLLED_CLEAN_HEAD",
+      apiDistSha256: artifact.distributionSha256,
+      contractsDistSha256: artifact.contractsSha256,
       pgMajor: 17,
       apiProcessCount: processes.length,
       distinctApiProcessIds: new Set(processes.map((p) => p.pid)).size === 2,
@@ -193,6 +203,7 @@ async function main() {
   }
   // Do not leave a PASS report if cleanup/lease release failed.
   if (smoke && released) {
+    verifyIssue429FreshArtifact(artifact, root);
     const path = resolve(root, "tmp", "issue429-qa",
       "production-smoke-redacted.json");
     mkdirSync(dirname(path), { recursive: true });
