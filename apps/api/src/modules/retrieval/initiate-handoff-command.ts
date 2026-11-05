@@ -1,8 +1,6 @@
 import type { PostgresPool } from "../../common/database/postgres";
-import {
-  inDispatchTransaction,
-  loadDispatchOperationTime,
-} from "../dispatch/dispatch-transaction";
+import { inDispatchTransaction } from "../dispatch/dispatch-transaction";
+import { loadPostLockStageTime } from "../dispatch/stage-postlock-operation-time";
 import { appendHandoffAudit } from "./handoff-audit";
 import { HandoffError } from "./handoff-errors";
 import {
@@ -39,7 +37,7 @@ export function createInitiateHandoffExecutor(pool: PostgresPool) {
         input.expectedSessionVersion,
         "READY",
       );
-      const operationTime = await loadDispatchOperationTime(transaction);
+      const operationTime = await loadPostLockStageTime(transaction);
       const updated = await transaction.query<{ version: number }>(
         `UPDATE valet_sessions
          SET state = 'HANDOFF_PENDING', handoff_pending_at = $3,

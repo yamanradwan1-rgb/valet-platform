@@ -57,6 +57,50 @@
   overflow-wrap: anywhere;
 }
 
+/* Phase23-only mobile containment: the frozen Phase1 panel is unchanged. */
+.dialog-panel:has(> .management-alert-panel--unified) {
+  box-sizing: border-box;
+  max-inline-size: 100%;
+}
+
+.management-alert-panel--unified {
+  box-sizing: border-box;
+  inline-size: 100%;
+  max-inline-size: 100%;
+}
+
+.management-alert-list--unified,
+.management-alert-list--unified > li {
+  box-sizing: border-box;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
+.management-alert-list--unified bdi {
+  display: block;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+}
+
+.management-alert-list--unified button {
+  box-sizing: border-box;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  inline-size: 100%;
+}
+
+@media (max-width: 400px) {
+  .management-alert-panel--unified .management-alert-panel-heading {
+    flex-wrap: wrap;
+  }
+
+  .management-alert-panel--unified .management-alert-panel-heading h2 {
+    min-inline-size: 0;
+    flex: 1 1 12rem;
+  }
+}
+
 .management-alert-severity,
 .management-alert-source-note {
   font-size: 0.8rem;

@@ -1,7 +1,11 @@
 import type { RuntimeSchema } from "../../lib/api/dashboard-api-client";
 
 export const phaseOneCategories = [
-  "ALT-01", "ALT-02", "ALT-03", "ALT-08", "ALT-12",
+  "ALT-01",
+  "ALT-02",
+  "ALT-03",
+  "ALT-08",
+  "ALT-12",
 ] as const;
 export type PhaseOneCategory = (typeof phaseOneCategories)[number];
 export type AlertSeverity = "CRITICAL" | "IMPORTANT";
@@ -40,27 +44,38 @@ export function previewSchemaForLocation(
 ): RuntimeSchema<ManagementAlertPreview> {
   return {
     safeParse(value) {
-      if (typeof value !== "object" || value === null) return { success: false };
+      if (typeof value !== "object" || value === null)
+        return { success: false };
       const data = value as Record<string, unknown>;
       if (
-        !Array.isArray(data.items) || data.items.length > 20 ||
-        !Number.isInteger(data.count) || (data.count as number) < 0 ||
-        (data.count as number) > 20 || typeof data.hasMore !== "boolean"
-      ) return { success: false };
+        !Array.isArray(data.items) ||
+        data.items.length > 20 ||
+        !Number.isInteger(data.count) ||
+        (data.count as number) < 0 ||
+        (data.count as number) > 20 ||
+        typeof data.hasMore !== "boolean"
+      )
+        return { success: false };
       const items: ManagementAlertItem[] = [];
       for (const entry of data.items) {
-        if (typeof entry !== "object" || entry === null) return { success: false };
+        if (typeof entry !== "object" || entry === null)
+          return { success: false };
         const item = entry as Record<string, unknown>;
         const category = item.category as PhaseOneCategory;
         if (
           !phaseOneCategories.includes(category) ||
           item.sourceKind !== sources[category] ||
           (item.severity !== "CRITICAL" && item.severity !== "IMPORTANT") ||
-          !nonempty(item.id) || !nonempty(item.sourceId) ||
-          !nonempty(item.episodeId) || item.locationId !== locationId ||
-          !nonempty(item.occurredAt) || !Number.isFinite(Date.parse(item.occurredAt)) ||
-          typeof item.title !== "string" || item.title.length > 160
-        ) return { success: false };
+          !nonempty(item.id) ||
+          !nonempty(item.sourceId) ||
+          !nonempty(item.episodeId) ||
+          item.locationId !== locationId ||
+          !nonempty(item.occurredAt) ||
+          !Number.isFinite(Date.parse(item.occurredAt)) ||
+          typeof item.title !== "string" ||
+          item.title.length > 160
+        )
+          return { success: false };
         items.push(item as unknown as ManagementAlertItem);
       }
       // Count is the number of returned items, not the uncapped source total.
@@ -68,12 +83,14 @@ export function previewSchemaForLocation(
       if (
         data.count !== items.length ||
         (data.hasMore === true && items.length !== 20)
-      ) return { success: false };
+      )
+        return { success: false };
       return {
         success: true,
         data: {
           items: items.sort((a, b) =>
-            a.severity === b.severity ? 0 : a.severity === "CRITICAL" ? -1 : 1),
+            a.severity === b.severity ? 0 : a.severity === "CRITICAL" ? -1 : 1,
+          ),
           count: data.count as number,
           hasMore: data.hasMore,
         },
@@ -82,6 +99,8 @@ export function previewSchemaForLocation(
   };
 }
 
-export function alertBadge(preview: ManagementAlertPreview): string {
+export function alertBadge(
+  preview: Pick<ManagementAlertPreview, "count" | "hasMore">,
+): string {
   return preview.hasMore ? "20+" : String(preview.count);
 }

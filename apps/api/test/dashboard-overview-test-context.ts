@@ -74,8 +74,7 @@ export class DashboardOverviewTestContext extends DashboardTestContext {
        VALUES ($1, $2, 'JO', $3, $3, NULL, transaction_timestamp())`,
       [vehicleId, base.organizationId, plate],
     );
-    const completedColumn =
-      input.state === "COMPLETED" ? "completed_at," : "";
+    const completedColumn = input.state === "COMPLETED" ? "completed_at," : "";
     const completedPlaceholder =
       input.state === "COMPLETED" ? "transaction_timestamp()," : "";
     await this.adminPool.query(
@@ -91,10 +90,20 @@ export class DashboardOverviewTestContext extends DashboardTestContext {
                $8, $9, $10, $11,
                COALESCE($12::timestamptz, transaction_timestamp()),
                ${completedPlaceholder} transaction_timestamp())`,
-      [sessionId, randomUUID(), base.organizationId, base.locationId,
-        vehicleId, input.state, base.membershipId, input.keySlotId ?? null,
-        input.parkingZoneId ?? null, input.parkingSpotId ?? null,
-        input.currentAssigneeMembershipId ?? null, input.createdAtIso ?? null],
+      [
+        sessionId,
+        randomUUID(),
+        base.organizationId,
+        base.locationId,
+        vehicleId,
+        input.state,
+        base.membershipId,
+        input.keySlotId ?? null,
+        input.parkingZoneId ?? null,
+        input.parkingSpotId ?? null,
+        input.currentAssigneeMembershipId ?? null,
+        input.createdAtIso ?? null,
+      ],
     );
     return sessionId;
   }
@@ -189,12 +198,7 @@ export class DashboardOverviewTestContext extends DashboardTestContext {
   async seedPayment(input: {
     currency: "JOD" | "USD";
     sessionId: string;
-    status?:
-      | "NOT_REQUIRED"
-      | "UNPAID"
-      | "PENDING"
-      | "PAID"
-      | "FAILED";
+    status?: "NOT_REQUIRED" | "UNPAID" | "PENDING" | "PAID" | "FAILED";
   }): Promise<string> {
     const base = await this.baseFixture();
     const paymentId = randomUUID();

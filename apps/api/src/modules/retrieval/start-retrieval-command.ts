@@ -1,10 +1,8 @@
 import type { PostgresPool } from "../../common/database/postgres";
 import { lockManagementSettingsOrganization } from "../../common/database/management-settings-lock";
 import { appendDispatchEvent } from "../dispatch/dispatch-event-writer";
-import {
-  inDispatchTransaction,
-  loadDispatchOperationTime,
-} from "../dispatch/dispatch-transaction";
+import { inDispatchTransaction } from "../dispatch/dispatch-transaction";
+import { loadPostLockStageTime } from "../dispatch/stage-postlock-operation-time";
 import { recordKeyCheckedOut } from "../keys/parking-key-custody";
 import { startTaskTrackingIfEnabled } from "../tracking/task-tracking-lifecycle";
 import { appendStartRetrievalAuditEvent } from "./start-retrieval-audit";
@@ -83,7 +81,7 @@ export function createStartRetrievalCommandExecutor(
           ? {}
           : { keySlotId: request.keySlotId }),
       });
-      const operationTime = await loadDispatchOperationTime(transaction);
+      const operationTime = await loadPostLockStageTime(transaction);
       const taskVersion = await startRetrievalTask(
         transaction,
         task,

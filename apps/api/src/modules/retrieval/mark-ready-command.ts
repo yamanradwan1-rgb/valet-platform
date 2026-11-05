@@ -1,8 +1,6 @@
 import type { PostgresPool } from "../../common/database/postgres";
-import {
-  inDispatchTransaction,
-  loadDispatchOperationTime,
-} from "../dispatch/dispatch-transaction";
+import { inDispatchTransaction } from "../dispatch/dispatch-transaction";
+import { loadPostLockStageTime } from "../dispatch/stage-postlock-operation-time";
 import { stopTaskTrackingForMovement } from "../tracking/task-tracking-lifecycle";
 import { appendMarkReadyAuditEvent } from "./mark-ready-audit";
 import { persistGuestReadyPush } from "./mark-ready-guest-push";
@@ -64,7 +62,6 @@ export function createMarkReadyCommandExecutor(
         session,
       );
       assertAcceptedRetrievalRequest(retrievalRequest);
-      const operationTime = await loadDispatchOperationTime(transaction);
       await assertPostTakeoverRetrievalCustodyEvidence(
         transaction,
         {
@@ -79,6 +76,7 @@ export function createMarkReadyCommandExecutor(
           throw new MarkReadyError("KEY_CUSTODY_NOT_READY");
         },
       );
+      const operationTime = await loadPostLockStageTime(transaction);
       const sessionVersion = await markReadySession(
         transaction,
         session,

@@ -1,10 +1,8 @@
 import type { PostgresPool } from "../../common/database/postgres";
 import { lockOperationalTask, requireTaskActor } from "./task-authorization";
 import { DispatchOperationError } from "./dispatch-errors";
-import {
-  inDispatchTransaction,
-  loadDispatchOperationTime,
-} from "./dispatch-transaction";
+import { inDispatchTransaction } from "./dispatch-transaction";
+import { loadPostLockStageTime } from "./stage-postlock-operation-time";
 import { requireExpectedTaskVersion, requireTaskStatus } from "./task-mutation";
 import {
   recordTaskMutation,
@@ -32,7 +30,7 @@ export function createAcceptTaskCommandExecutor(
       }
       requireExpectedTaskVersion(task, request.expectedVersion);
       requireTaskStatus(task, ["ASSIGNED"]);
-      const operationTime = await loadDispatchOperationTime(transaction);
+      const operationTime = await loadPostLockStageTime(transaction);
       return recordTaskMutation(
         transaction,
         {

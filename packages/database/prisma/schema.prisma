@@ -876,6 +876,7 @@ model StaffRefreshCredential {
 
 model OrganizationMembership {
   managementAlertTimingPreference ManagementAlertTimingPreference?
+  managementAlertSeenReceipts ManagementAlertSeenReceipt[]
   shiftPresenceManagementResults ShiftPresenceManagementResult[]
   id             String           @id @default(uuid()) @db.Uuid
   organizationId String           @map("organization_id") @db.Uuid
@@ -953,6 +954,30 @@ model ManagementAlertTimingPreference {
 
   @@id([organizationId, userId], map: "management_alert_timing_preferences_pkey")
   @@map("management_alert_timing_preferences")
+}
+
+// DEC-110 OD-07C: source-typed, explicit per-User + Organization Seen only.
+// The SQL migration enforces the category/source-column one-of CHECK.
+model ManagementAlertSeenReceipt {
+  organizationId String @map("organization_id") @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  category String @db.VarChar(6)
+  sourceId String @map("source_id") @db.Uuid
+  takeoverOperationId String? @map("takeover_operation_id") @db.Uuid
+  occurrenceAuditEventId String? @map("occurrence_audit_event_id") @db.Uuid
+  geofenceEventId String? @map("geofence_event_id") @db.Uuid
+  seenAt DateTime @default(dbgenerated("clock_timestamp()")) @map("seen_at") @db.Timestamptz(3)
+
+  membership OrganizationMembership @relation(fields: [organizationId, userId], references: [organizationId, userId], onDelete: Restrict, onUpdate: Restrict, map: "management_alert_seen_membership_fk")
+  takeover EmergencyTaskTakeoverOperation? @relation(fields: [organizationId, takeoverOperationId], references: [organizationId, operationId], onDelete: Restrict, onUpdate: Restrict, map: "management_alert_seen_takeover_fk")
+  occurrenceAuditEvent AuditEvent? @relation(fields: [organizationId, occurrenceAuditEventId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "management_alert_seen_audit_occurrence_fk")
+  geofenceEvent GeofenceEvent? @relation(fields: [organizationId, geofenceEventId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "management_alert_seen_geofence_occurrence_fk")
+
+  @@id([organizationId, userId, category, sourceId], map: "management_alert_seen_receipts_pkey")
+  @@index([organizationId, takeoverOperationId], map: "management_alert_seen_takeover_idx")
+  @@index([organizationId, occurrenceAuditEventId], map: "management_alert_seen_audit_occurrence_idx")
+  @@index([organizationId, geofenceEventId], map: "management_alert_seen_geofence_occurrence_idx")
+  @@map("management_alert_seen_receipts")
 }
 
 model StaffOnboardingInvitation {
@@ -1357,6 +1382,7 @@ model DispatchEvent {
 // Issue #352: immutable committed operation identity; physical custody is
 // deliberately absent because changing Task ownership cannot prove key handoff.
 model EmergencyTaskTakeoverOperation {
+  managementAlertSeenReceipts ManagementAlertSeenReceipt[]
   organizationId              String   @map("organization_id") @db.Uuid
   operationId                 String   @map("operation_id") @db.Uuid
   locationId                  String   @map("location_id") @db.Uuid
@@ -1508,6 +1534,7 @@ model RawGpsSample {
 }
 
 model GeofenceEvent {
+  managementAlertSeenReceipts ManagementAlertSeenReceipt[]
   id                String            @id @default(uuid()) @db.Uuid
   organizationId    String            @map("organization_id") @db.Uuid
   locationId        String            @map("location_id") @db.Uuid
@@ -1526,6 +1553,7 @@ model GeofenceEvent {
   trackingSession TaskTrackingSession @relation(fields: [organizationId, locationId, valetSessionId, taskId, trackingSessionId], references: [organizationId, locationId, valetSessionId, taskId, id], onDelete: Restrict, onUpdate: Restrict, map: "geofence_events_tracking_scope_id_fkey")
   mapArea         LocationMapArea     @relation(fields: [organizationId, locationId, mapAreaId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "geofence_events_scope_map_area_id_fkey")
 
+  @@unique([organizationId, id], map: "geofence_events_org_id_seen_fkey")
   @@index([trackingSessionId, occurredAt, id], map: "geofence_events_tracking_occurred_at_id_idx")
   @@index([mapAreaId, occurredAt, id], map: "geofence_events_area_occurred_at_id_idx")
   @@map("geofence_events")
@@ -2409,6 +2437,7 @@ model OutboundRecipientBudget {
 }
 
 model AuditEvent {
+  managementAlertSeenReceipts ManagementAlertSeenReceipt[]
   shiftPresenceManagementResult ShiftPresenceManagementResult?
   id                    String          @id @default(uuid()) @db.Uuid
   organizationId        String          @map("organization_id") @db.Uuid

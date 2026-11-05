@@ -2,6 +2,26 @@
 
 Important decisions must not live only in chat.
 
+## DEC-111 — Issue #414 Phase-3 Financial, Security and Commercial Alert Policy
+
+Status: **Accepted — Owner-approved OD-08A–G; source mechanisms and test evidence pending**
+Date: 2026-11-04
+Issue: #414
+
+The Owner authorized narrow source-specific read-only CA/eligible exact-granted LM financial-alert projections without widening existing Payment endpoints, provider disclosure or financial mutations; ALT-11 treats both OUTCOME_UNKNOWN and REFERENCE_ATTACHED as unresolved IMPORTANT using original dispatch guard and personal 120s default/60–600s strict-greater threshold, with no 900s CRITICAL escalation. ALT-10 requires definitive committed FAILED evidence and is suppressed by currently unresolved collection operations even before ALT-11 appears. ALT-13 is a committed forced Shift closure with a bounded safe source reader; ALT-15 is CA-only allowlisted sensitive committed staff audit; ALT-16 is active Location intake stopped; ALT-17 is a CA-only effective restriction inside the existing subscription-only utility, never a restricted Dashboard bell bypass. Seen follows DEC-110. This policy does not prove source implementation, tests or release.
+
+Full contract: [DEC-111](decisions/DEC-111_ISSUE_414_PHASE3_FINANCIAL_SECURITY_COMMERCIAL_POLICY.md).
+
+## DEC-110 — Issue #414 Phase-2 Source, Occurrence and Seen Policy
+
+Status: **Accepted — Owner-approved OD-07A–D; source timing/episode evidence pending**
+Date: 2026-11-04
+Issue: #414
+
+The Owner approved source-specific CA and exact-granted LM sanitized alert access, without blanket custody/audit/GPS permissions, with committed takeover identity, source-proven terminal handoff failure and distinct override, source-proven Geofence VIOLATION attribution/grouping, and explicit per-item server-confirmed seven-day User+Organization occurrence-only Seen. Seen requires source reauthorization in a single mutation transaction, database uniqueness and idempotent retries; active cases cannot be Seen. ALT-04/06 require authoritative lock-safe clocks and episode identity with fail-closed legacy ambiguity. DEC-107 remains Proposed; substantial new source state models require separate approval. This policy does not prove source implementation, tests or release.
+
+Full contract: [DEC-110](decisions/DEC-110_ISSUE_414_PHASE2_SOURCE_OCCURRENCE_SEEN_POLICY.md).
+
 
 ## DEC-109 — Issue #414 Phase-1 Management Alerts: Timing, Source Rights and Placement
 

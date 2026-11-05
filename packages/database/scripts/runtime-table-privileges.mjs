@@ -16,6 +16,7 @@ import { provisionOutboundRuntimePrivileges } from "./outbound-runtime-privilege
 import { provisionGuestInformationPrivileges } from "./guest-information-runtime-privileges.mjs";
 import { provisionIncidentResolutionPrivileges } from "./incident-resolution-runtime-privileges.mjs";
 import { provisionManagementAlertTimingPrivileges } from "./management-alert-timing-runtime-privileges.mjs";
+import { provisionManagementAlertSeenPrivileges } from "./management-alert-seen-runtime-privileges.mjs";
 
 const runtimeReadOnlyTables = [
   "organizations",
@@ -144,6 +145,7 @@ export async function provisionRuntimeTablePrivileges(
   await revokeRuntimeStaffAuthority(client, executeFormatted, runtimeRole);
   await provisionIncidentResolutionPrivileges(client, executeFormatted, runtimeRole);
   await provisionManagementAlertTimingPrivileges(client, executeFormatted, runtimeRole);
+  await provisionManagementAlertSeenPrivileges(client, executeFormatted, runtimeRole);
   for (const table of runtimeReadOnlyTables) {
     await executeFormatted(client, "GRANT SELECT ON TABLE %I TO %I", [
       table,

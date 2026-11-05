@@ -16,6 +16,10 @@ import {
 import { ReadState, StatusBadge, styles } from "../administration-ui";
 import { useAuthoritativeRead } from "../use-authoritative-read";
 import {
+  commercialRestrictionAttentionAllowed,
+  commercialRestrictionAttentionCopy,
+} from "../../management-alerts/alert-commercial-restriction";
+import {
   readCompanySubscription,
   readLocationSubscription,
 } from "./commercial-api";
@@ -94,6 +98,16 @@ export function SubscriptionPage() {
         loading={state.loading}
         onRetry={state.refresh}
       >
+        {commercialRestrictionAttentionAllowed({
+          authority: scope.authority,
+          dashboardAccess: subscription?.entitlements.dashboardAccess ?? null,
+          loading: state.loading,
+          hasError: state.error !== null,
+        }) ? (
+          <p role="status" className={styles.sectionText}>
+            {commercialRestrictionAttentionCopy[locale]}
+          </p>
+        ) : null}
         {!subscription ? (
           <div className={`${styles.card} ${styles.empty}`}>
             {t.noSubscription}
@@ -106,7 +120,11 @@ export function SubscriptionPage() {
                 style={{ position: "relative", paddingInlineEnd: "4rem" }}
               >
                 <span
-                  style={{ position: "absolute", insetBlockStart: "1rem", insetInlineEnd: "1rem" }}
+                  style={{
+                    position: "absolute",
+                    insetBlockStart: "1rem",
+                    insetInlineEnd: "1rem",
+                  }}
                 >
                   <ScopedContextHelp helpKey="billing.status" />
                 </span>
