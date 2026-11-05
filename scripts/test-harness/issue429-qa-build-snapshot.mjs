@@ -39,15 +39,20 @@ function safeGitEnvironment() {
 function git(cwd, args, timeout = 30_000) {
   // Git worktree checkout can execute hooks. Do not pass inherited admin,
   // operator, provider, or test secrets, and suppress untrusted checkout hooks.
-  const noHooks = resolve(cwd, "tmp", "issue429-qa", "disabled-git-hooks");
-  return execFileSync("git", ["-c", `core.hooksPath=${noHooks}`, ...args], {
-    cwd,
-    env: safeGitEnvironment(),
-    encoding: "utf8",
-    timeout,
-    windowsHide: true,
-    stdio: "pipe",
-  }).trim();
+  // Git for Windows and POSIX Git both treat /dev/null as a non-directory.
+  // Never select a predictable repo-owned ignored directory for hooks.
+  return execFileSync(
+    "git",
+    ["-c", "core.hooksPath=/dev/null", "-c", "core.fsmonitor=false", ...args],
+    {
+      cwd,
+      env: safeGitEnvironment(),
+      encoding: "utf8",
+      timeout,
+      windowsHide: true,
+      stdio: "pipe",
+    },
+  ).trim();
 }
 
 function assertOwnedPath(sourceRoot, snapshotRoot) {

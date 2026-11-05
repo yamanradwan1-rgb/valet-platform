@@ -1,5 +1,3 @@
-// Opt-in production-build QA. No fixture creation, migration or runtime
-// assumption: explicit Prime exclusivity and independently attested PG17 first.
 import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
 import { resolve } from "node:path";
@@ -14,6 +12,7 @@ import {
   assertIssue429Debits,
   issue429SmokeEvidence,
   publishIssue429SmokeEvidence,
+  releaseIssue429SmokeSnapshot,
 } from "./issue429-qa-production-evidence.mjs";
 import { createIssue429TlsFixture } from "./issue429-qa-tls-fixture.mjs";
 import {
@@ -49,30 +48,31 @@ async function main() {
   );
   stage = "DOCKER_IDENTITY";
   inspectIssue429QaDocker();
-  // Target verification before lease: inherited/unknown default 5432 is forbidden.
   stage = "PG17_PREFLIGHT";
   await preflightIssue414Phase23HttpBeforeLease();
   stage = "FRESH_SOURCE_BUILD";
-  // A caller digest or a previously built dist can never confer QA status.
-  // Both workspaces must have absent outputs before controlled, serial builds.
   const artifact = buildIssue429FreshArtifact(
     process.env.ISSUE429_QA_BUILD_SHA,
     root,
   );
-  // Build may take minutes. A prior target check cannot authorize stale-owner
-  // recovery/DDL by the lease code on a different or replaced PG container.
   let result;
+  const lifecycle = {
+    leaseAcquired: false,
+    leaseReleased: false,
+    allChildExitsConfirmed: false,
+    cleanupErrors: [],
+  };
   try {
-    result = await runValidatedSmoke(artifact, inputs, actors);
+    result = await runValidatedSmoke(artifact, inputs, actors, lifecycle);
   } finally {
-    // Only the just-created, random detached checkout can be removed, after
-    // all API processes and PG leases have completed their own cleanup.
-    releaseIssue429FreshArtifact(artifact, root);
+    releaseIssue429SmokeSnapshot(lifecycle, () =>
+      releaseIssue429FreshArtifact(artifact, root),
+    );
   }
   if (result) publishIssue429SmokeEvidence(root, result);
 }
 
-async function runValidatedSmoke(artifact, inputs, actors) {
+async function runValidatedSmoke(artifact, inputs, actors, lifecycle) {
   stage = "RECHECK_TARGET_BEFORE_EXCLUSIVE_LEASE";
   inspectIssue429QaDocker();
   await preflightIssue414Phase23HttpBeforeLease();
@@ -81,6 +81,7 @@ async function runValidatedSmoke(artifact, inputs, actors) {
   const lease = await acquireInvocationLease("issue429-qa-production", {
     selectedProjects: ["api-postgres-race"],
   });
+  lifecycle.leaseAcquired = true;
   let tls;
   let mock;
   let ledger;
@@ -242,6 +243,8 @@ async function runValidatedSmoke(artifact, inputs, actors) {
     const allChildExitsConfirmed = processes.every((child) =>
       child.exitConfirmed(),
     );
+    lifecycle.allChildExitsConfirmed = allChildExitsConfirmed;
+    lifecycle.cleanupErrors = cleanupErrors;
     if (!allChildExitsConfirmed)
       cleanupErrors.push("unconfirmed-api-child-exit");
     if (mock) {
@@ -272,6 +275,7 @@ async function runValidatedSmoke(artifact, inputs, actors) {
         cleanupErrors,
       );
       released = true;
+      lifecycle.leaseReleased = true;
     } catch {
       cleanupErrors.push("exclusive-pg-lease-not-released");
     }
@@ -282,13 +286,11 @@ async function runValidatedSmoke(artifact, inputs, actors) {
     }
     stage = attemptedStage;
   }
-  // Do not leave a PASS report if cleanup/lease release failed.
   if (smoke && released) verifyIssue429FreshArtifact(artifact, root);
   return smoke && released ? smoke : null;
 }
 
 await main().catch((error) => {
-  // Do not print driver/provider errors: they can include environment material.
   const kind = error instanceof assert.AssertionError ? "ASSERTION" : "RUNTIME";
   process.stderr.write(
     `Issue429 production QA NOT QUALIFIED stage=${stage} kind=${kind}.\n`,

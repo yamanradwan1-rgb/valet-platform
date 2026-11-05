@@ -1,6 +1,19 @@
 import assert from "node:assert/strict";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
+import { mayReleaseIssue429RuntimeSnapshot } from "./issue429-qa-child-lifecycle.mjs";
+
+/** Never delete the owned runtime while a child or its PG lease is uncertain. */
+export function releaseIssue429SmokeSnapshot(state, release) {
+  if (!mayReleaseIssue429RuntimeSnapshot(state)) {
+    process.stderr.write(
+      "Issue429 QA retained owned runtime snapshot pending verified child and lease recovery. NOT QUALIFIED.\n",
+    );
+    return false;
+  }
+  release();
+  return true;
+}
 
 export function assureIssue429Allowed(result) {
   assert.equal(result.status, 200, "Expected production OCR HTTP 200.");

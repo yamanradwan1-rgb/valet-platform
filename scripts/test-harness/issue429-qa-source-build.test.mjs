@@ -199,6 +199,18 @@ test("private snapshot checkout cannot invoke an inherited Git post-checkout hoo
     const hook = join(f.repo, ".git", "hooks", "post-checkout");
     writeFileSync(hook, "#!/bin/sh\nexit 42\n");
     chmodSync(hook, 0o755);
+    // Prior predictable hook suppression path was under ignored repo tmp.
+    // An adversarial caller can create this directory before checkout.
+    const staleHookDir = join(
+      f.repo,
+      "tmp",
+      "issue429-qa",
+      "disabled-git-hooks",
+    );
+    mkdirSync(staleHookDir, { recursive: true });
+    const staleHook = join(staleHookDir, "post-checkout");
+    writeFileSync(staleHook, "#!/bin/sh\nexit 43\n");
+    chmodSync(staleHook, 0o755);
     assert.equal(
       verifyIssue429FreshArtifact(f.build(), f.repo).sourceSha,
       f.sha,
