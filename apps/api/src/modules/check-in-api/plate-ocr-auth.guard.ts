@@ -4,39 +4,48 @@ import {
   type CanActivate,
   type ExecutionContext,
 } from "@nestjs/common";
+import type { IncomingMessage, ServerResponse } from "node:http";
 import {
-  STAFF_PRINCIPAL_RESOLVER,
-  type StaffPrincipalResolver,
-} from "../auth/staff-principal";
+  STAFF_SESSION_CONTEXT_RESOLVER,
+  type StaffSessionContext,
+  type StaffSessionContextResolver,
+} from "../auth/staff-session-context";
 import { resolveCheckInUserId } from "./check-in-controller-support";
 import {
   CheckInOperationRunner,
   type CheckInApiRequest,
 } from "./check-in-operation-runner";
 import { logPlateOcrBoundary } from "./plate-ocr-boundary-diagnostics";
+import { ownPlateOcrRequestCancellation } from "./plate-ocr-request-cancellation";
 
 export interface PlateOcrApiRequest extends CheckInApiRequest {
   plateOcrUserId: string;
+  plateOcrSession: StaffSessionContext;
+  plateOcrSignal: AbortSignal;
 }
 
 /** Guards execute before the bounded in-memory multipart interceptor. */
 @Injectable()
 export class PlateOcrAuthGuard implements CanActivate {
   constructor(
-    @Inject(STAFF_PRINCIPAL_RESOLVER)
-    private readonly principals: StaffPrincipalResolver,
+    @Inject(STAFF_SESSION_CONTEXT_RESOLVER)
+    private readonly sessions: StaffSessionContextResolver,
     private readonly runner: CheckInOperationRunner,
   ) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<PlateOcrApiRequest>();
     const header = request.headers.authorization;
-    context
-      .switchToHttp()
-      .getResponse<{ setHeader(name: string, value: string): void }>()
-      .setHeader("Cache-Control", "no-store");
+    const response = context.switchToHttp().getResponse<ServerResponse>();
+    response.setHeader("Cache-Control", "no-store");
     try {
       request.plateOcrUserId = await resolveCheckInUserId(
-        this.principals,
+        {
+          resolve: async (authorization) => {
+            const session = await this.sessions.resolve(authorization);
+            request.plateOcrSession = session;
+            return { userId: session.userId };
+          },
+        },
         request,
         typeof header === "string" ? header : undefined,
       );
@@ -46,6 +55,10 @@ export class PlateOcrAuthGuard implements CanActivate {
         throw error;
       });
     }
+    request.plateOcrSignal = ownPlateOcrRequestCancellation(
+      request as unknown as IncomingMessage,
+      response,
+    );
     logPlateOcrBoundary("auth-success");
     return true;
   }

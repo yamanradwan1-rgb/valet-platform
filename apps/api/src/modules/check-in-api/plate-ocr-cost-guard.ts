@@ -17,6 +17,11 @@ export class PlateOcrCostGuard {
     private readonly maxIdentities = 1024,
   ) {}
 
+  /** Legacy ephemeral path is authorized only in controlled dev/test mode. */
+  isControlledNonProduction(): boolean {
+    return this.mode === "development" || this.mode === "test";
+  }
+
   acquire(identity: PlateOcrCostIdentity): (() => void) | undefined {
     if (this.mode !== "development" && this.mode !== "test") return undefined;
     const now = this.now();

@@ -42,8 +42,12 @@ class ConfiguredRegistry extends DigitalPaymentProviderRegistry {
   }
 }
 
-function statuses(env: NodeJS.ProcessEnv, registry = new UnconfiguredDigitalPaymentProviderRegistry()) {
-  return projectManagementIntegrations(organizationId, env, registry).integrations;
+function statuses(
+  env: NodeJS.ProcessEnv,
+  registry = new UnconfiguredDigitalPaymentProviderRegistry(),
+) {
+  return projectManagementIntegrations(organizationId, env, registry)
+    .integrations;
 }
 
 describe("MGT-BE-12 integration status projection", () => {
@@ -55,25 +59,40 @@ describe("MGT-BE-12 integration status projection", () => {
     ]);
   });
 
-  it("reports missing/malformed OCR and production fail-closed truthfully", () => {
+  it("reports missing/malformed OCR without falsely declaring production health", () => {
     const missing = configuredEnvironment();
     delete missing.PLATE_OCR_ENDPOINT;
-    expect(statuses(missing)[0]).toEqual({ key: "PLATE_OCR", status: "UNAVAILABLE" });
+    expect(statuses(missing)[0]).toEqual({
+      key: "PLATE_OCR",
+      status: "UNAVAILABLE",
+    });
     const malformed = configuredEnvironment();
     malformed.PLATE_OCR_ENDPOINT = "file:///secret";
-    expect(statuses(malformed)[0]).toEqual({ key: "PLATE_OCR", status: "MISCONFIGURED" });
+    expect(statuses(malformed)[0]).toEqual({
+      key: "PLATE_OCR",
+      status: "MISCONFIGURED",
+    });
     const production = configuredEnvironment();
     production.NODE_ENV = "production";
-    expect(statuses(production)[0]).toEqual({ key: "PLATE_OCR", status: "UNAVAILABLE" });
+    expect(statuses(production)[0]).toEqual({
+      key: "PLATE_OCR",
+      status: "UNKNOWN",
+    });
   });
 
   it("reports disabled/misconfigured Staff Push without sending", () => {
     const disabled = configuredEnvironment();
     disabled.STAFF_PUSH_WORKER_SENDING_ENABLED = "false";
-    expect(statuses(disabled)[1]).toEqual({ key: "STAFF_PUSH", status: "DISABLED" });
+    expect(statuses(disabled)[1]).toEqual({
+      key: "STAFF_PUSH",
+      status: "DISABLED",
+    });
     const malformed = configuredEnvironment();
     malformed.STAFF_PUSH_FCM_PROJECT_ID = "bad";
-    expect(statuses(malformed)[1]).toEqual({ key: "STAFF_PUSH", status: "MISCONFIGURED" });
+    expect(statuses(malformed)[1]).toEqual({
+      key: "STAFF_PUSH",
+      status: "MISCONFIGURED",
+    });
   });
 
   it("does not call a configured payment registry and leaks no configuration", () => {

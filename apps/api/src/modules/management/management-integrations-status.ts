@@ -18,8 +18,8 @@ function plateOcrStatus(env: NodeJS.ProcessEnv): ManagementIntegrationStatus {
       ? "UNAVAILABLE"
       : "MISCONFIGURED";
   }
-  if (env.NODE_ENV !== "development" && env.NODE_ENV !== "test")
-    return "UNAVAILABLE";
+  // Deployment config proves only syntax. Shared admission, tenant policy,
+  // provider health and remote completion cannot be inferred from NODE_ENV.
   return "UNKNOWN";
 }
 

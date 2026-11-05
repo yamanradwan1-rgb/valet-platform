@@ -217,11 +217,25 @@ describe("Plate OCR provider diagnostics", () => {
       .mockResolvedValueOnce(new Response("private", { status: 429 }));
     const provider = setup(http);
 
-    expect(await provider.recognize(input)).toEqual({
+    expect(
+      (
+        await provider.recognizeObserved(input, {
+          permit: { consumeIfFresh: () => true },
+          signal: new AbortController().signal,
+        })
+      ).response,
+    ).toEqual({
       status: "MATCH",
       candidate: { plateNumberRaw: "AA123", confidence: 0.9 },
     });
-    expect(await provider.recognize(input)).toEqual({ status: "UNAVAILABLE" });
+    expect(
+      (
+        await provider.recognizeObserved(input, {
+          permit: { consumeIfFresh: () => true },
+          signal: new AbortController().signal,
+        })
+      ).response,
+    ).toEqual({ status: "UNAVAILABLE" });
     expect(messages(logger)).toEqual([
       "PLATE_OCR_PROVIDER request-start",
       "PLATE_OCR_PROVIDER http-success status=201 results=1",
