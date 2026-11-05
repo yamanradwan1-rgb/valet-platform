@@ -16,7 +16,7 @@ This record distinguishes static/code results from tests that actually ran.
 | W4 provider/API integration | `7abc1e54`, `1c6922c3`, `4ec21f9c`, `7ad9890a`, `b9404974` | W3 mandatory permit/NODE_ENV corrections CLEAN; W8 reviewed exact module-provider fixture correction CLEAN | W4 focused non-PG 69/69 PASS; integrated A/provider/S local mock 36/36 PASS; full API non-PG 1740 passed, 6 skipped |
 | W5 settlement/UNKNOWN and operator CLI | `378f7e1e`, `175cc863`, `12f7cb13` | W2 column, role membership and unrelated relation ACL corrections CLEAN | Focused non-PG Vitest 71/71 PASS; TypeScript/ESLint PASS |
 | W6 Native deliberate Capture | `7df57894` | W7 CLEAN | 260 Native test files / 1881 tests PASS with 15-second timeout; EN/AR, style freeze, ROI, Torch, lifecycle; Native type/lint PASS |
-| W7 independent QA | `aa3bce89`, `e3436845` (source-to-artifact provenance correction pending) | W5: child lifecycle and ACL CLEAN; artifact provenance MAJOR remains open at this revision | Node QA 31/31 PASS including synthetic trusted TLS, prelease negatives and independent confidence-bound logic; live multiprocess/PG/performance **NOT RUN** |
+| W7 independent QA | `aa3bce89`, `e3436845`, `9f81a7a1`, `d62c9dd0`, `29df7878`, `004a99e5`, `3e5f6ec2` | W5 originally found build provenance MAJOR; W6 independently reviewed the final 9f81..3e5 corrective chain **CLEAN for source integration** under trusted local test-runner model | Integrated offline Node QA **38 passed, 1 skipped** (OpenSSL unavailable), including adversarial transient source injection, default/ignored Git hook, caller digest, child-exit/lease retention, ACL and NOWAIT oracle negatives. Real TLS mock, production two-process HTTP and P1/P2 load **NOT RUN** |
 
 ## Repository-wide verification
 
@@ -30,7 +30,7 @@ This record distinguishes static/code results from tests that actually ran.
 | Explicit integrated isolated PG17 `database-postgres-issue429-ocr` | **PASS** 7/7 on `feat/issue-429-ocr-mvp-prime`, real PostgreSQL17 `127.0.0.1:45432` with Docker labels/volume/DB owner and bounded six-client resource profile; test-created private DB/roles cleaned; harness reports 0 owned leftovers |
 | `corepack pnpm --filter @valet/database exec prisma validate` | **PASS** with process-only nonconnecting synthetic migration URL; no DB connection |
 | Integrated focused `api-non-postgres` Vitest A/provider/S | **PASS** 36/36; separate focused recovery 71/71 PASS |
-| `node --test scripts/test-harness/issue429-qa-*.test.mjs` | **PASS** 31/31 including actual local synthetic HTTPS/TLS; no real paid provider or database |
+| `node --test scripts/test-harness/issue429-qa-*.test.mjs` on final integrated W7 | **PASS** exit 0, **38 passed / 1 skipped**. The OpenSSL-dependent real TLS fixture is **SKIPPED** in this environment, not claimed passed; other QA negatives actually ran |
 | `node --test packages/database/issue429-private/target-preflight.test.mjs` | **PASS** 7/7 offline negative target checks; never acquired PostgreSQL lease |
 | `git diff --check` | PASS after integration and reviewed corrections |
 | Root `corepack pnpm test` (includes PG-dependent suites) | **NOT RUN**: unsafe without attested exclusive isolated PostgreSQL target/lease |
@@ -50,6 +50,15 @@ independent. These are **source-reviewed properties**, not validated live
 PostgreSQL/remote-provider execution guarantees. No real provider billing,
 subscription, privacy, rate/pricing or remote-completion claims are inferred.
 
+W7 provenance now rejects externally supplied artifact SHA as proof and builds
+API plus contracts from an internally pinned detached Git snapshot, with
+restricted subprocess environment, disabled Git hooks, isolated runtime dist,
+internally sealed digests and retained snapshot/lease if child exit is uncertain.
+W6 independently rated that **CLEAN for source integration**, not an executed
+production smoke. A hostile same-UID local actor can still change read-only
+files by changing permissions; this is not a cryptographic or OS-enforced
+attestation against an untrusted machine.
+
 Docker Desktop initially became unavailable during the run, then recovered.
 Prime verified the isolated Compose project `vaylet-test`, the test-labeled
 `postgres:17-alpine` container, exact `127.0.0.1:45432` port, approved private
@@ -59,8 +68,8 @@ roles were removed, and the harness reported zero residual owned resources.
 This authorization does **not** cover other PostgreSQL projects, production
 databases, QA two-process HTTP smoke, paid OCR traffic or release/activation.
 
-Open gates before merge/activation: fix and independently review W7 source-to-
-build artifact provenance; execute distinct cross-process correctness/failure
+Open gates before merge/activation: execute the separately preprovisioned W7
+production-mode HTTPS/ACL/cost and cross-process correctness/failure
 and production-mode HTTPS/role tests; authorize representative normal
 and peak envelopes, then run paired Check-In and NOWAIT tests to the accepted
 statistical gates; obtain physical Native proof **before acceptance or merge**
