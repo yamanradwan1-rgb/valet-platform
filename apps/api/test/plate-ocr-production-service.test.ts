@@ -3,6 +3,7 @@ import type { PostgresPool } from "../src/common/database/postgres";
 import type { StaffSessionContext } from "../src/modules/auth/staff-session-context";
 import type { PlateOcrAdmissionExecutor } from "../src/modules/check-in-api/plate-ocr-admission/plate-ocr-admission-executor";
 import type { PlateOcrCostGuard } from "../src/modules/check-in-api/plate-ocr-cost-guard";
+import { PlateOcrCostGuard as RealPlateOcrCostGuard } from "../src/modules/check-in-api/plate-ocr-cost-guard";
 import { readPlateOcrConfig } from "../src/modules/check-in-api/plate-ocr-config";
 import type { PlateOcrProvider } from "../src/modules/check-in-api/plate-ocr-provider";
 import { PlateOcrService } from "../src/modules/check-in-api/plate-ocr.service";
@@ -52,7 +53,7 @@ function setup(provider: PlateOcrProvider) {
   });
   const admission = { admit } as unknown as PlateOcrAdmissionExecutor;
   const service = new PlateOcrService(pool, cost, admission, provider);
-  return { service, pool, query, admit, cost };
+  return { service, pool, query, admit, cost, admission };
 }
 
 function provider(http: typeof fetch) {
@@ -62,6 +63,37 @@ function provider(http: typeof fetch) {
 afterEach(() => vi.restoreAllMocks());
 
 describe("production OCR service shared admission/settlement", () => {
+  it.each(["test", "development", "production"])(
+    "requires durable A with external HTTPS even when NODE_ENV=%s",
+    async (mode) => {
+      const http = vi.fn<typeof fetch>();
+      const snapshot = provider(http);
+      const c = setup(snapshot);
+      const liveCost = new RealPlateOcrCostGuard(mode, () => 0);
+      expect(liveCost.isControlledNonProduction()).toBe(false);
+      c.admit.mockResolvedValueOnce({
+        status: "UNAVAILABLE",
+        reason: "DISABLED",
+      });
+      const service = new PlateOcrService(
+        c.pool,
+        liveCost,
+        c.admission,
+        snapshot,
+      );
+      expect(
+        await service.recognize(
+          session,
+          input,
+          image,
+          new AbortController().signal,
+        ),
+      ).toEqual({ status: "UNAVAILABLE" });
+      expect(c.admit).toHaveBeenCalledOnce();
+      expect(http).not.toHaveBeenCalled();
+      expect(c.query).not.toHaveBeenCalled();
+    },
+  );
   it("reaches exactly one HTTPS fetch after known admission and settles UNKNOWN", async () => {
     const http = vi.fn<typeof fetch>().mockResolvedValue(
       new Response('{"results":[{"plate":"AA123","score":0.91}]}', {

@@ -6,9 +6,9 @@ const identity = {
   membershipId: "member",
   targetLocationId: "location",
 };
-function setup(mode = "test", capacity = 1024) {
+function setup(mode = "test", capacity = 1024, synthetic = true) {
   let time = 0;
-  const guard = new PlateOcrCostGuard(mode, () => time, capacity);
+  const guard = new PlateOcrCostGuard(mode, () => time, capacity, synthetic);
   const provider = vi.fn();
   const call = (key = identity) => {
     const release = guard.acquire(key);
@@ -28,6 +28,15 @@ function setup(mode = "test", capacity = 1024) {
   };
 }
 describe("DEC-074 non-production cost guard", () => {
+  it.each(["test", "development", "production", undefined])(
+    "defaults deny even in NODE_ENV=%s without synthetic provider proof",
+    (mode) => {
+      const c = setup(mode, 1024, false);
+      expect(c.guard.isControlledNonProduction()).toBe(false);
+      expect(c.call()).toBe(false);
+      expect(c.provider).not.toHaveBeenCalled();
+    },
+  );
   it("allows first and denies concurrent calls before I/O", () => {
     const c = setup();
     const release = c.guard.acquire(identity)!;
