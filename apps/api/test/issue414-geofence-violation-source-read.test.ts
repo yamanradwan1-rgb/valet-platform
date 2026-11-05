@@ -186,13 +186,14 @@ describe("Issue #414 ALT-09 source-only authorized boundary", () => {
       sourceId: eventId,
     });
     expect(result?.sourceId).toBe(eventId);
-    expect(calls[1]!.sql).toContain("AND event.id = $5::uuid");
+    // Exact reads rebind the fourth parameter to the event ID. The fifth
+    // parameter was unused and caused real PG17 to reject with SQLSTATE 42P18.
+    expect(calls[1]!.sql).toContain("AND event.id = $4::uuid");
     expect(calls[1]!.sql).not.toContain("management_alert_seen_receipts");
     expect(calls[1]!.values).toEqual([
       scope.organizationId,
       scope.locationId,
       1,
-      context.userId,
       eventId,
     ]);
     await expect(

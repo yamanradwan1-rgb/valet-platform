@@ -50,9 +50,8 @@ interface ProtectedSessionRow {
   readonly now: Date;
 }
 
-/** Share-lock the same session and User rows that security writers UPDATE.
- * Read-only alert tabs must not take a command-grade exclusive session lock.
- * Holding these row locks across the org fence prevents a revocation race.
+/** Share-lock Staff session and User before the SHARED Organization fence.
+ * Read-only alert tabs never acquire a command-grade exclusive session lock.
  */
 async function requireProtectedReadSession(
   transaction: PostgresTransaction,
@@ -150,6 +149,11 @@ async function requireSourceRole(
     throw new ManagementAccessDeniedError();
   // Recheck token expiry, assurance and factor AFTER waiting for the org lock.
   await requireProtectedReadSession(transaction, input.context);
+  // The subscription table is deliberately SELECT-only under the runtime
+  // role. PostgreSQL FOR SHARE OF subscription would demand a write-capable
+  // privilege (42501); never broaden grants for this read-only alert.
+  // Keep all permitted Staff/Organization row locks and the SHARED org fence,
+  // and recheck current commercial entitlement in this post-fence statement.
   const current = await transaction.query<AuthorityRow>(
     `SELECT membership.id::text AS "membershipId",
             membership.role::text AS role
@@ -165,7 +169,7 @@ async function requireSourceRole(
        AND membership.organization_id=$2::uuid
        AND membership.status='ACTIVE'
        AND membership.role=ANY($3::membership_role[])
-     FOR SHARE OF membership, actor, organization, subscription`,
+     FOR SHARE OF membership, actor, organization`,
     [input.context.userId, input.organizationId, roles],
   );
   const row = current.rows[0];

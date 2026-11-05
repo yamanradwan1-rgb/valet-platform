@@ -1,20 +1,22 @@
-import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { StaffSessionContext } from "../src/modules/auth/staff-session-context";
 import { inPostgresTransaction } from "../src/common/database/postgres-transaction";
 import { createEmergencyTakeoverCommandExecutor } from "../src/modules/dispatch/emergency-takeover-command";
-import { createGpsIngestionCommandExecutor } from "../src/modules/tracking/gps-ingestion-command";
 import {
   findGeofenceViolationAlertCaseById,
   queryGeofenceViolationAlertCases,
 } from "../src/modules/dashboard/management-alert-sources/geofence-violation-alert-reader";
 import { Issue352TakeoverTestContext } from "./issue352-takeover-test-context";
 import { seedIssue414GeofenceArea } from "./issue414-geofence-area-test-fixture";
+import {
+  sendTrackedGpsRoute,
+  trackingSessionForAssignee,
+  violationEventIds,
+} from "./issue414-geofence-real-gps-fixture";
 
 // Execute ONLY after Prime releases the exclusive disposable PG17 lease.
 // The reader also requires W18's forward-only Seen migration in this DB.
 const db = new Issue352TakeoverTestContext("414-alt09-real-gps");
-const ingest = () => createGpsIngestionCommandExecutor(db.runtimePool);
 const takeover = () => createEmergencyTakeoverCommandExecutor(db.runtimePool);
 type Member = Awaited<ReturnType<typeof db.addMember>>;
 type Parking = Awaited<ReturnType<typeof db.createStartParkingFixture>>;
@@ -57,44 +59,6 @@ const exact = (actor: Member, context: StaffSessionContext, sourceId: string) =>
     }),
   );
 
-async function sendRoute(
-  userId: string,
-  points: readonly { latitude: number; longitude: number }[],
-  start: Date,
-): Promise<void> {
-  await ingest()({
-    authenticatedUserId: userId,
-    sessionId: source.sessionId,
-    samples: points.map((point, index) => ({
-      ...point,
-      accuracyMeters: 8,
-      clientSampleId: randomUUID(),
-      capturedAt: new Date(start.getTime() + index * 1_000).toISOString(),
-    })),
-  });
-}
-
-async function trackerIdFor(assigneeId: string): Promise<string> {
-  const rows = await db.adminPool.query<{ id: string }>(
-    `SELECT id::text FROM task_tracking_sessions
-     WHERE organization_id=$1 AND task_id=$2 AND assignee_membership_id=$3`,
-    [source.organizationId, source.taskId, assigneeId],
-  );
-  expect(rows.rows).toHaveLength(1);
-  return rows.rows[0]!.id;
-}
-
-async function violationIds(trackerId: string): Promise<string[]> {
-  const rows = await db.adminPool.query<{ id: string }>(
-    `SELECT id::text FROM geofence_events
-     WHERE organization_id=$1 AND location_id=$2
-       AND tracking_session_id=$3 AND event_type='VIOLATION'
-     ORDER BY occurred_at,id`,
-    [source.organizationId, source.locationId, trackerId],
-  );
-  return rows.rows.map((row) => row.id);
-}
-
 beforeAll(async () => {
   process.env.VAYLET_LOCAL_DISABLE_MFA = "false";
   await db.setup();
@@ -131,7 +95,11 @@ beforeAll(async () => {
     source.locationId,
     "PARKING",
   );
-  firstTrackerId = await trackerIdFor(source.membershipId);
+  firstTrackerId = await trackingSessionForAssignee(
+    db,
+    source,
+    source.membershipId,
+  );
 
   // The real GPS writer accepts up to 5-minute-delayed captures while
   // requiring capturedAt >= tracked segment start. Simulate a long-lived
@@ -147,8 +115,14 @@ beforeAll(async () => {
   const delayed = new Date(clock.rows[0]!.now.getTime() - 60_000);
   const outside = { latitude: 33, longitude: 38 };
   const inside = { latitude: 31.5, longitude: 35.5 };
-  await sendRoute(source.userId, [outside, inside, outside, inside], delayed);
-  originalEventIds = await violationIds(firstTrackerId);
+  await sendTrackedGpsRoute(
+    db,
+    source,
+    source.userId,
+    [outside, inside, outside, inside],
+    delayed,
+  );
+  originalEventIds = await violationEventIds(db, source, firstTrackerId);
   expect(originalEventIds).toHaveLength(3);
 
   const request = await db.request(source, actors.initiator, replacement);
@@ -157,17 +131,23 @@ beforeAll(async () => {
     operationId: request.operationId,
     replayed: false,
   });
-  secondTrackerId = await trackerIdFor(replacement.membershipId);
+  secondTrackerId = await trackingSessionForAssignee(
+    db,
+    source,
+    replacement.membershipId,
+  );
   expect(secondTrackerId).not.toBe(firstTrackerId);
   const secondClock = await db.adminPool.query<{ now: Date }>(
     "SELECT clock_timestamp() AS now",
   );
-  await sendRoute(
+  await sendTrackedGpsRoute(
+    db,
+    source,
     replacement.userId,
     [outside, inside],
     new Date(secondClock.rows[0]!.now.getTime() + 200),
   );
-  takeoverEventIds = await violationIds(secondTrackerId);
+  takeoverEventIds = await violationEventIds(db, source, secondTrackerId);
   expect(takeoverEventIds).toHaveLength(1);
 }, 120_000);
 
@@ -218,12 +198,22 @@ describe("Issue #414 ALT-09: committed real GPS and takeover", () => {
     );
   });
 
-  it("allows assured CA, but fails closed after expired MFA", async () => {
+  it("allows assured CA but fails closed once MFA assurance is withdrawn", async () => {
     expect(await read(admin, caContext)).toHaveLength(4);
+    const before = await db.adminPool.query<{
+      mfa_factor_id: string;
+      mfa_authenticated_at: Date;
+      last_admin_activity_at: Date;
+    }>(
+      `SELECT mfa_factor_id, mfa_authenticated_at, last_admin_activity_at
+       FROM staff_auth_sessions WHERE id=$1`,
+      [caContext.staffAuthSessionId],
+    );
+    const previous = before.rows[0]!;
     await db.adminPool.query(
-      `UPDATE staff_auth_sessions
-       SET mfa_authenticated_at=clock_timestamp()-INTERVAL '9 hours'
-       WHERE id=$1`,
+      `UPDATE staff_auth_sessions SET
+         mfa_authenticated_at=NULL, mfa_factor_id=NULL,
+         last_admin_activity_at=NULL WHERE id=$1`,
       [caContext.staffAuthSessionId],
     );
     await expect(read(admin, caContext)).rejects.toMatchObject({
@@ -231,9 +221,14 @@ describe("Issue #414 ALT-09: committed real GPS and takeover", () => {
     });
     await db.adminPool.query(
       `UPDATE staff_auth_sessions
-       SET mfa_authenticated_at=clock_timestamp(),
-           last_admin_activity_at=clock_timestamp() WHERE id=$1`,
-      [caContext.staffAuthSessionId],
+       SET mfa_authenticated_at=$2, mfa_factor_id=$3,
+           last_admin_activity_at=$4 WHERE id=$1`,
+      [
+        caContext.staffAuthSessionId,
+        previous.mfa_authenticated_at,
+        previous.mfa_factor_id,
+        previous.last_admin_activity_at,
+      ],
     );
   });
 

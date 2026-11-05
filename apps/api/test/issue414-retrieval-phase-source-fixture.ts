@@ -4,7 +4,10 @@ import type { RetrievalPhaseAlertInput } from "../src/modules/dashboard/manageme
 import type { DashboardActor } from "./dashboard-test-context";
 import { DashboardOverviewTestContext } from "./dashboard-overview-test-context";
 
-const staffByDatabase = new WeakMap<DashboardOverviewTestContext, Promise<DashboardActor>>();
+const staffByDatabase = new WeakMap<
+  DashboardOverviewTestContext,
+  Promise<DashboardActor>
+>();
 const originalCutover =
   process.env.MANAGEMENT_ALERTS_PHASE23_STAGE_POST_LOCK_CUTOVER;
 
@@ -71,6 +74,7 @@ export async function seedPhaseStage(
   db: DashboardOverviewTestContext,
   status: "ACCEPTED" | "IN_PROGRESS",
   fixedSourceTime?: Date,
+  slaSnapshotSeconds?: number,
 ) {
   const fixture = await db.managerFixture();
   const actor = await sourceStaff(db);
@@ -83,14 +87,63 @@ export async function seedPhaseStage(
     taskType: "RETRIEVAL",
     assigneeMembershipId: actor.membershipId,
   });
-  const requestId = await db.seedRetrievalRequest({
-    sessionId,
-    status: status === "ACCEPTED" ? "OPEN" : "ACCEPTED",
-    requestedAgoMinutes: 12,
-  });
-  const at = fixedSourceTime ?? (await db.adminPool.query<{ at: Date }>(
-    "SELECT (clock_timestamp()-interval '120 seconds')::timestamptz(3) AS at",
-  )).rows[0]!.at;
+  // BEFORE INSERT trigger snapshots the owning Location's SLA regardless of
+  // supplied retrieval_requests columns. Configure the source policy first.
+  const oldSla =
+    slaSnapshotSeconds === undefined
+      ? undefined
+      : (
+          await db.adminPool.query<{ sla_target_seconds: number | null }>(
+            `SELECT sla_target_seconds FROM locations
+             WHERE organization_id=$1 AND id=$2`,
+            [fixture.organizationId, fixture.locationId],
+          )
+        ).rows[0]!.sla_target_seconds;
+  if (slaSnapshotSeconds !== undefined) {
+    await db.adminPool.query(
+      `UPDATE locations SET sla_target_seconds=$3
+       WHERE organization_id=$1 AND id=$2`,
+      [fixture.organizationId, fixture.locationId, slaSnapshotSeconds],
+    );
+  }
+  let requestId: string;
+  try {
+    requestId = await db.seedRetrievalRequest({
+      sessionId,
+      status: status === "ACCEPTED" ? "OPEN" : "ACCEPTED",
+      requestedAgoMinutes: 12,
+    });
+    if (slaSnapshotSeconds !== undefined) {
+      const snapshot = await db.adminPool.query<{
+        sla_target_seconds_snapshot: number | null;
+      }>(
+        `SELECT sla_target_seconds_snapshot FROM retrieval_requests WHERE id=$1`,
+        [requestId],
+      );
+      if (
+        snapshot.rows[0]?.sla_target_seconds_snapshot !== slaSnapshotSeconds
+      ) {
+        throw new Error(
+          "Source fixture did not persist the canonical SLA snapshot",
+        );
+      }
+    }
+  } finally {
+    if (slaSnapshotSeconds !== undefined) {
+      await db.adminPool.query(
+        `UPDATE locations SET sla_target_seconds=$3
+         WHERE organization_id=$1 AND id=$2`,
+        [fixture.organizationId, fixture.locationId, oldSla],
+      );
+    }
+  }
+  const at =
+    fixedSourceTime ??
+    (
+      await db.adminPool.query<{ at: Date }>(
+        "SELECT (clock_timestamp()-interval '120 seconds')::timestamptz(3) AS at",
+      )
+    ).rows[0]!.at;
   const taskVersion = status === "ACCEPTED" ? 3 : 4;
   await db.adminPool.query(
     `UPDATE tasks SET version=$2,updated_at=$3 WHERE id=$1`,
@@ -103,24 +156,44 @@ export async function seedPhaseStage(
      WHERE id=$1`,
     [sessionId, requestId, status === "IN_PROGRESS" ? at : null],
   );
-  const metadata = status === "ACCEPTED"
-    ? { fromStatus: "ASSIGNED", toStatus: "ACCEPTED",
-        fromVersion: 2, toVersion: taskVersion, sessionId }
-    : { fromTaskStatus: "ACCEPTED", toTaskStatus: "IN_PROGRESS",
-        fromTaskVersion: 3, toTaskVersion: taskVersion,
-        fromSessionState: "REQUESTED", toSessionState: "RETRIEVING", taskId };
+  const metadata =
+    status === "ACCEPTED"
+      ? {
+          fromStatus: "ASSIGNED",
+          toStatus: "ACCEPTED",
+          fromVersion: 2,
+          toVersion: taskVersion,
+          sessionId,
+        }
+      : {
+          fromTaskStatus: "ACCEPTED",
+          toTaskStatus: "IN_PROGRESS",
+          fromTaskVersion: 3,
+          toTaskVersion: taskVersion,
+          fromSessionState: "REQUESTED",
+          toSessionState: "RETRIEVING",
+          taskId,
+        };
   await db.adminPool.query(
     `INSERT INTO audit_events
        (id, organization_id, location_id, valet_session_id,
         actor_membership_id, event_type, entity_type, entity_id,
         metadata_json, occurred_at)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10)`,
-    [randomUUID(), fixture.organizationId, fixture.locationId, sessionId,
+    [
+      randomUUID(),
+      fixture.organizationId,
+      fixture.locationId,
+      sessionId,
       actor.membershipId,
-      status === "ACCEPTED" ? "TASK_ACCEPTED" : "VALET_SESSION_RETRIEVAL_STARTED",
+      status === "ACCEPTED"
+        ? "TASK_ACCEPTED"
+        : "VALET_SESSION_RETRIEVAL_STARTED",
       status === "ACCEPTED" ? "Task" : "VALET_SESSION",
       status === "ACCEPTED" ? taskId : sessionId,
-      JSON.stringify(metadata), at],
+      JSON.stringify(metadata),
+      at,
+    ],
   );
   const dispatchId = randomUUID();
   await db.adminPool.query(
@@ -128,11 +201,25 @@ export async function seedPhaseStage(
        (id,organization_id,location_id,task_id,valet_session_id,
         event_type,actor_membership_id,new_assignee_membership_id,occurred_at)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$7,$8)`,
-    [dispatchId, fixture.organizationId, fixture.locationId, taskId,
-      sessionId, status, actor.membershipId, at],
+    [
+      dispatchId,
+      fixture.organizationId,
+      fixture.locationId,
+      taskId,
+      sessionId,
+      status,
+      actor.membershipId,
+      at,
+    ],
   );
-  return { at, actorMembershipId: actor.membershipId, dispatchId,
-    requestId, sessionId, taskId };
+  return {
+    at,
+    actorMembershipId: actor.membershipId,
+    dispatchId,
+    requestId,
+    sessionId,
+    taskId,
+  };
 }
 
 export async function seedPhaseReady(
@@ -143,44 +230,66 @@ export async function seedPhaseReady(
   const actor = await sourceStaff(db);
   const sessionId = await db.seedSession({ state: "READY" });
   const taskId = await db.seedTask({
-    sessionId, status: "IN_PROGRESS", taskType: "RETRIEVAL",
+    sessionId,
+    status: "IN_PROGRESS",
+    taskType: "RETRIEVAL",
     assigneeMembershipId: actor.membershipId,
   });
   const requestId = await db.seedRetrievalRequest({
-    sessionId, status: "ACCEPTED", requestedAgoMinutes: 12,
+    sessionId,
+    status: "ACCEPTED",
+    requestedAgoMinutes: 12,
   });
-  const at = (await db.adminPool.query<{ at: Date }>(
-    "SELECT (clock_timestamp()-interval '120 seconds')::timestamptz(3) AS at",
-  )).rows[0]!.at;
+  const at = (
+    await db.adminPool.query<{ at: Date }>(
+      "SELECT (clock_timestamp()-interval '120 seconds')::timestamptz(3) AS at",
+    )
+  ).rows[0]!.at;
   await db.adminPool.query(
     `UPDATE valet_sessions
      SET retrieval_requested_at=(SELECT requested_at FROM retrieval_requests WHERE id=$2),
-         retrieval_started_at=$3 - interval '10 minutes',ready_at=$3
+         retrieval_started_at=$3::timestamptz - interval '10 minutes',ready_at=$3
      WHERE id=$1`,
     [sessionId, requestId, at],
   );
   const auditId = randomUUID();
   const normalAuditMetadata = JSON.stringify({
-    fromState: "RETRIEVING", toState: "READY",
-    fromVersion: 6, toVersion: 7, taskId,
+    fromState: "RETRIEVING",
+    toState: "READY",
+    fromVersion: 6,
+    toVersion: 7,
+    taskId,
   });
   // Only the initial INSERT is allowed. Issue #300 DB triggers forbid any
   // audit metadata UPDATE, including test-only rewrites.
-  const auditMetadata = options.malformedAuditVersion === true
-    ? normalAuditMetadata.replace(
-      '"toVersion":7',
-      '"toVersion":999999999999999999999999999999999999999999999999',
-    )
-    : normalAuditMetadata;
+  const auditMetadata =
+    options.malformedAuditVersion === true
+      ? normalAuditMetadata.replace(
+          '"toVersion":7',
+          '"toVersion":999999999999999999999999999999999999999999999999',
+        )
+      : normalAuditMetadata;
   await db.adminPool.query(
     `INSERT INTO audit_events
        (id,organization_id,location_id,valet_session_id,
         actor_membership_id,event_type,entity_type,entity_id,
         metadata_json,occurred_at)
      VALUES($1,$2,$3,$4,$5,'VALET_SESSION_READY','VALET_SESSION',$4,$6::jsonb,$7)`,
-    [auditId, fixture.organizationId, fixture.locationId, sessionId,
+    [
+      auditId,
+      fixture.organizationId,
+      fixture.locationId,
+      sessionId,
       actor.membershipId,
-      auditMetadata, at],
+      auditMetadata,
+      at,
+    ],
   );
-  return { at, actorMembershipId: actor.membershipId, auditId, sessionId, taskId };
+  return {
+    at,
+    actorMembershipId: actor.membershipId,
+    auditId,
+    sessionId,
+    taskId,
+  };
 }

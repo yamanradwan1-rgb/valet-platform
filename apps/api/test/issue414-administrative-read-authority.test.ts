@@ -132,8 +132,9 @@ describe("Issue #414 read-only administrative source authorization", () => {
     expect(sql[0]).toContain("session.created_at=$4::timestamptz");
     expect(sql[lock + 1]).toContain("FOR SHARE OF session, actor");
     expect(sql[lock + 2]).toContain(
-      "FOR SHARE OF membership, actor, organization, subscription",
+      "FOR SHARE OF membership, actor, organization",
     );
+    expect(sql[lock + 2]).not.toContain("FOR SHARE OF subscription");
     expect(sql[lock + 2]).toContain(
       "subscription.dashboard_access_enabled=TRUE",
     );

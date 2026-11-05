@@ -82,7 +82,7 @@ async function readViolations(
 ): Promise<GeofenceViolationAlertCase[]> {
   // Authorization precedes every event row, subtype proof, count and LIMIT.
   const scope = await requireGeofenceSummaryScope(transaction, input);
-  const exact = sourceId === undefined ? "" : "AND event.id = $5::uuid";
+  const exact = sourceId === undefined ? "" : "AND event.id = $4::uuid";
   // A Seen receipt affects only a recipient's pending list. The source still
   // exists and exact navigation/Seen retries must reauthorize it independently.
   const unseen =
@@ -168,8 +168,7 @@ async function readViolations(
       scope.organizationId,
       scope.locationId,
       input.limit,
-      input.context.userId,
-      ...(sourceId === undefined ? [] : [sourceId]),
+      sourceId ?? input.context.userId,
     ],
   );
   return result.rows.flatMap((row) => {
