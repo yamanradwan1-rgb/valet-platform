@@ -1,0 +1,34 @@
+{
+  "issue": 429,
+  "contract": "DEC-074 section 23; plan section 22",
+  "scope": "PRE_REGISTERED_DESIGN_ONLY_NO_PERFORMANCE_RUN",
+  "bootstrapSeed": 4292026,
+  "method": {
+    "pairedBlocksMinimum": 10,
+    "successfulOrdinaryCheckInPerScenarioAndVariant": 10000,
+    "simultaneousFamily": "4 scenarios x 2 comparisons x p50/p95/p99",
+    "confidence": 0.95,
+    "ci": "Paired whole-block bootstrap, 1999 iterations, Bonferroni two-sided simultaneous 95%",
+    "latencyVerdict": "Positive lower CI is FAIL; upper CI > 0 is INCONCLUSIVE; only upper CI <= 0 permits PASS, subject to reliability/throughput",
+    "nowaitVerdict": "Any independently established eligible-with-headroom denial is FAIL; zero observed alone is insufficient",
+    "expectedRealization": "Real PostgreSQL 17, restricted production API roles, two independent production API processes, synthetic HTTPS provider trusted CA, blocked commercial egress",
+    "exclusions": "Do not include fast denied OCR calls in admitted-only latency; no physical device or commercial provider evidence"
+  },
+  "approval": {
+    "approved": false,
+    "approvedBy": null,
+    "beforeSampling": false,
+    "minimumEligiblePerCohort": null,
+    "workloads": {
+      "normal": {"registered": false, "arrivalSchedule": null, "loadRps": null, "burstShape": null},
+      "peak": {"registered": false, "arrivalSchedule": null, "loadRps": null, "burstShape": null},
+      "recovery-idle": {"registered": false, "arrivalSchedule": null, "loadRps": null, "burstShape": null},
+      "recovery-backlog": {"registered": false, "arrivalSchedule": null, "loadRps": null, "burstShape": null}
+    }
+  },
+  "baselineResolution": {
+    "recordedBeforeCandidate": false,
+    "referenceArtifactSha256": null,
+    "notes": "Declare baseline-vs-baseline sensitivity before viewing candidate results; no post-hoc allowed percentage regression."
+  }
+}
