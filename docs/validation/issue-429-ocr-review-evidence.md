@@ -80,3 +80,61 @@ amends that decision (Phase 7 removal is not such an amendment);
 verify provider account/cost cycle/TLS/egress/privacy, human-bound operators,
 alerts/recovery schedule, CI and separate production Owner approval. Without
 this evidence the branch is suitable only for **Owner source review**.
+
+## 2026-11-05 follow-up qualification — latest scoped evidence
+
+This addendum supersedes **only** the historical CI/attempt status in the earlier
+table; earlier PASS results remain historical and are not claims of new execution.
+The starting Prime worktree was clean at
+`acbeb2d2d73ed893916cb81148a4c96e7e75ff10`; `git fetch origin` confirmed
+the matching review-branch remote and unchanged `origin/main`
+`ac758ffff7181efa6cad1311c40aca731171770e` (0 behind, 52 ahead).
+
+### Directly observed in this qualification attempt
+
+| Gate | New evidence and scope | Verdict |
+| --- | --- | --- |
+| Isolated PG17 container discovery | Docker server 29.5.3; `vaylet-test-postgres` `postgres:17-alpine` healthy, loopback `127.0.0.1:45432`; Docker being healthy does **not** attest a dedicated runtime DB, restricted role, or exclusive lease | Available container only |
+| Production-mode two-process API HTTPS smoke | W4/Prime checked prerequisites; `ISSUE429_QA_EXCLUSIVE_PG17`, the distinct admin/runtime URLs, private synthetic actors, trusted CA/egress evidence and OpenSSL executable were unavailable in the execution environment. **No exclusive lease, DDL, API child, HTTP mock or two-process test was started.** Do not construct plausible substitute credentials/identities or disable TLS to force PASS | **NOT RUN / BLOCKED** |
+| P1 ordinary Check-In | `issue429-qa-preregister.json` has `approved: false`, no preregistered normal/peak/recovery arrival rates or schedules, no baseline-vs-baseline sensitivity, and no real baseline/candidate Check-In samples. Existing statistical analyzers cannot create measurements. No observed p50/p95/p99 or confidence interval | **NOT RUN / NOT QUALIFIED** |
+| P2 NOWAIT availability | Same unapproved normal/peak workload; no authorized two-process restricted-role run, no ordered independent eligibility/headroom oracle, no eligible attempt denominator or load-block confidence evidence. `LOCK_BUSY` count/rate and confidence limit cannot be measured truthfully | **NOT RUN / NOT QUALIFIED** |
+| Offline QA focused negatives | Direct Prime `node --test` of Issue429 qualification, production-target and runtime-ACL test modules: **20 PASS, 0 FAIL, 0 SKIP**. Validates refusals/oracle contract, **not** production runtime/load | PASS (offline only) |
+| Native focused automation / frozen UI | W6 existing worktree: **33 files / 255 tests PASS** for plate/camera/appearance; **11 files / 79 tests PASS** for dictionary, RTL, styles, QR, accessibility. Total **44 files / 334 tests PASS**; code parity with integrated Prime checked and no new Native fix required. Earlier complete 1881 tests remain historical, not repeated | PASS (focused automated only) |
+| Actual remote GitHub check-runs on initial SHA | Public GitHub REST `/commits/<SHA>/check-runs`: `security-gate`, `dependencies-osv`, `dependencies-trivy`, `secrets-gitleaks`, `sast-semgrep`, `sast-codeql`: all `completed/success` for **acbeb2d2**. `.github/workflows/ci.yml` triggers only on `main` push or PR targeting `main`; no PR was created. Any later SHA requires fresh CI verification | Security CI 6/6 PASS **for initial SHA only**; normal CI not evidenced |
+| W4 API verification | W4 verified the already-integrated ownership fixture correction `b9404974`; integrated Prime focused `feature-check-in-ownership` 2/2 PASS, nine OCR/provider/management/ownership non-PostgreSQL suites **80/80 PASS**, API lint and typecheck PASS; no new W4 code or production process run | PASS (focused mocks only) |
+| Full Issue429 offline QA after focused evaluator correction | Prime directly ran `node --test scripts/test-harness/issue429-qa-*.test.mjs`: **39 PASS, 1 SKIP, 0 FAIL**. OpenSSL real TLS fixture remains SKIPPED. Root `pnpm lint` and `pnpm typecheck` reported **11/11 successful, all Turbo cache hits**; architecture check PASS with 17 pre-existing grandfathered warnings; `git diff --check` PASS | PASS (offline/static only, cached root gates noted) |
+
+### Independently identified qualification-evidence limitation
+
+W8 reviewed the statistical and Production-mode harness **READ-ONLY**, not as
+runtime proof. The offline performance evaluator consumes user-supplied JSON
+assertions for ordered headroom, independent process/provider counters, and
+runtime attestation. It cannot independently verify their provenance; allowing
+such declarations to produce a final release `PASS` was a **MAJOR false-positive
+risk**. The narrow follow-up correction ensures top-level
+`qualifyIssue429()` **downgrades any otherwise positive self-attested offline
+evaluation to `INCONCLUSIVE`** while retaining `FAIL` for failed evidence. An
+explicit regression test covers this fail-closed rule. This does **not**
+implement or independently attest the missing real sampler, committed-ledger
+oracle, sufficient approved NOWAIT sample/upper-bound policy, preregistered
+baseline sensitivity, or the full F01–F25 multiprocess recovery/kill matrix.
+These remain **open qualification blockers**, not passing checks.
+
+### Android — Owner acceptance remains pending
+
+Owner will conduct physical Android testing personally; Phase 7 is **not**
+reinstated. Record app SHA/version, Android model/OS and synthetic authorized test
+account; do not call commercial OCR unintentionally. Device checklist:
+
+1. Camera readiness/background/theme changes do not auto-capture; explicit Capture performs one operation; rapid double-taps do not queue or duplicate sends.
+2. Verify plate framing/ROI alignment and Torch on rear preview; a clean `NO_MATCH` keeps **the same** preview/ROI/Torch without remount, and the second explicit Capture works with no auto-retry.
+3. A candidate is editable, and only deliberate **Human Confirm** can continue identity/returning recognition; Manual Entry and No Plate remain available on success, `NO_MATCH`, offline, permission denied, timeout and provider unavailable.
+4. Close/Back, logout, background, Location switch, cancellation and delayed response do not resurrect camera or write stale plate/session state; Torch/resources clean up.
+5. Capture EN/AR × Light/Dark screenshots on normal and small-screen/large-font settings, verify identifier RTL/LTR, no frozen-style/layout regression; check TalkBack labels, busy/disabled state, Torch, `NO_MATCH` announcement and permanent fallback reachability.
+
+**Physical Android result: `PENDING OWNER ANDROID TEST` — NOT RUN, never PASS.**
+
+**Change control:** Production OCR remains OFF. This follow-up does not approve
+PR creation, merge, deployment, production migration, paid OCR, or automatic
+activation. Owner review only until runtime integration, representative P1/P2,
+actual required CI and physical-device evidence satisfy all acceptance gates.

@@ -4,6 +4,11 @@ const requiredScenarios = ["normal", "peak", "recovery-idle", "recovery-backlog"
 const requiredComparisons = ["candidate-off", "candidate-mixed"];
 const requiredNowait = ["normal", "peak"];
 
+/** Only a trusted sampler/reviewer can promote an offline positive to PASS. */
+export function downgradeUnattestedPositive(evaluated) {
+  return evaluated === "PASS" ? "INCONCLUSIVE" : evaluated;
+}
+
 function measureComparison(pairs, familyComparisons, seed) {
   if (!Array.isArray(pairs) || pairs.length < 10) {
     return { status: "INCONCLUSIVE", reason: "fewer than ten paired blocks" };
@@ -220,9 +225,16 @@ export function qualifyIssue429(registration, evidence) {
   }
   const statuses = [...Object.values(checkIn), ...Object.values(nowait),
     ...Object.values(baselineResolution)].map(x => x.status);
+  // The CLI consumes arbitrary JSON, not a trusted sampler/ordered DB oracle.
+  // Never certify a release from self-attested counters, PIDs or boolean flags.
+  const evaluated = statuses.includes("FAIL") ? "FAIL" :
+    statuses.includes("INCONCLUSIVE") ? "INCONCLUSIVE" : "PASS";
   return {
-    status: statuses.includes("FAIL") ? "FAIL" :
-      statuses.includes("INCONCLUSIVE") ? "INCONCLUSIVE" : "PASS",
+    status: downgradeUnattestedPositive(evaluated),
+    reason: evaluated === "PASS" ?
+      "Supplied values appear statistically acceptable, but independent " +
+      "sample/oracle provenance and preregistered precision are not attested." :
+      undefined,
     checkIn, baselineResolution, nowait,
     interpretation: "Successful ordinary Check-In samples only; denied OCR requests excluded " +
       "from allowed-only latency. No real provider billing or native device claim.",

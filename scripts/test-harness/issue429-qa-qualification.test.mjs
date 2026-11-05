@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { oneSidedUpper95, pairedBlockIntervals, quantile } from "./issue429-qa-statistics.mjs";
-import { analyzeNowait, qualifyIssue429 } from "./issue429-qa-qualification.mjs";
+import { analyzeNowait, downgradeUnattestedPositive, qualifyIssue429 } from "./issue429-qa-qualification.mjs";
 
 const registration = JSON.parse(readFileSync(new URL(
   "./issue429-qa-preregister.json", import.meta.url), "utf8"));
@@ -33,6 +33,16 @@ test("default preregistration explicitly refuses a performance PASS", () => {
   assert.equal(registration.approval.approved, false);
   assert.equal(registration.approval.workloads.peak.registered, false);
   assert.equal(qualifyIssue429(registration, {}).status, "INCONCLUSIVE");
+});
+
+test("self-attested JSON can never be a final qualification PASS", () => {
+  assert.equal(downgradeUnattestedPositive("PASS"), "INCONCLUSIVE");
+  assert.equal(downgradeUnattestedPositive("FAIL"), "FAIL");
+  assert.equal(downgradeUnattestedPositive("INCONCLUSIVE"), "INCONCLUSIVE");
+  assert.equal(qualifyIssue429({
+    ...registration,
+    approval: { ...registration.approval, approved: true },
+  }, {}).status, "INCONCLUSIVE");
 });
 
 test("paired bootstrap compares successful requests in paired blocks", () => {
