@@ -16,7 +16,7 @@ This record distinguishes static/code results from tests that actually ran.
 | W4 provider/API integration | `7abc1e54`, `1c6922c3`, `4ec21f9c`, `7ad9890a`, `b9404974` | W3 mandatory permit/NODE_ENV corrections CLEAN; W8 reviewed exact module-provider fixture correction CLEAN | W4 focused non-PG 69/69 PASS; integrated A/provider/S local mock 36/36 PASS; full API non-PG 1740 passed, 6 skipped |
 | W5 settlement/UNKNOWN and operator CLI | `378f7e1e`, `175cc863`, `12f7cb13` | W2 column, role membership and unrelated relation ACL corrections CLEAN | Focused non-PG Vitest 71/71 PASS; TypeScript/ESLint PASS |
 | W6 Native deliberate Capture | `7df57894` | W7 CLEAN | 260 Native test files / 1881 tests PASS with 15-second timeout; EN/AR, style freeze, ROI, Torch, lifecycle; Native type/lint PASS |
-| W7 independent QA | `aa3bce89`, `e3436845`, `9f81a7a1`, `d62c9dd0`, `29df7878`, `004a99e5`, `3e5f6ec2` | W5 originally found build provenance MAJOR; W6 independently reviewed the final 9f81..3e5 corrective chain **CLEAN for source integration** under trusted local test-runner model | Integrated offline Node QA **38 passed, 1 skipped** (OpenSSL unavailable), including adversarial transient source injection, default/ignored Git hook, caller digest, child-exit/lease retention, ACL and NOWAIT oracle negatives. Real TLS mock, production two-process HTTP and P1/P2 load **NOT RUN** |
+| W7 independent QA | `aa3bce89`, `e3436845`, `9f81a7a1`, `d62c9dd0`, `29df7878`, `004a99e5`, `3e5f6ec2`, `ee99f6e5` | W5 build-provenance MAJOR fixed and W6 **CLEAN** on 3e5; W8 found a remaining privileged Git/fsmonitor MAJOR, then independently reviewed `ee99f6e5` **CLEAN** for source integration | Integrated offline Node QA **38 passed, 1 skipped** (OpenSSL unavailable), including malicious configured fsmonitor negative, transient source injection, Git hooks, caller digest, child/lease retention, ACL and NOWAIT oracle negatives. Real TLS mock, production two-process HTTP and P1/P2 load **NOT RUN** |
 
 ## Repository-wide verification
 
@@ -52,10 +52,12 @@ subscription, privacy, rate/pricing or remote-completion claims are inferred.
 
 W7 provenance now rejects externally supplied artifact SHA as proof and builds
 API plus contracts from an internally pinned detached Git snapshot, with
-restricted subprocess environment, disabled Git hooks, isolated runtime dist,
+restricted subprocess environment, disabled Git hooks and filesystem monitor
+for **all privileged Git source attestations**, isolated runtime dist,
 internally sealed digests and retained snapshot/lease if child exit is uncertain.
-W6 independently rated that **CLEAN for source integration**, not an executed
-production smoke. A hostile same-UID local actor can still change read-only
+W6 and, after the final Git environment correction, W8 independently rated
+the code **CLEAN for source integration**, not an executed production smoke.
+A hostile same-UID local actor can still change read-only
 files by changing permissions; this is not a cryptographic or OS-enforced
 attestation against an untrusted machine.
 
