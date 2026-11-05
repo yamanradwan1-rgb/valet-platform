@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, lstatSync, realpathSync } from "node:fs";
 import { resolve, relative, sep } from "node:path";
+import { runIssue429SafeGit } from "./issue429-qa-git.mjs";
 
 import {
   createIssue429SourceSnapshot,
@@ -44,16 +45,11 @@ function ownedOutputPath(root, parts) {
     }
   }
   const dist = resolve(parent, "dist");
-  const tracked = execFileSync(
-    "git",
-    ["ls-files", "--", relative(canonicalRoot, dist).replaceAll("\\", "/")],
-    {
-      cwd: canonicalRoot,
-      encoding: "utf8",
-      timeout: 4_000,
-      windowsHide: true,
-    },
-  ).trim();
+  const tracked = runIssue429SafeGit(canonicalRoot, [
+    "ls-files",
+    "--",
+    relative(canonicalRoot, dist).replaceAll("\\", "/"),
+  ]).trim();
   // existsSync is false for a dangling symlink; lstat rejects that too.
   let occupied = false;
   try {
