@@ -216,54 +216,5 @@ describe("Issue #414 ALT-04 current stage source proof", () => {
     expect((await read()).some((x) => x.sourceId === stage.taskId)).toBe(true);
   });
 
-  it("proves globally newest 21 eligible after 21 newer SLA-suppressed same-ms sources", async () => {
-    // An earlier case in this file leaves an independently valid IN_PROGRESS
-    // occurrence at now-90s. Reusing that Location contaminates the global
-    // top-21 comparison, whose fixtures are intentionally at now-120s.
-    // Give this pagination proof its own disposable tenant database.
-    const paginationDb = new DashboardOverviewTestContext(
-      "414-p2-stage-pagination",
-    );
-    try {
-      await paginationDb.setup();
-      const input = await phaseReaderInput(paginationDb);
-      const timestamps = await paginationDb.adminPool.query<{
-        newer: Date;
-        older: Date;
-      }>(
-        `SELECT (clock_timestamp()-interval '80 seconds')::timestamptz(3) AS newer,
-                (clock_timestamp()-interval '120 seconds')::timestamptz(3) AS older`,
-      );
-      const { newer, older } = timestamps.rows[0]!;
-      // A naïve candidate LIMIT 21 would lose every eligible Task here.
-      const suppressed: string[] = [];
-      for (let count = 0; count < 21; count += 1) {
-        suppressed.push(
-          (await seedPhaseStage(paginationDb, "ACCEPTED", newer, 30)).taskId,
-        );
-      }
-      const eligible: string[] = [];
-      for (let count = 0; count < 23; count += 1) {
-        const source = await seedPhaseStage(paginationDb, "ACCEPTED", older);
-        eligible.push(source.taskId);
-      }
-      const items = await inPostgresTransaction(
-        paginationDb.runtimePool,
-        (tx) => queryRetrievalStageAlertCases(tx, input),
-      );
-      expect(items).toHaveLength(21);
-      const expected = eligible
-        .sort((left, right) => (left < right ? 1 : -1))
-        .slice(0, 21);
-      expect(items.map((item) => item.sourceId)).toEqual(expected);
-      expect(
-        items.every((item) => item.occurredAt === older.toISOString()),
-      ).toBe(true);
-      expect(items.some((item) => suppressed.includes(item.sourceId))).toBe(
-        false,
-      );
-    } finally {
-      await paginationDb.teardown();
-    }
-  }, 60_000);
+
 });

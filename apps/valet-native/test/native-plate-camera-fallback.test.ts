@@ -97,7 +97,10 @@ async function start(binding: ReturnType<typeof createNativePlateOcrBinding>) {
   await mountRoiCamera(binding, cameras.get(binding)!);
   await mountRoiCamera(binding, cameras.get(binding)!);
   await mountRoiCamera(binding, cameras.get(binding)!);
-  await vi.advanceTimersByTimeAsync(1200);
+  const snapshot = binding.controller.current();
+  if (!binding.controller.capture(snapshot.generation, snapshot.mountId))
+    throw new Error("Expected employee Capture to start");
+  await vi.advanceTimersByTimeAsync(0);
   return generation;
 }
 
@@ -118,7 +121,7 @@ afterEach(() => {
 });
 
 describe("Native camera capture resolution fallback", () => {
-  it("starts once after the final preferred-size remount readiness", async () => {
+  it("starts one capture only after a press following preferred-size readiness", async () => {
     mocks.sizes.set("preferred.jpg.roi-0.6.jpg", 500_000);
     const takePictureAsync = vi
       .fn()
@@ -132,7 +135,9 @@ describe("Native camera capture resolution fallback", () => {
     expect(
       info.mock.calls
         .flat()
-        .filter((value: unknown) => String(value).includes("loop-start")),
+        .filter((value: unknown) =>
+          String(value).includes("primary-capture-start"),
+        ),
     ).toHaveLength(1);
     expect(info.mock.calls.flat().join("\n")).not.toContain(
       "camera-capture-fallback",
@@ -164,8 +169,10 @@ describe("Native camera capture resolution fallback", () => {
     expect(
       info.mock.calls
         .flat()
-        .filter((value: unknown) => String(value).includes("loop-start")),
-    ).toHaveLength(1);
+        .filter((value: unknown) =>
+          String(value).includes("primary-capture-start"),
+        ),
+    ).toHaveLength(2); // One press permits two local sizes, but only one HTTP call.
     expect(info.mock.calls.flat().join("\n")).toContain(
       "PLATE_OCR_NATIVE camera-capture-fallback",
     );

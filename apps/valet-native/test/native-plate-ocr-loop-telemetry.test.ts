@@ -3,11 +3,7 @@ import type {
   EmployeeTelemetryEvent,
   PlateOcrResponse,
 } from "@valet/employee-client";
-import {
-  NATIVE_PLATE_OCR_INTERVAL_MS,
-  NATIVE_PLATE_OCR_MAX_ATTEMPTS,
-  NativePlateOcrLoop,
-} from "../src/check-in/native-plate-ocr-loop";
+import { NativePlateOcrLoop } from "../src/check-in/native-plate-ocr-loop";
 import { PlateRoiCaptureDiagnosticError } from "../src/check-in/native-plate-roi-failure";
 import {
   BoundedTelemetryBuffer,
@@ -43,15 +39,15 @@ function setup() {
   const loop = new NativePlateOcrLoop(
     { accept, capture, recognize, remove },
     () => true,
-    (_generation, result) => finished.push(result),
+    (_generation, _operationId, result) => finished.push(result),
   );
   const events = (): readonly EmployeeTelemetryEvent[] => telemetry.current();
   return { accept, capture, events, finished, loop, recognize, remove };
 }
 
 async function runOne(loop: NativePlateOcrLoop): Promise<void> {
-  expect(loop.start(1)).toBe(true);
-  await vi.advanceTimersByTimeAsync(NATIVE_PLATE_OCR_INTERVAL_MS);
+  expect(loop.start(1)).toEqual(expect.any(Number));
+  await vi.advanceTimersByTimeAsync(0);
 }
 
 beforeEach(() => {
@@ -202,7 +198,7 @@ describe("Native OCR telemetry stage ownership", () => {
     ]);
   });
 
-  it("keeps MATCH and terminal NO_MATCH telemetry unchanged", async () => {
+  it("records one MATCH and each separately pressed NO_MATCH", async () => {
     const matched = setup();
     matched.recognize.mockResolvedValueOnce(match);
     await runOne(matched.loop);
@@ -212,18 +208,19 @@ describe("Native OCR telemetry stage ownership", () => {
 
     resetNativeTelemetryRegistryForTests();
     const noMatch = setup();
-    expect(noMatch.loop.start(1)).toBe(true);
-    await vi.advanceTimersByTimeAsync(
-      NATIVE_PLATE_OCR_INTERVAL_MS * NATIVE_PLATE_OCR_MAX_ATTEMPTS,
-    );
-    expect(noMatch.capture).toHaveBeenCalledTimes(
-      NATIVE_PLATE_OCR_MAX_ATTEMPTS,
-    );
-    expect(noMatch.recognize).toHaveBeenCalledTimes(
-      NATIVE_PLATE_OCR_MAX_ATTEMPTS,
-    );
-    expect(noMatch.remove).toHaveBeenCalledTimes(NATIVE_PLATE_OCR_MAX_ATTEMPTS);
+    await runOne(noMatch.loop);
+    await vi.advanceTimersByTimeAsync(90_000);
+    expect(noMatch.capture).toHaveBeenCalledOnce();
+    await runOne(noMatch.loop);
+    expect(noMatch.capture).toHaveBeenCalledTimes(2);
+    expect(noMatch.recognize).toHaveBeenCalledTimes(2);
+    expect(noMatch.remove).toHaveBeenCalledTimes(2);
+    expect(noMatch.finished).toEqual([
+      { status: "NO_MATCH" },
+      { status: "NO_MATCH" },
+    ]);
     expect(noMatch.events()).toEqual([
+      { classification: "no-match", outcome: "success", source: "ocr" },
       { classification: "no-match", outcome: "success", source: "ocr" },
     ]);
   });

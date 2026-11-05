@@ -24,9 +24,16 @@ export const subsequentAppendedMigrationDirectories = [
   "20261104010900_issue414_alt09_recorded_attention_index",
 ] as const;
 
+// Issue #429 adds a forward-only OCR admission migration after the historical
+// 1..109 sequence; keep the previously accepted appendix unchanged.
+export const issue429AppendedMigrationDirectories = [
+  "20261105011000_issue429_ocr_shared_admission",
+] as const;
+
 export const expectedCurrentMigrationDirectories = [
   ...expectedMigrationDirectories,
   ...issue300AppendedMigrationDirectories,
   ...issue304AppendedMigrationDirectories,
   ...subsequentAppendedMigrationDirectories,
+  ...issue429AppendedMigrationDirectories,
 ] as const;

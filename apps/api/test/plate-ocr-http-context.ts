@@ -16,6 +16,10 @@ import { PlateOcrController } from "../src/modules/check-in-api/plate-ocr.contro
 import { PlateOcrService } from "../src/modules/check-in-api/plate-ocr.service";
 import { PlateOcrCostGuard } from "../src/modules/check-in-api/plate-ocr-cost-guard";
 import { PLATE_OCR_PROVIDER } from "../src/modules/check-in-api/plate-ocr-provider";
+import {
+  STAFF_SESSION_CONTEXT_RESOLVER,
+  DatabaseStaffSessionContextResolver,
+} from "../src/modules/auth/staff-session-context";
 import { CheckInOperationRunner } from "../src/modules/check-in-api/check-in-operation-runner";
 import { ReturningCheckInTestContext } from "./returning-check-in-test-context";
 
@@ -34,6 +38,8 @@ export class PlateOcrHttpContext extends ReturningCheckInTestContext {
     const runtime = this.runtime;
     const acquire = (identity: Parameters<PlateOcrCostGuard["acquire"]>[0]) =>
       this.guard.acquire(identity);
+    const isControlledNonProduction = () =>
+      this.guard.isControlledNonProduction();
     const recognize = async () => {
       this.calls++;
       return this.result();
@@ -51,12 +57,49 @@ export class PlateOcrHttpContext extends ReturningCheckInTestContext {
           useValue: new DatabaseStaffPrincipalResolver(runtime),
         },
         {
+          provide: STAFF_SESSION_CONTEXT_RESOLVER,
+          useValue: new DatabaseStaffSessionContextResolver(runtime),
+        },
+        {
           provide: PlateOcrCostGuard,
-          useValue: { acquire },
+          useValue: { acquire, isControlledNonProduction },
         },
         {
           provide: PLATE_OCR_PROVIDER,
-          useValue: { recognize },
+          useValue: {
+            recognize,
+            canDispatch: () => true,
+            recognizeObserved: async (
+              _input: unknown,
+              options: {
+                signal: AbortSignal;
+                permit: { consumeIfFresh(): boolean };
+              },
+            ) => {
+              const invoked =
+                !options.signal.aborted && options.permit.consumeIfFresh();
+              if (!invoked) {
+                return {
+                  response: { status: "UNAVAILABLE" },
+                  fetchInvoked: false,
+                  disposition: "NOT_SENT",
+                  observationClass: "NOT_INVOKED",
+                  httpClass: "NONE",
+                  failureClass: "NONE",
+                  durationMs: 0,
+                };
+              }
+              return {
+                response: await recognize(),
+                fetchInvoked: true,
+                disposition: "UNKNOWN",
+                observationClass: "UNCERTAIN",
+                httpClass: "NONE",
+                failureClass: "NONE",
+                durationMs: 0,
+              };
+            },
+          },
         },
       ],
     })
@@ -70,7 +113,8 @@ export class PlateOcrHttpContext extends ReturningCheckInTestContext {
     this.calls = 0;
     this.time = 0;
     this.mode = mode;
-    this.guard = new PlateOcrCostGuard(mode, () => this.time);
+    // This harness injects a synthetic provider only; its API binds loopback.
+    this.guard = new PlateOcrCostGuard(mode, () => this.time, 1024, true);
     this.result = async () => ({ status: "NO_MATCH" });
   }
   override async stop() {

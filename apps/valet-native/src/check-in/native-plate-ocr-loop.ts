@@ -10,9 +10,6 @@ import type {
   PlateCameraTraceDetails,
 } from "./native-plate-camera-trace";
 
-export const NATIVE_PLATE_OCR_INTERVAL_MS = 1200;
-export const NATIVE_PLATE_OCR_MAX_ATTEMPTS = 5;
-
 export interface NativePlateOcrPorts {
   capture(signal: AbortSignal): Promise<string>;
   recognize(uri: string, signal: AbortSignal): Promise<PlateOcrResponse>;
@@ -20,139 +17,132 @@ export interface NativePlateOcrPorts {
   accept(plateNumberRaw: string): void;
 }
 
-/** One transient operation across generations; no queued captures or uploads. */
+interface PlateOcrOperation {
+  readonly generation: number;
+  readonly id: number;
+  readonly abort: AbortController;
+  readonly owner: PlateCameraTraceDetails;
+  uri?: string;
+  deleting?: Promise<void> | undefined;
+}
+
+/** One employee press owns one acquisition and at most one provider request. */
 export class NativePlateOcrLoop {
-  private timer: ReturnType<typeof setTimeout> | undefined;
-  private operation:
-    | {
-        abort: AbortController;
-        uri?: string;
-        deleting?: Promise<void>;
-        owner: PlateCameraTraceDetails;
-      }
-    | undefined;
+  private operation: PlateOcrOperation | undefined;
   private operationSequence = 0;
-  private loopOwner: PlateCameraTraceDetails = {};
   constructor(
     private readonly ports: NativePlateOcrPorts,
     private readonly current: (generation: number) => boolean,
     private readonly finish: (
       generation: number,
+      operationId: number,
       result: PlateOcrResponse,
     ) => void,
     private readonly trace?: NativePlateCameraTrace,
   ) {}
 
-  start(generation: number): boolean {
-    if (this.timer !== undefined || this.operation !== undefined) {
+  /** Claims the slot synchronously so same-tick/double presses cannot queue. */
+  start(generation: number): number | undefined {
+    if (this.operation !== undefined || !this.current(generation)) {
       this.trace?.record("ocr-start-blocked", {
         generation,
         operationActive: this.operation !== undefined,
       });
-      return false;
+      return undefined;
     }
-    this.loopOwner = { ...this.trace?.owner(), generation };
-    this.trace?.record("ocr-started", this.loopOwner);
-    this.schedule(generation, 1);
-    return true;
+    const id = ++this.operationSequence;
+    const operation: PlateOcrOperation = {
+      generation,
+      id,
+      abort: new AbortController(),
+      owner: {
+        ...this.trace?.owner(),
+        generation,
+        attempt: id,
+        operationId: id,
+      },
+    };
+    this.operation = operation;
+    this.trace?.record("ocr-started", operation.owner);
+    void this.run(operation);
+    return id;
   }
 
   cancel(): void {
-    this.trace?.record("ocr-stopped", {
-      ...this.loopOwner,
-      operationActive: this.operation !== undefined,
-    });
-    clearTimeout(this.timer);
-    this.timer = undefined;
     const operation = this.operation;
-    if (!operation) return;
-    // Production telemetry: a user-driven cancellation before completion.
+    this.trace?.record("ocr-stopped", {
+      ...operation?.owner,
+      operationActive: operation !== undefined,
+    });
+    if (!operation || operation.abort.signal.aborted) return;
     recordNativePlateOcrTelemetry("aborted");
     operation.abort.abort();
-    // Cancellation cleans a captured file without waiting for an uncooperative HTTP promise.
+    // Keep the slot occupied until every late native/HTTP result is cleaned.
     void this.remove(operation).catch(() => undefined);
   }
 
-  private remove(
-    operation: NonNullable<NativePlateOcrLoop["operation"]>,
-  ): Promise<void> {
+  private isCurrent(operation: PlateOcrOperation): boolean {
+    return (
+      this.operation === operation &&
+      !operation.abort.signal.aborted &&
+      this.current(operation.generation)
+    );
+  }
+
+  private remove(operation: PlateOcrOperation): Promise<void> {
     if (operation.uri === undefined) return Promise.resolve();
     operation.deleting ??= this.ports
       .remove(operation.uri)
       .catch((error: unknown) => {
-        delete operation.deleting;
+        operation.deleting = undefined;
         throw error;
       });
     return operation.deleting;
   }
 
-  private schedule(generation: number, attempt: number): void {
-    this.timer = setTimeout(() => {
-      void this.run(generation, attempt);
-    }, NATIVE_PLATE_OCR_INTERVAL_MS);
-  }
-
-  private async run(generation: number, attempt: number): Promise<void> {
-    this.timer = undefined;
-    if (!this.current(generation)) {
-      logNativePlateOcr("generation-stale");
-      return;
-    }
-    if (this.operation !== undefined) return;
-    const operation: NonNullable<NativePlateOcrLoop["operation"]> = {
-      abort: new AbortController(),
-      owner: {
-        ...this.trace?.owner(),
-        generation,
-        attempt,
-        operationId: ++this.operationSequence,
-      },
-    };
+  private async run(operation: PlateOcrOperation): Promise<void> {
+    const { generation } = operation;
     this.trace?.record("capture-start", operation.owner);
-    this.operation = operation;
     let result: PlateOcrResponse = { status: "UNAVAILABLE" };
     let captureFailed = false;
     try {
       operation.uri = await this.ports.capture(operation.abort.signal);
       this.trace?.record("capture-success", {
         ...operation.owner,
-        current: this.current(generation),
+        current: this.isCurrent(operation),
         aborted: operation.abort.signal.aborted,
       });
-      if (this.current(generation)) {
+      if (this.isCurrent(operation))
         result = await this.ports.recognize(
           operation.uri,
           operation.abort.signal,
         );
-      }
     } catch (error) {
       captureFailed = operation.uri === undefined;
       if (captureFailed) {
         this.trace?.record("capture-failure", {
           ...operation.owner,
-          current: this.current(generation),
+          current: this.isCurrent(operation),
           aborted: operation.abort.signal.aborted,
         });
-        // Only a rejection before capture hands off its URI belongs to the
-        // capture stage. Recognition failures are post-capture unavailable.
-        recordNativePlateOcrTelemetry(
-          "capture-unavailable",
-          plateRoiCaptureFailureReason(error),
-          plateRoiCaptureRotationDiagnosticCode(error),
-        );
+        if (!operation.abort.signal.aborted)
+          recordNativePlateOcrTelemetry(
+            "capture-unavailable",
+            plateRoiCaptureFailureReason(error),
+            plateRoiCaptureRotationDiagnosticCode(error),
+          );
       }
-      result = { status: "UNAVAILABLE" };
-    } finally {
-      try {
-        await this.remove(operation);
-      } catch {
-        this.trace?.record("capture-cleanup-failure", operation.owner);
-        result = { status: "UNAVAILABLE" };
-      }
-      this.operation = undefined;
-      this.trace?.record("capture-cleanup", operation.owner);
     }
-    if (!this.current(generation)) {
+    try {
+      await this.remove(operation);
+    } catch {
+      this.trace?.record("capture-cleanup-failure", operation.owner);
+      result = { status: "UNAVAILABLE" };
+    }
+    this.trace?.record("capture-cleanup", operation.owner);
+    const current = this.isCurrent(operation);
+    if (this.operation === operation) this.operation = undefined;
+    if (!current) {
       this.trace?.record("capture-discard", {
         ...operation.owner,
         current: false,
@@ -160,17 +150,9 @@ export class NativePlateOcrLoop {
       logNativePlateOcr("generation-stale");
       return;
     }
-    if (
-      result.status === "NO_MATCH" &&
-      attempt < NATIVE_PLATE_OCR_MAX_ATTEMPTS
-    ) {
-      this.schedule(generation, attempt + 1);
-      return;
-    }
     logNativePlateOcr("loop-finish", { status: result.status });
     this.trace?.record("ocr-finished", operation.owner);
-    // Production telemetry: the definitive provider answer for this loop.
     if (!captureFailed) recordNativePlateOcrTelemetry(result.status);
-    this.finish(generation, result);
+    this.finish(generation, operation.id, result);
   }
 }

@@ -1,5 +1,6 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { runHarnessCommand } from "./command-runner.mjs";
 import {
@@ -14,6 +15,19 @@ const [packageKind, config, ...requested] = process.argv.slice(2);
 if (!packageKind || !config || requested.length === 0) {
   throw new Error(
     "Usage: run-owned-tests.mjs <api|database> <config> <test-file> [test-file...].",
+  );
+}
+// This runner acquires the generic PostgreSQL lease before Vitest loads its
+// config. It must never run Issue429's private config, whose target preflight
+// lives in async config evaluation before *its own* globalSetup.
+const privateIssue429Config = fileURLToPath(
+  new URL("../../packages/database/vitest.issue429-ocr.config.mjs", import.meta.url),
+);
+const resolvedConfig = resolve(process.cwd(), config);
+if (existsSync(resolvedConfig) &&
+    realpathSync(resolvedConfig) === realpathSync(privateIssue429Config)) {
+  throw new Error(
+    "Issue429 private OCR must use its dedicated prelease-gated Vitest config directly.",
   );
 }
 // Fail closed before expensive test discovery on the opt-in Issue414 HTTP

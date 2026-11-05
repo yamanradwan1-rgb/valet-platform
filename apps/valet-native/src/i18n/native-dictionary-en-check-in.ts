@@ -4,12 +4,16 @@ export const nativeEmployeeEnglishCheckInDictionary = {
   continueWithoutRecognition: "Continue without recognition",
   correctVehicleDetails: "Correct vehicle details",
   differentCustomer: "Different customer",
-  locationIntakeStopped: "This location is not accepting new vehicles right now. Contact the location manager.",
+  locationIntakeStopped:
+    "This location is not accepting new vehicles right now. Contact the location manager.",
   make: "Make",
   model: "Model",
   phoneEnding: "Phone ending",
   plateCameraBusy:
     "The camera is busy or unavailable. Close other camera apps and try again.",
+  plateCameraCapture: "Capture Plate",
+  plateCameraNoMatchHint:
+    "No plate found. Adjust the plate and press Capture Plate again.",
   plateCameraCapturedHint:
     "Image captured for reference only. Enter and confirm the plate manually.",
   plateCameraCapturedLabel: "Captured vehicle plate reference",
@@ -24,7 +28,7 @@ export const nativeEmployeeEnglishCheckInDictionary = {
   plateCameraPermissionDenied:
     "Camera permission was denied. Update browser permissions or enter the plate manually.",
   plateCameraPreviewHint:
-    "Reading automatically… Keep the complete plate inside the guide.",
+    "Position the plate in the frame, then press Capture Plate.",
   plateCameraPreviewLabel: "Live vehicle plate camera preview",
   plateCameraRetake: "Retake image",
   plateCameraRetry: "Try camera again",

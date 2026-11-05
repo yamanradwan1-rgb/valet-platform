@@ -58,7 +58,10 @@ describe("frozen native plate viewport with a decorative physical guide", () => 
           .render()
           .filter((node) => node.props.label)
           .map((node) => node.props.label),
-      ).toEqual(controls);
+      ).toEqual([
+        locale === "en" ? "Capture Plate" : "تصوير اللوحة",
+        ...controls,
+      ]);
       c.controller.close();
       expect(
         c.render().some((node) => node.props.testID === "plate-roi-guide"),
@@ -66,7 +69,7 @@ describe("frozen native plate viewport with a decorative physical guide", () => 
       c.cleanup();
     },
   );
-  it.each(["denied", "error", "unavailable", "no-match"] as const)(
+  it.each(["denied", "error", "unavailable"] as const)(
     "removes the guide in %s without removing permanent fallbacks",
     async (phase) => {
       vi.useFakeTimers();
@@ -75,14 +78,15 @@ describe("frozen native plate viewport with a decorative physical guide", () => 
         "en",
         false,
         "left",
-        phase === "no-match" ? "no-match" : phase === "unavailable",
+        phase === "unavailable",
       );
       await c.controller.open();
       if (phase === "error")
         c.controller.fail(c.controller.current().generation);
-      if (phase === "unavailable" || phase === "no-match") {
+      if (phase === "unavailable") {
         c.controller.ready(c.controller.current().generation);
-        await vi.advanceTimersByTimeAsync(6000);
+        c.press("Capture Plate");
+        await vi.advanceTimersByTimeAsync(0);
       }
       expect(c.controller.current().phase).toBe(phase);
       expect(
@@ -97,4 +101,25 @@ describe("frozen native plate viewport with a decorative physical guide", () => 
       c.cleanup();
     },
   );
+  it("keeps the ROI guide and preview for the next deliberate Capture after NO_MATCH", async () => {
+    vi.useFakeTimers();
+    const c = plateCameraFixture(true, "en", false, "left", "no-match");
+    await c.controller.open();
+    c.controller.ready(c.controller.current().generation);
+    const before = c.controller.current();
+    c.press("Capture Plate");
+    await vi.advanceTimersByTimeAsync(0);
+    expect(c.controller.current()).toMatchObject({
+      phase: "preview",
+      generation: before.generation,
+      mountId: before.mountId,
+    });
+    expect(
+      c.render().some((node) => node.props.testID === "plate-roi-guide"),
+    ).toBe(true);
+    expect(
+      c.render().some((node) => node.props.label === "Capture Plate"),
+    ).toBe(true);
+    c.cleanup();
+  });
 });

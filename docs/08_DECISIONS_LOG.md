@@ -3859,12 +3859,18 @@ Full binding contract:
 Status: Accepted
 Date: 2026-09-05
 Amended: 2026-09-05 — no-migration OCR cost-guard policy
+Amended: 2026-11-05 — Issue #429 manual Capture and production-safe shared OCR admission
 
-MOB-010A adds bounded automatic assistive plate acquisition to the existing Native
-Scan Plate flow, before MOB-011. A candidate stops scanning and enters the existing
-editable Confirm Plate flow. Only explicit human confirmation may initiate exact
-returning recognition; OCR cannot confirm identity, select a Customer, create an
-intake or mutate custody. Manual Entry, No Plate and bounded Retry remain available.
+MOB-010A established assistive plate OCR. Issue #429 now requires an employee's
+explicit Capture press: opening/readiness never triggers a picture or paid OCR,
+and the former 1.2-second/five-attempt automatic loop is superseded. One press
+permits at most one OCR HTTP call. A clean `NO_MATCH` leaves the same mounted
+preview, current ROI and Torch intact; after file cleanup, another explicit
+press may capture. A candidate enters editable Confirm Plate. Only human Confirm
+may initiate exact returning recognition; OCR cannot confirm identity, attach a
+Customer, create intake or mutate custody. Manual Entry/No Plate remain permanent.
+One existing `CheckInButton` after preview guidance/before Manual Entry is the
+only permitted additive visual change; EN/AR, Light/Dark and visual freeze bind.
 
 Transient camera samples go only through the authenticated VAYLET API and a
 replaceable provider adapter under the focused decision's size, attempt, timeout,
@@ -3872,15 +3878,27 @@ authorization and privacy limits. Images and credentials must not be retained in
 ordinary client storage, logs or audit. Existing QR semantics, check-in contracts,
 identity generations and command recovery remain unchanged.
 
-The cost identity is server-derived Organization + Membership + target Location.
-Development/test/controlled single-API-process physical smoke may use bounded
-ephemeral limits: one provider call in flight, five calls per 10 seconds and
-20 calls per 60 seconds per key. This is not production anti-abuse protection.
-Production must return provider-neutral `UNAVAILABLE` before provider I/O unless a
-later Accepted implementation provides a shared/durable cost guard across replicas
-and restarts. That later slice preserves these limits and fail-closed behavior
-unless an Owner Decision changes them. Existing login, guest and handoff limiter
-scope meanings cannot be reused for OCR. MOB-010A itself adds no schema/migration.
+Cost identity is server-derived Organization + Membership + target Location:
+one concurrent call, at most 5 per rolling 10 seconds and 20 per rolling 60
+seconds, shared across instances. Historical MOB-010A local-ephemeral limits
+remain insufficient for production. Issue #429 authorizes a narrow PostgreSQL
+Lean A + S shared admission implementation: current exact-session/User/member/
+Organization/LocationAccess/Shift/policy authority and global/Organization
+controls/quotas are proved atomically before one known-committed paid permit;
+one integer lookup unit is retained for every committed Admission regardless of
+later outcome. No automatic retry/refund and **No Rollover** of unused period
+units. Old `SEND_POSSIBLE`/`UNKNOWN` exposure retains concurrency across periods
+and cannot be released on TTL, abort or missing remote response alone. Only
+restricted authenticated VAYLET platform operators change budget/kill/recovery
+with typed append-only history. This is a focused exception to MOB-010A's
+historical no-schema rule; DEC-024/login/guest/handoff meanings remain unchanged.
+Production OCR remains OFF until separate verified activation; employees receive
+only `MATCH | NO_MATCH | UNAVAILABLE` with permanent manual/no-plate fallback.
+Before merge, real isolated SQL/ACL/multi-instance proof, **no statistically
+credible ordinary Check-In latency regression**, a separate zero-observed
+eligible-with-headroom NOWAIT false-denial representative-load gate and Native
+lifecycle/appearance proof are required. Phase 7 physical-device QA is omitted
+from this execution, so missing device evidence cannot be claimed passed.
 
 This summary repairs the log mirror; the full binding contract, including all
 provider, capture, lifecycle and evidence requirements, remains:

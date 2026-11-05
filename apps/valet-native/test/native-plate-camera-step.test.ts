@@ -37,9 +37,7 @@ describe("Native assistive plate camera presentation", () => {
     expect(context.open).toHaveBeenCalledTimes(2);
     reenteredCleanup();
   });
-  // DEC-074: ready-triggered OCR is the product contract; normal preview must
-  // never insert a required manual Capture action between readiness and OCR.
-  it("mounts a muted rear camera and does not require a capture button", async () => {
+  it("mounts a muted rear camera and shows one Capture button after readiness", async () => {
     const context = plateCameraFixture();
     await context.controller.open();
     const starting = context.render();
@@ -60,11 +58,15 @@ describe("Native assistive plate camera presentation", () => {
     expect(camera.props.onBarcodeScanned).toBeUndefined();
     expect(camera.props.ref).toEqual(expect.any(Function));
     (camera.props.onCameraReady as () => void)();
+    const ready = context.render();
     expect(
-      context
-        .render()
-        .some((node) => node.props.label === "Capture plate image"),
-    ).toBe(false);
+      ready.filter((node) => node.props.label === "Capture Plate"),
+    ).toHaveLength(1);
+    expect(
+      ready.findIndex((node) => node.props.label === "Capture Plate"),
+    ).toBeLessThan(
+      ready.findIndex((node) => node.props.label === "Enter manually"),
+    );
     expect(
       context.render().some((node) => node.props.label === "Enter manually"),
     ).toBe(true);
@@ -103,7 +105,8 @@ describe("Native assistive plate camera presentation", () => {
     await context.controller.open();
     const camera = context.render().find((node) => node.type === "CameraView")!;
     (camera.props.onCameraReady as () => void)();
-    await vi.advanceTimersByTimeAsync(1200);
+    context.press("Capture Plate");
+    await vi.advanceTimersByTimeAsync(0);
     expect(context.controller.current().phase).toBe("unavailable");
     expect(
       context.render().some((node) => node.props.label === "Enter manually"),
@@ -113,6 +116,50 @@ describe("Native assistive plate camera presentation", () => {
         .render()
         .some((node) => node.props.label === "No plate / unreadable plate"),
     ).toBe(true);
+  });
+  it("keeps the same preview and button after a clean NO_MATCH", async () => {
+    vi.useFakeTimers();
+    const context = plateCameraFixture(true, "en", false, "left", "no-match");
+    await context.controller.open();
+    const camera = context.render().find((node) => node.type === "CameraView")!;
+    (camera.props.onCameraReady as () => void)();
+    const before = context.controller.current();
+    let finishCleanup!: () => void;
+    context.ocr!.remove.mockReturnValueOnce(
+      new Promise<void>((resolve) => (finishCleanup = resolve)),
+    );
+    context.controller.toggleTorch(before.generation, before.mountId);
+    context.press("Capture Plate");
+    await vi.advanceTimersByTimeAsync(0);
+    const busy = context
+      .render()
+      .find((node) => node.props.label === "Capture Plate")!;
+    expect(busy.props.busy).toBe(true);
+    expect(busy.props.disabled).toBe(true);
+    expect(context.ocr!.recognize).toHaveBeenCalledOnce();
+    finishCleanup();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(context.controller.current()).toMatchObject({
+      phase: "preview",
+      generation: before.generation,
+      mountId: before.mountId,
+      torchEnabled: true,
+      captureBusy: false,
+      noMatchSinceCapture: true,
+    });
+    expect(context.render().some((node) => node.type === "CameraView")).toBe(
+      true,
+    );
+    expect(
+      context.render().some((node) => node.props.label === "Capture Plate"),
+    ).toBe(true);
+    expect(
+      context.render().some((node) => node.props.label === "Enter manually"),
+    ).toBe(true);
+    context.press("Capture Plate");
+    await vi.advanceTimersByTimeAsync(0);
+    expect(context.controller.current().generation).toBe(before.generation);
+    expect(context.ocr!.recognize).toHaveBeenCalledTimes(2);
   });
   it.each(["Enter manually", "No plate / unreadable plate", "Close camera"])(
     "%s removes preview before transition",

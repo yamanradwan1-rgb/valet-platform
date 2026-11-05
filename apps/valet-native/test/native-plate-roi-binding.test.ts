@@ -93,6 +93,21 @@ describe("native mount and layout readiness fence", () => {
     expect(c.controller.current().phase).toBe("unavailable");
     expect(() => c.binding.capture()).toThrow();
   });
+  it("fails closed when a validated preview camera ref is replaced or detached", async () => {
+    for (const replaced of [true, false]) {
+      const c = await setup();
+      const ids = c.mount();
+      await c.binding.ready(ids.generation, ids.mountId);
+      expect(c.controller.current().phase).toBe("preview");
+      const nextCamera = replaced
+        ? ({ getPlatePreviewMetadataAsync: vi.fn() } as unknown as CameraView)
+        : null;
+      c.binding.ref(nextCamera, ids.generation, ids.mountId);
+      expect(c.controller.current().phase).toBe("unavailable");
+      expect(c.controller.current().generation).toBeGreaterThan(ids.generation);
+      expect(() => c.binding.capture()).toThrow();
+    }
+  });
   it.each([
     undefined,
     { ...preview, width: 0 },

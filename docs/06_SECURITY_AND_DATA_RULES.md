@@ -1433,3 +1433,62 @@ opt-in; general leases configure separately validated operator-supplied native
 lock/statement/transaction/idle limits before BEGIN and reset before reuse.
 Every lease, checkout (including configuration), and cleanup is bounded.
 No domain/audit/lifecycle or Customer presentation change is made.
+
+## Issue #429 — Production-safe OCR admission and explicit Native capture
+
+DEC-074's Issue #429 amendment supersedes automatic Native capture: only an
+explicit employee Capture press initiates transient image/ROI work and at most
+one OCR HTTP POST. Opening, readiness, permission return, timers, remount and
+clean `NO_MATCH` start none. Keep the same camera preview/ROI/Torch for a
+current, safely cleaned `NO_MATCH`; another press owns a new operation sequence
+under generation/mount/ROI/current Staff and Location fencing. Abort/timeout
+cannot revive stale capture, publish a plate or automatically re-send. MATCH
+only populates editable review; employee human Confirm is required for exact
+returning recognition. Manual/No Plate remains available during OCR failure.
+
+The production adapter remains OFF by default until shared PostgreSQL
+admission is verified and separately activated. One combined transaction A
+must lock/recheck exact active Staff session (including logout/expiry/rotation),
+active User, persisted Organization/member/LocationAccess/Location, operational
+role and active exact-Location Shift, intake state and effective Company→Location
+OCR policy before cost mutation. Client-targeted Location is reauthorized, not
+authority. Then global and Organization kill/quota/capacity, exact identity
+concurrency and rolling 5/10s and 20/60s limits commit atomically with one
+owned attempt and one retained integer global+Organization debit. An unknown
+COMMIT produces no provider request. No DB connection remains held during
+HTTP; an immediate one-use bounded already-authorized continuation is subject
+to the accepted paid-in-flight residual/cancellation fence. No second complete
+authorization transaction is added merely as a precaution.
+
+Quota is No Rollover; unused units expire within explicitly approved
+vendor-aligned periods. No resend, automatic refund, borrowing, reset or
+TTL-based release. Stale/foreign operation handles cannot settle by guessed
+UUID: source-state, full scope, random owner nonce and revision are required.
+`SEND_POSSIBLE` and `UNKNOWN` retain concurrency even across restarts/periods
+until sufficiently proven remote completion/drain and fenced old local senders.
+Detection is bounded, off-path and nonblocking for ordinary Check-In; failure
+to prove remote completion keeps affected OCR unavailable without disrupting
+Manual/No Plate. Genuine complete remote processing is distinct from HTTP
+operation SUCCESS and OCR candidate recognition.
+
+Only restricted, individually authenticated VAYLET platform operator DB
+principals may provision quota/kill/resolve uncertainty. Company Admin,
+Location Manager and employees cannot read tenant balances or change controls.
+Every operator mutation has typed version/idempotency checks and one atomic,
+append-only nonsecret who/what/when/control-value history entry. Runtime cannot
+arbitrarily DML OCR tables or run operator functions, and maintenance may only
+classify due uncertainty. No OCR images, raw plates, customer identifiers,
+provider URL/token, headers, response bodies or unbounded identifiers enter
+OCR control/attempt/history or logs/metric labels. Internal `LOCK_BUSY` and
+budget exhaustion remain non-sensitive public `UNAVAILABLE`, not `NO_MATCH`.
+
+Safe production requires real shared-store/restricted-role/tenant/timeout/
+crash/unknown-commit tests and a production-build HTTPS mock with no paid
+calls. Before merge separately prove no statistically credible ordinary
+Check-In latency regression and zero observed eligible-with-headroom
+NOWAIT false-denials at representative normal/expected peak traffic with
+confidence bounds. Native automated EN/AR × Light/Dark appearance/lifecycle
+checks remain mandatory; the explicitly removed Phase 7 physical-device QA
+cannot be claimed completed. Provider billing/privacy/egress, remote drain,
+operator credential-human binding, alert routing and production activation
+require independent evidence and approval before OCR can be switched ON.

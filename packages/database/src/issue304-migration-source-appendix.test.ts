@@ -5,13 +5,14 @@ import { describe, expect, it } from "vitest";
 import { issue300AppendedMigrationDirectories } from "./issue300-migration-source-appendix.js";
 import {
   expectedCurrentMigrationDirectories,
+  issue429AppendedMigrationDirectories,
   issue304AppendedMigrationDirectories,
   subsequentAppendedMigrationDirectories,
 } from "./issue304-migration-source-appendix.js";
 import { expectedMigrationDirectories } from "./migration-manifest.js";
 
 describe("append-only migration source history", () => {
-  it("preserves migrations 1..107 and appends Issue414 108..109 in exact order", () => {
+  it("preserves migrations 1..109 and appends Issue429 110 in exact order", () => {
     expect(expectedMigrationDirectories).toHaveLength(93);
     expect(issue300AppendedMigrationDirectories).toEqual([
       "20261018009400_issue_300_u05_birth_xid",
@@ -35,7 +36,10 @@ describe("append-only migration source history", () => {
       "20261104010800_issue414_seen_receipts",
       "20261104010900_issue414_alt09_recorded_attention_index",
     ]);
-    expect(expectedCurrentMigrationDirectories).toHaveLength(109);
+    expect(issue429AppendedMigrationDirectories).toEqual([
+      "20261105011000_issue429_ocr_shared_admission",
+    ]);
+    expect(expectedCurrentMigrationDirectories).toHaveLength(110);
     const migrationRoot = fileURLToPath(
       new URL("../prisma/migrations/", import.meta.url),
     );

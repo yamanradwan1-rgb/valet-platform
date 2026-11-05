@@ -7,11 +7,11 @@ import {
 import { logNativePlateOcr } from "./native-plate-ocr-diagnostics";
 import { NativePlateCameraTrace } from "./native-plate-camera-trace";
 import { recordPlateCameraPermission } from "./native-plate-camera-permission-trace";
+import { NativePlateCameraFallback } from "./native-plate-camera-fallback";
 import {
   beginCameraReady,
   finishPhysicalMetric,
 } from "../diagnostics/native-physical-diagnostics";
-
 export interface NativePlateCameraSnapshot {
   readonly generation: number;
   readonly mountId: number;
@@ -19,6 +19,8 @@ export interface NativePlateCameraSnapshot {
   readonly preferredPictureSize?: string | undefined;
   readonly fallbackPictureSize?: string | undefined;
   readonly captureFallbackUsed: boolean;
+  readonly captureBusy: boolean;
+  readonly noMatchSinceCapture: boolean;
   /** Requested illumination only; Expo does not report hardware activation. */
   readonly torchEnabled: boolean;
   readonly phase:
@@ -32,7 +34,6 @@ export interface NativePlateCameraSnapshot {
     | "unavailable";
   readonly canAskAgain: boolean;
 }
-
 /** Camera ownership plus generation-fenced assistive acquisition only. */
 export class NativePlateCameraController {
   private eligible = false;
@@ -42,16 +43,12 @@ export class NativePlateCameraController {
     phase: "idle",
     canAskAgain: true,
     captureFallbackUsed: false,
+    captureBusy: false,
+    noMatchSinceCapture: false,
     torchEnabled: false,
   };
-  private fallbackReady:
-    | {
-        readonly generation: number;
-        readonly signal: AbortSignal;
-        readonly resolve: (ready: boolean) => void;
-        readonly aborted: () => void;
-      }
-    | undefined;
+  private readonly fallback: NativePlateCameraFallback;
+  private activeOperationId: number | undefined;
   private readonly listeners = new Set<() => void>();
 
   private readonly ocr: NativePlateOcrLoop | undefined;
@@ -61,13 +58,36 @@ export class NativePlateCameraController {
     readonly trace = new NativePlateCameraTrace(),
   ) {
     trace.bind(this.current);
+    this.fallback = new NativePlateCameraFallback(
+      this.current,
+      (generation) => this.isCurrent(generation),
+      (snapshot) => this.publish(snapshot),
+      trace,
+    );
     if (ports)
       this.ocr = new NativePlateOcrLoop(
         ports,
         (generation) =>
-          this.isCurrent(generation) && this.snapshot.phase === "preview",
-        (generation, result) => {
-          if (!this.isCurrent(generation)) return;
+          this.isCurrent(generation) &&
+          (this.snapshot.phase === "preview" ||
+            this.fallback.awaiting(generation)),
+        (generation, operationId, result) => {
+          if (
+            !this.isCurrent(generation) ||
+            this.activeOperationId !== operationId ||
+            this.snapshot.phase !== "preview"
+          )
+            return;
+          this.activeOperationId = undefined;
+          if (result.status === "NO_MATCH") {
+            // Operation and owned files are finished; retain mount/ROI/Torch.
+            this.publish({
+              ...this.snapshot,
+              captureBusy: false,
+              noMatchSinceCapture: true,
+            });
+            return;
+          }
           this.close();
           if (!this.eligible || this.snapshot.generation !== generation + 1)
             return;
@@ -76,7 +96,7 @@ export class NativePlateCameraController {
           else
             this.publish({
               ...this.snapshot,
-              phase: result.status === "NO_MATCH" ? "no-match" : "unavailable",
+              phase: "unavailable",
             });
         },
         trace,
@@ -101,6 +121,27 @@ export class NativePlateCameraController {
       ...this.snapshot,
       torchEnabled: !this.snapshot.torchEnabled,
     });
+  }
+
+  /** Called only by the employee's Capture button, never camera readiness. */
+  capture(generation: number, mountId: number): boolean {
+    if (
+      !this.isCurrent(generation) ||
+      this.snapshot.mountId !== mountId ||
+      this.snapshot.phase !== "preview" ||
+      this.snapshot.captureBusy ||
+      !this.ocr
+    )
+      return false;
+    const id = this.ocr.start(generation);
+    if (id === undefined) return false;
+    this.activeOperationId = id;
+    this.publish({
+      ...this.snapshot,
+      captureBusy: true,
+      noMatchSinceCapture: false,
+    });
+    return true;
   }
 
   async open(): Promise<void> {
@@ -135,6 +176,8 @@ export class NativePlateCameraController {
         pictureSize: this.snapshot.preferredPictureSize,
         mountId: this.snapshot.mountId + 1,
         captureFallbackUsed: false,
+        captureBusy: false,
+        noMatchSinceCapture: false,
       });
       if (!permission.granted)
         finishPhysicalMetric(
@@ -155,12 +198,11 @@ export class NativePlateCameraController {
     if (this.isCurrent(generation) && this.snapshot.phase === "starting") {
       this.publish({ ...this.snapshot, phase: "preview" });
       finishPhysicalMetric("camera_ready_ms", "success");
-      if (this.fallbackReady?.generation === generation) {
-        this.resolveFallback(true);
+      if (this.fallback.awaiting(generation)) {
+        this.fallback.settle(true);
         return;
       }
       logNativePlateOcr("preview-ready");
-      if (this.ocr?.start(generation)) logNativePlateOcr("loop-start");
     }
   }
 
@@ -196,44 +238,13 @@ export class NativePlateCameraController {
     generation: number,
     signal: AbortSignal,
   ): Promise<boolean> {
-    this.trace.record("fallback-request", {
-      generation,
-      aborted: signal.aborted,
-    });
-    const fallback = this.snapshot.fallbackPictureSize;
-    if (
-      signal.aborted ||
-      !fallback ||
-      !this.isCurrent(generation) ||
-      this.snapshot.phase !== "preview" ||
-      this.snapshot.captureFallbackUsed ||
-      this.fallbackReady
-    )
-      return Promise.resolve(false);
-    logNativePlateOcr("camera-capture-fallback");
-    logNativePlateOcr("picture-size-selected", { value: fallback });
-    logNativePlateOcr("picture-size-remount");
-    return new Promise((resolve) => {
-      const aborted = () => this.resolveFallback(false);
-      this.fallbackReady = { generation, signal, resolve, aborted };
-      signal.addEventListener("abort", aborted, { once: true });
-      this.trace.record("fallback-wait", {
-        generation,
-        mountId: this.snapshot.mountId + 1,
-      });
-      this.publish({
-        ...this.snapshot,
-        pictureSize: fallback,
-        mountId: this.snapshot.mountId + 1,
-        captureFallbackUsed: true,
-        phase: "starting",
-      });
-    });
+    return this.fallback.wait(generation, signal);
   }
 
   fail(generation: number): void {
     if (!this.isCurrent(generation)) return;
-    this.resolveFallback(false);
+    this.fallback.settle(false);
+    this.activeOperationId = undefined;
     this.ocr?.cancel();
     finishPhysicalMetric("camera_ready_ms", "failure", "camera-unavailable");
     // Expo mount errors do not reliably distinguish busy/missing hardware.
@@ -242,6 +253,8 @@ export class NativePlateCameraController {
       generation: generation + 1,
       phase: "error",
       torchEnabled: false,
+      captureBusy: false,
+      noMatchSinceCapture: false,
     });
   }
 
@@ -253,7 +266,8 @@ export class NativePlateCameraController {
 
   close(): void {
     this.trace.record("controller-close");
-    this.resolveFallback(false);
+    this.fallback.settle(false);
+    this.activeOperationId = undefined;
     this.ocr?.cancel();
     finishPhysicalMetric("camera_ready_ms", "failure", "cancelled");
     this.publish({
@@ -261,6 +275,8 @@ export class NativePlateCameraController {
       generation: this.snapshot.generation + 1,
       phase: "idle",
       torchEnabled: false,
+      captureBusy: false,
+      noMatchSinceCapture: false,
     });
   }
 
@@ -272,17 +288,6 @@ export class NativePlateCameraController {
 
   private isCurrent(generation: number): boolean {
     return this.eligible && generation === this.snapshot.generation;
-  }
-
-  private resolveFallback(ready: boolean): void {
-    const fallback = this.fallbackReady;
-    if (!fallback) return;
-    this.trace.record(ready ? "fallback-ready" : "fallback-aborted", {
-      generation: fallback.generation,
-    });
-    this.fallbackReady = undefined;
-    fallback.signal.removeEventListener("abort", fallback.aborted);
-    fallback.resolve(ready);
   }
 
   private publish(snapshot: NativePlateCameraSnapshot): void {

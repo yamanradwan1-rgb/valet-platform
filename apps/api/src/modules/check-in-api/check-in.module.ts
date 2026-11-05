@@ -49,6 +49,7 @@ import { PlateRecognizerSnapshotProvider } from "./plate-recognizer-snapshot.pro
     {
       provide: PlateOcrCostGuard,
       useFactory: () =>
+        // Local rate/concurrency guard; not a billing or shared quota authority.
         new PlateOcrCostGuard(process.env.NODE_ENV, () => performance.now()),
     },
     {

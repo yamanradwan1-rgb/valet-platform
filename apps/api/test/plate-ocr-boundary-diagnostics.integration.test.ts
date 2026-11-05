@@ -210,8 +210,8 @@ describe("pre-provider Plate OCR diagnostics", () => {
     });
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ status: "UNAVAILABLE" });
-    expect(c.calls).toBe(0);
+    expect(await response.json()).toEqual({ status: "NO_MATCH" });
+    expect(c.calls).toBe(1);
     expect(boundaryMessages()).toEqual([]);
   });
 

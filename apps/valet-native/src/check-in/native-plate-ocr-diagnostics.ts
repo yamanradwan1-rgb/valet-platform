@@ -16,7 +16,6 @@ export type NativePlateOcrDiagnostic =
   | "http-exception"
   | "http-result"
   | "loop-finish"
-  | "loop-start"
   | "picture-size-none"
   | "picture-size-remount"
   | "picture-size-selected"

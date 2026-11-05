@@ -78,22 +78,28 @@ describe("trace ownership around ROI retirement", () => {
     },
   );
 
-  it("observes the existing preview/ref mismatch without repairing it", async () => {
+  it("retires a detached preview ref and refuses stale reattachment", async () => {
     const c = traceFixture();
     await c.controller.open();
     const ids = c.mount();
     await c.roi.ready(ids.generation, ids.mountId);
     c.roi.ref(null, ids.generation, ids.mountId);
+    expect(c.controller.current().phase).toBe("unavailable");
+    expect(c.controller.current().generation).toBeGreaterThan(ids.generation);
     c.roi.ref(c.camera, ids.generation, ids.mountId);
     await c.roi.ready(ids.generation, ids.mountId);
-    expect(c.controller.current().phase).toBe("preview");
+    expect(c.controller.current().phase).toBe("unavailable");
     expect(() => c.roi.capture()).toThrow();
     expect(
       c
         .records()
         .filter((r) => r.event === "roi-state")
         .at(-1)?.details,
-    ).toMatchObject({ phase: "preview", attached: true, validated: false });
+    ).toMatchObject({
+      phase: "unavailable",
+      attached: false,
+      validated: false,
+    });
     c.cleanup();
   });
 });
