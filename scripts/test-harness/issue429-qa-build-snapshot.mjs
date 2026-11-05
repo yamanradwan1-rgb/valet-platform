@@ -14,9 +14,35 @@ import { join, relative, resolve, sep } from "node:path";
 const prefix = "source-snapshot-";
 const owned = new Map();
 
+function safeGitEnvironment() {
+  const environment = {};
+  for (const key of [
+    "PATH",
+    "Path",
+    "PATHEXT",
+    "SystemRoot",
+    "WINDIR",
+    "ComSpec",
+    "TEMP",
+    "TMP",
+    "HOME",
+    "USERPROFILE",
+    "APPDATA",
+    "LOCALAPPDATA",
+  ]) {
+    if (typeof process.env[key] === "string")
+      environment[key] = process.env[key];
+  }
+  return { ...environment, GIT_TERMINAL_PROMPT: "0" };
+}
+
 function git(cwd, args, timeout = 30_000) {
-  return execFileSync("git", args, {
+  // Git worktree checkout can execute hooks. Do not pass inherited admin,
+  // operator, provider, or test secrets, and suppress untrusted checkout hooks.
+  const noHooks = resolve(cwd, "tmp", "issue429-qa", "disabled-git-hooks");
+  return execFileSync("git", ["-c", `core.hooksPath=${noHooks}`, ...args], {
     cwd,
+    env: safeGitEnvironment(),
     encoding: "utf8",
     timeout,
     windowsHide: true,

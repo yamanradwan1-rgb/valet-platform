@@ -193,6 +193,21 @@ test("temporary live-worktree injection during compilation cannot enter snapshot
   }
 });
 
+test("private snapshot checkout cannot invoke an inherited Git post-checkout hook", () => {
+  const f = createOwnedSourceFixture();
+  try {
+    const hook = join(f.repo, ".git", "hooks", "post-checkout");
+    writeFileSync(hook, "#!/bin/sh\nexit 42\n");
+    chmodSync(hook, 0o755);
+    assert.equal(
+      verifyIssue429FreshArtifact(f.build(), f.repo).sourceSha,
+      f.sha,
+    );
+  } finally {
+    f.close();
+  }
+});
+
 test("untracked or ignored authored source blocks the build before launch", () => {
   const f = createOwnedSourceFixture();
   try {
