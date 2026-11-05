@@ -3312,5 +3312,55 @@ before/after; no threshold values or secrets.
 
 The preferences do not alter SLA, Task, Shift, Incident or Payment source
 state; they are used only when server projections decide when a Management
-alert becomes visible to an eligible user. This migration does not add a
+ alert becomes visible to an eligible user. This migration does not add a
 Dispatch episode marker, Seen receipts, Phase 2/3 alerts or polling.
+
+### Issue #429 — private shared OCR admission schema (DEC-074 amendment)
+
+This section is the authorized additive PostgreSQL design envelope before a
+forward-only migration is written. It does not assert the migration has been
+applied or change Vehicle, ValetSession, Task, Payment, AuditEvent, AntiAbuse or
+condition-photo tables. Production OCR remains OFF pending separate activation.
+
+| New relation | Required integrity and authority |
+| --- | --- |
+| `ocr_platform_control` | Singleton platform record, default OFF, stable account alias, version, active-period reference, DB clock floor and global concurrency ceiling; not a fake tenant. |
+| `ocr_organization_control` | Organization FK/PK, default OFF, version and Organization concurrency ceiling; tenant OCR policy cannot bypass platform/tenant controls. |
+| `ocr_budget_periods` | Account-scoped, staged UTC half-open `[start,end)` period, nonnegative integer quota/spent and version; immutable account/bounds and no overlapping active windows. |
+| `ocr_organization_allocations` | Composite period+Organization PK/FKs, quota/spent/version and no borrowing, refill, transfer or rollover. Lowering cap below already-spent units denies future sends while history remains. |
+| `ocr_attempts` | Random UUID with composite Organization/Membership/Location, period/account/allocation FKs, immutable admitted unit=1, DB timestamp, random nonce, revision, deadline and controlled `SEND_POSSIBLE`, `UNKNOWN`, `COMPLETED`, `NOT_SENT`, `RECONCILED` states. |
+| `ocr_control_history` | Append-only unique operation ID with typed scope/action/old-new revision and values, authenticated VAYLET operator identity, DB time and bounded nonsecret evidence/reason. |
+
+Identity is `(organization_id,membership_id,location_id)`, proven from current
+persisted Staff authority. A partial unique index prevents two active/UNKNOWN
+attempts for one identity. Indexed, DB-time sliding windows preserve one in
+flight, 5 in 10 seconds and 20 in 60 seconds; account, global and tenant
+concurrent probes are capped/indexed. Expired local deadlines may classify a
+still-occupied attempt UNKNOWN but never prove remote completion or recycle
+capacity. Unknown exposure survives periods, restart and a new allocation.
+
+The combined authorization and Admission transaction **A** proves exact Staff
+session, active User, Organization, Membership, LocationAccess, Location,
+Shift, intake and effective typed OCR policy before any OCR quota mutation.
+Global→Organization control→period→allocation is the recommended bounded
+PostgreSQL NOWAIT lock order; one known COMMIT atomically increments global and
+Organization spent integer units and inserts the owned attempt. No partial
+debit on rollback and no paid send on uncertain COMMIT. One immediate bounded
+one-use permit invokes at most one HTTPS request after connection release.
+Settlement **S** is attempt-only scoped nonce/revision CAS; it never changes
+historical spent. Every committed Admission retains its one unit regardless
+of later no-match/error/cancel/timeout/proven-no-send/UNKNOWN. No Rollover of
+unused prior-period quota; a new period cannot activate with old account
+SEND_POSSIBLE/UNKNOWN exposure before evidence-based resolution.
+
+Runtime may EXECUTE only narrow approved functions, never arbitrarily change
+OCR tables or read budgets/history. Separate restricted maintenance may only
+perform bounded due/UNKNOWN classification; authenticated unique VAYLET
+operator DB identity can invoke versioned control/reconciliation with atomic
+typed append history, not merely supply an unauthenticated `operatorRef`.
+Revoke PUBLIC function EXECUTE, use safe fixed search_path and prove negative
+tenant/NULL/inherited/function/column privileges in real isolated PostgreSQL.
+The migration owner records the actual additive migration ID, final SQL details
+and test evidence on implementation. Ordinary Check-In and Manual/No Plate do
+not depend on OCR admission/recovery; performance and NOWAIT availability must
+be proven in independent real-load tests.
