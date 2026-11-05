@@ -20,6 +20,7 @@ function safePrincipal(overrides: Record<string, unknown> = {}) {
     session_role: identity,
     unchanged_role: true,
     rolcanlogin: true,
+    rolinherit: false,
     rolsuper: false,
     rolcreatedb: false,
     rolcreaterole: false,
@@ -27,7 +28,12 @@ function safePrincipal(overrides: Record<string, unknown> = {}) {
     rolbypassrls: false,
     can_create_database: false,
     can_create_schema: false,
+    member_role_names:
+      overrides.session_role === "ocr_maintenance_qa"
+        ? []
+        : ["vaylet_ocr_operator"],
     has_direct_ocr_table_access: false,
+    has_unapproved_public_relation_access: false,
     has_unapproved_security_definer_access: false,
     ...overrides,
   };
@@ -112,6 +118,12 @@ describe("Issue #429 direct OCR restricted DB principals", () => {
       "has_function_privilege(session_user,function.oid,'EXECUTE')",
     );
     expect(sql).toContain("function.prosecdef");
+    expect(sql).toContain("pg_catalog.pg_auth_members AS membership");
+    expect(sql).toContain("unrelated.relkind IN ('r','p','v','m','S')");
+    expect(sql).toContain(
+      "has_any_column_privilege(session_user,unrelated.oid,",
+    );
+    expect(sql).toContain("'SELECT,INSERT,UPDATE,REFERENCES'");
     expect(sql).toContain(
       "function.oid=to_regprocedure(allowed.signature)::oid",
     );
@@ -181,9 +193,35 @@ describe("Issue #429 direct OCR restricted DB principals", () => {
   );
 
   it.each([
+    ["operator", { rolinherit: true }],
+    ["maintenance", { rolinherit: true }],
+    ["operator", { member_role_names: [] }],
+    ["operator", { member_role_names: ["vaylet_ocr_operator", "rogue_group"] }],
+    ["operator", { member_role_names: ["rogue_group"] }],
+    ["maintenance", { member_role_names: ["vaylet_ocr_operator"] }],
+    ["operator", { has_unapproved_public_relation_access: true }],
+    ["maintenance", { has_unapproved_public_relation_access: true }],
+  ] as const)(
+    "%s CLI rejects role/group or unrelated public relation drift",
+    async (role, unsafe) => {
+      const { dependencies, client } = fakeConnection({
+        session_role: role === "operator" ? identity : "ocr_maintenance_qa",
+        ...unsafe,
+      });
+      const action = vi.fn(async () => "never");
+      await expect(
+        withRestrictedOcrClient(role, environment, action, dependencies),
+      ).rejects.toThrow("Restricted OCR database principal is unsafe.");
+      expect(action).not.toHaveBeenCalled();
+      expect(client.end).toHaveBeenCalledOnce();
+    },
+  );
+
+  it.each([
     { session_role: "runtime_role" },
     { unchanged_role: false },
     { rolsuper: true },
+    { rolinherit: true },
     { rolcreatedb: true },
     { rolcreaterole: true },
     { rolreplication: true },
@@ -191,6 +229,7 @@ describe("Issue #429 direct OCR restricted DB principals", () => {
     { can_create_database: true },
     { can_create_schema: true },
     { has_direct_ocr_table_access: true },
+    { has_unapproved_public_relation_access: true },
     { has_unapproved_security_definer_access: true },
   ])("rejects untrusted DB role or elevated privileges", async (unsafe) => {
     const { dependencies, client } = fakeConnection(unsafe);
