@@ -9,9 +9,8 @@ import { join, resolve, sep } from "node:path";
 import { test } from "node:test";
 
 import {
-  assertIssue429ProductionArtifact,
+  assertIssue429CleanSource,
   checkIssue429ProductionInputs,
-  issue429ArtifactDigest,
   readIssue429SyntheticActors,
 } from "./issue429-qa-production-target.mjs";
 
@@ -30,7 +29,6 @@ const acceptable = {
   ISSUE429_QA_DATABASE_TLS_CA_PEM: "-----BEGIN CERTIFICATE-----\nsynthetic\n",
   ISSUE429_QA_EGRESS_POLICY_REF: "owned-isolated-network-attestation",
   ISSUE429_QA_BUILD_SHA: "a".repeat(40),
-  ISSUE429_QA_ARTIFACT_SHA256: "b".repeat(64),
 };
 
 test.after(() => unlinkSync(fixture));
@@ -80,6 +78,9 @@ test("Issue429 guard validates offline input without opening PostgreSQL", () => 
   const result = checkIssue429ProductionInputs(acceptable, root);
   assert.equal(result.fixturePath, fixture);
   assert.equal(new URL(result.runtimeUrl).pathname, "/issue429_qa_synthetic");
+  assert.throws(() => checkIssue429ProductionInputs({
+    ...acceptable, ISSUE429_QA_ARTIFACT_SHA256: "b".repeat(64),
+  }, root), /refuses caller-supplied artifact digests/);
 });
 
 test("real fixture must include 2 tenants and distinct third eligible identity", () => {
@@ -103,7 +104,7 @@ test("real fixture must include 2 tenants and distinct third eligible identity",
     readIssue429SyntheticActors(fixture, "production"), /preprovisioned synthetic/);
 });
 
-test("sealed build refuses untracked authored TS and ignored build input", () => {
+test("clean HEAD check refuses untracked authored TS and ignored build input", () => {
   const ownedPrefix = resolve(root, "tmp", "issue429-qa-git-");
   const owned = mkdtempSync(ownedPrefix);
   const git = (...args) => execFileSync("git", args, {
@@ -123,19 +124,16 @@ test("sealed build refuses untracked authored TS and ignored build input", () =>
     git("-c", "user.name=Issue429 QA", "-c",
       "user.email=issue429-qa@example.invalid", "commit", "-qm", "baseline");
     const sha = git("rev-parse", "HEAD");
-    const hash = issue429ArtifactDigest(dist);
-    assert.equal(
-      assertIssue429ProductionArtifact(sha, owned, hash).sourceSha, sha,
-    );
+    assert.equal(assertIssue429CleanSource(sha, owned), sha);
     writeFileSync(join(src, "untracked.ts"), "export const newCode = true;\n");
     assert.throws(
-      () => assertIssue429ProductionArtifact(sha, owned, hash),
+      () => assertIssue429CleanSource(sha, owned),
       /zero tracked or untracked source changes/,
     );
     unlinkSync(join(src, "untracked.ts"));
     writeFileSync(join(src, "ignored.ts"), "export const hiddenCode = true;\n");
     assert.throws(
-      () => assertIssue429ProductionArtifact(sha, owned, hash),
+      () => assertIssue429CleanSource(sha, owned),
       /ignored authored source/,
     );
   } finally {
