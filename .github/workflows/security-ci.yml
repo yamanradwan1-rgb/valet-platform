@@ -122,9 +122,40 @@ jobs:
             --output security-reports/semgrep-head.json \
             --exclude '**/node_modules/**' --exclude '**/dist/**' \
             --exclude '**/.next/**' "${opts[@]}" apps packages scripts infra
+      - name: Recover empty incremental Semgrep coverage with full head/base comparison
+        if: env.SEMGREP_NO_SCOPED_CHANGES != 'true'
+        run: |
+          # A changed path can be intentionally excluded by Semgrep. Never
+          # accept a zero-target incremental report as a successful scan.
+          coverage="$(python3 scripts/security/semgrep_coverage.py security-reports/semgrep-head.json)"
+          if [[ "$coverage" == "fallback" ]]; then
+            if [[ -z "$SECURITY_BASE_SHA" ]]; then
+              echo "::error::Semgrep full scan yielded no targets and has no baseline"
+              exit 2
+            fi
+            semgrep_full_scan() {
+              semgrep scan --config p/security-audit --config p/owasp-top-ten \
+                --metrics=off --disable-version-check --json \
+                --output "$1" \
+                --exclude '**/node_modules/**' --exclude '**/dist/**' \
+                --exclude '**/.next/**' apps packages scripts infra
+            }
+            git worktree add --detach "$RUNNER_TEMP/security-semgrep-base" "$SECURITY_BASE_SHA"
+            semgrep_full_scan security-reports/semgrep-head.json
+            (
+              cd "$RUNNER_TEMP/security-semgrep-base"
+              semgrep_full_scan "$GITHUB_WORKSPACE/security-reports/semgrep-base.json"
+            )
+            echo "SEMGREP_BASE_REPORT=security-reports/semgrep-base.json" >> "$GITHUB_ENV"
+          fi
       - name: Gate high and critical findings / parser errors
         if: env.SEMGREP_NO_SCOPED_CHANGES != 'true'
-        run: python3 scripts/security/ci_gate.py semgrep security-reports/semgrep-head.json
+        run: |
+          if [[ -n "$SEMGREP_BASE_REPORT" ]]; then
+            python3 scripts/security/ci_gate.py semgrep security-reports/semgrep-head.json "$SEMGREP_BASE_REPORT"
+          else
+            python3 scripts/security/ci_gate.py semgrep security-reports/semgrep-head.json
+          fi
       - if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -269,7 +300,9 @@ jobs:
         with:
           persist-credentials: false
       - name: Test security gate contracts
-        run: python3 -m unittest discover -s scripts/security -p 'test_ci_gate.py' -v
+        run: |
+          python3 -m unittest discover -s scripts/security -p 'test_ci_gate.py' -v
+          python3 -m unittest discover -s scripts/security -p 'test_semgrep_coverage.py' -v
       - name: Fail closed for failed / skipped security checks
         env:
           GITLEAKS: ${{ needs.secrets-gitleaks.result }}
