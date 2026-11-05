@@ -2,11 +2,11 @@ import { z } from "zod";
 import {
   managementAlertCategoryProfiles,
   managementAlertInScopeCategorySchema,
-} from "./management-alert-category-inventory";
+} from "./management-alert-category-inventory.js";
 import {
   managementAlertSeveritySchema,
   managementAlertPreviewResponseSchema,
-} from "./management-alert-preview";
+} from "./management-alert-preview.js";
 
 /**
  * Additive contract for the eventual 16-category aggregate.

@@ -20,6 +20,8 @@ export const subsequentAppendedMigrationDirectories = [
   "20261029010500_issue352_emergency_takeover_persistence",
   "20261030010600_issue363_session_bound_pending_mfa",
   "20261104010700_issue414_personal_alert_timing_preferences",
+  "20261104010800_issue414_seen_receipts",
+  "20261104010900_issue414_alt09_recorded_attention_index",
 ] as const;
 
 export const expectedCurrentMigrationDirectories = [
