@@ -13,6 +13,7 @@ const ownRole = /^vlt_t_role_429_[0-9a-f]{32}$/;
 
 export class Issue429OcrOwnedTarget {
   readonly bootstrapUrl: string;
+  private readonly runId: string;
   private verified = false;
   private readonly databases = new Set<string>();
   private readonly roles = new Set<string>();
@@ -42,9 +43,10 @@ export class Issue429OcrOwnedTarget {
       if (env[key]) throw new Error("Issue429 W2 refuses PostgreSQL client overrides.");
     }
     this.bootstrapUrl = raw;
+    this.runId = env.VAYLET_TEST_RUN_ID;
     assertClusterLeaseOwner({
       databaseUrl: raw,
-      runId: env.VAYLET_TEST_RUN_ID,
+      runId: this.runId,
     });
   }
 
@@ -68,6 +70,9 @@ export class Issue429OcrOwnedTarget {
   }
 
   private async withAdmin<T>(action: (client: Client) => Promise<T>): Promise<T> {
+    assertClusterLeaseOwner({
+      databaseUrl: this.bootstrapUrl, runId: this.runId,
+    });
     this.inspectDocker();
     const client = new Client({
       connectionString: this.bootstrapUrl,
@@ -152,16 +157,18 @@ export class Issue429OcrOwnedTarget {
     });
   }
 
-  async dropOperatorCapability(): Promise<void> {
+  async dropOperatorCapability(expectedOid: string): Promise<void> {
     await this.withAdmin(async (admin) => {
       const { rows } = await admin.query<{
-        can_login: boolean; can_inherit: boolean; members: number;
+        oid: string; can_login: boolean; can_inherit: boolean; members: number;
       }>(`
-        SELECT role.rolcanlogin AS can_login,role.rolinherit AS can_inherit,
+        SELECT role.oid::text AS oid,
+          role.rolcanlogin AS can_login,role.rolinherit AS can_inherit,
           (SELECT count(*)::integer FROM pg_auth_members m
            WHERE m.roleid=role.oid OR m.member=role.oid) AS members
         FROM pg_roles role WHERE role.rolname='vaylet_ocr_operator'`);
-      if (rows.length !== 1 || rows[0]!.can_login ||
+      if (rows.length !== 1 || rows[0]!.oid !== expectedOid ||
+          rows[0]!.can_login ||
           rows[0]!.can_inherit || rows[0]!.members !== 0) {
         throw new Error("Issue429 refuses to drop a changed operator capability.");
       }

@@ -35,7 +35,7 @@ export class Issue429OcrFixture {
   operatorRole = "";
   accountAlias = `ocrqa_${randomUUID().slice(0, 8)}`;
   periodId = "";
-  private operatorCapabilityCreated = false;
+  private operatorCapabilityOid: string | null = null;
   private readonly passwords = {
     runtime: randomUUID(), maintenance: randomUUID(), operator: randomUUID(),
   };
@@ -101,7 +101,12 @@ export class Issue429OcrFixture {
         "operator", this.operatorRole, database,
       );
       await this.admin.query("COMMIT");
-      this.operatorCapabilityCreated = true;
+      const { rows: capability } = await this.admin.query<{ oid: string }>(`
+        SELECT oid::text FROM pg_roles WHERE rolname='vaylet_ocr_operator'`);
+      if (capability.length !== 1) {
+        throw new Error("Issue429 cannot prove owned operator capability.");
+      }
+      this.operatorCapabilityOid = capability[0]!.oid;
     } catch (error) {
       await this.admin.query("ROLLBACK");
       throw error;
@@ -200,6 +205,8 @@ export class Issue429OcrFixture {
       await client?.end().catch(() => {});
     }
     await this.target.close();
-    if (this.operatorCapabilityCreated) await this.target.dropOperatorCapability();
+    if (this.operatorCapabilityOid) {
+      await this.target.dropOperatorCapability(this.operatorCapabilityOid);
+    }
   }
 }
