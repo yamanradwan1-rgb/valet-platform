@@ -2,14 +2,35 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { runHarnessCommand } from "./command-runner.mjs";
-import { acquireInvocationLease } from "./invocation-lease.mjs";
+import {
+  acquireInvocationLease,
+  assertIssue414Phase23HttpTestTarget,
+  testDatabaseUrl,
+} from "./invocation-lease.mjs";
 import { classifyPackageTests } from "./test-classification.mjs";
+import { preflightIssue414Phase23HttpBeforeLease } from "./issue414-phase23-http-target.mjs";
 
 const [packageKind, config, ...requested] = process.argv.slice(2);
 if (!packageKind || !config || requested.length === 0) {
   throw new Error(
     "Usage: run-owned-tests.mjs <api|database> <config> <test-file> [test-file...].",
   );
+}
+// Fail closed before expensive test discovery on the opt-in Issue414 HTTP
+// profile. An invalid target must never wait for, or acquire, a DB lease.
+if (
+  process.env.ISSUE414_W7_HTTP_TABS_PROFILE === "I_OWN_EXCLUSIVE_LOCAL_PG17"
+) {
+  testDatabaseUrl();
+}
+const p23HttpRequested = requested.some((file) =>
+  /(?:^|[\\/])management-alert-phase23-http\.integration\.test\.ts$/.test(
+    file,
+  ),
+);
+if (p23HttpRequested) {
+  assertIssue414Phase23HttpTestTarget();
+  await preflightIssue414Phase23HttpBeforeLease();
 }
 const sourcePrefix = packageKind === "api" ? "test" : "src";
 const rootDir = resolve(process.cwd(), sourcePrefix);
@@ -37,6 +58,14 @@ for (const file of normalized) {
     sourceAdjacentApiTest ? relativeFile : `${sourcePrefix}/${relativeFile}`,
   );
   groups.set(project, list);
+}
+
+// The P23 HTTP test is owned by api-postgres-race. An invocation selecting
+// another race file can acquire this project's lease before its globalSetup
+// validates the fixture. All such focused invocations need the same prelease
+// attestation; avoid repeating it when the exact P23 filename was checked.
+if (groups.has("api-postgres-race") && !p23HttpRequested) {
+  await preflightIssue414Phase23HttpBeforeLease();
 }
 
 let failed = false;

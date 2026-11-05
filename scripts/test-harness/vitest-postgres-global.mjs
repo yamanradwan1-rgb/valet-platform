@@ -11,6 +11,7 @@ import {
 } from "./ownership-state.mjs";
 import { parkClusterLeaseForRecovery } from "./park-cluster-lease.mjs";
 import { testDatabaseUrl } from "./invocation-lease.mjs";
+import { preflightIssue414Phase23HttpBeforeLease } from "./issue414-phase23-http-target.mjs";
 import {
   preflightIssue215BeforeHarnessCleanup,
   requiresIssue215Preflight,
@@ -26,8 +27,6 @@ import {
   supportedWorkerCount,
 } from "./resource-budget.mjs";
 
-const adminDatabaseUrl = testDatabaseUrl();
-
 export default async function setup(project) {
   const projectName = project?.name ?? project?.config?.name;
   if (typeof projectName !== "string" || projectName === "") {
@@ -35,6 +34,10 @@ export default async function setup(project) {
       "PostgreSQL Vitest global setup could not resolve the project name.",
     );
   }
+  if (projectName === "api-postgres-race") {
+    await preflightIssue414Phase23HttpBeforeLease();
+  }
+  const adminDatabaseUrl = testDatabaseUrl();
   // Global stale-owner recovery can DROP resources: task target attestation
   // must precede the lease and its recovery path, not merely test beforeAll.
   await preflightIssue215BeforeHarnessCleanup([projectName]);
@@ -59,7 +62,8 @@ export default async function setup(project) {
       : { stateRoot: undefined, staleOwner: undefined };
   if (requiresIssue215Preflight([projectName])) {
     appendOwnershipEvent({
-      databaseUrl: adminDatabaseUrl, runId,
+      databaseUrl: adminDatabaseUrl,
+      runId,
       event: { type: "issue215-protected-run" },
     });
   }
@@ -72,9 +76,15 @@ export default async function setup(project) {
   if (lease.staleOwner !== undefined) {
     if (requiresIssue215StaleOwnerPreflight(lease.staleOwner)) {
       try {
-        await preflightIssue215BeforeHarnessCleanup(["database-postgres-issue215"]);
+        await preflightIssue215BeforeHarnessCleanup([
+          "database-postgres-issue215",
+        ]);
       } catch (error) {
-        parkClusterLeaseForRecovery({ databaseUrl: adminDatabaseUrl, runId, stateRoot: lease.stateRoot });
+        parkClusterLeaseForRecovery({
+          databaseUrl: adminDatabaseUrl,
+          runId,
+          stateRoot: lease.stateRoot,
+        });
         throw error;
       }
     }

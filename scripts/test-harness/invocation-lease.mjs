@@ -16,9 +16,65 @@ import {
   requiresIssue215StaleOwnerPreflight,
 } from "./issue215-target-preflight.mjs";
 import { createPostgresCleanupAdapter } from "./postgres-cleanup-adapter.mjs";
+import { requireIssue215CiUrl } from "../../packages/database/src/condition-photo-p1-ci-target.mjs";
 
 export const DEFAULT_TEST_DATABASE_URL =
   "postgresql://valet:valet@127.0.0.1:5432/valet";
+
+/** Fail before any lease, stale-owner cleanup or DDL in the new Issue414 HTTP suite. */
+export function assertIssue414Phase23HttpTestTarget() {
+  const value = process.env.TEST_DATABASE_URL;
+  if (!value) {
+    throw new Error(
+      "Issue414 P23 HTTP requires explicit disposable TEST_DATABASE_URL.",
+    );
+  }
+  let target;
+  try {
+    target = new URL(value);
+  } catch {
+    throw new Error("Issue414 P23 HTTP refuses malformed TEST_DATABASE_URL.");
+  }
+  const ci =
+    process.env.CI === "true" &&
+    process.env.GITHUB_ACTIONS === "true" &&
+    process.env.VAYLET_ISSUE215_TEST_TARGET === "ci" &&
+    Boolean(process.env.VAYLET_ISSUE215_CI_POSTGRES_CONTAINER_ID);
+  if (ci) {
+    try {
+      requireIssue215CiUrl(process.env);
+    } catch {
+      throw new Error(
+        "Issue414 P23 HTTP refuses unattested CI PostgreSQL identity.",
+      );
+    }
+  }
+  const approvedCiTarget =
+    ci &&
+    target.hostname === "localhost" &&
+    target.port === "5432" &&
+    target.username === "valet" &&
+    target.pathname === "/valet";
+  const approvedLocalTarget =
+    !ci &&
+    target.hostname === "127.0.0.1" &&
+    target.port === "45432" &&
+    target.username === "vaylet_test_admin" &&
+    target.pathname === "/vaylet_test";
+  if (
+    !["postgres:", "postgresql:"].includes(target.protocol) ||
+    (!approvedCiTarget && !approvedLocalTarget) ||
+    !target.password ||
+    target.search ||
+    target.hash ||
+    process.env.NODE_ENV === "production"
+  ) {
+    throw new Error(
+      "Issue414 P23 HTTP requires the attested CI PG17 service or dedicated local 127.0.0.1:45432 PG17 target.",
+    );
+  }
+  return value;
+}
 
 export function testDatabaseUrl() {
   // Opting into W7 is an explicit local-cluster attestation across every
