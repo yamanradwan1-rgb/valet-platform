@@ -15,7 +15,12 @@ import { PlateOcrAuthGuard } from "../src/modules/check-in-api/plate-ocr-auth.gu
 import { PlateOcrController } from "../src/modules/check-in-api/plate-ocr.controller";
 import { PlateOcrService } from "../src/modules/check-in-api/plate-ocr.service";
 import { PlateOcrCostGuard } from "../src/modules/check-in-api/plate-ocr-cost-guard";
+import { PlateOcrAdmissionExecutor } from "../src/modules/check-in-api/plate-ocr-admission/plate-ocr-admission-executor";
 import { PLATE_OCR_PROVIDER } from "../src/modules/check-in-api/plate-ocr-provider";
+import {
+  STAFF_SESSION_CONTEXT_RESOLVER,
+  DatabaseStaffSessionContextResolver,
+} from "../src/modules/auth/staff-session-context";
 import { CheckInOperationRunner } from "../src/modules/check-in-api/check-in-operation-runner";
 import { ReturningCheckInTestContext } from "./returning-check-in-test-context";
 
@@ -34,6 +39,8 @@ export class PlateOcrHttpContext extends ReturningCheckInTestContext {
     const runtime = this.runtime;
     const acquire = (identity: Parameters<PlateOcrCostGuard["acquire"]>[0]) =>
       this.guard.acquire(identity);
+    const isControlledNonProduction = () =>
+      this.guard.isControlledNonProduction();
     const recognize = async () => {
       this.calls++;
       return this.result();
@@ -51,12 +58,56 @@ export class PlateOcrHttpContext extends ReturningCheckInTestContext {
           useValue: new DatabaseStaffPrincipalResolver(runtime),
         },
         {
+          provide: STAFF_SESSION_CONTEXT_RESOLVER,
+          useValue: new DatabaseStaffSessionContextResolver(runtime),
+        },
+        {
           provide: PlateOcrCostGuard,
-          useValue: { acquire },
+          useValue: { acquire, isControlledNonProduction },
+        },
+        {
+          provide: PlateOcrAdmissionExecutor,
+          useValue: {
+            admit: async () => ({ status: "UNAVAILABLE", reason: "DISABLED" }),
+          },
         },
         {
           provide: PLATE_OCR_PROVIDER,
-          useValue: { recognize },
+          useValue: {
+            recognize,
+            canDispatch: () => true,
+            admissionTimeoutMs: () => 4_000,
+            recognizeObserved: async (
+              _input: unknown,
+              options: {
+                signal: AbortSignal;
+                permit: { consumeIfFresh(): boolean };
+              },
+            ) => {
+              const invoked =
+                !options.signal.aborted && options.permit.consumeIfFresh();
+              if (!invoked) {
+                return {
+                  response: { status: "UNAVAILABLE" },
+                  fetchInvoked: false,
+                  disposition: "NOT_SENT",
+                  observationClass: "NOT_INVOKED",
+                  httpClass: "NONE",
+                  failureClass: "NONE",
+                  durationMs: 0,
+                };
+              }
+              return {
+                response: await recognize(),
+                fetchInvoked: true,
+                disposition: "UNKNOWN",
+                observationClass: "UNCERTAIN",
+                httpClass: "NONE",
+                failureClass: "NONE",
+                durationMs: 0,
+              };
+            },
+          },
         },
       ],
     })

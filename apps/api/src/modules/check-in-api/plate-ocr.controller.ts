@@ -139,9 +139,10 @@ export class PlateOcrController {
         }
         logPlateOcrBoundary("controller-to-service");
         return await this.service.recognize(
-          request.plateOcrUserId,
+          request.plateOcrSession,
           input,
           image.buffer,
+          request.plateOcrSignal,
         );
       } finally {
         image?.buffer.fill(0);

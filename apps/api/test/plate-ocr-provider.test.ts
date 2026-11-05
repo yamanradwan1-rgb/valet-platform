@@ -4,6 +4,7 @@ import {
   resolvePlateOcrConfig,
 } from "../src/modules/check-in-api/plate-ocr-config";
 import { PlateRecognizerSnapshotProvider } from "../src/modules/check-in-api/plate-recognizer-snapshot.provider";
+import { recognizeWithTestPermit } from "./plate-ocr-test-provider-permit";
 
 const env = {
   NODE_ENV: "test",
@@ -47,23 +48,32 @@ describe("Snapshot-compatible adapter", () => {
         });
         const http = vi.fn<typeof fetch>();
         expect(
-          await new PlateRecognizerSnapshotProvider(
-            readPlateOcrConfig(values),
-            http,
-          ).recognize(input),
+          await recognizeWithTestPermit(
+            new PlateRecognizerSnapshotProvider(
+              readPlateOcrConfig(values),
+              http,
+            ),
+            input,
+          ),
         ).toEqual({ status: "UNAVAILABLE" });
         expect(http).not.toHaveBeenCalled();
       }
     }
     for (const nodeEnv of ["development", "test"]) {
-      expect(resolvePlateOcrConfig({ ...env, NODE_ENV: nodeEnv }).status).toBe("configured");
+      expect(resolvePlateOcrConfig({ ...env, NODE_ENV: nodeEnv }).status).toBe(
+        "configured",
+      );
     }
-    expect(resolvePlateOcrConfig({ ...env, NODE_ENV: "production" }).status).toBe("unavailable");
-    expect(resolvePlateOcrConfig({
-      ...env,
-      NODE_ENV: "production",
-      PLATE_OCR_ENDPOINT: "https://ocr.example.test/read/",
-    }).status).toBe("configured");
+    expect(
+      resolvePlateOcrConfig({ ...env, NODE_ENV: "production" }).status,
+    ).toBe("unavailable");
+    expect(
+      resolvePlateOcrConfig({
+        ...env,
+        NODE_ENV: "production",
+        PLATE_OCR_ENDPOINT: "https://ocr.example.test/read/",
+      }).status,
+    ).toBe("configured");
   });
   it("classifies missing, invalid-endpoint, and invalid provider configuration without secrets", () => {
     expect(resolvePlateOcrConfig({})).toEqual({
@@ -100,7 +110,9 @@ describe("Snapshot-compatible adapter", () => {
     "maps %s, uses configured endpoint and server-only token",
     async (plateCountry, hint) => {
       const c = setup({ results: [] });
-      expect(await c.provider.recognize({ ...input, plateCountry })).toEqual({
+      expect(
+        await recognizeWithTestPermit(c.provider, { ...input, plateCountry }),
+      ).toEqual({
         status: "NO_MATCH",
       });
       const [url, options] = c.http.mock.calls[0]!;
@@ -129,7 +141,7 @@ describe("Snapshot-compatible adapter", () => {
         { plate: "LOW", score: 0.7 },
       ],
     });
-    expect(await c.provider.recognize(input)).toEqual({
+    expect(await recognizeWithTestPermit(c.provider, input)).toEqual({
       status: "MATCH",
       candidate: { plateNumberRaw: "AA123", confidence: 0.9 },
     });
@@ -137,7 +149,9 @@ describe("Snapshot-compatible adapter", () => {
   it.each([{ results: [] }, { results: [{ plate: "LOW", score: 0.79 }] }])(
     "returns no match %j",
     async (payload) => {
-      expect(await setup(payload).provider.recognize(input)).toEqual({
+      expect(
+        await recognizeWithTestPermit(setup(payload).provider, input),
+      ).toEqual({
         status: "NO_MATCH",
       });
     },
@@ -148,7 +162,9 @@ describe("Snapshot-compatible adapter", () => {
     { results: [{ plate: "bad", score: 2 }] },
     { results: [{ score: 0.9 }] },
   ])("fails safely on malformed response %j", async (payload) => {
-    expect(await setup(payload).provider.recognize(input)).toEqual({
+    expect(
+      await recognizeWithTestPermit(setup(payload).provider, input),
+    ).toEqual({
       status: "UNAVAILABLE",
     });
   });
@@ -163,10 +179,10 @@ describe("Snapshot-compatible adapter", () => {
     ]) {
       const http = vi.fn<typeof fetch>();
       expect(
-        await new PlateRecognizerSnapshotProvider(
-          readPlateOcrConfig(values),
-          http,
-        ).recognize(input),
+        await recognizeWithTestPermit(
+          new PlateRecognizerSnapshotProvider(readPlateOcrConfig(values), http),
+          input,
+        ),
       ).toEqual({ status: "UNAVAILABLE" });
       expect(http).not.toHaveBeenCalled();
     }
@@ -178,7 +194,7 @@ describe("Snapshot-compatible adapter", () => {
     c.http.mockResolvedValueOnce(new Response("not JSON"));
     c.http.mockResolvedValueOnce(new Response("x".repeat(65537)));
     for (let i = 0; i < 4; i++)
-      expect(await c.provider.recognize(input)).toEqual({
+      expect(await recognizeWithTestPermit(c.provider, input)).toEqual({
         status: "UNAVAILABLE",
       });
   });
@@ -192,10 +208,10 @@ describe("Snapshot-compatible adapter", () => {
           );
         }),
     );
-    const promise = new PlateRecognizerSnapshotProvider(
-      readPlateOcrConfig(env),
-      http,
-    ).recognize(input);
+    const promise = recognizeWithTestPermit(
+      new PlateRecognizerSnapshotProvider(readPlateOcrConfig(env), http),
+      input,
+    );
     await vi.advanceTimersByTimeAsync(4000);
     expect(await promise).toEqual({ status: "UNAVAILABLE" });
     expect(http).toHaveBeenCalledOnce();

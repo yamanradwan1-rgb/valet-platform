@@ -3,21 +3,19 @@ import {
   type PlateOcrResponse,
 } from "@valet/contracts";
 import { Logger, type OnModuleInit } from "@nestjs/common";
-import type { PlateOcrProvider } from "./plate-ocr-provider";
+import type {
+  PlateOcrObservedOptions,
+  PlateOcrObservedResult,
+  PlateOcrProvider,
+} from "./plate-ocr-provider";
 import type { PlateOcrConfig, PlateOcrConfigIssue } from "./plate-ocr-config";
-
-const hints = {
-  JO: "jo",
-  AE: "ae",
-  SA: "sa",
-  KW: "kw",
-  BH: "bh",
-  OTHER: undefined,
-};
+import { readBoundedOcrJson } from "./plate-ocr-provider-json";
+import { PlateOcrProviderTransport } from "./plate-ocr-provider-transport";
 const unavailable: PlateOcrResponse = { status: "UNAVAILABLE" };
 
 type ProviderDiagnostic =
   | "candidate-validation-failure"
+  | "cancelled"
   | PlateOcrConfigIssue
   | "http-non-ok"
   | "http-success"
@@ -26,6 +24,7 @@ type ProviderDiagnostic =
   | "match"
   | "network-error"
   | "no-match"
+  | "pre-dispatch-error"
   | "request-start"
   | "response-body-missing"
   | "response-too-large"
@@ -36,14 +35,6 @@ type ParsedResult = {
   diagnostic: ProviderDiagnostic;
   resultCount?: number;
 };
-
-type BoundedJsonResult =
-  | { ok: true; value: unknown }
-  | {
-      ok: false;
-      diagnostic:
-        "invalid-json" | "response-body-missing" | "response-too-large";
-    };
 
 function parseResult(value: unknown, threshold: number): ParsedResult {
   if (
@@ -97,33 +88,6 @@ function parseResult(value: unknown, threshold: number): ParsedResult {
       };
 }
 
-async function boundedJson(response: Response): Promise<BoundedJsonResult> {
-  if (!response.body) return { ok: false, diagnostic: "response-body-missing" };
-  const reader = response.body.getReader();
-  const chunks: Uint8Array[] = [];
-  let length = 0;
-  try {
-    while (true) {
-      const chunk = await reader.read();
-      if (chunk.done) break;
-      length += chunk.value.byteLength;
-      if (length > 64 * 1024)
-        return { ok: false, diagnostic: "response-too-large" };
-      chunks.push(chunk.value);
-    }
-    try {
-      return {
-        ok: true,
-        value: JSON.parse(Buffer.concat(chunks).toString("utf8")) as unknown,
-      };
-    } catch {
-      return { ok: false, diagnostic: "invalid-json" };
-    }
-  } finally {
-    await reader.cancel().catch(() => undefined);
-  }
-}
-
 function resultCount(value: unknown): number | undefined {
   if (!value || typeof value !== "object" || !("results" in value))
     return undefined;
@@ -144,6 +108,14 @@ export class PlateRecognizerSnapshotProvider
     private readonly configIssue: PlateOcrConfigIssue = "provider-config-missing",
   ) {}
 
+  canDispatch(): boolean {
+    return this.config !== undefined;
+  }
+
+  admissionTimeoutMs(): number | undefined {
+    return this.config?.timeoutMs;
+  }
+
   onModuleInit(): void {
     if (!this.config)
       this.logger.warn(`PLATE_OCR_READINESS ${this.configIssue}`);
@@ -161,63 +133,168 @@ export class PlateRecognizerSnapshotProvider
   }
 
   async recognize(
-    input: Parameters<PlateOcrProvider["recognize"]>[0],
+    _input: Parameters<PlateOcrProvider["recognize"]>[0],
   ): Promise<PlateOcrResponse> {
+    void _input;
+    // Legacy entrypoint lacks admission; never dispatch.
+    return unavailable;
+  }
+
+  recognizeObserved(
+    input: Parameters<PlateOcrProvider["recognize"]>[0],
+    options: PlateOcrObservedOptions,
+  ): Promise<PlateOcrObservedResult> {
+    return this.perform(input, options);
+  }
+
+  private async perform(
+    input: Parameters<PlateOcrProvider["recognize"]>[0],
+    options?: PlateOcrObservedOptions,
+  ): Promise<PlateOcrObservedResult> {
+    const started = performance.now();
+    let response: PlateOcrResponse = unavailable;
+    let httpClass: "NONE" | "2XX" | "4XX" | "5XX" = "NONE";
+    let failureClass:
+      | "NONE"
+      | "TIMEOUT"
+      | "CANCELLED"
+      | "NETWORK"
+      | "PROVIDER"
+      | "PARSE"
+      | "OTHER" = "NONE";
+    let httpResponseComplete = false;
+    let transport: PlateOcrProviderTransport | undefined;
+    const observed = (): PlateOcrObservedResult => {
+      const base = {
+        response,
+        httpResponseComplete,
+        durationMs: Math.max(
+          0,
+          Math.min(120_000, Math.round(performance.now() - started)),
+        ),
+      };
+      if (!transport?.fetchInvoked) {
+        return {
+          ...base,
+          fetchInvoked: false,
+          disposition: "NOT_SENT",
+          observationClass: "NOT_INVOKED",
+          httpClass: "NONE",
+          failureClass:
+            failureClass === "CANCELLED" || failureClass === "NONE"
+              ? failureClass
+              : "OTHER",
+        };
+      }
+      if (httpResponseComplete && httpClass !== "NONE") {
+        return {
+          ...base,
+          fetchInvoked: true,
+          disposition: "UNKNOWN",
+          observationClass: "HTTP_COMPLETE",
+          httpClass,
+          failureClass,
+        };
+      }
+      return {
+        ...base,
+        fetchInvoked: true,
+        disposition: "UNKNOWN",
+        observationClass: "UNCERTAIN",
+        httpClass: "NONE",
+        failureClass,
+      };
+    };
     const config = this.config;
     if (!config) {
       this.diagnostic(this.configIssue);
-      return unavailable;
+      return observed();
     }
-    const abort = new AbortController();
-    let timedOut = false;
-    const timer = setTimeout(() => {
-      timedOut = true;
-      abort.abort();
-    }, config.timeoutMs);
+    // Internal JS/casts can omit options: deny transport without a permit.
+    if (
+      !options?.permit ||
+      typeof options.permit.consumeIfFresh !== "function" ||
+      !options.signal
+    )
+      return observed();
     try {
-      const body = new FormData();
-      body.append(
-        "upload",
-        new Blob([new Uint8Array(input.image)], { type: "image/jpeg" }),
-        "plate.jpg",
+      transport = new PlateOcrProviderTransport(
+        config,
+        input,
+        this.http,
+        options.signal,
       );
-      const hint = hints[input.plateCountry];
-      if (hint !== undefined) body.append("regions", hint);
+      const pending = transport.dispatch(options.permit);
+      if (!pending) return observed();
       this.diagnostic("request-start");
-      const response = await this.http(config.endpoint, {
-        method: "POST",
-        body,
-        headers: { Authorization: `Token ${config.token}` },
-        signal: abort.signal,
-        redirect: "error",
-      });
-      if (!response.ok) {
-        this.diagnostic("http-non-ok", { status: response.status });
-        await response.body?.cancel().catch(() => undefined);
-        return unavailable;
+      const providerResponse = await pending;
+      httpClass =
+        providerResponse.status >= 200 && providerResponse.status < 300
+          ? "2XX"
+          : providerResponse.status >= 400 && providerResponse.status < 500
+            ? "4XX"
+            : providerResponse.status >= 500 && providerResponse.status < 600
+              ? "5XX"
+              : "NONE";
+      if (!providerResponse.ok) {
+        failureClass = "PROVIDER";
+        this.diagnostic("http-non-ok", { status: providerResponse.status });
+        void providerResponse.body?.cancel().catch(() => undefined);
+        return observed();
       }
-      const bodyResult = await boundedJson(response);
+      const bodyResult = await readBoundedOcrJson(
+        providerResponse,
+        transport.signal,
+      );
+      httpResponseComplete =
+        bodyResult.ok || bodyResult.diagnostic === "invalid-json";
       if (!bodyResult.ok) {
-        this.diagnostic("http-success", { status: response.status });
-        this.diagnostic(bodyResult.diagnostic, { status: response.status });
-        return unavailable;
+        failureClass = "PARSE";
+        this.diagnostic("http-success", { status: providerResponse.status });
+        this.diagnostic(bodyResult.diagnostic, {
+          status: providerResponse.status,
+        });
+        return observed();
       }
       const count = resultCount(bodyResult.value);
       this.diagnostic("http-success", {
-        status: response.status,
+        status: providerResponse.status,
         resultCount: count,
       });
       const parsed = parseResult(bodyResult.value, config.minScore);
+      if (parsed.response.status === "UNAVAILABLE") failureClass = "PARSE";
+      else failureClass = "NONE";
       this.diagnostic(parsed.diagnostic, {
-        status: response.status,
+        status: providerResponse.status,
         resultCount: parsed.resultCount,
       });
-      return parsed.response;
+      response = parsed.response;
+      return observed();
     } catch {
-      this.diagnostic(timedOut ? "timeout" : "network-error");
-      return unavailable;
+      if (!transport?.fetchInvoked) {
+        // If preparation failed before dispatch, explicitly burn the private
+        // capability before publishing a proven local NOT_SENT observation.
+        try {
+          options?.permit.consumeIfFresh();
+        } catch {
+          // This process has still issued no fetch; never retry dispatch.
+        }
+        failureClass = "OTHER";
+      } else if (transport.timedOut) failureClass = "TIMEOUT";
+      else if (options?.signal.aborted) failureClass = "CANCELLED";
+      else failureClass = "NETWORK";
+      this.diagnostic(
+        failureClass === "TIMEOUT"
+          ? "timeout"
+          : failureClass === "CANCELLED"
+            ? "cancelled"
+            : !transport?.fetchInvoked
+              ? "pre-dispatch-error"
+              : "network-error",
+      );
+      return observed();
     } finally {
-      clearTimeout(timer);
+      transport?.cleanup();
     }
   }
 }
