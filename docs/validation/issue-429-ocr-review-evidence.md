@@ -59,7 +59,9 @@ Open gates before merge/activation: fix and independently review W7 source-to-
 build artifact provenance; execute attested isolated PG17 migrations/ACL/role
 and cross-process correctness/failure tests; authorize representative normal
 and peak envelopes, then run paired Check-In and NOWAIT tests to the accepted
-statistical gates; obtain physical Native proof if merge policy requires it;
+statistical gates; obtain physical Native proof **before acceptance or merge**
+as explicitly required by Accepted DEC-074 §§19–20, unless the Owner formally
+amends that decision (Phase 7 removal is not such an amendment);
 verify provider account/cost cycle/TLS/egress/privacy, human-bound operators,
 alerts/recovery schedule, CI and separate production Owner approval. Without
 this evidence the branch is suitable only for **Owner source review**.
