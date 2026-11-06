@@ -65,6 +65,25 @@ export class GuestPushRegistrationService {
       : { enabled: false, publicKey: null };
   }
 
+  async status(reservation: AntiAbuseReservation, credential: GuestCredential, endpoint: string) {
+    const active = await inPostgresTransaction(this.pool, async (transaction) => {
+      if (credential.kind !== "BROWSER_SESSION") {
+        await this.finalize(transaction, reservation, "COUNTED");
+        return null;
+      }
+      const result = await transaction.query<{ readonly active: boolean | null }>(
+        "SELECT public.guest_push_registration_status_v1($1,$2) AS active",
+        [credential.secret, endpoint],
+      );
+      const match = result.rows[0]?.active;
+      if (match === undefined) throw new GuestPushRegistrationUnavailableError();
+      await this.finalize(transaction, reservation, match === null ? "COUNTED" : "IGNORED");
+      return match;
+    });
+    if (active === null) throw new GuestAccessError("GUEST_ACCESS_INVALID");
+    return { active: active && readGuestPushPublicConfig().enabled };
+  }
+
   async register(
     reservation: AntiAbuseReservation,
     credential: GuestCredential,

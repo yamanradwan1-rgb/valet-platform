@@ -66,6 +66,14 @@ async function exchangeBrowser(
   expect(exchanged.rows[0]?.result_code).toBe("AUTHORIZED");
 }
 
+async function readStatus(index: 0 | 1, endpoint: string, token = browserTokens[index]) {
+  const result = await apiClients[index]!.query<{ active: boolean | null }>(
+    "SELECT public.guest_push_registration_status_v1($1,$2) AS active",
+    [token, endpoint],
+  );
+  return result.rows[0]?.active;
+}
+
 beforeAll(async () => {
   const database = await createDisposableDatabase("valet_guest_push_registration");
   databaseName = database.databaseName;
@@ -165,6 +173,30 @@ describe("Guest Push Browser Session registration races", () => {
     expect(result.rows[0]?.registration_state).toBe("ACTIVE");
   });
 
+  it("verifies only the exact current registration and leaves persisted rows untouched", async () => {
+    const endpoint = "https://fcm.googleapis.com/fcm/send/legacy-expired";
+    const registrations = "SELECT id, state, last_confirmed_at, updated_at FROM guest_push_registrations ORDER BY id";
+    const before = (await adminClient.query(registrations)).rows;
+    expect(await readStatus(0, endpoint)).toBe(true);
+    expect(await readStatus(0, endpoint + "-different")).toBe(false);
+    expect(await readStatus(1, endpoint)).toBe(false);
+    expect(await readStatus(0, endpoint, `vgb1.${"Z".repeat(43)}`)).toBeNull();
+    expect(await readStatus(0, "https://example.test/endpoint")).toBeNull();
+    expect((await adminClient.query(registrations)).rows).toEqual(before);
+
+    const locationId = sessions[0]!.locationId;
+    try {
+      await adminClient.query(
+        "UPDATE locations SET guest_vehicle_ready_notification_enabled_override=false WHERE id=$1", [locationId],
+      );
+      expect(await readStatus(0, endpoint)).toBe(false);
+    } finally {
+      await adminClient.query(
+        "UPDATE locations SET guest_vehicle_ready_notification_enabled_override=NULL WHERE id=$1", [locationId],
+      );
+    }
+  });
+
   it("serializes endpoint contention to one ACTIVE binding and clears loser secrets", async () => {
     const endpoint = "https://fcm.googleapis.com/fcm/send/shared-endpoint";
     const results = await Promise.all(
@@ -201,5 +233,13 @@ describe("Guest Push Browser Session registration races", () => {
     );
     expect(rows.rows[0]?.active).toBe(1);
     expect(rows.rows[0]?.cleared_terminal).toBeGreaterThanOrEqual(1);
+    const matches = await Promise.all([readStatus(0, endpoint), readStatus(1, endpoint)]);
+    expect(matches.filter(Boolean)).toHaveLength(1);
+    expect(await readStatus(0, "https://fcm.googleapis.com/fcm/send/legacy-expired")).toBe(false);
+  });
+
+  it("returns denied authority after the authorized Browser Session ends", async () => {
+    await apiClients[0]!.query("SELECT public.guest_browser_end($1)", [browserTokens[0]]);
+    expect(await readStatus(0, "https://fcm.googleapis.com/fcm/send/shared-endpoint")).toBeNull();
   });
 });

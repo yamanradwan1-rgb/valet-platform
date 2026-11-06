@@ -1,3 +1,4 @@
+import { guestPushStatusRequestSchema } from "@valet/contracts";
 import { ApiTransportValidationError } from "../../common/http/api-errors";
 import { guestWebPushEndpointAllowed } from "../guest-push/guest-web-push-adapter";
 
@@ -24,6 +25,14 @@ export class GuestPushRegistrationUnavailableError extends Error {
 
 const P256DH_PATTERN = /^[A-Za-z0-9_-]{80,128}={0,2}$/;
 const AUTH_PATTERN = /^[A-Za-z0-9_-]{16,64}={0,2}$/;
+
+export function parseGuestPushStatusEndpoint(value: unknown): string {
+  const result = guestPushStatusRequestSchema.safeParse(value);
+  if (!result.success || !guestWebPushEndpointAllowed(result.data.endpoint)) {
+    throw new ApiTransportValidationError();
+  }
+  return result.data.endpoint;
+}
 
 export function parseGuestPushRegistrationRequest(
   value: unknown,

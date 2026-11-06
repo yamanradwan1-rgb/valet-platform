@@ -250,3 +250,11 @@ Android handoff evidence and T5-UI-02 requires supported real-device
 background/closed-app proof before a launch claim. T5-UI-05 remains unavailable
 on Locations without verified on-site staff assistance. The official/legal
 receipt preview stays development-only/deferred.
+### Issue #435 notification status amendment
+
+The owner authorizes blocked, incomplete and unverified copy in the existing
+Guest Push card. An exact verified registration hides the card across
+refreshes. A passive check never asks for permission, subscribes, or registers.
+Not now dismisses the current document's card only. The existing Push card
+geometry, components and theme tokens apply to all notification states.
+

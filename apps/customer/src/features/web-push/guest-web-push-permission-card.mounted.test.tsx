@@ -18,7 +18,7 @@ import {
   type TestDocument,
 } from "../../app/guest-refresh-mounted.test-host";
 import { GUEST_CONTEXT_CHANGED_EVENT } from "../../lib/api/guest-browser-context-marker";
-import type { GuestWebPushTransport } from "./guest-web-push-client";
+import type { GuestWebPushStatusTransport } from "./guest-web-push-status";
 
 const client = vi.hoisted(() => ({ enable: vi.fn() }));
 vi.mock("./guest-web-push-client", () => ({
@@ -51,7 +51,7 @@ describe("Guest Web Push permission card mounted lifecycle", () => {
   let document: TestDocument;
   let window: ReturnType<typeof installTestDom>["window"];
   let loadKey: Mock<(signal?: AbortSignal) => Promise<string>>;
-  let transport: GuestWebPushTransport;
+  let transport: GuestWebPushStatusTransport;
 
   beforeEach(() => {
     ({ document, window } = installTestDom());
@@ -62,7 +62,7 @@ describe("Guest Web Push permission card mounted lifecycle", () => {
     document.body.appendChild(container);
     root = createRoot(container as unknown as Element);
     loadKey = vi.fn(async () => "public-key");
-    transport = { loadVapidPublicKey: loadKey, registerSubscription: vi.fn() };
+    transport = { loadVapidPublicKey: loadKey, verifySubscription: vi.fn(), registerSubscription: vi.fn() };
     client.enable.mockReset();
   });
 

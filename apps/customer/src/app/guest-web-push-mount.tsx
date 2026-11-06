@@ -13,9 +13,11 @@ export function GuestWebPushMount({
   if (
     !enabled ||
     session.guestVehicleReadyNotificationEnabled !== true ||
-    session.readyAt !== null
+    session.readyAt !== null ||
+    session.state === 'READY' ||
+    session.state === 'COMPLETED'
   ) {
     return null;
   }
-  return <GuestWebPushPermissionCard />;
+  return <GuestWebPushPermissionCard key={session.valetSessionId} />;
 }

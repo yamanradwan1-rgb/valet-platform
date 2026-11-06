@@ -39,6 +39,20 @@ export interface GuestWebPushTransport {
     payload: GuestWebPushRegistrationPayload,
     signal?: AbortSignal,
   ): Promise<void>;
+  verifySubscription?(endpoint: string, signal?: AbortSignal): Promise<boolean>;
+}
+
+export function isCurrentGuestPushSubscription(
+  subscription: PushSubscription | null,
+): subscription is PushSubscription {
+  return subscription !== null &&
+    (subscription.expirationTime == null || subscription.expirationTime > Date.now());
+}
+
+export class GuestWebPushDisabledError extends Error {
+  constructor() {
+    super("Guest Web Push registration is disabled.");
+  }
 }
 
 interface BrowserPushDependencies {
@@ -204,10 +218,25 @@ export async function enableGuestWebPush(
     dependencies.serviceWorkerReady(),
   );
   assertCurrent();
-  let subscription = await stages("existing subscription", 5_000, () =>
-    registration.pushManager.getSubscription(),
-  );
+  const readSubscription = () => stages("existing subscription", 5_000, async () => {
+    const current = await registration.pushManager.getSubscription();
+    return isCurrentGuestPushSubscription(current) ? current : null;
+  });
+  let subscription = await readSubscription();
   assertCurrent();
+  const verify = transport.verifySubscription?.bind(transport);
+  if (subscription !== null && verify) {
+    const endpoint = subscription.endpoint;
+    const active = await stages("registration verification", 10_000, (stageSignal) =>
+      verify(endpoint, stageSignal),
+    );
+    subscription = await readSubscription();
+    assertCurrent();
+    if (active && subscription?.endpoint === endpoint) return "ENABLED";
+    if (subscription?.endpoint !== endpoint) {
+      throw new GuestWebPushStageError("registration verification", undefined);
+    }
+  }
   let created = false;
   if (subscription === null) {
     const publicKey = await stages("public key", 8_000, (stageSignal) =>

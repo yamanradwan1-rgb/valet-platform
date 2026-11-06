@@ -14,6 +14,7 @@ function harness() {
   const service = {
     config: vi.fn(async () => ({ enabled: true, publicKey: "A".repeat(87) })),
     register: vi.fn(async () => undefined),
+    status: vi.fn(async () => ({ active: true })),
   };
   const runner = {
     run: vi.fn(async (_policy: unknown, _request: unknown, action: () => unknown) => action()),
@@ -80,4 +81,27 @@ describe("Guest Push registration HTTP composition", () => {
     )).rejects.toThrow("invalid");
     expect(h.service.register).not.toHaveBeenCalled();
   });
+
+  it("reads exact endpoint status with CSRF transport, Class A accounting and no-store", async () => {
+    const h = harness();
+    await expect(h.controller.status({} as never, { endpoint }, {}, h.response))
+      .resolves.toEqual({ active: true });
+    expect(h.authorizer.authorize).toHaveBeenCalledWith(
+      {}, { mutation: true, requestClass: "A" }, expect.any(Function),
+    );
+    expect(h.service.status).toHaveBeenCalledWith(
+      {}, expect.objectContaining({ kind: "BROWSER_SESSION" }), endpoint,
+    );
+    expect(h.headers.get("Cache-Control")).toBe("no-store");
+    expect(h.service.register).not.toHaveBeenCalled();
+  });
+
+  it.each([{ endpoint, auth: "unexpected" }, { endpoint: "https://example.test/private" }, {}])(
+    "rejects invalid status input before admission",
+    async (body) => {
+      const h = harness();
+      await expect(h.controller.status({} as never, body, {}, h.response)).rejects.toThrow("invalid");
+      expect(h.authorizer.authorize).not.toHaveBeenCalled();
+    },
+  );
 });

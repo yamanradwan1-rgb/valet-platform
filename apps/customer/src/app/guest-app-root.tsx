@@ -233,7 +233,12 @@ export function GuestAppRoot() {
         onRefresh={() => void refreshSession()}
       />
 
-      <GuestWebPushMount enabled={Boolean(client && isTokenBootstrapComplete && !isExpired)} session={session} />
+      <GuestWebPushMount
+        enabled={Boolean(client && token === null && isTokenBootstrapComplete &&
+          !isBootstrapTemporarilyUnavailable && !isExpired && !contextConflictScope &&
+          !isContextSwitching && !isContextSwitchOutcomeAmbiguous)}
+        session={session}
+      />
 
       {/* Dedicated Dev-Only Preview Overlays and Navigator */}
       {isDev && (

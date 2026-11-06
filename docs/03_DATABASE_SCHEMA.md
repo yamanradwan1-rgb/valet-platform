@@ -149,6 +149,14 @@ authorized sender, controlled EN/AR locale, versioned endpoint hash and
 registration and at most one ACTIVE endpoint hash owner. Terminalization
 clears raw destination/key material; no public read exposes it.
 
+Issue #435 adds `guest_push_registration_status_v1(text,text)` for the API
+runtime. It reuses the locked active Browser Session resolver and the existing
+versioned endpoint hash, then checks exact endpoint equality and the ACTIVE
+registration's persisted visit, generation, Organization, and Location.
+The function returns only a boolean for eligible authority or NULL for denied
+authority. It performs no registration writes. The API runtime receives
+EXECUTE on this function through role provisioning and no direct table access.
+
 **GuestPushIntent:** UUID, exact Organization/Location/ValetSession, versioned
 `GUEST_VEHICLE_READY` kind, server-immutable `ready_at`, creation time
 and one absolute 30-minute expiry. Database unique

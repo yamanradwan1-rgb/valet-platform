@@ -7,7 +7,8 @@ import { guestWebPushCopy } from "./guest-web-push-copy";
 import type { GuestWebPushCapability } from "./guest-web-push-client";
 import { useFrozenPushFeedbackSpace } from "./use-frozen-push-feedback-space";
 
-type PresentationState = GuestWebPushCapability | "ENABLING" | "FAILED";
+type PresentationState = GuestWebPushCapability | "ENABLING" | "FAILED" |
+  "SUBSCRIPTION_MISSING" | "SERVER_BINDING_MISSING";
 
 export function GuestWebPushPermissionPresentation({
   copy,
@@ -26,13 +27,13 @@ export function GuestWebPushPermissionPresentation({
   readonly onDismiss: () => void;
   readonly onEnable: () => void;
 }) {
-  const canEnable = state === "AVAILABLE" || state === "FAILED";
+  const incomplete = state === "SUBSCRIPTION_MISSING" || state === "SERVER_BINDING_MISSING";
+  const canEnable = state === "AVAILABLE" || state === "FAILED" || incomplete;
   const unavailable =
-    state === "DENIED" ||
     state === "UNSUPPORTED" ||
     state === "IOS_HOME_SCREEN_REQUIRED" ||
     state === "FAILED";
-  const body =
+  const body = state === "DENIED" ? copy.blockedBody : incomplete ? copy.incompleteBody :
     state === "IOS_HOME_SCREEN_REQUIRED"
       ? copy.iosHomeScreenRequired
       : unavailable
@@ -62,7 +63,7 @@ export function GuestWebPushPermissionPresentation({
       }}
     >
       <strong style={{ color: C.text, display: "block", fontSize: 15 }}>
-        {copy.permissionTitle}
+        {state === "DENIED" ? copy.blockedTitle : incomplete ? copy.incompleteTitle : copy.permissionTitle}
       </strong>
       <p
         ref={ref}

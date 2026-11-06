@@ -50,6 +50,7 @@ const workerFunctions = [
 
 const forbiddenFunctions = [
   "public.guest_push_register_v1(text,text,text,text,text)",
+  "public.guest_push_registration_status_v1(text,text)",
   "public.guest_push_ready_intent_v1(uuid,uuid,uuid,timestamp with time zone)",
   "public.guest_push_registration_guard()",
   "public.guest_push_intent_immutable_guard()",

@@ -1,6 +1,7 @@
 import {
   GUEST_BROWSER_CSRF_HEADER,
   GUEST_BROWSER_CSRF_VALUE,
+  guestPushStatusResponseSchema,
 } from '@valet/contracts';
 
 import { getGuestApiBaseUrl } from '../../lib/api/api-config';
@@ -13,10 +14,11 @@ import {
   executeGuestHttpRequest,
   parseGuestRetryAfter,
 } from '../../lib/api/guest-http-transport';
-import type {
-  GuestWebPushRegistrationPayload,
-  GuestWebPushTransport,
+import {
+  GuestWebPushDisabledError,
+  type GuestWebPushRegistrationPayload,
 } from './guest-web-push-client';
+import type { GuestWebPushStatusTransport } from './guest-web-push-status';
 
 interface GuestWebPushConfig {
   readonly enabled: boolean;
@@ -145,15 +147,10 @@ function assertSameBrowserContext(before: string | null): void {
 
 export function createGuestWebPushTransport(
   baseUrl = getGuestApiBaseUrl(),
-): GuestWebPushTransport {
-  let cachedPublicKey: string | null = null;
+): GuestWebPushStatusTransport {
   return {
     async loadVapidPublicKey(signal) {
       const context = readBrowserContextMarker();
-      if (cachedPublicKey !== null) {
-        assertSameBrowserContext(context);
-        return cachedPublicKey;
-      }
       const config = await executeGuestHttpRequest<GuestWebPushConfig>({
         url: `${baseUrl}/push/config`,
         init: { method: 'GET', cache: 'no-store', credentials: 'same-origin', headers: { Accept: 'application/json' } },
@@ -161,11 +158,30 @@ export function createGuestWebPushTransport(
         parse: parseConfig,
       });
       assertSameBrowserContext(context);
-      if (!config.enabled || config.publicKey === null || config.publicKey.length === 0) {
+      if (!config.enabled) throw new GuestWebPushDisabledError();
+      if (config.publicKey === null || config.publicKey.length === 0) {
         throw new Error('Guest Web Push is unavailable.');
       }
-      cachedPublicKey = config.publicKey;
       return config.publicKey;
+    },
+    async verifySubscription(endpoint, signal) {
+      const context = readBrowserContextMarker();
+      const result = await executeGuestHttpRequest<{ active: boolean }>({
+        url: `${baseUrl}/push/registration/status`,
+        init: {
+          method: 'POST', cache: 'no-store', credentials: 'same-origin', redirect: 'error',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            [GUEST_BROWSER_CSRF_HEADER]: GUEST_BROWSER_CSRF_VALUE,
+          },
+          body: JSON.stringify({ endpoint }),
+        },
+        callerSignal: signal,
+        parse: (raw) => guestPushStatusResponseSchema.parse(raw),
+      });
+      assertSameBrowserContext(context);
+      return result.active;
     },
     async registerSubscription(payload: GuestWebPushRegistrationPayload, signal) {
       const context = readBrowserContextMarker();

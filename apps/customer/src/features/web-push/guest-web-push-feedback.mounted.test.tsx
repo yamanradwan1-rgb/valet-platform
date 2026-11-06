@@ -8,7 +8,7 @@ import {
   type TestElement,
 } from "../../app/guest-refresh-mounted.test-host";
 import { GuestApiError } from "../../lib/api/api-error";
-import type { GuestWebPushTransport } from "./guest-web-push-client";
+import type { GuestWebPushStatusTransport } from "./guest-web-push-status";
 import {
   guestPushFeedbackCopy,
   type GuestPushFeedbackKind,
@@ -26,7 +26,10 @@ const client = vi.hoisted(() => ({
 }));
 vi.mock("./guest-web-push-client", () => ({
   detectGuestWebPushCapability: () => client.capability,
-  readGuestWebPushCapability: () => ({ isSecureContext: client.secure }),
+  readGuestWebPushCapability: () => ({
+    isSecureContext: client.secure,
+    permission: client.capability === "DENIED" ? "denied" : "default",
+  }),
   enableGuestWebPush: client.enable,
 }));
 vi.mock("../../i18n/use-translation", () => ({
@@ -40,7 +43,7 @@ import { GuestWebPushPermissionCard } from "./guest-web-push-permission-card";
 describe("mounted truthful activation feedback", () => {
   let root: Root;
   let container: TestElement;
-  let transport: GuestWebPushTransport;
+  let transport: GuestWebPushStatusTransport;
   beforeEach(() => {
     const { document } = installTestDom();
     Object.assign(document, { cookie: "" });
@@ -49,7 +52,7 @@ describe("mounted truthful activation feedback", () => {
     root = createRoot(container as unknown as Element);
     transport = {
       loadVapidPublicKey: vi.fn(async () => "key"),
-      registerSubscription: vi.fn(),
+      verifySubscription: vi.fn(), registerSubscription: vi.fn(),
     };
     client.enable.mockReset();
     client.capability = "AVAILABLE";
@@ -226,9 +229,14 @@ describe("mounted truthful activation feedback", () => {
       client.capability = capability;
       client.secure = secure;
       await mount();
-      feedback(kind);
+      if (kind === "DENIED") {
+        expect(container.textContent).toContain("Notifications are blocked");
+        expect(transport.loadVapidPublicKey).toHaveBeenCalledTimes(1);
+      } else {
+        feedback(kind);
+        expect(transport.loadVapidPublicKey).not.toHaveBeenCalled();
+      }
       expect(client.enable).not.toHaveBeenCalled();
-      expect(transport.loadVapidPublicKey).not.toHaveBeenCalled();
     },
   );
 });

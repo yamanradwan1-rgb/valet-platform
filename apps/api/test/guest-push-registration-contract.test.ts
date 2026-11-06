@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { mapApiError } from "../src/common/http/api-errors";
 import { readGuestPushPublicConfig } from "../src/modules/guest-push-registration/guest-push-public-config";
@@ -16,6 +16,8 @@ const reservation = {
   key: { scope: "GUEST_UNKNOWN_CREDENTIAL", value: "safe" },
   id: "11111111-1111-4111-8111-111111111111",
 } as never;
+
+afterEach(() => vi.unstubAllEnvs());
 
 describe("Guest Push public registration contract", () => {
   it("uses only registration rollout state and the public VAPID key", () => {
@@ -131,5 +133,30 @@ describe("Guest Push public registration contract", () => {
     expect(query.mock.calls.map(([sql]) => String(sql))).not.toContain("ROLLBACK");
     expect(query.mock.calls.some(([sql]) => String(sql).includes("guest_push_register_v1")))
       .toBe(false);
+  });
+
+  it.each([true, false, null, undefined])("keeps status %s distinct from dependency failure", async (active) => {
+    vi.stubEnv("GUEST_PUSH_REGISTRATION_ENABLED", "true");
+    vi.stubEnv("GUEST_PUSH_VAPID_PUBLIC_KEY", publicKey);
+    const query = vi.fn(async (sql: string) => ({
+      rows: sql.startsWith("SELECT") && active !== undefined ? [{ active }] : [],
+    }));
+    const pool = { connect: async () => ({ query, release: vi.fn() }) };
+    const antiAbuse = { finalizeInTransaction: vi.fn() };
+    const service = new GuestPushRegistrationService(pool as never, antiAbuse as never, {} as never);
+    const authority = { kind: "BROWSER_SESSION", secret: `vgb1.${"B".repeat(43)}` } as const;
+    const operation = service.status(reservation, authority, endpoint);
+    if (active === null) await expect(operation).rejects.toMatchObject({ code: "GUEST_ACCESS_INVALID" });
+    else if (active === undefined) await expect(operation).rejects.toBeInstanceOf(GuestPushRegistrationUnavailableError);
+    else await expect(operation).resolves.toEqual({ active });
+    expect(query).toHaveBeenCalledWith(
+      "SELECT public.guest_push_registration_status_v1($1,$2) AS active",
+      [authority.secret, endpoint],
+    );
+    if (active !== undefined) {
+      expect(antiAbuse.finalizeInTransaction).toHaveBeenCalledWith(
+        expect.anything(), reservation, active === null ? "COUNTED" : "IGNORED",
+      );
+    }
   });
 });

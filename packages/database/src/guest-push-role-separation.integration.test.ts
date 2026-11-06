@@ -118,7 +118,8 @@ describe("Guest Push API and sender database role separation", () => {
       .toBe(false);
   });
 
-  it("gives API only registration and READY intent functions", async () => {
+  it("gives API only registration, status and READY intent functions", async () => {
+    expect(await functionAllowed(apiRole, "guest_push_registration_status_v1(text,text)")).toBe(true);
     expect(await functionAllowed(
       apiRole,
       "guest_push_register_v1(text,text,text,text,text)",
@@ -130,6 +131,7 @@ describe("Guest Push API and sender database role separation", () => {
   });
 
   it("gives worker sender authority but no API registration authority", async () => {
+    expect(await functionAllowed(workerRole, "guest_push_registration_status_v1(text,text)")).toBe(false);
     expect(await tableAllowed(workerRole, "guest_push_deliveries", "SELECT"))
       .toBe(true);
     expect(await functionAllowed(
