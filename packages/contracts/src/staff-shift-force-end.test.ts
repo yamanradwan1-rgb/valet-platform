@@ -30,6 +30,9 @@ describe("T05-F strict Force End contracts", () => {
     expect(
       request.safeParse({ ...command, reason: "x".repeat(500) }).success,
     ).toBe(true);
+    expect(
+      request.safeParse({ ...command, reason: "😀".repeat(250) }).success,
+    ).toBe(true);
   });
   it.each([
     { operationId: "invalid" },

@@ -1,7 +1,20 @@
 import { z } from "zod";
 
-// Match the existing handoff/dispatch reason convention; preserve Unicode text.
-export const staffShiftForceEndReasonSchema = z.string().trim().min(1).max(500);
+// Preserve the existing 500 UTF-16 code-unit cap. Zod 4.6+ counts Unicode
+// code points in .max(), which would admit previously rejected long emoji text.
+export const staffShiftForceEndReasonSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .superRefine((reason, context) => {
+    if (reason.length > 500)
+      context.addIssue({
+        code: "too_big",
+        origin: "string",
+        maximum: 500,
+        inclusive: true,
+      });
+  });
 
 export const staffShiftForceEndRequestSchema = z
   .object({
