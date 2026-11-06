@@ -20,6 +20,8 @@ import {
 import { GUEST_CONTEXT_CHANGED_EVENT } from "../../lib/api/guest-browser-context-marker";
 import type { GuestWebPushStatusTransport } from "./guest-web-push-status";
 
+type GuestWebPushStatusModule = typeof import("./guest-web-push-status");
+
 const client = vi.hoisted(() => ({ enable: vi.fn() }));
 const status = vi.hoisted(() => ({ verified: false }));
 vi.mock("./guest-web-push-client", () => ({
@@ -31,7 +33,7 @@ vi.mock("../../i18n/use-translation", () => ({
   useTranslation: () => ({ locale: "en", direction: "ltr" }),
 }));
 vi.mock("./guest-web-push-status", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("./guest-web-push-status")>();
+  const actual = await importOriginal<GuestWebPushStatusModule>();
   return {
     ...actual,
     readGuestWebPushStatus: async (transport: GuestWebPushStatusTransport, signal: AbortSignal) => {
