@@ -106,8 +106,9 @@ describe.each(["light", "dark"] as const)(
             expect(rowLabel!.props.children).toBe(label);
             expect(rowValue!.props.children).toBe(expected);
             expect(rowValue!.props.style).toMatchObject({
-              textAlign: "left",
-              writingDirection: "ltr",
+              textAlign: !zone && !spot && locale === "ar" ? "right" : "left",
+              writingDirection:
+                !zone && !spot && locale === "ar" ? "rtl" : "ltr",
             });
             expect(rowLabel!.props.style).toMatchObject({
               textAlign: locale === "ar" ? "right" : "left",
@@ -133,7 +134,12 @@ describe.each(["light", "dark"] as const)(
             const completeValue = (
               completeRow.props.children as ReturnType<typeof appearanceNodes>
             )[1]!;
-            expect(rowValue!.props.style).toEqual(completeValue.props.style);
+            expect(rowValue!.props.style).toEqual({
+              ...(completeValue.props.style as Record<string, unknown>),
+              ...(!zone && !spot && locale === "ar"
+                ? { textAlign: "right", writingDirection: "rtl" }
+                : {}),
+            });
             const interactive = appearanceNodes(
               current.render(file, "NativeRetrievalPanel", props, false, true),
             );

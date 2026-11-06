@@ -57,7 +57,11 @@ export function NativeRetrievalDetails({
     ...(includeKey && snapshot.session?.keySlot?.code
       ? [{ label: copy.key, value: snapshot.session.keySlot.code }]
       : []),
-    { label: copy.location, value: location },
+    {
+      label: copy.location,
+      value: location,
+      human: location === copy.locationNotSpecified,
+    },
   ];
   return (
     <View style={s.detailCard}>
@@ -67,7 +71,12 @@ export function NativeRetrievalDetails({
             {row.label}
           </Text>
           <Text
-            style={[s.rowValue, employeeTextStyle("identifier", textAlign)]}
+            style={[
+              s.rowValue,
+              row.human
+                ? employeeTextStyle("human", textAlign)
+                : employeeTextStyle("identifier", textAlign),
+            ]}
           >
             {row.value}
           </Text>
