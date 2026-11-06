@@ -228,8 +228,11 @@ def load_scan(path: str | Path) -> Scan:
 
 
 def compare(head: Scan, base: Scan) -> dict:
-    if head.version != base.version or head.category != base.category or head.rules != base.rules:
-        raise InvalidScan("CodeQL head/base tool, category or query suite differs")
+    # SARIF may list available-but-unexecuted rule descriptors. The workflow
+    # runs the same fixed QLS with one CLI for head/base; descriptor-set
+    # equality is NOT reliable query-suite provenance.
+    if head.version != base.version or head.category != base.category:
+        raise InvalidScan("CodeQL head/base tool version or category differs")
     grouped_head = defaultdict(list)
     grouped_base = defaultdict(list)
     for key, severity in head.alerts:

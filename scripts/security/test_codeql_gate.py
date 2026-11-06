@@ -135,8 +135,25 @@ class CodeQLGateTests(unittest.TestCase):
         new_path = finding(file="apps/api/src/other.ts")
         self.assertEqual(self.run_gate(report(new_path), report(original))["blocked"], 1)
         other = report(finding(rule="js/other"), query="js/other")
-        with self.assertRaisesRegex(gate.InvalidScan, "query suite"):
-            self.run_gate(other, report(original))
+        self.assertEqual(self.run_gate(other, report(original))["blocked"], 1)
+
+    def test_extra_available_unexecuted_rule_does_not_false_red(self):
+        old = finding()
+        head = report(old)
+        head["runs"][0]["tool"]["driver"]["rules"].append(
+            {"id": "js/available-but-unexecuted", "properties": {"security-severity": "9.5"}})
+        self.assertEqual(self.run_gate(head, report(old))["blocked"], 0)
+        self.assertEqual(self.cli(head, report(old)).returncode, 0)
+
+    def test_new_high_rule_only_in_head_still_blocks(self):
+        old = finding()
+        added = finding(rule="js/new-high", hash_value="new-high-location")
+        head = report(old, added)
+        head["runs"][0]["tool"]["driver"]["rules"].append(
+            {"id": "js/new-high", "properties": {"security-severity": "8.1"}})
+        summary = self.run_gate(head, report(old))
+        self.assertEqual((summary["existing"], summary["new"], summary["blocked"]), (1, 1, 1))
+        self.assertEqual(self.cli(head, report(old)).returncode, 1)
 
     def test_missing_and_corrupt_reports_fail_closed_without_leaking_paths(self):
         for name, data in (("missing.sarif", None), ("empty.sarif", b""),
@@ -194,11 +211,10 @@ class CodeQLGateTests(unittest.TestCase):
             with self.subTest(score=score), self.assertRaises(gate.InvalidScan):
                 self.run_gate(report(finding(), score=score), report(finding(), score=score))
 
-    def test_rules_and_tool_version_or_category_mismatch_fail_closed(self):
+    def test_tool_version_or_category_mismatch_fails_closed(self):
         cases = [
             (report(finding(), version="2.25.0"), report(finding())),
             (report(finding(), category="python"), report(finding())),
-            (report(finding(), query="js/other"), report()),
         ]
         for head, base in cases:
             with self.subTest(head=head["runs"][0]["automationDetails"]["id"]):
