@@ -5,9 +5,16 @@ import { readGuestWebPushStatus } from "./guest-web-push-status";
 import { GuestWebPushDisabledError } from "./guest-web-push-client";
 
 const endpoint = "https://push.example.test/current";
+// 87 unpadded base64url 'A' characters decode to exactly 65 zero bytes.
+const publicVapidKey = "A".repeat(87);
+const applicationServerKey = new Uint8Array(65).buffer;
 
 function makeSubscription(address = endpoint, expirationTime: number | null = null) {
-  return { endpoint: address, expirationTime } as PushSubscription;
+  return {
+    endpoint: address,
+    expirationTime,
+    options: { applicationServerKey, userVisibleOnly: true },
+  } as PushSubscription;
 }
 
 describe("Issue 435 passive refresh verification invariants", () => {
@@ -32,7 +39,7 @@ describe("Issue 435 passive refresh verification invariants", () => {
       (endpoint: string, signal?: AbortSignal) => Promise<boolean>
     >(async () => true);
     transport = {
-      loadVapidPublicKey: vi.fn(async () => "public-key"),
+      loadVapidPublicKey: vi.fn(async () => publicVapidKey),
       registerSubscription: vi.fn(async () => undefined),
       verifySubscription,
     };
@@ -52,6 +59,12 @@ describe("Issue 435 passive refresh verification invariants", () => {
 
   const check = (transport: GuestWebPushStatusTransport) =>
     readGuestWebPushStatus(transport, new AbortController().signal);
+
+  it("confirms an exact ACTIVE endpoint with the currently configured VAPID key", async () => {
+    await expect(check(transport)).resolves.toBe("ENABLED_VERIFIED");
+    expect(verifySubscription).toHaveBeenCalledExactlyOnceWith(endpoint, expect.any(AbortSignal));
+    expect(transport.registerSubscription).not.toHaveBeenCalled();
+  });
 
   it("requires exact server ACTIVE proof for the current endpoint", async () => {
     verifySubscription.mockResolvedValue(false);

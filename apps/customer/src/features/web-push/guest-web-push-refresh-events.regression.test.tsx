@@ -15,10 +15,13 @@ vi.mock("../../i18n/use-translation", () => ({
 }));
 
 const endpoint = "https://push.example.test/current";
+const publicVapidKey = "A".repeat(87);
 const firstContext = `vgc1.${"1".repeat(32)}`;
 const secondContext = `vgc1.${"2".repeat(32)}`;
 const subscription = {
   endpoint,
+  // The 87-character unpadded VAPID key decodes to exactly 65 zero bytes.
+  options: { applicationServerKey: new Uint8Array(65).buffer, userVisibleOnly: true },
   toJSON: () => ({ endpoint, keys: { auth: "auth-key", p256dh: "p256dh-key" } }),
 };
 
@@ -47,28 +50,32 @@ describe("Issue 435 mounted refresh races and passive wakeups", () => {
     await act(async () => invokeReactClick(findElement(container, "button", text)));
   }
 
-  beforeEach(() => {
+  function installBrowserDocument() {
     dom = installTestDom();
     dom.window.isSecureContext = true;
     dom.window.matchMedia = () => ({ matches: false });
     Object.assign(dom.document, { cookie: `__Host-vaylet_guest_context=${firstContext}` });
-    permission = "granted";
-    active = true;
-    prompt = vi.fn();
-    subscribe = vi.fn();
-    vi.stubGlobal("Notification", { get permission() { return permission; }, requestPermission: prompt });
-    vi.stubGlobal("PushManager", class {});
     const worker = { active: {}, pushManager: { getSubscription: async () => subscription, subscribe } };
     Object.assign(dom.navigator, { serviceWorker: Object.assign(new EventTarget(), {
       getRegistration: async () => worker,
       ready: Promise.resolve(worker),
       register: vi.fn(),
     }) });
+  }
+
+  beforeEach(() => {
+    permission = "granted";
+    active = true;
+    prompt = vi.fn();
+    subscribe = vi.fn();
+    vi.stubGlobal("Notification", { get permission() { return permission; }, requestPermission: prompt });
+    vi.stubGlobal("PushManager", class {});
+    installBrowserDocument();
     status = async () => Response.json({ active });
     register = async () => new Response(null, { status: 204 });
     fetcher = vi.fn<typeof fetch>(async (url) => {
       if (String(url).endsWith("/push/config")) {
-        return Response.json({ enabled: true, publicKey: "A".repeat(87) });
+        return Response.json({ enabled: true, publicKey: publicVapidKey });
       }
       if (String(url).endsWith("/push/registration/status")) return status();
       if (String(url).endsWith("/push/registration")) return register();
@@ -142,8 +149,18 @@ describe("Issue 435 mounted refresh races and passive wakeups", () => {
     await act(async () => (dom.window as unknown as Window).dispatchEvent(new Event("focus")));
     expect(container.textContent).toBe("");
     await mount();
+    expect(container.textContent).toBe("");
+    expect(paths().filter((path) => path === "registration/status")).toHaveLength(1);
+
+    // A real reload creates a new Document. The in-memory dismissal must expire.
+    await act(async () => root?.unmount());
+    root = undefined;
+    installBrowserDocument();
+    await mount();
     expect(container.textContent).toContain("Notifications aren't fully enabled");
+    expect(paths().filter((path) => path === "registration/status")).toHaveLength(2);
     expect(paths()).not.toContain("registration");
     expect(prompt).not.toHaveBeenCalled();
+    expect(subscribe).not.toHaveBeenCalled();
   });
 });
