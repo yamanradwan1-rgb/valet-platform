@@ -112,6 +112,13 @@ describe('Owner-approved same-browser Guest context conflict overlay', () => {
       }),
     ).toBe(true);
     expect(
+      shouldShowGuestContextConflict({
+        hasSession: false,
+        isExpired: false,
+        isSwitchOutcomeAmbiguous: true,
+      }),
+    ).toBe(true);
+    expect(
       shouldPreserveAmbiguousGuestSnapshot({
         hasSession: true,
         isSwitchOutcomeAmbiguous: true,

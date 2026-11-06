@@ -171,9 +171,9 @@ export const arTranslations: TranslationDictionary = {
   'system.cooldownNotice': 'يرجى الانتظار {seconds} ثانية قبل التحديث.',
   'system.networkUnavailableSub': 'انقطع الاتصال. تم حفظ حالة سيارتك الحالية.',
   'system.lastRecordedState': 'آخر حالة مسجلة: {state}',
-  'system.expiredTitle': 'خدمة الاصطفاف غير متاحة',
+  'system.expiredTitle': 'وصول الضيف غير متاح',
   'system.expiredSub':
-    'هذا الرابط غير صالح أو انتهت صلاحيته. يرجى فتح الرابط المرسل إلى هاتفك أثناء تسجيل الوصول.',
+    'افتح رابط الضيف الأصلي أو اطلب المساعدة من فريق خدمة الاصطفاف.',
   'system.requestErrorTitle': 'تعذر إرسال الطلب',
   'system.requestErrorDefault': 'يرجى المحاولة مرة أخرى أو مراجعة مكتب خدمة الاصطفاف.',
 

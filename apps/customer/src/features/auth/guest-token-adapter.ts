@@ -31,6 +31,10 @@ export function extractGuestFragmentToken(): string | null {
   if (typeof window === "undefined") return null;
 
   const hash = window.location.hash;
+  if (hash === "#guestToken") {
+    scrubFragment();
+    return null;
+  }
   if (!hash.startsWith(GUEST_FRAGMENT_PREFIX)) return null;
 
   const candidate = hash.slice(GUEST_FRAGMENT_PREFIX.length);

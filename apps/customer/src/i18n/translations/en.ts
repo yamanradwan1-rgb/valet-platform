@@ -171,9 +171,9 @@ export const enTranslations: TranslationDictionary = {
   'system.cooldownNotice': 'Please wait {seconds}s before refreshing.',
   'system.networkUnavailableSub': 'Connection lost. Your current vehicle status is preserved.',
   'system.lastRecordedState': 'Last recorded state: {state}',
-  'system.expiredTitle': 'Valet session unavailable',
+  'system.expiredTitle': 'Guest access unavailable',
   'system.expiredSub':
-    'This link is invalid or has expired. Please open the link sent to your phone during check-in.',
+    'Open the original guest link or ask the valet team for help.',
   'system.requestErrorTitle': 'Request could not be sent',
   'system.requestErrorDefault': 'Please try again or contact the valet desk.',
 

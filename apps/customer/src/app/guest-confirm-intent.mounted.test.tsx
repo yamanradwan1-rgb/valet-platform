@@ -4,6 +4,7 @@ import {
   confirmationHarness,
   deferred,
   json,
+  marker,
   retainClick,
   snapshot,
   VISIT_A,
@@ -222,18 +223,25 @@ describe("mounted Request Vehicle intent with real Guest authority", () => {
     expect(h.posts).toEqual([VISIT_A]);
   });
 
-  it.each(["success", "ambiguous", "invalid"] as const)(
+  it.each(["success", "ambiguous", "invalid", "stale source"] as const)(
     "fails closed through the real conflict gate and a pending/%s explicit switch",
     async (outcome) => {
-      await h.unmount();
-      h = confirmationHarness(`#guestToken=${"B".repeat(43)}`);
       await h.mount();
+      await h.reenter();
       expect(h.auth.contextConflictScope).toBe("ACTIVE");
       expect(h.container.textContent).toContain("contextConflict.title");
       // There is no reachable Request tap behind the modal. Also attack the
       // underlying callback directly to prove its fail-closed boundary.
       await h.click("parked.requestButton");
       expect(h.container.textContent).not.toContain("confirmRequest.title");
+      if (outcome === "stale source") {
+        h.setSnapshot(snapshot(VISIT_B));
+        h.document.cookie = marker("b");
+        await h.click("contextConflict.openNew");
+        expect(h.container.textContent).toContain("Visit B");
+        expect(h.fetchSpy.mock.calls.some(([url]) => String(url).endsWith("/browser-session/switch"))).toBe(false);
+        return;
+      }
       const switchResponse = deferred<Response>();
       h.setSwitch(() => switchResponse.promise);
       await h.click("contextConflict.openNew");

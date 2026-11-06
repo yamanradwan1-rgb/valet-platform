@@ -11,8 +11,9 @@ export function shouldShowGuestContextConflict(input: {
   readonly isExpired: boolean;
   readonly isSwitchOutcomeAmbiguous: boolean;
 }): boolean {
-  if (!input.hasSession) return false;
-  return !input.isExpired || input.isSwitchOutcomeAmbiguous;
+  // A marker change can fence the old snapshot before an unknown switch is
+  // reconciled. Keep the existing recovery action available in that case.
+  return input.isSwitchOutcomeAmbiguous || (input.hasSession && !input.isExpired);
 }
 
 export function shouldPreserveAmbiguousGuestSnapshot(input: {

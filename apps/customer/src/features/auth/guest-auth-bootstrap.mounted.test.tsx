@@ -52,6 +52,7 @@ describe("Guest Auth mounted 429 first navigation", () => {
     Object.defineProperty(dom.document, "cookie", {
       configurable: true,
       value: "",
+      writable: true,
     });
     localWindow = dom.window;
     container = dom.document.createElement("div");
@@ -135,6 +136,7 @@ describe("Guest Auth mounted 429 first navigation", () => {
     });
     expect(fetchSpy).toHaveBeenCalledTimes(1);
     await act(async () => {
+      document.cookie = `__Host-vaylet_guest_context=vgc1.${"b".repeat(32)}`;
       (localWindow.dispatchEvent as (event: Event) => boolean)(
         new Event(GUEST_CONTEXT_CHANGED_EVENT),
       );
@@ -216,6 +218,7 @@ describe("Guest Auth mounted 429 first navigation", () => {
       await vi.advanceTimersByTimeAsync(20_000);
     });
     await act(async () => {
+      document.cookie = `__Host-vaylet_guest_context=vgc1.${"b".repeat(32)}`;
       (localWindow.dispatchEvent as (event: Event) => boolean)(
         new Event(GUEST_CONTEXT_CHANGED_EVENT),
       );

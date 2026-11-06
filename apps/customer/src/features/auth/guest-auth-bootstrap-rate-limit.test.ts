@@ -152,7 +152,7 @@ describe("Guest 429 recovery after fragment scrub", () => {
     await vi.advanceTimersByTimeAsync(1000);
     const failure = await pending.start.catch((error: unknown) => error);
     expect(failure).toMatchObject({ status: 429 });
-    const state = failedBootstrapState(TOKEN, true, failure, pending.stage());
+    const state = failedBootstrapState(TOKEN, GuestApiClient.browserSession(), failure, pending.stage());
     expect(state).toMatchObject({
       token: TOKEN,
       retryStage: "EXCHANGE",
@@ -172,7 +172,7 @@ describe("Guest 429 recovery after fragment scrub", () => {
     const pending = startWithOneDeferredRetry(TOKEN);
     await vi.advanceTimersByTimeAsync(0);
     const failure = await pending.start.catch((error: unknown) => error);
-    const state = failedBootstrapState(TOKEN, true, failure, pending.stage());
+    const state = failedBootstrapState(TOKEN, GuestApiClient.browserSession(), failure, pending.stage());
     expect(state.retryStage).toBe("PREPARE");
     expect((state.retryNotBefore ?? 0) - Date.now()).toBe(40_000);
     expect(fetchSpy).toHaveBeenCalledTimes(1);
@@ -222,7 +222,7 @@ describe("Guest 429 recovery after fragment scrub", () => {
       code: "GUEST_ACCESS_INVALID",
     });
     expect(isRetryableGuestAuthBootstrapFailure(failure)).toBe(false);
-    const state = failedBootstrapState(TOKEN, true, failure, pending.stage());
+    const state = failedBootstrapState(TOKEN, GuestApiClient.browserSession(), failure, pending.stage());
     expect(state.token).toBeNull();
     expect(state.retryStage).toBeNull();
     expect(fetchSpy).toHaveBeenCalledTimes(2);
