@@ -86,9 +86,13 @@ function StaffPageContent(props: {
       subtitle={
         tab === "shifts"
           ? staffShiftHistoryCopy(locale).subtitle
-          : companyAdmin
-            ? t.employeesSubtitle
-            : t.employeesLocationManagerStaffSubtitle
+          : tab === "exceptions"
+            ? locale === "ar"
+              ? "مراجعة طلبات استثناء الحضور للموقع المحدد واتخاذ قرار بشأنها."
+              : "Review and resolve Shift Presence exception requests for the selected Location."
+            : companyAdmin
+              ? t.employeesSubtitle
+              : t.employeesLocationManagerStaffSubtitle
       }
       subtitleSize="sm"
       title={t.employeesTitle}
