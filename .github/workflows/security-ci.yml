@@ -18,20 +18,16 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Select push/PR comparison
+      - name: Resolve verified security comparison base
         env:
-          EVENT: ${{ github.event_name }}
-          PR_BASE: ${{ github.event.pull_request.base.sha }}
-          BEFORE: ${{ github.event.before }}
+          SECURITY_EVENT: ${{ github.event_name }}
+          SECURITY_PR_BASE: ${{ github.event.pull_request.base.sha }}
+          SECURITY_BEFORE: ${{ github.event.before }}
+          SECURITY_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          SECURITY_REF: ${{ github.ref }}
         run: |
           mkdir -p security-reports
-          base="$BEFORE"
-          if [[ "$EVENT" == pull_request ]]; then base="$PR_BASE"; fi
-          if [[ -n "$base" && ! "$base" =~ ^0+$ ]] && git cat-file -e "$base^{commit}"; then
-            echo "SCAN_RANGE=$base..HEAD" >> "$GITHUB_ENV"
-          else
-            echo "SCAN_RANGE=--all" >> "$GITHUB_ENV"
-          fi
+          python3 scripts/security/resolve_scan_base.py
       - name: Gitleaks scan (redacted; raw stays on runner)
         run: |
           docker run --rm -v "$PWD:/src:ro" -v "$RUNNER_TEMP:/out" -w /src \
@@ -55,31 +51,28 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Select comparison commit
+      - name: Resolve verified security comparison base
         env:
-          EVENT: ${{ github.event_name }}
-          PR_BASE: ${{ github.event.pull_request.base.sha }}
-          BEFORE: ${{ github.event.before }}
+          SECURITY_EVENT: ${{ github.event_name }}
+          SECURITY_PR_BASE: ${{ github.event.pull_request.base.sha }}
+          SECURITY_BEFORE: ${{ github.event.before }}
+          SECURITY_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          SECURITY_REF: ${{ github.ref }}
         run: |
           mkdir -p security-reports
-          base="$BEFORE"
-          if [[ "$EVENT" == pull_request ]]; then base="$PR_BASE"; fi
-          if [[ -n "$base" && ! "$base" =~ ^0+$ ]] && git cat-file -e "$base^{commit}"; then
-            echo "SECURITY_BASE_SHA=$base" >> "$GITHUB_ENV"
-            # An unchanged scan scope needs no incremental Semgrep scan.
-            # Diff errors must never be interpreted as no changes.
-            if git diff --quiet "$base" HEAD -- apps packages scripts infra; then
-              echo "SEMGREP_NO_SCOPED_CHANGES=true" >> "$GITHUB_ENV"
-            else
-              status=$?
-              if [[ "$status" -ne 1 ]]; then
-                echo "::error::Could not determine Semgrep scan scope (git diff exit $status)"
-                exit "$status"
-              fi
-              echo "SEMGREP_NO_SCOPED_CHANGES=false" >> "$GITHUB_ENV"
-            fi
+          python3 scripts/security/resolve_scan_base.py
+      - name: Determine Semgrep scoped changes
+        run: |
+          # An unchanged scan scope needs no incremental Semgrep scan.
+          # Diff errors must never be interpreted as no changes.
+          if git diff --quiet "$SECURITY_BASE_SHA" HEAD -- apps packages scripts infra .github; then
+            echo "SEMGREP_NO_SCOPED_CHANGES=true" >> "$GITHUB_ENV"
           else
-            # Missing/unusable base: run Semgrep rather than presume no changes.
+            status=$?
+            if [[ "$status" -ne 1 ]]; then
+              echo "::error::Could not determine Semgrep scan scope (git diff exit $status)"
+              exit "$status"
+            fi
             echo "SEMGREP_NO_SCOPED_CHANGES=false" >> "$GITHUB_ENV"
           fi
       - name: Record no scoped changes (not a skipped security job)
@@ -94,7 +87,7 @@ jobs:
           report.write_text(json.dumps({
               "scanner": "semgrep",
               "status": "not_applicable",
-              "reason": "Verified no changes in apps, packages, scripts or infra",
+              "reason": "Verified no changes in apps, packages, scripts, infra or .github",
               "total": 0,
               "new": 0,
               "blocked": 0,
@@ -121,7 +114,7 @@ jobs:
             --metrics=off --disable-version-check --json \
             --output security-reports/semgrep-head.json \
             --exclude '**/node_modules/**' --exclude '**/dist/**' \
-            --exclude '**/.next/**' "${opts[@]}" apps packages scripts infra
+            --exclude '**/.next/**' "${opts[@]}" apps packages scripts infra .github
       - name: Recover empty incremental Semgrep coverage with full head/base comparison
         if: env.SEMGREP_NO_SCOPED_CHANGES != 'true'
         run: |
@@ -138,7 +131,7 @@ jobs:
                 --metrics=off --disable-version-check --json \
                 --output "$1" \
                 --exclude '**/node_modules/**' --exclude '**/dist/**' \
-                --exclude '**/.next/**' apps packages scripts infra
+                --exclude '**/.next/**' apps packages scripts infra .github
             }
             git worktree add --detach "$RUNNER_TEMP/security-semgrep-base" "$SECURITY_BASE_SHA"
             semgrep_full_scan security-reports/semgrep-head.json
@@ -171,19 +164,20 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Prepare base worktree
+      - name: Resolve verified security comparison base
         env:
-          EVENT: ${{ github.event_name }}
-          PR_BASE: ${{ github.event.pull_request.base.sha }}
-          BEFORE: ${{ github.event.before }}
+          SECURITY_EVENT: ${{ github.event_name }}
+          SECURITY_PR_BASE: ${{ github.event.pull_request.base.sha }}
+          SECURITY_BEFORE: ${{ github.event.before }}
+          SECURITY_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          SECURITY_REF: ${{ github.ref }}
         run: |
           mkdir -p security-reports
-          base="$BEFORE"
-          if [[ "$EVENT" == pull_request ]]; then base="$PR_BASE"; fi
-          if [[ -n "$base" && ! "$base" =~ ^0+$ ]] && git cat-file -e "$base^{commit}"; then
-            git worktree add --detach "$RUNNER_TEMP/security-base" "$base"
-            echo "SECURITY_BASE_TREE=$RUNNER_TEMP/security-base" >> "$GITHUB_ENV"
-          fi
+          python3 scripts/security/resolve_scan_base.py
+      - name: Prepare base worktree
+        run: |
+          git worktree add --detach "$RUNNER_TEMP/security-base" "$SECURITY_BASE_SHA"
+          echo "SECURITY_BASE_TREE=$RUNNER_TEMP/security-base" >> "$GITHUB_ENV"
       - name: Scan head using official Trivy container
         run: |
           mkdir -p "$RUNNER_TEMP/trivy-cache"
@@ -222,19 +216,20 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Prepare base worktree
+      - name: Resolve verified security comparison base
         env:
-          EVENT: ${{ github.event_name }}
-          PR_BASE: ${{ github.event.pull_request.base.sha }}
-          BEFORE: ${{ github.event.before }}
+          SECURITY_EVENT: ${{ github.event_name }}
+          SECURITY_PR_BASE: ${{ github.event.pull_request.base.sha }}
+          SECURITY_BEFORE: ${{ github.event.before }}
+          SECURITY_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          SECURITY_REF: ${{ github.ref }}
         run: |
           mkdir -p security-reports
-          base="$BEFORE"
-          if [[ "$EVENT" == pull_request ]]; then base="$PR_BASE"; fi
-          if [[ -n "$base" && ! "$base" =~ ^0+$ ]] && git cat-file -e "$base^{commit}"; then
-            git worktree add --detach "$RUNNER_TEMP/security-base" "$base"
-            echo "SECURITY_BASE_TREE=$RUNNER_TEMP/security-base" >> "$GITHUB_ENV"
-          fi
+          python3 scripts/security/resolve_scan_base.py
+      - name: Prepare base worktree
+        run: |
+          git worktree add --detach "$RUNNER_TEMP/security-base" "$SECURITY_BASE_SHA"
+          echo "SECURITY_BASE_TREE=$RUNNER_TEMP/security-base" >> "$GITHUB_ENV"
       - name: OSV head scan
         run: |
           set +e
@@ -303,6 +298,7 @@ jobs:
         run: |
           python3 -m unittest discover -s scripts/security -p 'test_ci_gate.py' -v
           python3 -m unittest discover -s scripts/security -p 'test_semgrep_coverage.py' -v
+          python3 -m unittest discover -s scripts/security -p 'test_resolve_scan_base.py' -v
       - name: Fail closed for failed / skipped security checks
         env:
           GITLEAKS: ${{ needs.secrets-gitleaks.result }}
