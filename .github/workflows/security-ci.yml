@@ -304,7 +304,7 @@ jobs:
           python3 scripts/security/resolve_scan_base.py
       - name: Checkout exact CodeQL baseline
         run: git worktree add --detach "$RUNNER_TEMP/security-codeql-base" "$SECURITY_BASE_SHA"
-      - uses: github/codeql-action/setup-codeql@v4
+      - uses: github/codeql-action/setup-codeql@5895b2c9be147bc7f1c75ce72c5cb577febb1907 # v4
         id: setup-codeql
         with:
           languages: javascript-typescript
@@ -332,7 +332,7 @@ jobs:
           done
       - name: Upload CodeQL head to GitHub Code Scanning
         if: ${{ steps.codeql-analyze.outcome == 'success' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@5895b2c9be147bc7f1c75ce72c5cb577febb1907 # v4
         with:
           sarif_file: ${{ runner.temp }}/codeql-head.sarif
           category: /language:javascript-typescript
@@ -343,7 +343,7 @@ jobs:
             --base "$RUNNER_TEMP/codeql-base.sarif" \
             --out security-reports/codeql-sanitized.json
       - if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: security-codeql-${{ github.run_id }}
           path: security-reports/codeql-sanitized.json
