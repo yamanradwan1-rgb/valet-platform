@@ -27,6 +27,8 @@ export function GuestWebPushPermissionPresentation({
   readonly onDismiss: () => void;
   readonly onEnable: () => void;
 }) {
+  const titleId = React.useId();
+  const bodyId = React.useId();
   const incomplete = state === "SUBSCRIPTION_MISSING" || state === "SERVER_BINDING_MISSING";
   const canEnable = state === "AVAILABLE" || state === "FAILED" || incomplete;
   const unavailable =
@@ -39,13 +41,19 @@ export function GuestWebPushPermissionPresentation({
       : unavailable
         ? copy.unavailable
         : copy.permissionBody;
+  // Keep the accepted warnings visible; diagnostics describe retryable actions.
+  const visibleFeedback = state === "AVAILABLE" || state === "FAILED"
+    ? feedback
+    : undefined;
   const { ref, minHeight } = useFrozenPushFeedbackSpace(
     body,
-    feedback !== undefined,
+    visibleFeedback !== undefined,
   );
   return (
     <section
       aria-live="polite"
+      aria-labelledby={titleId}
+      aria-describedby={bodyId}
       dir={direction}
       style={{
         backgroundColor: C.surfaceRaised,
@@ -62,20 +70,21 @@ export function GuestWebPushPermissionPresentation({
         zIndex: 90,
       }}
     >
-      <strong style={{ color: C.text, display: "block", fontSize: 15 }}>
+      <strong id={titleId} style={{ color: C.text, display: "block", fontSize: 15 }}>
         {state === "DENIED" ? copy.blockedTitle : incomplete ? copy.incompleteTitle : copy.permissionTitle}
       </strong>
       <p
+        id={bodyId}
         ref={ref}
         style={{
           color: C.textSecondary,
           fontSize: 13,
           lineHeight: 1.5,
           margin: "6px 0 14px",
-          ...(feedback === undefined ? {} : { minHeight }),
+          ...(visibleFeedback === undefined ? {} : { minHeight }),
         }}
       >
-        {feedback ?? body}
+        {visibleFeedback ?? body}
       </p>
       {canEnable || state === "ENABLING" ? (
         <div style={{ display: "flex", gap: 8 }}>

@@ -258,3 +258,19 @@ refreshes. A passive check never asks for permission, subscribes, or registers.
 Not now dismisses the current document's card only. The existing Push card
 geometry, components and theme tokens apply to all notification states.
 
+Exact Issue #435 warning copy in the existing T5-UI-02 paragraph:
+
+| State | English | العربية |
+| --- | --- | --- |
+| Permission blocked — title | Notifications are blocked | الإشعارات محظورة |
+| Permission blocked — body | Your browser is blocking notifications. Enable them in browser settings to receive vehicle-ready alerts. You can always check your vehicle status here. | المتصفح حاجب الإشعارات. فعّلها من إعدادات المتصفح حتى تقدر تستقبل إشعار جاهزية سيارتك. وبتقدر دائمًا تتابع حالة سيارتك من هون. |
+| Subscription or server binding incomplete — title | Notifications aren't fully enabled | تفعيل الإشعارات غير مكتمل |
+| Subscription or server binding incomplete — body | Vehicle-ready alerts are not fully set up. Tap Enable notifications to try again, or check your vehicle status here. | إشعارات جاهزية سيارتك مش مفعّلة بالكامل. اضغط تفعيل الإشعارات للمحاولة مرة ثانية، أو تابع حالة سيارتك من هون. |
+| Unsupported/unavailable — body | Notifications are off. Check your vehicle status here for updates. | الإشعارات متوقفة. تحقّق من حالة مركبتك هنا لمعرفة التحديثات. |
+
+Denied, unsupported and iOS browser-tab states offer the existing dismiss
+action only; supported incomplete states permit a new explicit Enable gesture.
+Diagnostics must not replace these approved warnings. Retryable activation
+errors may instead show specific safe feedback in the existing paragraph.
+When an exact active binding is verified, the whole card is hidden without an
+unverified success message.

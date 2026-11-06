@@ -8,6 +8,7 @@ import {
   type TestElement,
 } from "../../app/guest-refresh-mounted.test-host";
 import { GuestApiError } from "../../lib/api/api-error";
+import { guestWebPushCopy } from "./guest-web-push-copy";
 import type { GuestWebPushStatusTransport } from "./guest-web-push-status";
 import {
   guestPushFeedbackCopy,
@@ -233,7 +234,8 @@ describe("mounted truthful activation feedback", () => {
         expect(container.textContent).toContain("Notifications are blocked");
         expect(transport.loadVapidPublicKey).toHaveBeenCalledTimes(1);
       } else {
-        feedback(kind);
+        expect(container.textContent).toContain(guestWebPushCopy("en").unavailable);
+        expect(container.textContent).not.toContain(guestPushFeedbackCopy("en", kind));
         expect(transport.loadVapidPublicKey).not.toHaveBeenCalled();
       }
       expect(client.enable).not.toHaveBeenCalled();

@@ -113,6 +113,10 @@ The approved UI-FROZEN SAFE DELTA T5-UI-02 shall:
 The exact layout/copy/control scope is accepted in T5-UI-02. No permission
 dialog may open except after an explicit Guest gesture, and no UI may claim
 actual delivery until the required runtime/device evidence exists.
+The Issue #435 blocked/incomplete/unavailable EN/AR warning copy is pinned in
+`GUEST_T5_UI_FROZEN_SAFE_DELTA.md`; browser diagnostic feedback may not replace
+those warnings. Verified active binding alone hides the card, and passive
+verification never causes a subscription or registration mutation.
 
 ## 5. Subscription authorization and binding
 
