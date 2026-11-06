@@ -17,6 +17,7 @@ export * from "./dashboard-feature-authority.js";
 export * from "./gps-ingestion.js";
 export * from "./guest-rating.js";
 export * from "./guest-browser-auth.js";
+export * from "./guest-push-status.js";
 export * from "./guest-information-privacy.js";
 export * from "./guest-information-contact.js";
 export * from "./handoff.js";

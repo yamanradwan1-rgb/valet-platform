@@ -8,7 +8,9 @@ import {
   type TestElement,
 } from "../../app/guest-refresh-mounted.test-host";
 import { GuestApiError } from "../../lib/api/api-error";
-import type { GuestWebPushTransport } from "./guest-web-push-client";
+import { guestWebPushCopy } from "./guest-web-push-copy";
+import type * as GuestWebPushStatusModule from "./guest-web-push-status";
+import type { GuestWebPushStatusTransport } from "./guest-web-push-status";
 import {
   guestPushFeedbackCopy,
   type GuestPushFeedbackKind,
@@ -23,10 +25,14 @@ const client = vi.hoisted(() => ({
   capability: "AVAILABLE",
   secure: true,
   locale: "en" as "en" | "ar",
+  verified: false,
 }));
 vi.mock("./guest-web-push-client", () => ({
   detectGuestWebPushCapability: () => client.capability,
-  readGuestWebPushCapability: () => ({ isSecureContext: client.secure }),
+  readGuestWebPushCapability: () => ({
+    isSecureContext: client.secure,
+    permission: client.capability === "DENIED" ? "denied" : "default",
+  }),
   enableGuestWebPush: client.enable,
 }));
 vi.mock("../../i18n/use-translation", () => ({
@@ -35,12 +41,24 @@ vi.mock("../../i18n/use-translation", () => ({
     direction: client.locale === "ar" ? "rtl" : "ltr",
   }),
 }));
+vi.mock("./guest-web-push-status", async (importOriginal) => {
+  const actual = await importOriginal<typeof GuestWebPushStatusModule>();
+  return {
+    ...actual,
+    readGuestWebPushStatus: async (
+      transport: GuestWebPushStatusTransport,
+      signal: AbortSignal,
+    ) => client.verified
+      ? "ENABLED_VERIFIED"
+      : actual.readGuestWebPushStatus(transport, signal),
+  };
+});
 import { GuestWebPushPermissionCard } from "./guest-web-push-permission-card";
 
 describe("mounted truthful activation feedback", () => {
   let root: Root;
   let container: TestElement;
-  let transport: GuestWebPushTransport;
+  let transport: GuestWebPushStatusTransport;
   beforeEach(() => {
     const { document } = installTestDom();
     Object.assign(document, { cookie: "" });
@@ -49,12 +67,13 @@ describe("mounted truthful activation feedback", () => {
     root = createRoot(container as unknown as Element);
     transport = {
       loadVapidPublicKey: vi.fn(async () => "key"),
-      registerSubscription: vi.fn(),
+      verifySubscription: vi.fn(), registerSubscription: vi.fn(),
     };
     client.enable.mockReset();
     client.capability = "AVAILABLE";
     client.secure = true;
     client.locale = "en";
+    client.verified = false;
   });
   afterEach(async () => {
     await act(async () => root.unmount());
@@ -90,6 +109,7 @@ describe("mounted truthful activation feedback", () => {
       expect(client.enable).toHaveBeenCalledTimes(1);
       expect(transport.registerSubscription).not.toHaveBeenCalled();
       client.enable.mockResolvedValue("ENABLED");
+      client.verified = true;
       await click();
       expect(container.textContent).toBe("");
     },
@@ -184,6 +204,7 @@ describe("mounted truthful activation feedback", () => {
     await click();
     feedback("UNKNOWN");
     client.enable.mockResolvedValue("ENABLED");
+    client.verified = true;
     await click();
     expect(client.enable).toHaveBeenCalledTimes(2);
     expect(container.textContent).toBe("");
@@ -226,9 +247,15 @@ describe("mounted truthful activation feedback", () => {
       client.capability = capability;
       client.secure = secure;
       await mount();
-      feedback(kind);
+      if (kind === "DENIED") {
+        expect(container.textContent).toContain("Notifications are blocked");
+        expect(transport.loadVapidPublicKey).toHaveBeenCalledTimes(1);
+      } else {
+        expect(container.textContent).toContain(guestWebPushCopy("en").unavailable);
+        expect(container.textContent).not.toContain(guestPushFeedbackCopy("en", kind));
+        expect(transport.loadVapidPublicKey).not.toHaveBeenCalled();
+      }
       expect(client.enable).not.toHaveBeenCalled();
-      expect(transport.loadVapidPublicKey).not.toHaveBeenCalled();
     },
   );
 });

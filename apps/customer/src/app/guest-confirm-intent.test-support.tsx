@@ -106,7 +106,7 @@ export function confirmationHarness(fragment = "") {
         return json({ result: "CONTEXT_CONFLICT", currentScope: "ACTIVE" });
       }
       if (path.endsWith("/browser-session/switch/reconcile"))
-        return json({ result: "UNCHANGED" });
+        return json({ result: "NONE" });
       if (path.endsWith("/browser-session/switch")) {
         if (switchOverride) return switchOverride();
         current = snapshot(VISIT_B);
@@ -207,6 +207,13 @@ export function confirmationHarness(fragment = "") {
     },
     async wake() {
       await settle(() => browserWindow.dispatchEvent(new Event("focus")));
+    },
+    async reenter() {
+      await settle(() => {
+        location.hash = `#guestToken=${TARGET_TOKEN}`;
+        browserWindow.dispatchEvent(new Event("hashchange"));
+      });
+      expect(location.hash).toBe("");
     },
     async unmount() {
       await settle(() => root.unmount());

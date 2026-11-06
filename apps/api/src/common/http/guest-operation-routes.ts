@@ -43,6 +43,11 @@ export const guestOperationRoutes = [
   },
   {
     method: "POST",
+    operation: "GUEST_PUSH_REGISTRATION_STATUS",
+    path: /^\/v1\/guest\/push\/registration\/status$/,
+  },
+  {
+    method: "POST",
     operation: "GUEST_PUSH_REGISTRATION",
     path: /^\/v1\/guest\/push\/registration$/,
   },

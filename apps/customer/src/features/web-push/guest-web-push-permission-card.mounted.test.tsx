@@ -18,9 +18,12 @@ import {
   type TestDocument,
 } from "../../app/guest-refresh-mounted.test-host";
 import { GUEST_CONTEXT_CHANGED_EVENT } from "../../lib/api/guest-browser-context-marker";
-import type { GuestWebPushTransport } from "./guest-web-push-client";
+import type { GuestWebPushStatusTransport } from "./guest-web-push-status";
+
+type GuestWebPushStatusModule = typeof import("./guest-web-push-status");
 
 const client = vi.hoisted(() => ({ enable: vi.fn() }));
+const status = vi.hoisted(() => ({ verified: false }));
 vi.mock("./guest-web-push-client", () => ({
   detectGuestWebPushCapability: () => "AVAILABLE",
   readGuestWebPushCapability: () => ({}),
@@ -29,6 +32,16 @@ vi.mock("./guest-web-push-client", () => ({
 vi.mock("../../i18n/use-translation", () => ({
   useTranslation: () => ({ locale: "en", direction: "ltr" }),
 }));
+vi.mock("./guest-web-push-status", async (importOriginal) => {
+  const actual = await importOriginal<GuestWebPushStatusModule>();
+  return {
+    ...actual,
+    readGuestWebPushStatus: async (transport: GuestWebPushStatusTransport, signal: AbortSignal) => {
+      await transport.loadVapidPublicKey(signal);
+      return status.verified ? "ENABLED_VERIFIED" : "AVAILABLE";
+    },
+  };
+});
 
 import { GuestWebPushPermissionCard } from "./guest-web-push-permission-card";
 
@@ -51,7 +64,7 @@ describe("Guest Web Push permission card mounted lifecycle", () => {
   let document: TestDocument;
   let window: ReturnType<typeof installTestDom>["window"];
   let loadKey: Mock<(signal?: AbortSignal) => Promise<string>>;
-  let transport: GuestWebPushTransport;
+  let transport: GuestWebPushStatusTransport;
 
   beforeEach(() => {
     ({ document, window } = installTestDom());
@@ -62,8 +75,9 @@ describe("Guest Web Push permission card mounted lifecycle", () => {
     document.body.appendChild(container);
     root = createRoot(container as unknown as Element);
     loadKey = vi.fn(async () => "public-key");
-    transport = { loadVapidPublicKey: loadKey, registerSubscription: vi.fn() };
+    transport = { loadVapidPublicKey: loadKey, verifySubscription: vi.fn(), registerSubscription: vi.fn() };
     client.enable.mockReset();
+    status.verified = false;
   });
 
   afterEach(async () => {
@@ -122,9 +136,18 @@ describe("Guest Web Push permission card mounted lifecycle", () => {
     await act(async () => pending.resolve("AVAILABLE"));
     expect(container.textContent).toContain("Enable notifications");
     client.enable.mockResolvedValueOnce("ENABLED");
+    status.verified = true;
     await click("Enable notifications");
     expect(client.enable).toHaveBeenCalledTimes(2);
     expect(container.textContent).toBe("");
+  });
+
+  it("keeps the card visible when a 204 registration cannot be reverified as ACTIVE", async () => {
+    await mount();
+    client.enable.mockResolvedValueOnce("ENABLED");
+    await click("Enable notifications");
+    expect(container.textContent).toContain("We couldn't confirm notification setup");
+    expect(container.textContent).toContain("Enable notifications");
   });
 
   it("Not now aborts immediately and drops a late successful native promise", async () => {
@@ -210,7 +233,7 @@ describe("Guest Web Push permission card mounted lifecycle", () => {
     vi.useFakeTimers();
     await click("Enable notifications");
     const signal = client.enable.mock.calls[0]?.[2] as AbortSignal;
-    await act(async () => vi.advanceTimersByTimeAsync(35_000));
+    await act(async () => vi.advanceTimersByTimeAsync(45_000));
     expect(signal.aborted).toBe(true);
     expect(container.textContent).toContain("Enable notifications");
     await click("Enable notifications");

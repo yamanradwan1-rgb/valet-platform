@@ -8,7 +8,7 @@ import {
   Req,
   Res,
 } from "@nestjs/common";
-import { emptyRequestSchema } from "@valet/contracts";
+import { emptyRequestSchema, guestPushStatusResponseSchema } from "@valet/contracts";
 
 import { ApiTransportValidationError } from "../../common/http/api-errors";
 import {
@@ -22,7 +22,10 @@ import {
 } from "../../common/http/no-store-response";
 import { GuestCredentialAuthorizer } from "../guest-access/guest-credential-authorizer";
 import { GuestPushRegistrationService } from "./guest-push-registration.service";
-import { parseGuestPushRegistrationRequest } from "./guest-push-registration-types";
+import {
+  parseGuestPushRegistrationRequest,
+  parseGuestPushStatusEndpoint,
+} from "./guest-push-registration-types";
 
 function requireEmpty(value: unknown): void {
   if (!emptyRequestSchema.safeParse(value ?? {}).success) {
@@ -52,6 +55,27 @@ export class GuestPushRegistrationController {
         { mutation: false, requestClass: "A" },
         (reservation, credential) => this.service.config(reservation, credential),
       );
+    });
+  }
+
+  @Post("registration/status")
+  @HttpCode(200)
+  status(
+    @Req() request: ApiRequest,
+    @Body() body: unknown,
+    @Query() query: unknown,
+    @Res({ passthrough: true }) response: HeaderResponse,
+  ) {
+    setNoStoreResponseHeaders(response);
+    return this.runner.run(guestOperation("GUEST_PUSH_REGISTRATION_STATUS"), request, async () => {
+      requireEmpty(query);
+      const endpoint = parseGuestPushStatusEndpoint(body);
+      const result = await this.authorizer.authorize(
+        request,
+        { mutation: true, requestClass: "A" },
+        (reservation, credential) => this.service.status(reservation, credential, endpoint),
+      );
+      return guestPushStatusResponseSchema.parse(result);
     });
   }
 

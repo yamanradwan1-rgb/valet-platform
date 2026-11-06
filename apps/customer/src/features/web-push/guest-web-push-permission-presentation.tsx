@@ -7,7 +7,8 @@ import { guestWebPushCopy } from "./guest-web-push-copy";
 import type { GuestWebPushCapability } from "./guest-web-push-client";
 import { useFrozenPushFeedbackSpace } from "./use-frozen-push-feedback-space";
 
-type PresentationState = GuestWebPushCapability | "ENABLING" | "FAILED";
+type PresentationState = GuestWebPushCapability | "ENABLING" | "FAILED" |
+  "SUBSCRIPTION_MISSING" | "SERVER_BINDING_MISSING";
 
 export function GuestWebPushPermissionPresentation({
   copy,
@@ -26,25 +27,33 @@ export function GuestWebPushPermissionPresentation({
   readonly onDismiss: () => void;
   readonly onEnable: () => void;
 }) {
-  const canEnable = state === "AVAILABLE" || state === "FAILED";
+  const titleId = React.useId();
+  const bodyId = React.useId();
+  const incomplete = state === "SUBSCRIPTION_MISSING" || state === "SERVER_BINDING_MISSING";
+  const canEnable = state === "AVAILABLE" || state === "FAILED" || incomplete;
   const unavailable =
-    state === "DENIED" ||
     state === "UNSUPPORTED" ||
     state === "IOS_HOME_SCREEN_REQUIRED" ||
     state === "FAILED";
-  const body =
+  const body = state === "DENIED" ? copy.blockedBody : incomplete ? copy.incompleteBody :
     state === "IOS_HOME_SCREEN_REQUIRED"
       ? copy.iosHomeScreenRequired
       : unavailable
         ? copy.unavailable
         : copy.permissionBody;
+  // Keep the accepted warnings visible; diagnostics describe retryable actions.
+  const visibleFeedback = state === "AVAILABLE" || state === "FAILED"
+    ? feedback
+    : undefined;
   const { ref, minHeight } = useFrozenPushFeedbackSpace(
     body,
-    feedback !== undefined,
+    visibleFeedback !== undefined,
   );
   return (
     <section
       aria-live="polite"
+      aria-labelledby={titleId}
+      aria-describedby={bodyId}
       dir={direction}
       style={{
         backgroundColor: C.surfaceRaised,
@@ -61,20 +70,21 @@ export function GuestWebPushPermissionPresentation({
         zIndex: 90,
       }}
     >
-      <strong style={{ color: C.text, display: "block", fontSize: 15 }}>
-        {copy.permissionTitle}
+      <strong id={titleId} style={{ color: C.text, display: "block", fontSize: 15 }}>
+        {state === "DENIED" ? copy.blockedTitle : incomplete ? copy.incompleteTitle : copy.permissionTitle}
       </strong>
       <p
+        id={bodyId}
         ref={ref}
         style={{
           color: C.textSecondary,
           fontSize: 13,
           lineHeight: 1.5,
           margin: "6px 0 14px",
-          ...(feedback === undefined ? {} : { minHeight }),
+          ...(visibleFeedback === undefined ? {} : { minHeight }),
         }}
       >
-        {feedback ?? body}
+        {visibleFeedback ?? body}
       </p>
       {canEnable || state === "ENABLING" ? (
         <div style={{ display: "flex", gap: 8 }}>

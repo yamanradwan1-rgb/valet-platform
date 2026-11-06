@@ -12,6 +12,10 @@ import {
   GuestWebPushStageError,
   GuestWebPushTimeoutError,
 } from "./guest-web-push-stage";
+import {
+  decodeVapidPublicKey,
+  subscriptionMatchesVapidKey,
+} from "./guest-web-push-vapid";
 
 export type GuestWebPushCapability =
   "AVAILABLE" | "DENIED" | "IOS_HOME_SCREEN_REQUIRED" | "UNSUPPORTED";
@@ -39,6 +43,20 @@ export interface GuestWebPushTransport {
     payload: GuestWebPushRegistrationPayload,
     signal?: AbortSignal,
   ): Promise<void>;
+  verifySubscription?(endpoint: string, signal?: AbortSignal): Promise<boolean>;
+}
+
+export function isCurrentGuestPushSubscription(
+  subscription: PushSubscription | null,
+): subscription is PushSubscription {
+  return subscription !== null &&
+    (subscription.expirationTime == null || subscription.expirationTime > Date.now());
+}
+
+export class GuestWebPushDisabledError extends Error {
+  constructor() {
+    super("Guest Web Push registration is disabled.");
+  }
 }
 
 interface BrowserPushDependencies {
@@ -98,17 +116,6 @@ export function detectGuestWebPushCapability(
   )
     return "UNSUPPORTED";
   return snapshot.permission === "denied" ? "DENIED" : "AVAILABLE";
-}
-
-function decodeVapidPublicKey(value: string): ArrayBuffer {
-  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
-  const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
-  const binary = atob(padded);
-  const bytes = new Uint8Array(binary.length);
-  for (let index = 0; index < binary.length; index += 1) {
-    bytes[index] = binary.charCodeAt(index);
-  }
-  return bytes.buffer;
 }
 
 function serializeSubscription(
@@ -200,26 +207,54 @@ export async function enableGuestWebPush(
   if (permission !== "granted")
     return permission === "denied" ? "DENIED" : "AVAILABLE";
 
+  const publicKey = await stages("public key", 8_000, (stageSignal) =>
+    transport.loadVapidPublicKey(stageSignal),
+  );
+  assertCurrent();
+  let applicationServerKey: ArrayBuffer;
+  try {
+    applicationServerKey = decodeVapidPublicKey(publicKey);
+  } catch (error) {
+    throw new GuestWebPushStageError("public key", error);
+  }
   const registration = await stages("service worker", 8_000, () =>
     dependencies.serviceWorkerReady(),
   );
   assertCurrent();
-  let subscription = await stages("existing subscription", 5_000, () =>
-    registration.pushManager.getSubscription(),
-  );
+  const readSubscription = () => stages("existing subscription", 5_000, async () => {
+    const current = await registration.pushManager.getSubscription();
+    return isCurrentGuestPushSubscription(current) ? current : null;
+  });
+  let subscription = await readSubscription();
   assertCurrent();
+  // A key-rotated subscription is replaced only after this Guest gesture.
+  if (
+    subscription?.options &&
+    !subscriptionMatchesVapidKey(subscription, publicKey)
+  ) {
+    const old = subscription;
+    const removed = await stages("unsubscribe", 5_000, () => old.unsubscribe());
+    assertCurrent();
+    if (!removed || (await readSubscription()) !== null) {
+      throw new GuestWebPushStageError("unsubscribe", undefined);
+    }
+    subscription = null;
+  }
+  const verify = transport.verifySubscription?.bind(transport);
+  if (subscription !== null && verify) {
+    const endpoint = subscription.endpoint;
+    const active = await stages("registration verification", 10_000, (stageSignal) =>
+      verify(endpoint, stageSignal),
+    );
+    subscription = await readSubscription();
+    assertCurrent();
+    if (active && subscription?.endpoint === endpoint) return "ENABLED";
+    if (subscription?.endpoint !== endpoint) {
+      throw new GuestWebPushStageError("registration verification", undefined);
+    }
+  }
   let created = false;
   if (subscription === null) {
-    const publicKey = await stages("public key", 8_000, (stageSignal) =>
-      transport.loadVapidPublicKey(stageSignal),
-    );
-    assertCurrent();
-    let applicationServerKey: ArrayBuffer;
-    try {
-      applicationServerKey = decodeVapidPublicKey(publicKey);
-    } catch (error) {
-      throw new GuestWebPushStageError("public key", error);
-    }
     // subscribe() is native and not abortable. A late resolution must never
     // continue into server binding or remove a subscription a retry may reuse.
     subscription = await stages("subscribe", 10_000, () =>

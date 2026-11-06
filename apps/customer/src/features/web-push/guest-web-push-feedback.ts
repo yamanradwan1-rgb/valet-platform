@@ -6,6 +6,10 @@ import {
 } from "./guest-web-push-stage";
 
 const COPY = {
+  VERIFY: [
+    "We couldn't confirm notification setup. You can retry when your connection is available and keep checking your vehicle status here.",
+    "ما قدرنا نتأكد من تفعيل الإشعارات. بتقدر تحاول مرة ثانية لما يتوفر الاتصال وتتابع حالة سيارتك من هون.",
+  ],
   DISMISSED: [
     "No permission given. Tap Enable to retry.",
     "لم تمنح الإذن. اضغط تفعيل للمحاولة.",

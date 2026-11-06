@@ -22,47 +22,74 @@ export interface GuestAuthBootstrapResult {
   readonly token: string | null;
   readonly client: GuestApiClient;
   readonly contextConflictScope: GuestContextConflictScope | null;
+  readonly preservesBrowserContext?: true;
 }
 
 export function isRetryableGuestAuthBootstrapFailure(error: unknown): boolean {
   return (
     error instanceof GuestApiError &&
-    (error.status === 429 || error.isNetworkError || (error.status >= 500 && error.status <= 599))
+    (error.status === 429 || isAmbiguousGuestAuthMutationFailure(error))
   );
 }
 
 function isAmbiguousGuestAuthMutationFailure(error: unknown): boolean {
   return error instanceof GuestApiError &&
-    (error.isNetworkError || (error.status >= 500 && error.status <= 599));
+    (error.code === 'MUTATION_OUTCOME_UNKNOWN' ||
+      error.isNetworkError || (error.status >= 500 && error.status <= 599));
 }
 
-function isTerminalGuestAuthBootstrapFailure(error: unknown): boolean {
+export function isTerminalGuestAuthBootstrapFailure(error: unknown): boolean {
   return error instanceof GuestApiError &&
-    error.status !== 429 && error.code === 'GUEST_ACCESS_INVALID';
+    error.status === 401 && error.code === 'GUEST_ACCESS_INVALID';
 }
 
 async function exchangeBrowserSessionWithRecovery(
   bootstrapClient: GuestApiClient,
+  resumingExchange = false,
 ): Promise<void> {
+  let outcomeMayBeCommitted = resumingExchange;
   try {
-    await bootstrapClient.exchangeBrowserSession();
+    try {
+      await bootstrapClient.exchangeBrowserSession();
+    } catch (error) {
+      if (!isAmbiguousGuestAuthMutationFailure(error)) throw error;
+      outcomeMayBeCommitted = true;
+      await bootstrapClient.exchangeBrowserSession();
+    }
   } catch (error) {
-    if (!isAmbiguousGuestAuthMutationFailure(error)) throw error;
-    await bootstrapClient.exchangeBrowserSession();
+    if (!outcomeMayBeCommitted || !isTerminalGuestAuthBootstrapFailure(error)) throw error;
+    // A cookie may authorize a different visit. Only the bearer-bound
+    // exchange response can confirm this enrollment after an unknown outcome.
+    throw guestAuthOutcomeUnknown();
   }
   // A fresh successful exchange adopts a new credential context. SAME_VISIT
   // bypasses this path and preserves deliberate presentation decisions.
   guestPresentationContext(true);
 }
 
+export function guestAuthOutcomeUnknown(): GuestApiError {
+  return new GuestApiError({
+    status: 0,
+    code: 'MUTATION_OUTCOME_UNKNOWN',
+    message: 'The Guest browser context could not be confirmed.',
+  });
+}
+
 export async function switchGuestBrowserContextTransport(
   bootstrapClient: GuestApiClient,
+  onAmbiguousOutcome?: () => void,
+  hasOriginalSource?: () => boolean,
 ): Promise<void> {
+  const attempt = () => {
+    if (hasOriginalSource?.() === false) throw guestAuthOutcomeUnknown();
+    return bootstrapClient.switchBrowserContext();
+  };
   try {
-    await bootstrapClient.switchBrowserContext();
+    await attempt();
   } catch (error) {
     if (!isAmbiguousGuestAuthMutationFailure(error)) throw error;
-    await bootstrapClient.switchBrowserContext();
+    onAmbiguousOutcome?.();
+    await attempt();
   }
 }
 
@@ -70,6 +97,7 @@ export async function runGuestAuthBootstrap(
   fragmentToken: string | null,
   enrollmentEnabled: boolean,
   onStage?: (stage: GuestAuthBootstrapStage) => void,
+  canStartExchange?: () => boolean,
 ): Promise<GuestAuthBootstrapResult> {
   if (fragmentToken === null) {
     const browserClient = GuestApiClient.browserSession();
@@ -100,6 +128,7 @@ export async function runGuestAuthBootstrap(
       token: null,
       client: GuestApiClient.browserSession(),
       contextConflictScope: null,
+      preservesBrowserContext: true,
     };
   }
   if (prepared.result === 'CONTEXT_CONFLICT') {
@@ -107,9 +136,11 @@ export async function runGuestAuthBootstrap(
       token: fragmentToken,
       client: GuestApiClient.browserSession(),
       contextConflictScope: prepared.currentScope,
+      preservesBrowserContext: true,
     };
   }
 
+  if (canStartExchange?.() === false) throw new Error('Guest bootstrap lost ownership.');
   onStage?.('EXCHANGE');
   await exchangeBrowserSessionWithRecovery(bootstrapClient);
   return {
@@ -131,11 +162,12 @@ export async function retryGuestAuthBootstrapTransport(
   enrollmentEnabled: boolean,
   retryStage: GuestAuthBootstrapStage,
   onStage?: (stage: GuestAuthBootstrapStage) => void,
+  canStartExchange?: () => boolean,
 ): Promise<GuestAuthBootstrapResult> {
   if (enrollmentEnabled && retryStage === 'EXCHANGE') {
     if (fragmentToken === null) throw new Error('Missing Guest bootstrap bearer.');
     const bootstrapClient = new GuestApiClient(fragmentToken);
-    await exchangeBrowserSessionWithRecovery(bootstrapClient);
+    await exchangeBrowserSessionWithRecovery(bootstrapClient, true);
     return {
       token: null,
       client: GuestApiClient.browserSession(),
@@ -151,14 +183,16 @@ export async function retryGuestAuthBootstrapTransport(
       contextConflictScope: null,
     };
   }
-  return runGuestAuthBootstrap(fragmentToken, enrollmentEnabled, onStage);
+  return runGuestAuthBootstrap(fragmentToken, enrollmentEnabled, onStage, canStartExchange);
 }
 
 export function completedBootstrapState(
   result: GuestAuthBootstrapResult,
 ): GuestTokenBootstrapState {
   return {
-    ...result,
+    token: result.token,
+    client: result.client,
+    contextConflictScope: result.contextConflictScope,
     isComplete: true,
     isContextSwitching: false,
     isSwitchOutcomeAmbiguous: false,
@@ -216,15 +250,14 @@ export function failedGuestContextSwitchState(
 
 export function failedBootstrapState(
   fragmentToken: string | null,
-  enrollmentEnabled: boolean,
+  client: GuestApiClient,
   error: unknown,
   retryStage: GuestAuthBootstrapStage,
 ): GuestTokenBootstrapState {
-  const browserClient = enrollmentEnabled ? GuestApiClient.browserSession() : null;
-  if (enrollmentEnabled && isRetryableGuestAuthBootstrapFailure(error)) {
+  if (isRetryableGuestAuthBootstrapFailure(error)) {
     return {
       token: fragmentToken,
-      client: browserClient,
+      client,
       contextConflictScope: null,
       isComplete: true,
       isContextSwitching: false,
@@ -234,26 +267,5 @@ export function failedBootstrapState(
       retryNotBefore: guestAuthRetryNotBefore(error) ?? undefined,
     };
   }
-  if (enrollmentEnabled && isTerminalGuestAuthBootstrapFailure(error)) {
-    return {
-      token: null,
-      client: browserClient,
-      contextConflictScope: null,
-      isComplete: true,
-      isContextSwitching: false,
-      isSwitchOutcomeAmbiguous: false,
-      isTemporarilyUnavailable: false,
-      retryStage: null,
-    };
-  }
-  return {
-    token: enrollmentEnabled ? fragmentToken : null,
-    client: browserClient,
-    contextConflictScope: null,
-    isComplete: true,
-    isContextSwitching: false,
-    isSwitchOutcomeAmbiguous: false,
-    isTemporarilyUnavailable: false,
-    retryStage: null,
-  };
+  return completedBootstrapState({ token: null, client, contextConflictScope: null });
 }

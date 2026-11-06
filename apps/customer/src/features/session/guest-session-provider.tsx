@@ -5,6 +5,7 @@ import { getLocalizedErrorMessage } from '../../i18n/error-translator';
 import { useTranslation } from '../../i18n/use-translation';
 import type { GuestSafeSession } from '../../lib/api/guest-api-types';
 import { useGuestAuth } from '../auth/guest-auth-context';
+import { noteGuestSessionDenied } from '../auth/guest-auth-navigation';
 import { attemptGuestReadyAlertAudio } from '../ready-alert/guest-ready-alert-audio';
 import {
   createGuestReadyAlertTracker, observeGuestReadySnapshot,
@@ -64,7 +65,9 @@ export function GuestSessionProvider({
     const next = new GuestRequestCoordinator(
       client,
       (snapshot) => {
-        if (active) setStateEnvelope({ client, state: snapshot });
+        if (!active) return;
+        if (snapshot.isExpired) noteGuestSessionDenied(client);
+        setStateEnvelope({ client, state: snapshot });
       },
       (snapshot) => {
         if (!active) return;

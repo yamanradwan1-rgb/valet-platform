@@ -128,6 +128,6 @@ describe('Guest Web Push API transport', () => {
       JSON.stringify({ enabled: false, publicKey: null }), { status: 200 },
     )));
     const transport = createGuestWebPushTransport(baseUrl);
-    await expect(transport.loadVapidPublicKey()).rejects.toThrow('unavailable');
+    await expect(transport.loadVapidPublicKey()).rejects.toThrow('disabled');
   });
 });

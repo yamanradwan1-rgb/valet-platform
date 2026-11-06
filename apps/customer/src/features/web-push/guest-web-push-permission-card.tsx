@@ -8,14 +8,18 @@ import {
   readBrowserContextMarker,
 } from "../../lib/api/guest-browser-context-marker";
 import { guestWebPushCopy } from "./guest-web-push-copy";
+import { dismissGuestPushCard, hasDismissedGuestPushCard } from "./guest-web-push-dismissal";
 import {
   detectGuestWebPushCapability,
   enableGuestWebPush,
   readGuestWebPushCapability,
-  type GuestWebPushCapability,
-  type GuestWebPushTransport,
 } from "./guest-web-push-client";
 import { createGuestWebPushTransport } from "./guest-web-push-transport";
+import {
+  readGuestWebPushStatus,
+  type GuestWebPushStatus,
+  type GuestWebPushStatusTransport,
+} from "./guest-web-push-status";
 import {
   classifyGuestPushFailure,
   guestPushFeedbackCopy,
@@ -25,48 +29,31 @@ import {
 import { GuestWebPushPermissionPresentation } from "./guest-web-push-permission-presentation";
 export { GuestWebPushPermissionPresentation } from "./guest-web-push-permission-presentation";
 
-type PresentationState =
-  GuestWebPushCapability | "CHECKING" | "ENABLING" | "FAILED";
+type PresentationState = GuestWebPushStatus | "CHECKING" | "ENABLING" | "FAILED";
 const CONFIG_CHECK_DEADLINE_MS = 12_000;
-const ENABLE_DEADLINE_MS = 35_000;
+const ENABLE_DEADLINE_MS = 45_000;
+const WAKE_CHECK_INTERVAL_MS = 2_000;
 
 export function GuestWebPushPermissionCard({
   transport,
 }: {
-  readonly transport?: GuestWebPushTransport;
+  readonly transport?: GuestWebPushStatusTransport;
 }) {
   const { direction, locale } = useTranslation();
   const copy = guestWebPushCopy(locale);
   const [activeTransport] = useState(
     () => transport ?? createGuestWebPushTransport(),
   );
-  const [dismissed, updateDismissed] = useState(false);
-  const [feedback, setFeedback] = useState<GuestPushFeedback | undefined>(
-    () => {
-      if (typeof window === "undefined") return undefined;
-      const snapshot = readGuestWebPushCapability();
-      const capability = detectGuestWebPushCapability(snapshot);
-      if (capability === "DENIED") return { kind: "DENIED" };
-      if (capability === "UNSUPPORTED")
-        return {
-          kind: snapshot.isSecureContext === false ? "INSECURE" : "UNSUPPORTED",
-        };
-      return undefined;
-    },
-  );
+  const [dismissed, updateDismissed] = useState(hasDismissedGuestPushCard);
+  const [feedback, setFeedback] = useState<GuestPushFeedback>();
   const [retryAt, setRetryAt] = useState(0);
+  const retryAtRef = useRef(0);
   const mountedRef = useRef(false);
-  const dismissedRef = useRef(false);
+  const dismissedRef = useRef(dismissed);
   const generationRef = useRef(0);
   const operationRef = useRef<AbortController | null>(null);
   const contextRef = useRef(readBrowserContextMarker());
-  const [state, setState] = useState<PresentationState>(() => {
-    if (typeof window === "undefined") return "UNSUPPORTED";
-    const capability = detectGuestWebPushCapability(
-      readGuestWebPushCapability(),
-    );
-    return capability === "AVAILABLE" ? "CHECKING" : capability;
-  });
+  const [state, setState] = useState<PresentationState>("CHECKING");
 
   const invalidate = useCallback(() => {
     generationRef.current += 1;
@@ -77,15 +64,17 @@ export function GuestWebPushPermissionCard({
   const fail = useCallback(
     (error: unknown, fallback: GuestPushFeedback["kind"] = "FAILED") => {
       const result = classifyGuestPushFailure(error, fallback);
-      setFeedback(result);
-      setRetryAt(
+      const preserve = ["AUTH", "CONTEXT", "CONFLICT", "RATE_LIMITED"].includes(result.kind);
+      setFeedback(fallback === "VERIFY" && !preserve ? { kind: "VERIFY" } : result);
+      retryAtRef.current =
         result.retryAfter &&
           Number.isFinite(result.retryAfter) &&
           result.retryAfter > 0
           ? Date.now() + result.retryAfter * 1000
-          : 0,
-      );
-      setState("FAILED");
+          : 0;
+      setRetryAt(retryAtRef.current);
+      const capability = detectGuestWebPushCapability(readGuestWebPushCapability());
+      setState(capability === "AVAILABLE" ? "FAILED" : capability);
     },
     [],
   );
@@ -112,6 +101,7 @@ export function GuestWebPushPermissionCard({
   const setDismissed = useCallback(
     (value: boolean) => {
       if (value) {
+        dismissGuestPushCard(contextRef.current);
         dismissedRef.current = true;
         invalidate();
       }
@@ -154,36 +144,77 @@ export function GuestWebPushPermissionCard({
     };
   }, [invalidate, contextChanged]);
 
-  useEffect(() => {
-    if (state !== "CHECKING" || dismissedRef.current) return;
+  const verify = useCallback(() => {
+    if (!mountedRef.current || dismissedRef.current || operationRef.current ||
+        Date.now() < retryAtRef.current) return;
+    const marker = readBrowserContextMarker();
+    if (marker !== contextRef.current) {
+      contextChanged();
+      return;
+    }
     const controller = new AbortController();
     const generation = ++generationRef.current;
-    const marker = readBrowserContextMarker();
     operationRef.current = controller;
     const deadline = setTimeout(() => {
       if (!canCommit(controller, generation, marker)) return;
       invalidate();
-      fail(undefined, "TIMEOUT");
+      fail(undefined, "VERIFY");
     }, CONFIG_CHECK_DEADLINE_MS);
-    void activeTransport
-      .loadVapidPublicKey(controller.signal)
-      .then(
-        () => {
-          if (canCommit(controller, generation, marker)) setState("AVAILABLE");
+    void readGuestWebPushStatus(activeTransport, controller.signal).then(
+        (status) => {
+          if (!canCommit(controller, generation, marker)) return;
+          setFeedback(status === "UNSUPPORTED" ? {
+            kind: readGuestWebPushCapability().isSecureContext ? "UNSUPPORTED" : "INSECURE",
+          } : undefined);
+          setState(status);
         },
         (error: unknown) => {
-          if (canCommit(controller, generation, marker)) fail(error, "CONFIG");
+          if (canCommit(controller, generation, marker)) fail(error, "VERIFY");
         },
       )
-      .finally(() => clearTimeout(deadline));
-    return () => {
-      clearTimeout(deadline);
-      controller.abort();
-      if (operationRef.current === controller) operationRef.current = null;
-    };
-  }, [activeTransport, canCommit, fail, invalidate, state]);
+      .finally(() => {
+        clearTimeout(deadline);
+        if (operationRef.current === controller) operationRef.current = null;
+      });
+  }, [activeTransport, canCommit, contextChanged, fail, invalidate]);
 
-  if (dismissed || state === "CHECKING") return null;
+  useEffect(() => {
+    let active = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let nextCheckAt = 0;
+    let permission: PermissionStatus | undefined;
+    const check = () => {
+      timer = undefined;
+      nextCheckAt = Date.now() + WAKE_CHECK_INTERVAL_MS;
+      verify();
+    };
+    const wake = () => {
+      if (document.visibilityState === "hidden" || dismissedRef.current ||
+          timer !== undefined || operationRef.current) return;
+      timer = setTimeout(check, Math.max(0, nextCheckAt - Date.now()));
+    };
+    queueMicrotask(() => { if (active) check(); });
+    window.addEventListener("focus", wake);
+    window.addEventListener("online", wake);
+    document.addEventListener("visibilitychange", wake);
+    navigator.serviceWorker?.addEventListener?.("controllerchange", wake);
+    void navigator.permissions?.query({ name: "notifications" }).then((result) => {
+      if (!active) return;
+      permission = result;
+      permission.addEventListener("change", wake);
+    }).catch(() => undefined);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+      window.removeEventListener("focus", wake);
+      window.removeEventListener("online", wake);
+      document.removeEventListener("visibilitychange", wake);
+      navigator.serviceWorker?.removeEventListener?.("controllerchange", wake);
+      permission?.removeEventListener("change", wake);
+    };
+  }, [verify]);
+
+  if (dismissed || state === "CHECKING" || state === "DISABLED" || state === "ENABLED_VERIFIED") return null;
   const retryBlocked =
     retryAt !== 0 ||
     feedback?.kind === "AUTH" ||
@@ -192,7 +223,8 @@ export function GuestWebPushPermissionCard({
   const onEnable = async () => {
     if (
       retryBlocked ||
-      (state !== "AVAILABLE" && state !== "FAILED") ||
+      (state !== "AVAILABLE" && state !== "FAILED" &&
+       state !== "SUBSCRIPTION_MISSING" && state !== "SERVER_BINDING_MISSING") ||
       !mountedRef.current ||
       dismissedRef.current ||
       operationRef.current !== null
@@ -207,6 +239,7 @@ export function GuestWebPushPermissionCard({
     const marker = readBrowserContextMarker();
     operationRef.current = controller;
     setState("ENABLING");
+    let verifyingBinding = false;
     const deadline = setTimeout(() => {
       if (!canCommit(controller, generation, marker)) return;
       invalidate();
@@ -222,7 +255,13 @@ export function GuestWebPushPermissionCard({
       );
       if (!canCommit(controller, generation, marker)) return;
       if (result === "ENABLED") {
-        setDismissed(true);
+        verifyingBinding = true;
+        // The 204 proves the response, but not a still-current exact binding.
+        // A read-only check is required before hiding the card.
+        const current = await readGuestWebPushStatus(activeTransport, controller.signal);
+        if (!canCommit(controller, generation, marker)) return;
+        setFeedback(current === "ENABLED_VERIFIED" ? undefined : { kind: "VERIFY" });
+        setState(current);
         return;
       }
       if (result === "AVAILABLE") setFeedback({ kind: "DISMISSED" });
@@ -236,7 +275,8 @@ export function GuestWebPushPermissionCard({
         });
       setState(result);
     } catch (error) {
-      if (canCommit(controller, generation, marker)) fail(error);
+      if (canCommit(controller, generation, marker))
+        fail(error, verifyingBinding ? "VERIFY" : "FAILED");
     } finally {
       clearTimeout(deadline);
       if (operationRef.current === controller) operationRef.current = null;
@@ -249,7 +289,7 @@ export function GuestWebPushPermissionCard({
       direction={direction}
       state={state}
       feedback={
-        feedback ? guestPushFeedbackCopy(locale, feedback.kind) : undefined
+        feedback && state !== "DENIED" ? guestPushFeedbackCopy(locale, feedback.kind) : undefined
       }
       retryBlocked={retryBlocked}
       onDismiss={() => setDismissed(true)}
