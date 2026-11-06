@@ -6,8 +6,9 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
-from semgrep_coverage import classify_coverage
+from semgrep_coverage import changed_eligible_paths, classify_coverage
 
 
 class SemgrepCoverageTests(unittest.TestCase):
@@ -32,6 +33,92 @@ class SemgrepCoverageTests(unittest.TestCase):
             }),
             "covered",
         )
+
+    def test_changed_file_omitted_by_scanner_fails_closed(self):
+        with patch("semgrep_coverage.changed_eligible_paths", return_value={
+            "apps/api/src/covered.ts", ".github/pull_request_template.md",
+        }):
+            with self.assertRaisesRegex(ValueError, "omitted eligible changed targets"):
+                with tempfile.TemporaryDirectory() as folder:
+                    report = Path(folder) / "scan.json"
+                    report.write_text(json.dumps({"results": [], "errors": [],
+                        "paths": {"scanned": ["apps/api/src/covered.ts"]}}), encoding="utf-8")
+                    classify_coverage(report, "a" * 40, require_covered=True)
+
+    def test_changed_targets_all_covered_pass_even_without_findings(self):
+        with patch("semgrep_coverage.changed_eligible_paths", return_value={
+            ".github/workflows/security-ci.yml", "apps/api/src/x.ts",
+        }):
+            with tempfile.TemporaryDirectory() as folder:
+                report = Path(folder) / "scan.json"
+                report.write_text(json.dumps({"results": [], "errors": [], "paths": {
+                    "scanned": ["apps/api/src/x.ts", ".github/workflows/security-ci.yml"]
+                }}), encoding="utf-8")
+                self.assertEqual(classify_coverage(report, "a" * 40, require_covered=True),
+                                 "covered")
+
+    def test_disposable_git_diff_includes_changed_workflows_and_code(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+
+            def git(*args):
+                return subprocess.run(["git", *args], cwd=root, text=True,
+                                      capture_output=True, check=True).stdout.strip()
+
+            git("init", "-q", "-b", "main")
+            git("config", "user.name", "Security Fixture")
+            git("config", "user.email", "fixture@example.invalid")
+            for name in (".github/workflows/ci.yml", "apps/api/src/x.ts", "README.md"):
+                path = root / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("base", encoding="utf-8")
+            git("add", ".")
+            git("commit", "-qm", "base")
+            base = git("rev-parse", "HEAD")
+            for name in (".github/workflows/ci.yml", "apps/api/src/x.ts", "README.md"):
+                (root / name).write_text("changed", encoding="utf-8")
+            git("add", ".")
+            git("commit", "-qm", "change")
+            with patch("semgrep_coverage._REPO_ROOT", root):
+                self.assertEqual(changed_eligible_paths(base), {
+                    ".github/workflows/ci.yml", "apps/api/src/x.ts",
+                })
+
+    def test_changed_sql_markdown_and_extensionless_scripts_are_required(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+
+            def git(*args):
+                return subprocess.run(["git", *args], cwd=root, text=True,
+                                      capture_output=True, check=True).stdout.strip()
+
+            git("init", "-q", "-b", "main")
+            git("config", "user.name", "Security Fixture")
+            git("config", "user.email", "fixture@example.invalid")
+            files = (".github/pull_request_template.md", "apps/api/schema.sql",
+                     "apps/api/Dockerfile", "apps/api/image.png")
+            for name in files:
+                path = root / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("old", encoding="utf-8")
+            git("add", ".")
+            git("commit", "-qm", "base")
+            base = git("rev-parse", "HEAD")
+            for name in files:
+                (root / name).write_text("new", encoding="utf-8")
+            git("add", ".")
+            git("commit", "-qm", "change")
+            with patch("semgrep_coverage._REPO_ROOT", root):
+                self.assertEqual(changed_eligible_paths(base), set(files[:-1]))
+
+    def test_empty_incremental_can_fallback_but_full_must_really_cover(self):
+        with tempfile.TemporaryDirectory() as folder:
+            report = Path(folder) / "scan.json"
+            report.write_text(json.dumps({"results": [], "errors": [],
+                "paths": {"scanned": []}}), encoding="utf-8")
+            self.assertEqual(classify_coverage(report, "a" * 40), "fallback")
+            with self.assertRaisesRegex(ValueError, "after fallback"):
+                classify_coverage(report, "a" * 40, require_covered=True)
 
     def test_parser_errors_fail_closed(self):
         with self.assertRaises(ValueError):

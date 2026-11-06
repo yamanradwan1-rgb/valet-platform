@@ -2,6 +2,7 @@
 
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -11,6 +12,14 @@ _SCANNED_ROOTS = frozenset({"apps", "packages", "scripts", "infra", ".github"})
 _MAX_DIAGNOSTIC_ERRORS = 3
 _MAX_PATH_CHARS = 160
 _SAFE_SEGMENT = re.compile(r"[A-Za-z0-9_.-]+\Z", re.ASCII)
+_COMMIT_ID = re.compile(r"[0-9a-f]{40}(?:[0-9a-f]{24})?\Z")
+# All changed tracked source/config/text files in scanned roots require actual
+# Semgrep coverage, including Markdown, SQL, styles and extensionless scripts.
+# Only binary media without meaningful SAST parsing is explicitly excluded.
+_UNSCANNABLE_BINARY = frozenset({
+    ".png", ".jpg", ".jpeg", ".gif", ".webp", ".avif", ".ico",
+    ".woff", ".woff2", ".ttf", ".otf", ".mp3", ".mp4", ".pdf", ".zip",
+})
 _ERROR_TYPES = {
     "parse error": "parse_error",
     "lexical error": "lexical_error",
@@ -115,7 +124,26 @@ def _safe_error_summary(errors: list) -> str:
     return f"error_count={len(errors)}; first={len(parts)}; " + "; ".join(parts)
 
 
-def classify_coverage(report_path: str | Path) -> str:
+def changed_eligible_paths(base: str) -> set[str]:
+    """Resolve changed files from Git, never from untrusted scanner metadata."""
+    if not _COMMIT_ID.fullmatch(base):
+        raise ValueError("Unverifiable Semgrep comparison base")
+    completed = subprocess.run(
+        ["git", "diff", "--name-only", "--diff-filter=ACMRT", "-z",
+         base, "HEAD", "--", *sorted(_SCANNED_ROOTS)],
+        cwd=_REPO_ROOT, capture_output=True, check=False,
+    )
+    if completed.returncode != 0:
+        raise ValueError("Unable to enumerate changed Semgrep targets")
+    try:
+        paths = (path.decode("utf-8") for path in completed.stdout.split(b"\0") if path)
+        return {path for path in paths if Path(path).suffix.lower() not in _UNSCANNABLE_BINARY}
+    except UnicodeDecodeError as error:
+        raise ValueError("Unverifiable Semgrep target path encoding") from error
+
+
+def classify_coverage(report_path: str | Path, base: str | None = None,
+                      *, require_covered: bool = False) -> str:
     data = json.loads(Path(report_path).read_text(encoding="utf-8"))
     if not isinstance(data, dict) or not isinstance(data.get("results"), list):
         raise ValueError("Invalid Semgrep report")
@@ -132,14 +160,29 @@ def classify_coverage(report_path: str | Path) -> str:
         raise ValueError("Semgrep scan coverage missing")
     if not scanned and data["results"]:
         raise ValueError("Semgrep findings contradict zero scanned paths")
-    return "fallback" if not scanned else "covered"
+    if not scanned:
+        if require_covered:
+            raise ValueError("Semgrep target coverage missing after fallback")
+        return "fallback"
+    if base is not None:
+        expected = changed_eligible_paths(base)
+        # Scanner paths are allowed only as comparison metadata, never emitted.
+        observed = {p.removeprefix("./") for p in scanned if isinstance(p, str)}
+        if len(observed) != len(scanned) or not expected.issubset(observed):
+            raise ValueError("Semgrep scan omitted eligible changed targets")
+    return "covered"
 
 
 if __name__ == "__main__":
     try:
-        if len(sys.argv) != 2:
-            raise ValueError("Usage: semgrep_coverage.py REPORT")
-        print(classify_coverage(sys.argv[1]))
+        if len(sys.argv) not in (2, 3, 4):
+            raise ValueError("Usage: semgrep_coverage.py REPORT [BASE_SHA [--require-covered]]")
+        if len(sys.argv) == 4 and sys.argv[3] != "--require-covered":
+            raise ValueError("Invalid Semgrep coverage mode")
+        if len(sys.argv) == 4 and not sys.argv[2]:
+            raise ValueError("Semgrep comparison base is missing")
+        print(classify_coverage(sys.argv[1], sys.argv[2] if len(sys.argv) >= 3 else None,
+                                require_covered=len(sys.argv) == 4))
     except (OSError, ValueError, TypeError, json.JSONDecodeError) as error:
         print(f"Semgrep coverage INCOMPLETE (fail closed): {error}", file=sys.stderr)
         sys.exit(2)
