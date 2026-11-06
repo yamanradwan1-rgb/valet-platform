@@ -1,6 +1,5 @@
 import { GuestApiError } from '../../lib/api/api-error';
 import { GuestApiClient } from '../../lib/api/guest-api-client';
-import { readBrowserContextMarker } from '../../lib/api/guest-browser-context-marker';
 import { guestPresentationContext } from '../../lib/guest-presentation-context';
 import { guestAuthRetryNotBefore } from './guest-auth-rate-limit';
 
@@ -46,7 +45,6 @@ export function isTerminalGuestAuthBootstrapFailure(error: unknown): boolean {
 
 async function exchangeBrowserSessionWithRecovery(
   bootstrapClient: GuestApiClient,
-  boundClient: GuestApiClient | null,
   resumingExchange = false,
 ): Promise<void> {
   let outcomeMayBeCommitted = resumingExchange;
@@ -60,25 +58,17 @@ async function exchangeBrowserSessionWithRecovery(
     }
   } catch (error) {
     if (!outcomeMayBeCommitted || !isTerminalGuestAuthBootstrapFailure(error)) throw error;
-    // An exchange can commit and clear the enrollment cookie before its reply
-    // is lost. A retry denial alone cannot distinguish that from rollback.
-    await requireGuestBrowserAuthority(boundClient);
+    // A cookie may authorize a different visit. Only the bearer-bound
+    // exchange response can confirm this enrollment after an unknown outcome.
+    throw guestAuthOutcomeUnknown();
   }
   // A fresh successful exchange adopts a new credential context. SAME_VISIT
   // bypasses this path and preserves deliberate presentation decisions.
   guestPresentationContext(true);
 }
 
-export async function requireGuestBrowserAuthority(client: GuestApiClient | null): Promise<void> {
-  if (client !== null) {
-    try {
-      await client.loadSession();
-      return;
-    } catch (error) {
-      if (isRetryableGuestAuthBootstrapFailure(error)) throw error;
-    }
-  }
-  throw new GuestApiError({
+export function guestAuthOutcomeUnknown(): GuestApiError {
+  return new GuestApiError({
     status: 0,
     code: 'MUTATION_OUTCOME_UNKNOWN',
     message: 'The Guest browser context could not be confirmed.',
@@ -88,13 +78,18 @@ export async function requireGuestBrowserAuthority(client: GuestApiClient | null
 export async function switchGuestBrowserContextTransport(
   bootstrapClient: GuestApiClient,
   onAmbiguousOutcome?: () => void,
+  hasOriginalSource?: () => boolean,
 ): Promise<void> {
+  const attempt = () => {
+    if (hasOriginalSource?.() === false) throw guestAuthOutcomeUnknown();
+    return bootstrapClient.switchBrowserContext();
+  };
   try {
-    await bootstrapClient.switchBrowserContext();
+    await attempt();
   } catch (error) {
     if (!isAmbiguousGuestAuthMutationFailure(error)) throw error;
     onAmbiguousOutcome?.();
-    await bootstrapClient.switchBrowserContext();
+    await attempt();
   }
 }
 
@@ -147,8 +142,7 @@ export async function runGuestAuthBootstrap(
 
   if (canStartExchange?.() === false) throw new Error('Guest bootstrap lost ownership.');
   onStage?.('EXCHANGE');
-  const boundClient = readBrowserContextMarker() === null ? null : GuestApiClient.browserSession();
-  await exchangeBrowserSessionWithRecovery(bootstrapClient, boundClient);
+  await exchangeBrowserSessionWithRecovery(bootstrapClient);
   return {
     token: null,
     client: GuestApiClient.browserSession(),
@@ -169,12 +163,11 @@ export async function retryGuestAuthBootstrapTransport(
   retryStage: GuestAuthBootstrapStage,
   onStage?: (stage: GuestAuthBootstrapStage) => void,
   canStartExchange?: () => boolean,
-  exchangeClient: GuestApiClient | null = null,
 ): Promise<GuestAuthBootstrapResult> {
   if (enrollmentEnabled && retryStage === 'EXCHANGE') {
     if (fragmentToken === null) throw new Error('Missing Guest bootstrap bearer.');
     const bootstrapClient = new GuestApiClient(fragmentToken);
-    await exchangeBrowserSessionWithRecovery(bootstrapClient, exchangeClient, true);
+    await exchangeBrowserSessionWithRecovery(bootstrapClient, true);
     return {
       token: null,
       client: GuestApiClient.browserSession(),

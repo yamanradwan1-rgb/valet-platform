@@ -44,7 +44,6 @@ export class GuestAuthNavigation {
   private marker = readBrowserContextMarker();
   private legacyToken: string | null;
   private deniedClient: GuestApiClient | null = null;
-  private exchangeClient: GuestApiClient | null = null;
   private readonly enrollmentEnabled =
     process.env.NEXT_PUBLIC_GUEST_BROWSER_SESSION_ENROLLMENT_ENABLED === 'true';
 
@@ -191,9 +190,6 @@ export class GuestAuthNavigation {
       const onStage = (next: GuestAuthBootstrapStage) => {
         stage = next;
         if (this.operation) this.operation.stage = next;
-        if (next === 'EXCHANGE') {
-          this.exchangeClient = readBrowserContextMarker() === null ? null : GuestApiClient.browserSession();
-        }
       };
       const attempt = (resume: boolean) => this.request(async () => {
         // With enrollment disabled there is no authorized context-transfer
@@ -209,7 +205,7 @@ export class GuestAuthNavigation {
         }
         return resume
           ? retryGuestAuthBootstrapTransport(
-            token, this.enrollmentEnabled, stage, onStage, canRequest, this.exchangeClient,
+            token, this.enrollmentEnabled, stage, onStage, canRequest,
           )
           : runGuestAuthBootstrap(token, this.enrollmentEnabled, onStage, canRequest);
       });
@@ -228,7 +224,6 @@ export class GuestAuthNavigation {
         const client = result.preservesBrowserContext && this.legacyToken === null &&
           previous.client !== this.deniedClient && this.marker !== null &&
           this.marker === readBrowserContextMarker() ? previous.client ?? result.client : result.client;
-        this.exchangeClient = null;
         this.legacyToken = this.enrollmentEnabled ? null : result.token;
         this.update(completedBootstrapState({ ...result, client }));
       } catch (error) {
@@ -236,7 +231,6 @@ export class GuestAuthNavigation {
         const preserveClient = this.marker === readBrowserContextMarker() || !this.enrollmentEnabled;
         const client = preserveClient && previous.client ? previous.client : GuestApiClient.browserSession();
         this.update(failedBootstrapState(token, client, error, stage));
-        if (!this.requiresRecovery) this.exchangeClient = null;
       }
     });
   }
@@ -264,7 +258,9 @@ export class GuestAuthNavigation {
         return;
       }
       this.update(beginGuestContextSwitchState(expected));
-      const recovery = createGuestSwitchRecovery(token, expected.isSwitchOutcomeAmbiguous);
+      const recovery = createGuestSwitchRecovery(
+        token, expected.isSwitchOutcomeAmbiguous, this.marker,
+      );
       const attempt = () => this.request(recovery.attempt);
       try {
         await recoverGuestAuth429Once(attempt, attempt, canRequest);

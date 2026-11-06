@@ -1,13 +1,20 @@
 import { GuestApiClient } from '../../lib/api/guest-api-client';
+import { readBrowserContextMarker } from '../../lib/api/guest-browser-context-marker';
 import {
+  guestAuthOutcomeUnknown,
   isTerminalGuestAuthBootstrapFailure,
-  requireGuestBrowserAuthority,
   switchGuestBrowserContextTransport,
 } from './guest-auth-bootstrap';
 
-export function createGuestSwitchRecovery(token: string, previouslyAmbiguous: boolean) {
+export function createGuestSwitchRecovery(
+  token: string,
+  previouslyAmbiguous: boolean,
+  sourceMarker: string | null,
+) {
   let ambiguous = previouslyAmbiguous;
   let reconcile = false;
+  const hasOriginalSource = () =>
+    sourceMarker === readBrowserContextMarker() && (sourceMarker !== null || !ambiguous);
   return {
     get isAmbiguous() {
       return ambiguous;
@@ -17,7 +24,7 @@ export function createGuestSwitchRecovery(token: string, previouslyAmbiguous: bo
         try {
           await switchGuestBrowserContextTransport(new GuestApiClient(token), () => {
             ambiguous = true;
-          });
+          }, hasOriginalSource);
           return;
         } catch (error) {
           if (!ambiguous || !isTerminalGuestAuthBootstrapFailure(error)) throw error;
@@ -25,9 +32,11 @@ export function createGuestSwitchRecovery(token: string, previouslyAmbiguous: bo
           reconcile = true;
         }
       }
-      const client = GuestApiClient.browserSession();
-      const result = await client.reconcileBrowserContextSwitch();
-      if (result.result === 'NONE') await requireGuestBrowserAuthority(client);
+      // Reconcile can restore an already committed cookie-bound transition.
+      // Neither response identifies the bearer chosen by this mounted flow.
+      if (!hasOriginalSource()) throw guestAuthOutcomeUnknown();
+      await GuestApiClient.browserSession().reconcileBrowserContextSwitch();
+      throw guestAuthOutcomeUnknown();
     },
   };
 }

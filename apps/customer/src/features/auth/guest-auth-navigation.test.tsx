@@ -231,7 +231,7 @@ describe('mounted Guest link navigation', () => {
   });
 
   it.each(['same', 'changed'] as const)(
-    'uses only the original cookie context to resolve lost exchange with a %s marker',
+    'keeps lost exchange ambiguous even with a valid cookie and a %s marker',
     async (marker) => {
       const doc = browser.document as unknown as { cookie: string };
       doc.cookie = `__Host-vaylet_guest_context=vgc1.${'a'.repeat(32)}`;
@@ -240,25 +240,20 @@ describe('mounted Guest link navigation', () => {
         .mockResolvedValueOnce(unavailable()).mockResolvedValueOnce(denied());
       await mount();
       if (marker === 'changed') doc.cookie = `__Host-vaylet_guest_context=vgc1.${'b'.repeat(32)}`;
-      else fetchSpy.mockResolvedValueOnce(session());
+      fetchSpy.mockResolvedValueOnce(session());
 
       await act(async () => auth.retryBootstrap());
 
-      if (marker === 'same') {
-        expect(auth).toMatchObject({ token: null, isBootstrapTemporarilyUnavailable: false });
-        expect(paths().at(-1)).toBe('session');
-        expect(fetchSpy.mock.calls.at(-1)?.[1]?.headers).not.toHaveProperty('Authorization');
-      } else {
-        expect(auth).toMatchObject({ token: TOKEN, isBootstrapTemporarilyUnavailable: true });
-        expect(paths().at(-1)).toBe('browser-session/exchange');
-      }
+      expect(auth).toMatchObject({ token: TOKEN, isBootstrapTemporarilyUnavailable: true });
+      expect(paths().at(-1)).toBe('browser-session/exchange');
     },
   );
 
   it('keeps a POST_VISIT switch intent after response loss, including on later navigation', async () => {
+    document.cookie = `__Host-vaylet_guest_context=vgc1.${'a'.repeat(32)}`;
     location.hash = `#guestToken=${TOKEN}`;
     fetchSpy.mockResolvedValueOnce(conflict('POST_VISIT')).mockRejectedValueOnce(new TypeError('offline'))
-      .mockResolvedValueOnce(unavailable()).mockResolvedValueOnce(denied())
+      .mockResolvedValueOnce(unavailable())
       .mockResolvedValueOnce(json({ result: 'RECOVERED' })).mockResolvedValueOnce(conflict());
     await mount();
     const source = auth.client;
@@ -271,8 +266,8 @@ describe('mounted Guest link navigation', () => {
     });
     expect(paths()).toEqual(['browser-session/prepare', 'browser-session/switch', 'browser-session/switch']);
     await act(async () => auth.openNewVisit());
-    expect(paths().slice(-3)).toEqual([
-      'browser-session/switch', 'browser-session/switch/reconcile', 'browser-session/prepare',
+    expect(paths().slice(-2)).toEqual([
+      'browser-session/switch', 'browser-session/prepare',
     ]);
     expect(auth.client).not.toBe(source);
     expect(auth).toMatchObject({ token: OTHER_TOKEN, contextConflictScope: 'ACTIVE' });
