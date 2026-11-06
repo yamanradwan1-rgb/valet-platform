@@ -17,6 +17,40 @@ LOCKFILE = "pnpm-lock.yaml"
 CONTAINER_ROOT = "/src"
 
 
+def required_text(value: object) -> bool:
+    """Require an actual nonblank scanner identity, not a truthy placeholder."""
+    return isinstance(value, str) and bool(value.strip())
+
+
+def validate_trivy_entries(entries: object, *, kind: str) -> list:
+    if not isinstance(entries, list):
+        raise ValueError(f"Trivy {kind} evidence is malformed")
+    keys = ("Name", "Version") if kind == "package" else (
+        "VulnerabilityID", "PkgName", "InstalledVersion")
+    for entry in entries:
+        if not isinstance(entry, dict) or not all(required_text(entry.get(key)) for key in keys):
+            raise ValueError(f"Trivy {kind} lacks a valid identity and version")
+    return entries
+
+
+def validate_osv_packages(packages: object) -> list:
+    if not isinstance(packages, list):
+        raise ValueError("OSV package results are malformed")
+    for entry in packages:
+        if not isinstance(entry, dict) or not isinstance(entry.get("package"), dict):
+            raise ValueError("OSV package identity is missing")
+        identity = entry["package"]
+        if not required_text(identity.get("name")) or not required_text(identity.get("version")):
+            raise ValueError("OSV package name or version is missing")
+        findings = entry.get("vulnerabilities", [])
+        if not isinstance(findings, list):
+            raise ValueError("OSV vulnerabilities are malformed")
+        if any(not isinstance(vuln, dict) or not required_text(vuln.get("id"))
+               for vuln in findings):
+            raise ValueError("OSV vulnerability ID is missing")
+    return packages
+
+
 def lockfile_at(root: Path) -> Path:
     if not root.is_dir():
         raise ValueError("Scanner checkout is missing")
@@ -62,10 +96,8 @@ def verify_trivy(data: object, root: Path) -> None:
         if target == root / LOCKFILE:
             if result.get("Class") != "lang-pkgs" or result.get("Type") != "pnpm":
                 raise ValueError("Trivy did not identify the pnpm dependency target")
-            packages = result.get("Packages") or []
-            findings = result.get("Vulnerabilities") or []
-            if not isinstance(packages, list) or not isinstance(findings, list):
-                raise ValueError("Trivy dependency evidence is malformed")
+            packages = validate_trivy_entries(result.get("Packages", []), kind="package")
+            findings = validate_trivy_entries(result.get("Vulnerabilities", []), kind="vulnerability")
             if not packages and not findings:
                 raise ValueError("Trivy pnpm target contains no extraction evidence")
             found = True
@@ -77,6 +109,7 @@ def verify_osv(data: object, root: Path, explicit_lockfile: bool, exit_code: int
     if not isinstance(data, dict) or not isinstance(data.get("results"), list):
         raise ValueError("OSV scan results are missing or invalid")
     found_packages = False
+    found_vulnerabilities = False
     for result in data["results"]:
         if not isinstance(result, dict) or not isinstance(result.get("source"), dict):
             raise ValueError("OSV source evidence is missing")
@@ -85,13 +118,15 @@ def verify_osv(data: object, root: Path, explicit_lockfile: bool, exit_code: int
         if kind not in {"lockfile", "sbom", "git"}:
             raise ValueError("OSV reported an unexpected source type")
         target = repo_target(source.get("path"), root, directory=kind == "git")
-        packages = result.get("packages")
-        if not isinstance(packages, list):
-            raise ValueError("OSV package results are malformed")
+        packages = validate_osv_packages(result.get("packages"))
+        if any(entry.get("vulnerabilities") for entry in packages):
+            found_vulnerabilities = True
         if kind == "lockfile" and target == root / LOCKFILE and packages:
             found_packages = True
     if not found_packages and (data["results"] or not explicit_lockfile or exit_code != 0):
         raise ValueError("OSV report does not prove pnpm-lock.yaml package coverage")
+    if exit_code == 1 and not found_vulnerabilities:
+        raise ValueError("OSV found-vulnerabilities exit conflicts with empty vulnerability data")
 
 
 def verify(scanner: str, report: Path, checkout: Path, exit_code: int,

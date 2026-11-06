@@ -26,7 +26,8 @@ class ScannerCoverageTests(unittest.TestCase):
         result = {"Target": "pnpm-lock.yaml", "Class": "lang-pkgs", "Type": "pnpm"}
         if with_findings:
             result["Vulnerabilities"] = [{"VulnerabilityID": "CVE-2026-0001",
-                                          "PkgName": "dependency", "Severity": severity}]
+                                          "PkgName": "dependency", "InstalledVersion": "1.0",
+                                          "Severity": severity}]
         if with_packages:
             result["Packages"] = [{"Name": "dependency", "Version": "1.0"}]
         return result
@@ -53,6 +54,36 @@ class ScannerCoverageTests(unittest.TestCase):
                 self.check("trivy", self.trivy([
                     self.trivy_result(with_findings=False, with_packages=True)],
                     artifact_type=artifact_type))
+
+    def test_trivy_rejects_fake_pnpm_package_entries(self):
+        for invalid in ({}, None, "x", {"Name": "dependency"},
+                        {"Name": "dependency", "Version": " "},
+                        {"Name": " ", "Version": "1.0"},
+                        {"Name": "dependency", "Version": 1}):
+            with self.subTest(entry=invalid), self.assertRaises(ValueError):
+                result = self.trivy_result(with_findings=False)
+                result["Packages"] = [invalid]
+                self.check("trivy", self.trivy([result]))
+
+    def test_trivy_rejects_fake_vulnerabilities_even_when_packages_valid(self):
+        for invalid in ({}, None, "x", {"VulnerabilityID": "CVE-1"},
+                        {"VulnerabilityID": "  ", "PkgName": "dep", "InstalledVersion": "1"},
+                        {"VulnerabilityID": "CVE-1", "PkgName": "dep", "InstalledVersion": " "},
+                        {"VulnerabilityID": "CVE-1", "PkgName": "", "InstalledVersion": "1"}):
+            with self.subTest(entry=invalid), self.assertRaises(ValueError):
+                result = self.trivy_result(with_findings=False, with_packages=True)
+                result["Vulnerabilities"] = [invalid]
+                self.check("trivy", self.trivy([result]))
+
+    def test_trivy_valid_vulnerabilities_alone_prove_pnpm_extraction(self):
+        self.check("trivy", self.trivy([self.trivy_result()]))
+
+    def test_trivy_checks_every_package_and_vulnerability_not_just_first(self):
+        for field in ("Packages", "Vulnerabilities"):
+            result = self.trivy_result(with_packages=True)
+            result[field].append({})
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                self.check("trivy", self.trivy([result]))
 
     def test_trivy_scan_with_extra_existing_repo_target(self):
         (self.root / "infra").mkdir()
@@ -112,6 +143,42 @@ class ScannerCoverageTests(unittest.TestCase):
             with self.subTest(payload=payload), self.assertRaises(ValueError):
                 self.check("osv", payload, explicit=True, exit_code=0)
         self.check("osv", {"results": [other] + self.osv()["results"]}, exit_code=1)
+
+    def test_osv_rejects_fake_package_entries(self):
+        for invalid in ({}, None, "x", {"package": {}},
+                        {"package": {"name": "dep"}},
+                        {"package": {"name": " ", "version": "1"}},
+                        {"package": {"name": "dep", "version": " "}},
+                        {"package": {"name": "dep", "version": 1}}):
+            with self.subTest(entry=invalid), self.assertRaises(ValueError):
+                self.check("osv", self.osv(packages=[invalid]), explicit=True)
+
+    def test_osv_rejects_fake_vulnerability_ids(self):
+        for invalid in ({}, None, "x", {"id": ""}, {"id": "   "}, {"id": 123}):
+            with self.subTest(entry=invalid), self.assertRaises(ValueError):
+                package = {"package": {"name": "dep", "version": "1.0"},
+                           "vulnerabilities": [invalid]}
+                self.check("osv", self.osv(packages=[package]), explicit=True)
+
+    def test_osv_checks_every_package_and_vulnerability_not_just_first(self):
+        good = {"package": {"name": "dep", "version": "1.0"},
+                "vulnerabilities": [{"id": "GHSA-VALID"}]}
+        with self.assertRaises(ValueError):
+            self.check("osv", self.osv(packages=[good, {}]), exit_code=1)
+        with self.assertRaises(ValueError):
+            self.check("osv", self.osv(packages=[{
+                "package": good["package"],
+                "vulnerabilities": [{"id": "GHSA-VALID"}, {}]}]), exit_code=1)
+
+    def test_osv_valid_clean_package_evidence_has_no_false_positive(self):
+        self.check("osv", self.osv(packages=[
+            {"package": {"name": "dep", "version": "1.0"}, "vulnerabilities": []}]))
+
+    def test_osv_exit_one_without_any_advisory_fails(self):
+        payload = self.osv(packages=[
+            {"package": {"name": "dep", "version": "1.0"}, "vulnerabilities": []}])
+        with self.assertRaises(ValueError):
+            self.check("osv", payload, exit_code=1, explicit=True)
 
     def test_osv_recursively_discovered_sources_within_checkout_are_valid(self):
         (self.root / "apps").mkdir()
