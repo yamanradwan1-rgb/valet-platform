@@ -27,11 +27,11 @@ import {
 
 import { GuestWebPushPermissionPresentation } from "./guest-web-push-permission-presentation";
 export { GuestWebPushPermissionPresentation } from "./guest-web-push-permission-presentation";
-
 type PresentationState = GuestWebPushStatus | "CHECKING" | "ENABLING" | "FAILED";
 const CONFIG_CHECK_DEADLINE_MS = 12_000;
-const ENABLE_DEADLINE_MS = 35_000;
+const ENABLE_DEADLINE_MS = 45_000;
 const WAKE_CHECK_INTERVAL_MS = 2_000;
+const dismissedDocuments = new WeakSet<Document>();
 
 export function GuestWebPushPermissionCard({
   transport,
@@ -43,12 +43,14 @@ export function GuestWebPushPermissionCard({
   const [activeTransport] = useState(
     () => transport ?? createGuestWebPushTransport(),
   );
-  const [dismissed, updateDismissed] = useState(false);
+  const [dismissed, updateDismissed] = useState(
+    () => typeof document !== "undefined" && dismissedDocuments.has(document),
+  );
   const [feedback, setFeedback] = useState<GuestPushFeedback>();
   const [retryAt, setRetryAt] = useState(0);
   const retryAtRef = useRef(0);
   const mountedRef = useRef(false);
-  const dismissedRef = useRef(false);
+  const dismissedRef = useRef(dismissed);
   const generationRef = useRef(0);
   const operationRef = useRef<AbortController | null>(null);
   const contextRef = useRef(readBrowserContextMarker());
@@ -100,6 +102,7 @@ export function GuestWebPushPermissionCard({
   const setDismissed = useCallback(
     (value: boolean) => {
       if (value) {
+        dismissedDocuments.add(document);
         dismissedRef.current = true;
         invalidate();
       }
@@ -237,6 +240,7 @@ export function GuestWebPushPermissionCard({
     const marker = readBrowserContextMarker();
     operationRef.current = controller;
     setState("ENABLING");
+    let verifyingBinding = false;
     const deadline = setTimeout(() => {
       if (!canCommit(controller, generation, marker)) return;
       invalidate();
@@ -252,7 +256,13 @@ export function GuestWebPushPermissionCard({
       );
       if (!canCommit(controller, generation, marker)) return;
       if (result === "ENABLED") {
-        setState("ENABLED_VERIFIED");
+        verifyingBinding = true;
+        // The 204 proves the response, but not a still-current exact binding.
+        // A read-only check is required before hiding the card.
+        const current = await readGuestWebPushStatus(activeTransport, controller.signal);
+        if (!canCommit(controller, generation, marker)) return;
+        setFeedback(current === "ENABLED_VERIFIED" ? undefined : { kind: "VERIFY" });
+        setState(current);
         return;
       }
       if (result === "AVAILABLE") setFeedback({ kind: "DISMISSED" });
@@ -266,7 +276,8 @@ export function GuestWebPushPermissionCard({
         });
       setState(result);
     } catch (error) {
-      if (canCommit(controller, generation, marker)) fail(error);
+      if (canCommit(controller, generation, marker))
+        fail(error, verifyingBinding ? "VERIFY" : "FAILED");
     } finally {
       clearTimeout(deadline);
       if (operationRef.current === controller) operationRef.current = null;

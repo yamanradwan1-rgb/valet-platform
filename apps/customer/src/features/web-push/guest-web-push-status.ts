@@ -3,6 +3,7 @@ import {
   GuestWebPushDisabledError,
   isCurrentGuestPushSubscription,
   readGuestWebPushCapability,
+  subscriptionMatchesVapidKey,
   type GuestWebPushCapability,
   type GuestWebPushTransport,
 } from "./guest-web-push-client";
@@ -28,8 +29,9 @@ export async function readGuestWebPushStatus(
   if (capability === "UNSUPPORTED" || capability === "IOS_HOME_SCREEN_REQUIRED") return capability;
 
   const stages = guestWebPushStages(signal);
+  let publicKey: string;
   try {
-    await stages("public key", 8_000, (stageSignal) => transport.loadVapidPublicKey(stageSignal));
+    publicKey = await stages("public key", 8_000, (stageSignal) => transport.loadVapidPublicKey(stageSignal));
   } catch (error) {
     if (error instanceof GuestWebPushDisabledError) return "DISABLED";
     throw error;
@@ -43,6 +45,7 @@ export async function readGuestWebPushStatus(
   });
   const subscription = await readSubscription();
   if (!isCurrentGuestPushSubscription(subscription)) return "SUBSCRIPTION_MISSING";
+  if (!subscriptionMatchesVapidKey(subscription, publicKey)) return "SERVER_BINDING_MISSING";
   const active = await stages("registration verification", 10_000, (stageSignal) =>
     transport.verifySubscription(subscription.endpoint, stageSignal),
   );
@@ -51,6 +54,7 @@ export async function readGuestWebPushStatus(
   if (currentPermission === "denied") return "DENIED";
   if (currentPermission !== "granted") return "AVAILABLE";
   if (!isCurrentGuestPushSubscription(current)) return "SUBSCRIPTION_MISSING";
+  if (!subscriptionMatchesVapidKey(current, publicKey)) return "SERVER_BINDING_MISSING";
   if (current.endpoint !== subscription.endpoint) {
     throw new Error("Guest Web Push subscription changed during verification.");
   }

@@ -12,7 +12,9 @@ vi.mock("../../i18n/use-translation", () => ({
 const endpoint = "https://fcm.googleapis.com/fcm/send/synthetic";
 const subscription = {
   endpoint,
+  options: { applicationServerKey: new Uint8Array(65).buffer },
   toJSON: () => ({ endpoint, keys: { p256dh: "A".repeat(87), auth: "B".repeat(22) } }),
+  unsubscribe: vi.fn(async () => true),
 };
 
 describe("mounted Guest Push verification", () => {
@@ -47,10 +49,13 @@ describe("mounted Guest Push verification", () => {
   beforeEach(() => {
     dom = installTestDom();
     dom.window.isSecureContext = true;
+    dom.window.location = { href: "https://guest.example.test/" };
     dom.window.matchMedia = () => ({ matches: false });
     setMarker("a");
     permission = "default";
     local = subscription;
+    subscribe.mockReset();
+    subscription.unsubscribe.mockReset().mockResolvedValue(true);
     status = async () => Response.json({ active: true });
     register = async () => new Response(null, { status: 204 });
     vi.stubGlobal("Notification", { get permission() { return permission; }, requestPermission: prompt });
@@ -93,14 +98,42 @@ describe("mounted Guest Push verification", () => {
     expect(registerWorker).not.toHaveBeenCalled();
   });
 
-  it("keeps Not now temporary without prompting or registering", async () => {
+  it("never treats an ACTIVE server endpoint as enabled after a VAPID key rotation", async () => {
+    permission = "granted";
+    local = { ...subscription, options: { applicationServerKey: new Uint8Array(65).fill(1).buffer } };
+    await mount();
+    expect(container.textContent).toContain("Notifications aren't fully enabled");
+    expect(paths()).not.toContain("registration/status");
+    expect(paths()).not.toContain("registration");
+    expect(subscribe).not.toHaveBeenCalled();
+  });
+
+  it("repairs an old VAPID subscription only after explicit Enable and verifies the new ACTIVE binding", async () => {
+    permission = "granted";
+    local = {
+      ...subscription,
+      options: { applicationServerKey: new Uint8Array(65).fill(1).buffer },
+      unsubscribe: vi.fn(async () => { local = null; return true; }),
+    };
+    subscribe.mockImplementation(async () => { local = subscription; return subscription; });
+    await mount();
+    expect(container.textContent).toContain("Notifications aren't fully enabled");
+    expect(subscribe).not.toHaveBeenCalled();
+    await click("Enable notifications");
+    expect(subscribe).toHaveBeenCalledTimes(1);
+    expect(paths().filter(path => path === "registration")).toHaveLength(1);
+    expect(paths().filter(path => path === "registration/status")).toHaveLength(1);
+    expect(container.textContent).toBe("");
+  });
+
+  it("keeps Not now dismissed across mounts within the same document without registering", async () => {
     await mount();
     expect(container.textContent).toContain("Enable notifications");
     await click("Not now");
     await dispatch("focus");
     expect(container.textContent).toBe("");
     await mount();
-    expect(container.textContent).toContain("Enable notifications");
+    expect(container.textContent).toBe("");
     expect(prompt).not.toHaveBeenCalled();
     expect(paths().filter(path => path !== "config")).toEqual([]);
   });

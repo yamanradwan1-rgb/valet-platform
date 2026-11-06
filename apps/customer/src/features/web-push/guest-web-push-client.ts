@@ -54,7 +54,6 @@ export class GuestWebPushDisabledError extends Error {
     super("Guest Web Push registration is disabled.");
   }
 }
-
 interface BrowserPushDependencies {
   readonly capability: () => GuestWebPushCapabilitySnapshot;
   readonly requestPermission: () => Promise<NotificationPermission>;
@@ -63,19 +62,15 @@ interface BrowserPushDependencies {
 
 function readIosStandalone(): boolean | null {
   if (typeof navigator === "undefined") return null;
-  const value = (navigator as Navigator & { readonly standalone?: unknown })
-    .standalone;
+  const value = (navigator as Navigator & { readonly standalone?: unknown }).standalone;
   return typeof value === "boolean" ? value : null;
 }
 
 function readDisplayModeStandalone(): boolean | null {
-  if (typeof window === "undefined" || typeof window.matchMedia !== "function")
-    return null;
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") return null;
   try {
     return window.matchMedia("(display-mode: standalone)").matches === true;
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
 
 export function readGuestWebPushCapability(): GuestWebPushCapabilitySnapshot {
@@ -117,12 +112,15 @@ export function detectGuestWebPushCapability(
 function decodeVapidPublicKey(value: string): ArrayBuffer {
   const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
   const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
-  const binary = atob(padded);
-  const bytes = new Uint8Array(binary.length);
-  for (let index = 0; index < binary.length; index += 1) {
-    bytes[index] = binary.charCodeAt(index);
-  }
-  return bytes.buffer;
+  return Uint8Array.from(atob(padded), (character) => character.charCodeAt(0)).buffer;
+}
+export function subscriptionMatchesVapidKey(subscription: PushSubscription, publicKey: string): boolean {
+  const key = subscription.options?.applicationServerKey;
+  if (!key) return false;
+  const actual = new Uint8Array(key);
+  const expected = new Uint8Array(decodeVapidPublicKey(publicKey));
+  return actual.length === expected.length &&
+    actual.every((byte, index) => byte === expected[index]);
 }
 
 function serializeSubscription(
@@ -214,6 +212,16 @@ export async function enableGuestWebPush(
   if (permission !== "granted")
     return permission === "denied" ? "DENIED" : "AVAILABLE";
 
+  const publicKey = await stages("public key", 8_000, (stageSignal) =>
+    transport.loadVapidPublicKey(stageSignal),
+  );
+  assertCurrent();
+  let applicationServerKey: ArrayBuffer;
+  try {
+    applicationServerKey = decodeVapidPublicKey(publicKey);
+  } catch (error) {
+    throw new GuestWebPushStageError("public key", error);
+  }
   const registration = await stages("service worker", 8_000, () =>
     dependencies.serviceWorkerReady(),
   );
@@ -224,6 +232,16 @@ export async function enableGuestWebPush(
   });
   let subscription = await readSubscription();
   assertCurrent();
+  // A key-rotated subscription is replaced only after this Guest gesture.
+  if (subscription?.options && !subscriptionMatchesVapidKey(subscription, publicKey)) {
+    const old = subscription;
+    const removed = await stages("unsubscribe", 5_000, () => old.unsubscribe());
+    assertCurrent();
+    if (!removed || await readSubscription() !== null) {
+      throw new GuestWebPushStageError("unsubscribe", undefined);
+    }
+    subscription = null;
+  }
   const verify = transport.verifySubscription?.bind(transport);
   if (subscription !== null && verify) {
     const endpoint = subscription.endpoint;
@@ -239,16 +257,6 @@ export async function enableGuestWebPush(
   }
   let created = false;
   if (subscription === null) {
-    const publicKey = await stages("public key", 8_000, (stageSignal) =>
-      transport.loadVapidPublicKey(stageSignal),
-    );
-    assertCurrent();
-    let applicationServerKey: ArrayBuffer;
-    try {
-      applicationServerKey = decodeVapidPublicKey(publicKey);
-    } catch (error) {
-      throw new GuestWebPushStageError("public key", error);
-    }
     // subscribe() is native and not abortable. A late resolution must never
     // continue into server binding or remove a subscription a retry may reuse.
     subscription = await stages("subscribe", 10_000, () =>
