@@ -186,14 +186,22 @@ jobs:
           docker run --rm -v "$PWD:/src:ro" -v "$PWD/security-reports:/out:rw" \
             -v "$RUNNER_TEMP/trivy-cache:/root/.cache/trivy:rw" \
             ghcr.io/aquasecurity/trivy:0.68.2 fs --scanners vuln,misconfig \
-            --format json --exit-code 0 --output /out/trivy-head.json /src
+            --list-all-pkgs --format json --exit-code 0 --output /out/trivy-head.json /src
+      - name: Verify head Trivy lockfile extraction
+        run: |
+          python3 scripts/security/verify_scanner_coverage.py trivy \
+            security-reports/trivy-head.json "$PWD" --scan-exit-code 0
       - name: Scan base using the same image and cache
         if: env.SECURITY_BASE_TREE != ''
         run: |
           docker run --rm -v "$SECURITY_BASE_TREE:/src:ro" -v "$PWD/security-reports:/out:rw" \
             -v "$RUNNER_TEMP/trivy-cache:/root/.cache/trivy:rw" \
             ghcr.io/aquasecurity/trivy:0.68.2 fs --scanners vuln,misconfig \
-            --format json --exit-code 0 --output /out/trivy-base.json /src
+            --list-all-pkgs --format json --exit-code 0 --output /out/trivy-base.json /src
+      - name: Verify base Trivy lockfile extraction
+        run: |
+          python3 scripts/security/verify_scanner_coverage.py trivy \
+            security-reports/trivy-base.json "$SECURITY_BASE_TREE" --scan-exit-code 0
       - name: Gate new high and critical vulnerabilities
         env:
           BASE_TREE: ${{ env.SECURITY_BASE_TREE }}
@@ -236,20 +244,26 @@ jobs:
         run: |
           set +e
           docker run --rm -v "$PWD:/src:ro" ghcr.io/google/osv-scanner:v2.3.3 scan source \
-            --recursive --format=json /src > security-reports/osv-head.json
+            --lockfile=/src/pnpm-lock.yaml --recursive --format=json /src > security-reports/osv-head.json
           code=$?
           set -e
           test "$code" -le 1
+          python3 scripts/security/verify_scanner_coverage.py osv \
+            security-reports/osv-head.json "$PWD" \
+            --scan-exit-code "$code" --explicit-lockfile
       - name: OSV base scan
         if: env.SECURITY_BASE_TREE != ''
         run: |
           cd "$SECURITY_BASE_TREE"
           set +e
           docker run --rm -v "$PWD:/src:ro" ghcr.io/google/osv-scanner:v2.3.3 scan source \
-            --recursive --format=json /src > "$GITHUB_WORKSPACE/security-reports/osv-base.json"
+            --lockfile=/src/pnpm-lock.yaml --recursive --format=json /src > "$GITHUB_WORKSPACE/security-reports/osv-base.json"
           code=$?
           set -e
           test "$code" -le 1
+          python3 "$GITHUB_WORKSPACE/scripts/security/verify_scanner_coverage.py" osv \
+            "$GITHUB_WORKSPACE/security-reports/osv-base.json" "$PWD" \
+            --scan-exit-code "$code" --explicit-lockfile
       - name: Gate new high, critical, or unrated advisories
         env:
           BASE_TREE: ${{ env.SECURITY_BASE_TREE }}
@@ -268,7 +282,7 @@ jobs:
 
   sast-codeql:
     runs-on: ubuntu-24.04
-    timeout-minutes: 50
+    timeout-minutes: 90
     permissions:
       contents: read
       actions: read
@@ -276,16 +290,64 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           persist-credentials: false
-      - uses: github/codeql-action/init@v4
+      - name: Resolve verified security comparison base
+        env:
+          SECURITY_EVENT: ${{ github.event_name }}
+          SECURITY_PR_BASE: ${{ github.event.pull_request.base.sha }}
+          SECURITY_BEFORE: ${{ github.event.before }}
+          SECURITY_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          SECURITY_REF: ${{ github.ref }}
+        run: |
+          mkdir -p security-reports
+          python3 scripts/security/resolve_scan_base.py
+      - name: Checkout exact CodeQL baseline
+        run: git worktree add --detach "$RUNNER_TEMP/security-codeql-base" "$SECURITY_BASE_SHA"
+      - uses: github/codeql-action/setup-codeql@v4
+        id: setup-codeql
         with:
           languages: javascript-typescript
-          build-mode: none
-          queries: security-extended
-      - uses: github/codeql-action/analyze@v4
+      - name: Analyze head and base with identical CodeQL CLI and queries
+        id: codeql-analyze
+        env:
+          CODEQL_BIN: ${{ steps.setup-codeql.outputs.codeql-path }}
+        run: |
+          set -euo pipefail
+          if [[ ! -x "$CODEQL_BIN" ]]; then
+            echo '::error::CodeQL CLI was not installed'
+            exit 2
+          fi
+          query_suite='codeql/javascript-queries:codeql-suites/javascript-security-extended.qls'
+          for revision in head base; do
+            source="$GITHUB_WORKSPACE"
+            if [[ "$revision" == base ]]; then source="$RUNNER_TEMP/security-codeql-base"; fi
+            "$CODEQL_BIN" database create "$RUNNER_TEMP/codeql-$revision-db" \
+              --language=javascript-typescript --build-mode=none --no-skip-empty \
+              --source-root="$source" --threads=2 --ram=4096
+            "$CODEQL_BIN" database analyze "$RUNNER_TEMP/codeql-$revision-db" \
+              "$query_suite" --format=sarifv2.1.0 \
+              --sarif-category=/language:javascript-typescript --threads=2 --ram=4096 \
+              --output="$RUNNER_TEMP/codeql-$revision.sarif"
+          done
+      - name: Upload CodeQL head to GitHub Code Scanning
+        if: ${{ steps.codeql-analyze.outcome == 'success' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+        uses: github/codeql-action/upload-sarif@v4
         with:
+          sarif_file: ${{ runner.temp }}/codeql-head.sarif
           category: /language:javascript-typescript
-          upload: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'never' || 'always' }}
+      - name: Gate new CodeQL high and critical findings
+        run: |
+          python3 scripts/security/codeql_gate.py \
+            --head "$RUNNER_TEMP/codeql-head.sarif" \
+            --base "$RUNNER_TEMP/codeql-base.sarif" \
+            --out security-reports/codeql-sanitized.json
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-codeql-${{ github.run_id }}
+          path: security-reports/codeql-sanitized.json
+          retention-days: 7
 
   security-gate:
     if: always()
@@ -301,6 +363,8 @@ jobs:
           python3 -m unittest discover -s scripts/security -p 'test_ci_gate.py' -v
           python3 -m unittest discover -s scripts/security -p 'test_semgrep_coverage.py' -v
           python3 -m unittest discover -s scripts/security -p 'test_resolve_scan_base.py' -v
+          python3 -m unittest discover -s scripts/security -p 'test_verify_scanner_coverage.py' -v
+          python3 -m unittest discover -s scripts/security -p 'test_codeql_gate.py' -v
       - name: Fail closed for failed / skipped security checks
         env:
           GITLEAKS: ${{ needs.secrets-gitleaks.result }}
