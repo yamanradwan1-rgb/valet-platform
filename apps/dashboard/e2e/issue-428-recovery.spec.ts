@@ -139,8 +139,11 @@ for (const releaseAt of ["B", "A"] as const) {
     page.on("requestfailed", terminal);
   });
   let delayA = false;
-  const f = new PresenceFixture("LM", async (path, request) => {
-    if (path.includes(LOCATION_B.locationId) && path.endsWith("/exceptions"))
+  const locationBBase = lmBase.replace(LOCATION_A.locationId, LOCATION_B.locationId);
+  const f = new PresenceFixture("LM", async (path, request, state) => {
+    if (request.method() === "GET" && path === `${locationBBase}/policy`)
+      return { body: { ...state.policy, locationId: LOCATION_B.locationId } };
+    if (request.method() === "GET" && path === `${locationBBase}/exceptions`)
       return { body: { items: [], nextCursor: null } };
     if (
       delayA &&

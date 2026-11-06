@@ -171,13 +171,15 @@ test("Company All Locations has no exception list or cross-location request", as
 test("changing exact Location A → B → A never exposes A's pending requests in B", async ({
   page,
 }) => {
-  const f = new PresenceFixture("LM", (path, request) =>
-    path.includes(LOCATION_B.locationId) &&
-    path.endsWith("/exceptions") &&
-    request.method() === "GET"
-      ? { body: { items: [], nextCursor: null } }
-      : undefined,
-  );
+  const locationBBase = lmBase.replace(LOCATION_A.locationId, LOCATION_B.locationId);
+  const f = new PresenceFixture("LM", (path, request, state) => {
+    if (request.method() !== "GET") return undefined;
+    if (path === `${locationBBase}/policy`)
+      return { body: { ...state.policy, locationId: LOCATION_B.locationId } };
+    if (path === `${locationBBase}/exceptions`)
+      return { body: { items: [], nextCursor: null } };
+    return undefined;
+  });
   await enterEmployees(page, f);
   await expect(await openExceptions(page)).toContainText("Nadia Salem");
   await changeScope(page, LOCATION_B.name);
