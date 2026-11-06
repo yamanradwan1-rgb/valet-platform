@@ -8,6 +8,11 @@ import {
 } from "./support/presence-fixtures";
 import { LOCATION_A, LOCATION_B, ORG_A } from "./support/fixture-data";
 import { signInOnCurrentPage } from "./support/foundation-ui";
+import {
+  captureStaffRequests,
+  expectCompactEmployeeTabs,
+  shiftStartEndPosts,
+} from "./support/issue428-route-observation";
 
 const error = (status: number, code: string) => ({
   status,
@@ -81,6 +86,7 @@ for (const action of ["approve", "reject"] as const) {
   test(`${action} submits one revision-bound decision and history remains read-only`, async ({
     page,
   }) => {
+    const allStaffRequests = captureStaffRequests(page);
     const f = new PresenceFixture("LM");
     await enterEmployees(page, f);
     const section = await openExceptions(page);
@@ -97,7 +103,7 @@ for (const action of ["approve", "reject"] as const) {
       mutationId: expect.any(String),
     });
     expect(f.writes[0]!.body).not.toHaveProperty("locationId");
-    expect(f.requests.every((url) => !url.includes("/shifts/"))).toBe(true);
+    expect(shiftStartEndPosts(allStaffRequests)).toEqual([]);
 
     await section.getByRole("button", { name: "History", exact: true }).click();
     await expect(section).toContainText(action === "approve" ? "Approved" : "Rejected");
@@ -107,26 +113,46 @@ for (const action of ["approve", "reject"] as const) {
     );
     await expect(page.getByRole("dialog").getByRole("button", { name: "Approve" })).toHaveCount(0);
     await expect(page.getByRole("dialog").getByRole("button", { name: "Reject" })).toHaveCount(0);
+    expect(shiftStartEndPosts(allStaffRequests)).toEqual([]);
   });
 }
 
 test("a server MFA step-up rejection does not approve or silently retry", async ({
   page,
 }) => {
-  const f = new PresenceFixture("CA", (path, request) =>
+  const allStaffRequests = captureStaffRequests(page);
+  const f = new PresenceFixture("CA", (path, request, state) =>
     path === `${caBase}/exceptions/${EXCEPTION_ID}/approve` &&
-    request.method() === "POST"
+    request.method() === "POST" &&
+    !state.fixture.mfaAssured
       ? error(403, "MFA_STEP_UP_REQUIRED")
       : undefined,
   );
   await enterEmployees(page, f);
+  f.fixture.mfaState = "STEP_UP_REQUIRED";
+  f.fixture.mfaAssured = false;
   const section = await openExceptions(page);
   await section.getByRole("button", { name: "Review", exact: true }).click();
-  await page.getByRole("dialog").getByRole("button", { name: "Approve" }).click();
+  const review = page.getByRole("dialog", { name: "Review Presence Exception" });
+  await review.getByRole("button", { name: "Approve", exact: true }).click();
   await expect.poll(() => f.writes.length).toBe(1);
+  const mfa = page.getByRole("dialog", { name: "Verification required" });
+  await expect(mfa).toBeVisible();
   expect(f.exceptions[0]!.status).toBe("PENDING");
   expect(f.writes[0]!.path).toBe(`${caBase}/exceptions/${EXCEPTION_ID}/approve`);
-  await expect(section.getByRole("button", { name: "History" })).toBeVisible();
+  await mfa.getByLabel("Authenticator code").fill("123456");
+  await mfa.getByRole("button", { name: "Verify", exact: true }).click();
+  await expect(mfa).toHaveCount(0);
+  await expect(review).toContainText("Verification completed. Review refreshed state and submit explicitly.");
+  expect(f.writes).toHaveLength(1);
+  expect(f.exceptions[0]!.status).toBe("PENDING");
+  expect(shiftStartEndPosts(allStaffRequests)).toEqual([]);
+  await review.getByRole("button", { name: "Approve", exact: true }).click();
+  await expect(review).toHaveCount(0);
+  expect(f.writes).toHaveLength(2);
+  expect(f.writes[1]!.body.mutationId).not.toBe(f.writes[0]!.body.mutationId);
+  expect(f.exceptions[0]!.status).toBe("APPROVED");
+  expect(shiftStartEndPosts(allStaffRequests)).toEqual([]);
 });
 
 test("Company All Locations has no exception list or cross-location request", async ({
@@ -251,39 +277,7 @@ for (const width of [320, 390]) {
     await page.setViewportSize({ width, height: 800 });
     const f = new PresenceFixture("CA");
     await enterEmployees(page, f);
-    const employees = page.getByRole("button", { name: "Employees", exact: true });
-    const tabs = employees.locator("..");
-    const buttons = [
-      employees,
-      tabs.getByRole("button", { name: "Shifts", exact: true }),
-      tabs.getByRole("button", { name: "Exceptions", exact: true }),
-    ];
-    await expect(tabs.getByRole("button")).toHaveCount(3);
-    const rectangles = await Promise.all(buttons.map((button) => button.boundingBox()));
-    for (const rectangle of rectangles) {
-      expect(rectangle).not.toBeNull();
-      expect(rectangle!.height).toBeGreaterThanOrEqual(30);
-    }
-    for (let index = 0; index < rectangles.length; index++) {
-      for (let other = index + 1; other < rectangles.length; other++) {
-        const a = rectangles[index]!;
-        const b = rectangles[other]!;
-        const overlapX = Math.max(0, Math.min(a!.x + a!.width, b!.x + b!.width) - Math.max(a!.x, b!.x));
-        const overlapY = Math.max(0, Math.min(a!.y + a!.height, b!.y + b!.height) - Math.max(a!.y, b!.y));
-        expect(overlapX * overlapY).toBeLessThan(1);
-      }
-    }
-    for (const button of buttons) {
-      await button.scrollIntoViewIfNeeded();
-      const box = await button.boundingBox();
-      expect(box!.x).toBeGreaterThanOrEqual(-1);
-      expect(box!.x + box!.width).toBeLessThanOrEqual(width + 1);
-    }
     await expect(await openExceptions(page)).toContainText("Nadia Salem");
-    const rootOverflow = await page.evaluate(() =>
-      document.documentElement.scrollWidth - document.documentElement.clientWidth,
-    );
-    expect(rootOverflow).toBeLessThanOrEqual(1);
-    await expect(employees).toBeVisible();
+    await expectCompactEmployeeTabs(page, width);
   });
 }
