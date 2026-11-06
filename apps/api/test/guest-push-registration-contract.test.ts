@@ -159,4 +159,36 @@ describe("Guest Push public registration contract", () => {
       );
     }
   });
+
+  it("never queries status for a legacy bearer and counts the denied credential", async () => {
+    const query = vi.fn(async (sql: string) => {
+      void sql;
+      return { rows: [] };
+    });
+    const pool = { connect: async () => ({ query, release: vi.fn() }) };
+    const antiAbuse = { finalizeInTransaction: vi.fn(async () => undefined) };
+    const service = new GuestPushRegistrationService(pool as never, antiAbuse as never, {} as never);
+    await expect(service.status(reservation, { kind: "LEGACY_BEARER", secret: "A".repeat(43) }, endpoint))
+      .rejects.toMatchObject({ code: "GUEST_ACCESS_INVALID" });
+    expect(query.mock.calls.some(([sql]) => String(sql).includes("guest_push_registration_status_v1")))
+      .toBe(false);
+    expect(antiAbuse.finalizeInTransaction).toHaveBeenCalledWith(
+      expect.anything(), reservation, "COUNTED",
+    );
+  });
+
+  it("never reports an enabled status if registration rollout is disabled", async () => {
+    vi.stubEnv("GUEST_PUSH_REGISTRATION_ENABLED", "false");
+    const query = vi.fn(async (sql: string) => ({
+      rows: sql.startsWith("SELECT") ? [{ active: true }] : [],
+    }));
+    const pool = { connect: async () => ({ query, release: vi.fn() }) };
+    const antiAbuse = { finalizeInTransaction: vi.fn(async () => undefined) };
+    const service = new GuestPushRegistrationService(pool as never, antiAbuse as never, {} as never);
+    await expect(service.status(
+      reservation,
+      { kind: "BROWSER_SESSION", secret: `vgb1.${"B".repeat(43)}` },
+      endpoint,
+    )).resolves.toEqual({ active: false });
+  });
 });

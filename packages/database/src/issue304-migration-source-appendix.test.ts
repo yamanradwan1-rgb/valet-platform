@@ -12,7 +12,7 @@ import {
 import { expectedMigrationDirectories } from "./migration-manifest.js";
 
 describe("append-only migration source history", () => {
-  it("preserves migrations 1..109 and appends Issue429 110 in exact order", () => {
+  it("preserves migrations 1..109 and appends Issue429 110 and Issue435 111 in exact order", () => {
     expect(expectedMigrationDirectories).toHaveLength(93);
     expect(issue300AppendedMigrationDirectories).toEqual([
       "20261018009400_issue_300_u05_birth_xid",
@@ -47,6 +47,9 @@ describe("append-only migration source history", () => {
       .filter((entry) => entry.isDirectory())
       .map((entry) => entry.name)
       .sort();
-    expect(actual).toEqual(expectedCurrentMigrationDirectories);
+    expect(actual).toEqual([
+      ...expectedCurrentMigrationDirectories,
+      "20261106011100_issue435_guest_push_registration_status",
+    ]);
   });
 });

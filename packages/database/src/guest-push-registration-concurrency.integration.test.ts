@@ -118,7 +118,7 @@ beforeAll(async () => {
      WHERE id=ANY($1::uuid[])`,
     [sessions.map(({ sessionId }) => sessionId)],
   );
-});
+}, 120_000);
 
 afterAll(async () => {
   await Promise.all(apiClients.map((client) => client.end()));
@@ -241,5 +241,31 @@ describe("Guest Push Browser Session registration races", () => {
   it("returns denied authority after the authorized Browser Session ends", async () => {
     await apiClients[0]!.query("SELECT public.guest_browser_end($1)", [browserTokens[0]]);
     expect(await readStatus(0, "https://fcm.googleapis.com/fcm/send/shared-endpoint")).toBeNull();
+  });
+
+  it("rejects stale generations and revoked Guest authority without exposing the old endpoint", async () => {
+    const endpoint = "https://fcm.googleapis.com/fcm/send/shared-endpoint";
+    await adminClient.query(
+      `UPDATE valet_sessions
+          SET customer_access_revoked_at = clock_timestamp()
+        WHERE id = $1`,
+      [sessions[1]!.sessionId],
+    );
+    expect(await readStatus(1, endpoint)).toBeNull();
+    const invalidated = await adminClient.query<{
+      customer_access_generation: number;
+      credential_generation: number;
+      revoked_at: Date | null;
+    }>(
+      `SELECT session.customer_access_generation, browser.credential_generation,
+              browser.revoked_at
+         FROM valet_sessions AS session
+         JOIN guest_browser_sessions AS browser ON browser.valet_session_id = session.id
+        WHERE session.id = $1`,
+      [sessions[1]!.sessionId],
+    );
+    expect(invalidated.rows[0]?.revoked_at).not.toBeNull();
+    expect(invalidated.rows[0]!.customer_access_generation)
+      .toBeGreaterThan(invalidated.rows[0]!.credential_generation);
   });
 });

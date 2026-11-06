@@ -39,6 +39,8 @@ BEGIN
     FROM public.guest_browser_sessions AS browser
     JOIN public.valet_sessions AS session
       ON session.id = browser.valet_session_id
+     AND session.customer_access_generation = v_generation
+     AND session.customer_access_revoked_at IS NULL
     JOIN public.organizations AS organization
       ON organization.id = session.organization_id AND organization.status = 'ACTIVE'
     JOIN public.locations AS location
@@ -46,7 +48,8 @@ BEGIN
      AND location.organization_id = session.organization_id AND location.status = 'ACTIVE'
    WHERE browser.token_hash = public.guest_browser_hash_secret(p_browser_token)
      AND browser.valet_session_id = v_session_id
-     AND browser.credential_generation = v_generation;
+     AND browser.credential_generation = v_generation
+     AND browser.revoked_at IS NULL;
   IF NOT FOUND THEN RETURN NULL; END IF;
   IF v_eligible IS DISTINCT FROM TRUE THEN RETURN FALSE; END IF;
 
@@ -58,6 +61,7 @@ BEGIN
        AND registration.organization_id = v_organization_id
        AND registration.location_id = v_location_id
        AND registration.state = 'ACTIVE'
+       AND registration.terminal_at IS NULL
        AND registration.endpoint_hash = 'guest-push-endpoint-sha256:v1:' ||
          pg_catalog.encode(pg_catalog.sha256(pg_catalog.convert_to(p_endpoint, 'UTF8')), 'hex')
        AND registration.endpoint = p_endpoint
