@@ -9,6 +9,7 @@ import {
 } from "../../app/guest-refresh-mounted.test-host";
 import { GuestApiError } from "../../lib/api/api-error";
 import { guestWebPushCopy } from "./guest-web-push-copy";
+import type * as GuestWebPushStatusModule from "./guest-web-push-status";
 import type { GuestWebPushStatusTransport } from "./guest-web-push-status";
 import {
   guestPushFeedbackCopy,
@@ -41,7 +42,7 @@ vi.mock("../../i18n/use-translation", () => ({
   }),
 }));
 vi.mock("./guest-web-push-status", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("./guest-web-push-status")>();
+  const actual = await importOriginal<typeof GuestWebPushStatusModule>();
   return {
     ...actual,
     readGuestWebPushStatus: async (
