@@ -120,7 +120,7 @@ jobs:
         run: |
           # A changed path can be intentionally excluded by Semgrep. Never
           # accept a zero-target incremental report as a successful scan.
-          coverage="$(python3 scripts/security/semgrep_coverage.py security-reports/semgrep-head.json)"
+          coverage="$(python3 scripts/security/semgrep_coverage.py security-reports/semgrep-head.json "$SECURITY_BASE_SHA")"
           if [[ "$coverage" == "fallback" ]]; then
             if [[ -z "$SECURITY_BASE_SHA" ]]; then
               echo "::error::Semgrep full scan yielded no targets and has no baseline"
@@ -144,6 +144,8 @@ jobs:
       - name: Gate high and critical findings / parser errors
         if: env.SEMGREP_NO_SCOPED_CHANGES != 'true'
         run: |
+          python3 scripts/security/semgrep_coverage.py \
+            security-reports/semgrep-head.json "$SECURITY_BASE_SHA" --require-covered
           if [[ -n "$SEMGREP_BASE_REPORT" ]]; then
             python3 scripts/security/ci_gate.py semgrep security-reports/semgrep-head.json "$SEMGREP_BASE_REPORT"
           else
