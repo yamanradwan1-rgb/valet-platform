@@ -31,8 +31,8 @@ class ScannerCoverageTests(unittest.TestCase):
             result["Packages"] = [{"Name": "dependency", "Version": "1.0"}]
         return result
 
-    def trivy(self, results):
-        return {"SchemaVersion": 2, "ArtifactName": "/src", "ArtifactType": "filesystem",
+    def trivy(self, results, *, artifact_type="repository"):
+        return {"SchemaVersion": 2, "ArtifactName": "/src", "ArtifactType": artifact_type,
                 "Results": results}
 
     @staticmethod
@@ -48,8 +48,11 @@ class ScannerCoverageTests(unittest.TestCase):
         self.check("trivy", self.trivy([self.trivy_result()]))
 
     def test_trivy_valid_no_finding_scan_with_package_evidence(self):
-        self.check("trivy", self.trivy([
-            self.trivy_result(with_findings=False, with_packages=True)]))
+        for artifact_type in ("repository", "filesystem"):
+            with self.subTest(artifact_type=artifact_type):
+                self.check("trivy", self.trivy([
+                    self.trivy_result(with_findings=False, with_packages=True)],
+                    artifact_type=artifact_type))
 
     def test_trivy_scan_with_extra_existing_repo_target(self):
         (self.root / "infra").mkdir()
@@ -91,13 +94,24 @@ class ScannerCoverageTests(unittest.TestCase):
         self.check("osv", self.osv(), exit_code=1)
 
     def test_osv_clean_result_requires_explicit_lockfile_and_zero_exit(self):
-        for payload in ({"results": []}, self.osv(packages=[])):
-            with self.subTest(payload=payload):
-                with self.assertRaises(ValueError):
-                    self.check("osv", payload)
-                with self.assertRaises(ValueError):
-                    self.check("osv", payload, exit_code=1, explicit=True)
-                self.check("osv", payload, exit_code=0, explicit=True)
+        with self.assertRaises(ValueError):
+            self.check("osv", {"results": []})
+        with self.assertRaises(ValueError):
+            self.check("osv", {"results": []}, exit_code=1, explicit=True)
+        self.check("osv", {"results": []}, exit_code=0, explicit=True)
+
+    def test_osv_nonempty_results_require_actual_pnpm_source_packages(self):
+        (self.root / "apps").mkdir()
+        (self.root / "apps" / "other.lock").write_text("test", encoding="utf-8")
+        other = {"source": {"path": "/src/apps/other.lock", "type": "lockfile"},
+                 "packages": [{"package": {"name": "other", "version": "1"}}]}
+        for payload in ({"results": [other]}, self.osv(packages=[]),
+                        {"results": [other] + self.osv(packages=[])["results"]},
+                        {"results": [{"source": {"path": "/src", "type": "git"},
+                                      "packages": []}]}):
+            with self.subTest(payload=payload), self.assertRaises(ValueError):
+                self.check("osv", payload, explicit=True, exit_code=0)
+        self.check("osv", {"results": [other] + self.osv()["results"]}, exit_code=1)
 
     def test_osv_recursively_discovered_sources_within_checkout_are_valid(self):
         (self.root / "apps").mkdir()
@@ -106,10 +120,12 @@ class ScannerCoverageTests(unittest.TestCase):
                  "packages": [{"package": {"name": "extra", "version": "1"}}]}
         with self.assertRaises(ValueError):
             self.check("osv", {"results": [extra]})
-        self.check("osv", {"results": [extra]}, explicit=True)
+        with self.assertRaises(ValueError):
+            self.check("osv", {"results": [extra]}, explicit=True)
         self.check("osv", {"results": self.osv()["results"] + [extra]}, exit_code=1)
-        self.check("osv", {"results": [{"source": {"path": "/src", "type": "git"},
-                                        "packages": []}]}, explicit=True)
+        with self.assertRaises(ValueError):
+            self.check("osv", {"results": [{"source": {"path": "/src", "type": "git"},
+                                            "packages": []}]}, explicit=True)
 
     def test_osv_unexpected_source_and_missing_source_fail_even_if_explicit(self):
         for value in ("/tmp/pnpm-lock.yaml", "/src/../pnpm-lock.yaml",

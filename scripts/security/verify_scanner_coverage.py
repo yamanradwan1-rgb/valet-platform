@@ -52,8 +52,8 @@ def repo_target(value: object, root: Path, *, directory: bool = False) -> Path:
 def verify_trivy(data: object, root: Path) -> None:
     if not isinstance(data, dict) or data.get("ArtifactName") != CONTAINER_ROOT:
         raise ValueError("Trivy filesystem target is missing or unexpected")
-    if data.get("ArtifactType") != "filesystem" or not isinstance(data.get("Results"), list):
-        raise ValueError("Trivy filesystem results are missing or invalid")
+    if data.get("ArtifactType") not in {"repository", "filesystem"} or not isinstance(data.get("Results"), list):
+        raise ValueError("Trivy checkout results are missing or invalid")
     found = False
     for result in data["Results"]:
         if not isinstance(result, dict):
@@ -90,9 +90,8 @@ def verify_osv(data: object, root: Path, explicit_lockfile: bool, exit_code: int
             raise ValueError("OSV package results are malformed")
         if kind == "lockfile" and target == root / LOCKFILE and packages:
             found_packages = True
-    if not found_packages:
-        if not explicit_lockfile or exit_code != 0:
-            raise ValueError("OSV empty report cannot prove pnpm package coverage")
+    if not found_packages and (data["results"] or not explicit_lockfile or exit_code != 0):
+        raise ValueError("OSV report does not prove pnpm-lock.yaml package coverage")
 
 
 def verify(scanner: str, report: Path, checkout: Path, exit_code: int,
