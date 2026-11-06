@@ -112,6 +112,26 @@ class SemgrepCoverageTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "omitted error metadata"):
                     self.classify(report)
 
+    def test_partial_parsing_array_type_is_safely_identified_and_still_fails(self):
+        secret = "SECRET_NESTED_PARSER_MESSAGE"
+        report = {"results": [], "paths": {"scanned": ["apps/api/src/x.ts"]},
+                  "errors": [{"type": ["PartialParsing", {"source": secret}],
+                              "level": "warning", "code": 3}]}
+        with self.assertRaisesRegex(ValueError, "type=partial_parsing") as captured:
+            self.classify(report)
+        self.assertNotIn(secret, str(captured.exception))
+
+    def test_workflow_parser_diagnostic_path_is_allowlisted_without_snippets(self):
+        report = {"results": [], "paths": {"scanned": []}, "errors": [{
+            "type": "Parse error", "code": 3, "level": "warning",
+            "path": ".github/workflows/security-ci.yml", "line": 14,
+            "message": "DO_NOT_PRINT_SCANNER_SOURCE",
+        }]}
+        with self.assertRaisesRegex(ValueError,
+                                    "path=.github/workflows/security-ci.yml,line=14") as captured:
+            self.classify(report)
+        self.assertNotIn("DO_NOT_PRINT", str(captured.exception))
+
     def test_command_line_keeps_exit_two_and_emits_no_raw_scanner_message(self):
         secret = "CI_SECRET_DONT_PRINT"
         with tempfile.TemporaryDirectory() as folder:

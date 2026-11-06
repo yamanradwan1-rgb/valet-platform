@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-_SCANNED_ROOTS = frozenset({"apps", "packages", "scripts", "infra"})
+_SCANNED_ROOTS = frozenset({"apps", "packages", "scripts", "infra", ".github"})
 _MAX_DIAGNOSTIC_ERRORS = 3
 _MAX_PATH_CHARS = 160
 _SAFE_SEGMENT = re.compile(r"[A-Za-z0-9_.-]+\Z", re.ASCII)
@@ -15,6 +15,7 @@ _ERROR_TYPES = {
     "parse error": "parse_error",
     "lexical error": "lexical_error",
     "partial parsing": "partial_parsing",
+    "partialparsing": "partial_parsing",
     "syntax error": "syntax_error",
     "semgreperror": "semgrep_error",
     "semgrep warning": "semgrep_warning",
@@ -89,6 +90,10 @@ def _safe_error_summary(errors: list) -> str:
             parts.append("type=unstructured")
             continue
         raw_type = entry.get("type")
+        # Semgrep may encode PartialParsing as ["PartialParsing", locations].
+        # Never print the nested locations, snippets or scanner messages.
+        if isinstance(raw_type, list):
+            raw_type = raw_type[0] if raw_type else None
         error_type = (
             _ERROR_TYPES.get(raw_type.casefold(), "unrecognized")
             if isinstance(raw_type, str) and len(raw_type) <= 64
