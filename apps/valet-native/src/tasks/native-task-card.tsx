@@ -12,6 +12,7 @@ import {
   canOpenNativeHandoffOverride,
   nativeTaskActionLabel,
   nativeTaskAge,
+  nativeTaskParkingContext,
   nativeTaskStatusLabel,
   nativeTaskTime,
   nativeTaskTypeLabel,
@@ -44,6 +45,8 @@ export function NativeTaskCard({
 
   const human = employeeTextStyle("human", textAlign);
   const identifier = employeeTextStyle("identifier", textAlign);
+  const location =
+    task.taskType === "RETRIEVAL" ? nativeTaskParkingContext(task) : null;
   const assignedToOther =
     task.currentAssigneeMembershipId !== null &&
     task.currentAssigneeMembershipId !== snapshot.scope?.membershipId;
@@ -88,6 +91,7 @@ export function NativeTaskCard({
         <Text style={[s.detail, human]}>
           {nativeTaskTime(copy, locale, task)}
         </Text>
+        {location ? <Text style={[s.detail, human]}>{location}</Text> : null}
         <View style={s.statusRow}>
           <View>
             <Text style={[s.statusLabel, human]}>{copy.status}</Text>

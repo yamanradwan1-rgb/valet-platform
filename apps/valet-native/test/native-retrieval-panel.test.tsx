@@ -224,7 +224,7 @@ describe("MOB-013 Native Retrieval", () => {
     expect(content(withStartedAt.nodes)).toMatch(/01:0[45]/);
   });
 
-  it("renders Vehicle, Key and conditional Location rows", () => {
+  it("renders Vehicle, Key and Location rows, including unavailable location", () => {
     const withLocation = content(render("retrieving").nodes);
     expect(withLocation).toContain("Vehicle");
     expect(withLocation).toContain("Key");
@@ -244,7 +244,8 @@ describe("MOB-013 Native Retrieval", () => {
         parkingZone: null,
       },
     });
-    expect(content(withoutLocation.nodes)).not.toContain("Location");
+    expect(content(withoutLocation.nodes)).toContain("Location");
+    expect(content(withoutLocation.nodes)).toContain("Not specified");
   });
 
   it("invokes the bounded Report Issue callback with session context", () => {
