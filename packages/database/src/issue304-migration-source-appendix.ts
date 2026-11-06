@@ -30,10 +30,15 @@ export const issue429AppendedMigrationDirectories = [
   "20261105011000_issue429_ocr_shared_admission",
 ] as const;
 
+export const issue435AppendedMigrationDirectories = [
+  "20261106011100_issue435_guest_push_registration_status",
+] as const;
+
 export const expectedCurrentMigrationDirectories = [
   ...expectedMigrationDirectories,
   ...issue300AppendedMigrationDirectories,
   ...issue304AppendedMigrationDirectories,
   ...subsequentAppendedMigrationDirectories,
   ...issue429AppendedMigrationDirectories,
+  ...issue435AppendedMigrationDirectories,
 ] as const;

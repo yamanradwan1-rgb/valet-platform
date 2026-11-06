@@ -6,6 +6,7 @@ import { issue300AppendedMigrationDirectories } from "./issue300-migration-sourc
 import {
   expectedCurrentMigrationDirectories,
   issue429AppendedMigrationDirectories,
+  issue435AppendedMigrationDirectories,
   issue304AppendedMigrationDirectories,
   subsequentAppendedMigrationDirectories,
 } from "./issue304-migration-source-appendix.js";
@@ -39,7 +40,10 @@ describe("append-only migration source history", () => {
     expect(issue429AppendedMigrationDirectories).toEqual([
       "20261105011000_issue429_ocr_shared_admission",
     ]);
-    expect(expectedCurrentMigrationDirectories).toHaveLength(110);
+    expect(issue435AppendedMigrationDirectories).toEqual([
+      "20261106011100_issue435_guest_push_registration_status",
+    ]);
+    expect(expectedCurrentMigrationDirectories).toHaveLength(111);
     const migrationRoot = fileURLToPath(
       new URL("../prisma/migrations/", import.meta.url),
     );
@@ -47,9 +51,6 @@ describe("append-only migration source history", () => {
       .filter((entry) => entry.isDirectory())
       .map((entry) => entry.name)
       .sort();
-    expect(actual).toEqual([
-      ...expectedCurrentMigrationDirectories,
-      "20261106011100_issue435_guest_push_registration_status",
-    ]);
+    expect(actual).toEqual(expectedCurrentMigrationDirectories);
   });
 });
