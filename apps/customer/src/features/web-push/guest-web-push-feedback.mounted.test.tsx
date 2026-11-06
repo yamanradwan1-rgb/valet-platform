@@ -24,6 +24,7 @@ const client = vi.hoisted(() => ({
   capability: "AVAILABLE",
   secure: true,
   locale: "en" as "en" | "ar",
+  verified: false,
 }));
 vi.mock("./guest-web-push-client", () => ({
   detectGuestWebPushCapability: () => client.capability,
@@ -39,6 +40,18 @@ vi.mock("../../i18n/use-translation", () => ({
     direction: client.locale === "ar" ? "rtl" : "ltr",
   }),
 }));
+vi.mock("./guest-web-push-status", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./guest-web-push-status")>();
+  return {
+    ...actual,
+    readGuestWebPushStatus: async (
+      transport: GuestWebPushStatusTransport,
+      signal: AbortSignal,
+    ) => client.verified
+      ? "ENABLED_VERIFIED"
+      : actual.readGuestWebPushStatus(transport, signal),
+  };
+});
 import { GuestWebPushPermissionCard } from "./guest-web-push-permission-card";
 
 describe("mounted truthful activation feedback", () => {
@@ -59,6 +72,7 @@ describe("mounted truthful activation feedback", () => {
     client.capability = "AVAILABLE";
     client.secure = true;
     client.locale = "en";
+    client.verified = false;
   });
   afterEach(async () => {
     await act(async () => root.unmount());
@@ -94,6 +108,7 @@ describe("mounted truthful activation feedback", () => {
       expect(client.enable).toHaveBeenCalledTimes(1);
       expect(transport.registerSubscription).not.toHaveBeenCalled();
       client.enable.mockResolvedValue("ENABLED");
+      client.verified = true;
       await click();
       expect(container.textContent).toBe("");
     },
@@ -188,6 +203,7 @@ describe("mounted truthful activation feedback", () => {
     await click();
     feedback("UNKNOWN");
     client.enable.mockResolvedValue("ENABLED");
+    client.verified = true;
     await click();
     expect(client.enable).toHaveBeenCalledTimes(2);
     expect(container.textContent).toBe("");
