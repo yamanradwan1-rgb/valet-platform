@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page, type Request } from "@playwright/test";
 import {
   EXCEPTION_ID,
   lmBase,
@@ -37,6 +37,12 @@ async function selectLocation(page: Page, name: string) {
   await page.getByRole("button", { name: "Exceptions", exact: true }).click();
   await expect(page).toHaveURL(/\/employees$/u);
   return page.getByTestId("presence-exceptions");
+}
+
+async function settleRenderedState(page: Page) {
+  await page.evaluate(() => new Promise<void>((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  }));
 }
 
 test("mounted review UNKNOWN reconciles exact receipt without a duplicate approval POST", async ({
@@ -110,13 +116,28 @@ test("mounted review UNKNOWN reconciles exact receipt without a duplicate approv
   expect(shiftStartEndPosts(allStaffRequests)).toEqual([]);
 });
 
-test("delayed A Pending refresh cannot repopulate B or restored A with a stale row", async ({
+for (const releaseAt of ["B", "A"] as const) {
+  test(`delayed A Pending refresh cannot repaint ${releaseAt} after A→B→A scope change`, async ({
   page,
 }) => {
   let release!: () => void;
   let started!: () => void;
+  let handlerDone!: () => void;
+  let heldRequest: Request | null = null;
   const held = new Promise<void>((resolve) => { release = resolve; });
   const requested = new Promise<void>((resolve) => { started = resolve; });
+  const completedHandler = new Promise<void>((resolve) => { handlerDone = resolve; });
+  // Attach before the delayed request; cancellation can occur on the B switch.
+  const terminalNetwork = new Promise<void>((resolve) => {
+    const terminal = (request: Request) => {
+      if (request !== heldRequest) return;
+      page.off("requestfinished", terminal);
+      page.off("requestfailed", terminal);
+      resolve();
+    };
+    page.on("requestfinished", terminal);
+    page.on("requestfailed", terminal);
+  });
   let delayA = false;
   const f = new PresenceFixture("LM", async (path, request) => {
     if (path.includes(LOCATION_B.locationId) && path.endsWith("/exceptions"))
@@ -127,8 +148,10 @@ test("delayed A Pending refresh cannot repopulate B or restored A with a stale r
       request.method() === "GET"
     ) {
       delayA = false;
+      heldRequest = request;
       started();
       await held;
+      handlerDone();
       return {
         body: {
           items: [{
@@ -148,13 +171,24 @@ test("delayed A Pending refresh cannot repopulate B or restored A with a stale r
   try {
     const other = await selectLocation(page, LOCATION_B.name);
     await expect(other).toContainText("No pending presence exceptions");
-    await expect(other).not.toContainText("Nadia Salem");
+    await expect(other).not.toContainText("Stale Salem");
+    if (releaseAt === "B") {
+      release();
+      await Promise.all([terminalNetwork, completedHandler]);
+      await settleRenderedState(page);
+      await expect(other).not.toContainText("Stale Salem");
+    }
     const restored = await selectLocation(page, LOCATION_A.name);
     await expect(restored).toContainText("Nadia Salem");
-    release();
+    if (releaseAt === "A") {
+      release();
+      await Promise.all([terminalNetwork, completedHandler]);
+    }
+    await settleRenderedState(page);
     await expect(restored).not.toContainText("Stale Salem");
     expect(f.writes).toHaveLength(0);
   } finally {
     release();
   }
 });
+}
