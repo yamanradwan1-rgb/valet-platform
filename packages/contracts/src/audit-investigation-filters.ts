@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 import {
   auditInvestigationCurrentLabelSchema,
   auditInvestigationCursorSchema,
@@ -12,7 +13,7 @@ import {
 export const auditInvestigationFilterKindSchema = z.enum(["MEMBER", "KEY_SLOT"]);
 export const auditInvestigationFilterQuerySchema = z.object({
   kind: auditInvestigationFilterKindSchema,
-  text: z.string().trim().min(1).max(80).optional(),
+  text: z.string().trim().min(1).max(80).superRefine(utf16StringMax(80)).optional(),
   limit: z.coerce.number().int().min(1).max(20).default(20),
   cursor: auditInvestigationCursorSchema.optional(),
 }).strict();

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 import { staffShiftCashReconciliationSchema } from "./staff-shift-cash-reconciliation.js";
 import {
   staffDirectoryQuerySchema,
@@ -56,9 +57,9 @@ export const staffShiftHistoryEntrySchema = z
     location: z
       .object({
         locationId: uuid,
-        name: z.string().min(1).max(200),
-        code: z.string().min(1).max(100),
-        timezone: z.string().min(1).max(100),
+        name: z.string().min(1).max(200).superRefine(utf16StringMax(200)),
+        code: z.string().min(1).max(100).superRefine(utf16StringMax(100)),
+        timezone: z.string().min(1).max(100).superRefine(utf16StringMax(100)),
       })
       .strict(),
     status: z.enum(["ACTIVE", "ENDED"]),

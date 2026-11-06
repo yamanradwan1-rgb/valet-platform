@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 
 import {
   guestInformationHttpsUrlSchema,
@@ -15,7 +16,7 @@ export const guestContactFieldModeSchema = z.enum([
   "OVERRIDE",
   "UNAVAILABLE",
 ]);
-const namedValueSchema = z.string().trim().min(1).max(240);
+const namedValueSchema = z.string().trim().min(1).max(240).superRefine(utf16StringMax(240));
 const phoneSchema = z
   .string()
   .trim()
@@ -129,13 +130,13 @@ export const guestInformationResponseSchema = z
 // publishedCount counts any active Location publication across the languages.
 export const managementGuestInformationOverviewResponseSchema = z
   .object({
-    companyName: z.string().min(1).max(240),
+    companyName: z.string().min(1).max(240).superRefine(utf16StringMax(240)),
     locations: z
       .array(
         z
           .object({
             id: uuidSchema,
-            name: z.string().min(1).max(240),
+            name: z.string().min(1).max(240).superRefine(utf16StringMax(240)),
             privacy: z.enum(["PUBLISHED", "UNAVAILABLE", "DRAFT", "NOT_SET"]),
             contact: z.enum(["AVAILABLE", "NOT_SET"]),
           })

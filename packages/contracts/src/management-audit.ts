@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 
 import {
   managementAuditKnownEventTypeSchema,
@@ -35,7 +36,7 @@ export const managementAuditActorSchema = z.discriminatedUnion("type", [
       type: z.literal("MEMBERSHIP"),
       membershipId: uuidSchema,
       // Current membership directory identity; never a historical audit snapshot.
-      currentDisplayName: z.string().min(3).max(401)
+      currentDisplayName: z.string().min(3).max(401).superRefine(utf16StringMax(401))
         .refine((value) =>
           Array.from(value).length <= 201 && value.trim() === value,
         ).optional(),
@@ -91,9 +92,9 @@ const envelope = {
 } as const;
 
 const managementAuditVehicleSchema = z.object({
-  confirmedPlate: z.string().min(1).max(64).nullable(),
-  make: z.string().min(1).max(100).nullable(),
-  model: z.string().min(1).max(100).nullable(),
+  confirmedPlate: z.string().min(1).max(64).superRefine(utf16StringMax(64)).nullable(),
+  make: z.string().min(1).max(100).superRefine(utf16StringMax(100)).nullable(),
+  model: z.string().min(1).max(100).superRefine(utf16StringMax(100)).nullable(),
 }).strict();
 
 const knownEventSchema = z

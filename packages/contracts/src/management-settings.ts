@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 
 import {
   handoffStandardMethodPolicyValueSchema,
@@ -9,7 +10,7 @@ import { paymentMoneySchema } from "./payments.js";
 
 const timestampSchema = z.string().datetime({ offset: true });
 const uuidSchema = z.string().uuid();
-const timezoneSchema = z.string().min(1).max(255);
+const timezoneSchema = z.string().min(1).max(255).superRefine(utf16StringMax(255));
 const currencySchema = z.string().regex(/^[A-Z]{3}$/);
 const localTimeSchema = z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/);
 export const slaTargetSecondsSchema = z.number().int().min(30).max(3600);

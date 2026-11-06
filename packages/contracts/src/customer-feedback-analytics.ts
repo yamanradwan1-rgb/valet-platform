@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 
 const nonNegativeCount = z.number().int().nonnegative().safe();
 const decimalFour = z.string().regex(/^\d+\.\d{4}$/);
@@ -11,8 +12,8 @@ export const customerFeedbackRatingRowSchema = z.object({
   rating: z.number().int().min(1).max(5),
   completedAt: utcInstant,
   ratedAt: utcInstant,
-  authorizedLocationLabel: z.string().min(1).max(200),
-  locationTimezone: z.string().min(1).max(64),
+  authorizedLocationLabel: z.string().min(1).max(200).superRefine(utf16StringMax(200)),
+  locationTimezone: z.string().min(1).max(64).superRefine(utf16StringMax(64)),
 }).strict();
 
 export const customerFeedbackAnalyticsResponseSchema = z.object({

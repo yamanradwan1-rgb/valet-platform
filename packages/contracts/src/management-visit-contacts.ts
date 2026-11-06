@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 
 const uuidSchema = z.string().uuid();
 const timestampSchema = z.string().datetime({ offset: true });
@@ -9,10 +10,10 @@ export const managementVisitContactSearchQuerySchema = z
   .object({
     cursor: cursorSchema.optional(),
     limit: pageLimitSchema,
-    name: z.string().min(2).max(80).optional(),
-    phone: z.string().min(1).max(40).optional(),
-    plate: z.string().min(1).max(64).optional(),
-    plateCountry: z.string().min(1).max(8).optional(),
+    name: z.string().min(2).max(80).superRefine(utf16StringMax(80)).optional(),
+    phone: z.string().min(1).max(40).superRefine(utf16StringMax(40)).optional(),
+    plate: z.string().min(1).max(64).superRefine(utf16StringMax(64)).optional(),
+    plateCountry: z.string().min(1).max(8).superRefine(utf16StringMax(8)).optional(),
   })
   .strict()
   .superRefine((value, context) => {
@@ -38,7 +39,7 @@ const phoneProjectionSchema = z.discriminatedUnion("kind", [
 const latestVisitSchema = z.object({
   createdAt: timestampSchema,
   locationId: uuidSchema,
-  locationName: z.string().min(1).max(200),
+  locationName: z.string().min(1).max(200).superRefine(utf16StringMax(200)),
   valetSessionId: uuidSchema,
 }).strict();
 
@@ -85,7 +86,7 @@ export const managementVisitHistoryItemSchema = z.object({
   customerId: uuidSchema.nullable(),
   displayName: z.string().nullable(),
   locationId: uuidSchema,
-  locationName: z.string().min(1).max(200),
+  locationName: z.string().min(1).max(200).superRefine(utf16StringMax(200)),
   phone: phoneProjectionSchema.nullable(),
   plateCountry: z.string().nullable(),
   plateNumberRaw: z.string().nullable(),
@@ -110,7 +111,7 @@ export const managementVisitContactNameCorrectionRequestSchema = z.object({
 
 export const managementVisitContactPhoneCorrectionRequestSchema = z.object({
   expectedUpdatedAt: timestampSchema,
-  phone: z.string().min(1).max(40),
+  phone: z.string().min(1).max(40).superRefine(utf16StringMax(40)),
 }).strict();
 
 export const managementVisitContactCorrectionResponseSchema = z.object({

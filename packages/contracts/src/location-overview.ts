@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 
 import { overviewListResponse } from "./location-overview-pagination.js";
 import { staffManagementIdentitySchema } from "./staff-management.js";
@@ -129,7 +130,7 @@ export const taskOverviewEntrySchema = z
     cancellation: z
       .object({
         kind: z.enum(["STAFF", "GUEST", "UNKNOWN"]),
-        displayName: z.string().min(3).max(401).nullable(),
+        displayName: z.string().min(3).max(401).superRefine(utf16StringMax(401)).nullable(),
         occurredAt: timestampSchema.nullable(),
       })
       .strict()
@@ -181,12 +182,12 @@ export const incidentOverviewEntrySchema = z
     reporterDisplayName: z
       .string()
       .min(3)
-      .max(401)
+      .max(401).superRefine(utf16StringMax(401))
       .refine((name) => Array.from(name).length <= 201)
       .nullable(),
     createdAt: timestampSchema,
     resolvedAt: timestampSchema.nullable(),
-    resolvedByDisplayName: z.string().min(3).max(401).nullable().optional(),
+    resolvedByDisplayName: z.string().min(3).max(401).superRefine(utf16StringMax(401)).nullable().optional(),
     resolutionNotes: z.string().nullable().optional(),
   })
   .strict();

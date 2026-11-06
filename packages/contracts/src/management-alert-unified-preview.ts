@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 import {
   managementAlertCategoryProfiles,
   managementAlertInScopeCategorySchema,
@@ -49,15 +50,15 @@ export const managementAlertUnifiedSourceKinds = {
 } as const;
 
 const common = z.object({
-  id: z.string().min(1).max(260),
+  id: z.string().min(1).max(260).superRefine(utf16StringMax(260)),
   category: managementAlertInScopeCategorySchema,
   severity: managementAlertSeveritySchema,
   sourceKind,
   sourceId: z.string().uuid(),
-  episodeId: z.string().min(1).max(150),
+  episodeId: z.string().min(1).max(150).superRefine(utf16StringMax(150)),
   /** Null is reserved for the two CA-only Organization-wide categories. */
   locationId: z.string().uuid().nullable(),
-  title: z.string().min(1).max(100),
+  title: z.string().min(1).max(100).superRefine(utf16StringMax(100)),
 });
 
 export const managementAlertUnifiedItemSchema = z

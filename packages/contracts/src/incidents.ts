@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 
 const uuidSchema = z.string().uuid();
 const utcTimestampSchema = z.string().datetime({ offset: false });
@@ -39,7 +40,7 @@ export const reportIncidentRequestSchema = z
     incidentId: uuidSchema,
     severity: incidentSeveritySchema,
     type: incidentTypeSchema,
-    description: z.string().trim().min(1).max(500),
+    description: z.string().trim().min(1).max(500).superRefine(utf16StringMax(500)),
   })
   .strict();
 

@@ -1,20 +1,13 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 
-// Preserve the existing 500 UTF-16 code-unit cap. Zod 4.6+ counts Unicode
-// code points in .max(), which would admit previously rejected long emoji text.
+// Preserve the existing 500 UTF-16 code-unit cap and Zod's max metadata.
 export const staffShiftForceEndReasonSchema = z
   .string()
   .trim()
   .min(1)
-  .superRefine((reason, context) => {
-    if (reason.length > 500)
-      context.addIssue({
-        code: "too_big",
-        origin: "string",
-        maximum: 500,
-        inclusive: true,
-      });
-  });
+  .max(500)
+  .superRefine(utf16StringMax(500));
 
 export const staffShiftForceEndRequestSchema = z
   .object({

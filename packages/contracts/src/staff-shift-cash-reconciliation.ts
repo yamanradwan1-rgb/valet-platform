@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 import { shiftCashReconciliationSchema } from "./shifts.js";
 
 /** Detail-only financial evidence. Never add to the history list entry. */
@@ -10,7 +11,7 @@ export const staffShiftCashReconciliationSchema = z.discriminatedUnion(
         state: z.literal("REPORTED"),
         snapshot: shiftCashReconciliationSchema
           .extend({
-            reportedBy: z.string().min(1).max(401).nullable(),
+            reportedBy: z.string().min(1).max(401).superRefine(utf16StringMax(401)).nullable(),
           })
           .strict(),
       })

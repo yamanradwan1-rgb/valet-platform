@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 
 const recoveryCodePattern = /^vmr1-[A-Za-z0-9_-]{11}-[A-Za-z0-9_-]{27}$/;
 const totpCodePattern = /^\d{6}$/;
@@ -13,7 +14,7 @@ export const staffMfaEnrollmentBeginRequestSchema = z.object({}).strict();
 export const staffMfaProvisioningSchema = z
   .object({
     secretBase32: z.string().regex(base32SecretPattern),
-    issuer: z.string().trim().min(1).max(128),
+    issuer: z.string().trim().min(1).max(128).superRefine(utf16StringMax(128)),
     algorithm: z.literal("SHA1"),
     digits: z.literal(6),
     periodSeconds: z.literal(30),

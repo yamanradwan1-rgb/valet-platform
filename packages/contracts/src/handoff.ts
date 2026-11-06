@@ -1,7 +1,8 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 
 const positiveVersionSchema = z.number().int().positive();
-const reasonSchema = z.string().trim().min(1).max(500);
+const reasonSchema = z.string().trim().min(1).max(500).superRefine(utf16StringMax(500));
 
 export const handoffStandardMethodSchema = z.enum([
   "PICKUP_CODE",
