@@ -8,6 +8,7 @@ import {
   readBrowserContextMarker,
 } from "../../lib/api/guest-browser-context-marker";
 import { guestWebPushCopy } from "./guest-web-push-copy";
+import { dismissGuestPushCard, hasDismissedGuestPushCard } from "./guest-web-push-dismissal";
 import {
   detectGuestWebPushCapability,
   enableGuestWebPush,
@@ -27,11 +28,11 @@ import {
 
 import { GuestWebPushPermissionPresentation } from "./guest-web-push-permission-presentation";
 export { GuestWebPushPermissionPresentation } from "./guest-web-push-permission-presentation";
+
 type PresentationState = GuestWebPushStatus | "CHECKING" | "ENABLING" | "FAILED";
 const CONFIG_CHECK_DEADLINE_MS = 12_000;
 const ENABLE_DEADLINE_MS = 45_000;
 const WAKE_CHECK_INTERVAL_MS = 2_000;
-const dismissedDocuments = new WeakSet<Document>();
 
 export function GuestWebPushPermissionCard({
   transport,
@@ -43,9 +44,7 @@ export function GuestWebPushPermissionCard({
   const [activeTransport] = useState(
     () => transport ?? createGuestWebPushTransport(),
   );
-  const [dismissed, updateDismissed] = useState(
-    () => typeof document !== "undefined" && dismissedDocuments.has(document),
-  );
+  const [dismissed, updateDismissed] = useState(hasDismissedGuestPushCard);
   const [feedback, setFeedback] = useState<GuestPushFeedback>();
   const [retryAt, setRetryAt] = useState(0);
   const retryAtRef = useRef(0);
@@ -102,7 +101,7 @@ export function GuestWebPushPermissionCard({
   const setDismissed = useCallback(
     (value: boolean) => {
       if (value) {
-        dismissedDocuments.add(document);
+        dismissGuestPushCard(contextRef.current);
         dismissedRef.current = true;
         invalidate();
       }

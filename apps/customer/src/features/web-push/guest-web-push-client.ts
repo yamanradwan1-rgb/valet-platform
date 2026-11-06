@@ -12,6 +12,10 @@ import {
   GuestWebPushStageError,
   GuestWebPushTimeoutError,
 } from "./guest-web-push-stage";
+import {
+  decodeVapidPublicKey,
+  subscriptionMatchesVapidKey,
+} from "./guest-web-push-vapid";
 
 export type GuestWebPushCapability =
   "AVAILABLE" | "DENIED" | "IOS_HOME_SCREEN_REQUIRED" | "UNSUPPORTED";
@@ -54,6 +58,7 @@ export class GuestWebPushDisabledError extends Error {
     super("Guest Web Push registration is disabled.");
   }
 }
+
 interface BrowserPushDependencies {
   readonly capability: () => GuestWebPushCapabilitySnapshot;
   readonly requestPermission: () => Promise<NotificationPermission>;
@@ -62,15 +67,19 @@ interface BrowserPushDependencies {
 
 function readIosStandalone(): boolean | null {
   if (typeof navigator === "undefined") return null;
-  const value = (navigator as Navigator & { readonly standalone?: unknown }).standalone;
+  const value = (navigator as Navigator & { readonly standalone?: unknown })
+    .standalone;
   return typeof value === "boolean" ? value : null;
 }
 
 function readDisplayModeStandalone(): boolean | null {
-  if (typeof window === "undefined" || typeof window.matchMedia !== "function") return null;
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function")
+    return null;
   try {
     return window.matchMedia("(display-mode: standalone)").matches === true;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 export function readGuestWebPushCapability(): GuestWebPushCapabilitySnapshot {
@@ -107,20 +116,6 @@ export function detectGuestWebPushCapability(
   )
     return "UNSUPPORTED";
   return snapshot.permission === "denied" ? "DENIED" : "AVAILABLE";
-}
-
-function decodeVapidPublicKey(value: string): ArrayBuffer {
-  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
-  const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
-  return Uint8Array.from(atob(padded), (character) => character.charCodeAt(0)).buffer;
-}
-export function subscriptionMatchesVapidKey(subscription: PushSubscription, publicKey: string): boolean {
-  const key = subscription.options?.applicationServerKey;
-  if (!key) return false;
-  const actual = new Uint8Array(key);
-  const expected = new Uint8Array(decodeVapidPublicKey(publicKey));
-  return actual.length === expected.length &&
-    actual.every((byte, index) => byte === expected[index]);
 }
 
 function serializeSubscription(
@@ -233,11 +228,14 @@ export async function enableGuestWebPush(
   let subscription = await readSubscription();
   assertCurrent();
   // A key-rotated subscription is replaced only after this Guest gesture.
-  if (subscription?.options && !subscriptionMatchesVapidKey(subscription, publicKey)) {
+  if (
+    subscription?.options &&
+    !subscriptionMatchesVapidKey(subscription, publicKey)
+  ) {
     const old = subscription;
     const removed = await stages("unsubscribe", 5_000, () => old.unsubscribe());
     assertCurrent();
-    if (!removed || await readSubscription() !== null) {
+    if (!removed || (await readSubscription()) !== null) {
       throw new GuestWebPushStageError("unsubscribe", undefined);
     }
     subscription = null;

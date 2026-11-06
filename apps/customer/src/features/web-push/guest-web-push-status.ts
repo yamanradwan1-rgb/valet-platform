@@ -3,11 +3,11 @@ import {
   GuestWebPushDisabledError,
   isCurrentGuestPushSubscription,
   readGuestWebPushCapability,
-  subscriptionMatchesVapidKey,
   type GuestWebPushCapability,
   type GuestWebPushTransport,
 } from "./guest-web-push-client";
 import { guestWebPushStages } from "./guest-web-push-stage";
+import { subscriptionMatchesVapidKey } from "./guest-web-push-vapid";
 
 export type GuestWebPushStatusTransport = GuestWebPushTransport & {
   verifySubscription(endpoint: string, signal?: AbortSignal): Promise<boolean>;

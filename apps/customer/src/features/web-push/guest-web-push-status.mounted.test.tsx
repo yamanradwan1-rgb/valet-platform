@@ -138,6 +138,32 @@ describe("mounted Guest Push verification", () => {
     expect(paths().filter(path => path !== "config")).toEqual([]);
   });
 
+  it("re-arms Not now after a same-document switch to a new browser context", async () => {
+    await mount();
+    await click("Not now");
+    expect(container.textContent).toBe("");
+
+    setMarker("b");
+    await mount();
+    expect(container.textContent).toContain("Enable notifications");
+    expect(paths().filter(path => path !== "config")).toEqual([]);
+    expect(prompt).not.toHaveBeenCalled();
+    expect(subscribe).not.toHaveBeenCalled();
+
+    await click("Not now");
+    await mount();
+    expect(container.textContent).toBe("");
+  });
+
+  it("does not let a stale visit's Not now suppress the promoted browser context", async () => {
+    await mount();
+    setMarker("b");
+    await click("Not now");
+    await mount();
+    expect(container.textContent).toContain("Enable notifications");
+    expect(paths().filter(path => path === "registration")).toHaveLength(0);
+  });
+
   it.each(["denied", "missing", "mismatch"] as const)("shows the permitted warning for %s", async (kind) => {
     permission = kind === "denied" ? "denied" : "granted";
     if (kind === "missing") local = null;
