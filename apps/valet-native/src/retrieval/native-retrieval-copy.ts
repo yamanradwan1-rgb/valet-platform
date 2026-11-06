@@ -18,6 +18,7 @@ export interface NativeRetrievalCopy {
   readonly keyVerifyLabel: string;
   readonly loading: string;
   readonly location: string;
+  readonly locationNotSpecified: string;
   readonly readyBody: string;
   readonly readyTitle: string;
   readonly retrievingBody: string;
@@ -63,6 +64,7 @@ export function getNativeRetrievalCopy(
     keyVerifyLabel: d.verifyKeySlot,
     loading: d.loadingRetrieval,
     location: d.location,
+    locationNotSpecified: d.notSpecified,
     readyBody: d.readyForGuest,
     readyTitle: d.vehicleReadyTitle,
     retrievingBody: d.retrievalOperation,

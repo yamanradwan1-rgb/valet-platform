@@ -28,7 +28,7 @@ export function retrievalLocation(
     snapshot.session?.parking.parkingZoneCode ?? snapshot.task?.parkingZone;
   const spot =
     snapshot.session?.parking.parkingSpotCode ?? snapshot.task?.parkingSpot;
-  if (!zone && !spot) return null;
+  if (!zone && !spot) return copy.locationNotSpecified;
   return [
     zone ? `${copy.zone} ${zone}` : null,
     spot ? `${copy.spot} ${spot}` : null,
@@ -57,7 +57,7 @@ export function NativeRetrievalDetails({
     ...(includeKey && snapshot.session?.keySlot?.code
       ? [{ label: copy.key, value: snapshot.session.keySlot.code }]
       : []),
-    ...(location ? [{ label: copy.location, value: location }] : []),
+    { label: copy.location, value: location },
   ];
   return (
     <View style={s.detailCard}>
