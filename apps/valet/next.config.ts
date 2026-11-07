@@ -28,6 +28,7 @@ const nextConfig: NextConfig = {
   turbopack: {
     resolveAlias: {
       "@valet/contracts": "../../packages/contracts/dist/index.js",
+      "@valet/contracts/*": "../../packages/contracts/dist/*.js",
     },
   },
   async rewrites() {
