@@ -1,12 +1,12 @@
 # Issue #442 — Employee Native Retrieval outcome reasons
 
-**OWNER POLICY CONFIRMED — SECURITY QUALIFICATION REQUIRED**
+**OWNER POLICY CONFIRMED — U-003 SECURITY QUALIFICATION BLOCKED (2026-11-08)**
 
 ## Executive summary
 
 [Issue #442](https://github.com/yamanradwan1-rgb/valet-platform/issues/442) already has a Native-only correction for misleading conflict copy. This plan covers the five approved follow-up messages. PostgreSQL can prove exact-task cancellation, ownership transfer, and final completion for coherent histories. The Employee Client's existing reads cannot safely prove those outcomes for a former assignee. Native can distinguish confirmed device offline from an unverified task state using current signals.
 
-The owner approved the purpose-bound historical relationship and direct transfer rules and conditionally selected Option B, an exact-Task GET with a reason-only payload. Assigned-but-unaccepted holders qualify when the committed history and current authority both check out. U-003 remains open for independent security review and PostgreSQL race qualification. The full plan is **security-gated**, with no read consistency mechanism selected yet.
+The owner approved the purpose-bound historical relationship and direct transfer rules and conditionally selected Option B, an exact-Task GET with a reason-only payload. Assigned-but-unaccepted holders qualify when the committed history and current authority both check out. The [2026-11-08 U-003 qualification](ISSUE_442_U003_SECURITY_QUALIFICATION.md) **blocked both examined read candidates**. The full plan is **security-gated**, with no qualified read consistency mechanism.
 
 ## Repository facts discovered
 
@@ -70,10 +70,16 @@ Adversarial source review covered the active-only queue and strict detail DTO, e
 
 ## UNRESOLVED decisions
 
-- **U-003 — UNRESOLVED SECURITY QUALIFICATION.** Option B and its narrow purpose are conditionally approved. Snapshot authorization equivalence, lock ordering, pre-release checks and bounded query/timeout behavior are unresolved. Independent security review and disposable PostgreSQL concurrency evidence must select a mechanism before the production read is implementable. If either candidate needs a new disclosure/revocation policy, a broader security refactor, or a schema/index change, take that specific dependency to the owner. If neither candidate qualifies within the approved boundary, record **BLOCKED — SECURITY ARCHITECTURE DECISION REQUIRED**.
+- **U-003 — BLOCKED SECURITY ARCHITECTURE.** Option B and its narrow purpose remain conditionally approved; the candidate read mechanisms examined on `51976aa8a8ce2e646b2bf149a5d47afd23c782ba` do not qualify. [Security qualification](ISSUE_442_U003_SECURITY_QUALIFICATION.md) records Read A's committed-revocation disclosure, Read B's incompatible lock ordering and unprotected new operational scope, incomplete historical proof and completion-test blocker. The independent reviewer **denied sign-off**. Resolve the compatible architecture and evidence gaps, then retest and obtain independent sign-off before implementing the endpoint. A policy, writer, migration or index change outside this accepted scope requires separate authorization.
 - **Emergency evidence qualification.** U-002's inclusion rule is approved. DEC-107 itself remains Proposed. The decision log and DEC-110 substantiate the separate #352 command authorization and the current writer emits a distinct versioned Dispatch/Audit pair. Qualify that exact authorized path and its evidence on the implementation baseline before enabling it as a relationship or transfer source. Any unproven emergency record yields neutral recovery.
 
 ## Risks / boundary violations
+
+### U-003 observed qualification blockers — 2026-11-08
+
+The standalone [Security Qualification Report](ISSUE_442_U003_SECURITY_QUALIFICATION.md) is the auditable evidence for this gate. On the exact source revision, disposable PostgreSQL tests reproduced a stale Read A positive after Native logout/rotation committed, a real `40P01` two-connection lock-order cycle with established helper locks, and a Read B positive buffered while a second valid Membership/Shift scope committed before the read transaction. Independent source review identified unmatched/malformed event acceptance, terminal witness/actor/chronology gaps, and a valid transfer later progression that the proposed SQL could misclassify as neutral. The Mark Ready/Completion test remains blocked by PostgreSQL enum error `22P02` for `EMERGENCY_TAKEOVER` on the disposable baseline.
+
+After focused harness corrections and one new scope race, **32/33 probes passed and one Completion probe was explicitly skipped** in the final isolated subset; this is evidence about executed schedules, **not** an endpoint qualification. The reviewer independently concluded **BLOCKED — SECURITY ARCHITECTURE DECISION REQUIRED**. Phase 1 must first qualify a compatible current-authorization, complete-history and bounded-lock design; Phases 2–6 stay conditional. Approved U-001/U-002 and the five original case IDs are unchanged.
 
 - **IDOR and enumeration.** The Task UUID identifies a candidate row only. No cross-Organization or cross-Location fallback, User-level history join, admin role inheritance, or historical grants as authority. Use an identical object-level response for unknown, foreign, revoked, ineligible, and unverifiable targets. Test response/body/header equivalence and bounded query cost with hostile probes. A UUID or cached reason cannot authorize a protected command.
 - **Disclosure.** Return only a fixed reason if proven and authorized. Keep Session/Task/Request IDs out of the response, along with new or former owner identities, contact details, free-text reasons, guest data, exact parking/custody details, state/version, and raw audit JSON. Keep identifiers, tokens, verifiers, and server error bodies out of logs/metrics. Review dynamic route templates and existing request diagnostics before adding the route. Allow safe fixed operation name, existing bounded request ID, status class, latency and coarse failure counters only. A free-text Dispatch reason may contain secrets and has no role in the outcome query.
@@ -252,8 +258,8 @@ Guest, Dispatch, Handoff and Release command semantics, all custody/state mutati
 
 ## Ready-to-implement verdict
 
-**DECISION REQUIRED**
+**BLOCKED — SECURITY ARCHITECTURE DECISION REQUIRED**
 
-**Security-gated.** U-001 and U-002 are owner-approved policy and Option B is conditionally selected. Implementation of the outcome read and its consumers waits for U-003 qualification and independent security sign-off. If neither candidate can preserve the existing security invariants within this scope, the verdict becomes **BLOCKED — SECURITY ARCHITECTURE DECISION REQUIRED**. No candidate has passed its PostgreSQL race or performance qualification in this planning revision.
+**Security-gated.** U-001 and U-002 are owner-approved policy and Option B is conditionally selected. The completed [U-003 security investigation](ISSUE_442_U003_SECURITY_QUALIFICATION.md) disqualified Read A, did not qualify Read B, and received an independent **DENIED** security sign-off. PostgreSQL falsification evidence and local EXPLAIN samples are documented; full compatible real-writer concurrency, complete historical proof and bounded-query gates remain open. Implementing the outcome read and its consumers requires a revised, approved and independently qualified security architecture. No production behavior is authorized by this documentation update.
 
 Acceptance after qualification requires all five outcomes on the existing Retrieval surface, exact Task evidence, current scope and concealed denial, no replay or false attribution, and mixed-version recovery. Require the full positive/negative/race/compatibility matrix, strict contract and source diff review, matched visual-freeze and physical Android evidence, independent VAYLET Code Review and remote CI before merge eligibility.
