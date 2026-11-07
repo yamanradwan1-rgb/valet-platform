@@ -30,7 +30,7 @@ class InvalidScan(ValueError):
 class Scan:
     version: str
     category: str
-    rules: frozenset[str]
+    tool_name: str
     alerts: tuple[tuple[tuple[str, str, str, str], str], ...]
     notifications: tuple[int, ...] = (0,) * 8
 
@@ -63,7 +63,7 @@ def _string(value: object, context: str) -> str:
 def _rules(run: dict) -> dict[str, dict]:
     tool = _mapping(run.get("tool"), "SARIF tool")
     driver = _mapping(tool.get("driver"), "CodeQL driver")
-    if driver.get("name") != "CodeQL command-line toolchain":
+    if driver.get("name") not in ("CodeQL", "CodeQL command-line toolchain"):
         raise InvalidScan("SARIF was not produced by the CodeQL CLI")
     components = [driver]
     extensions = tool.get("extensions", [])
@@ -243,15 +243,15 @@ def load_scan(path: str | Path) -> Scan:
         key = (rule_id, _location(result), fp,
                hashlib.sha256(detail.encode("utf-8")).hexdigest())
         alerts.append((key, _severity(rules[rule_id])))
-    return Scan(version, category, frozenset(rules), tuple(alerts), notifications)
+    return Scan(version, category, driver["name"], tuple(alerts), notifications)
 
 
 def compare(head: Scan, base: Scan) -> dict:
     # SARIF may list available-but-unexecuted rule descriptors. The workflow
-    # runs the same fixed QLS with one CLI for head/base; descriptor-set
-    # equality is NOT reliable query-suite provenance.
-    if head.version != base.version or head.category != base.category:
-        raise InvalidScan("CodeQL head/base tool version or category differs")
+    # runs one fixed QLS/CLI; descriptor sets do not prove query provenance.
+    if (head.version != base.version or head.category != base.category
+            or head.tool_name != base.tool_name):
+        raise InvalidScan("CodeQL head/base tool version, identity or category differs")
     if any(head.notifications[i] or base.notifications[i] for i in (1, 2, 3, 5, 6, 7)):
         raise InvalidScan("CodeQL scan reported an error or warning; "
                           f"head={_notice_summary(head.notifications)}; "
