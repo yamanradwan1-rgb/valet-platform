@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 import { staffManagementIdentitySchema } from "./staff-management.js";
 import { staffValetSessionStateSchema } from "./staff-valet-session.js";
 
@@ -45,7 +46,7 @@ export const emergencyTakeoverContextQuerySchema = z
       .string()
       .refine((value) => !/\p{Cc}/u.test(value))
       .transform((value) => value.trim())
-      .pipe(z.string().max(80))
+      .pipe(z.string().max(80).superRefine(utf16StringMax(80)))
       .optional(),
   })
   .strict();

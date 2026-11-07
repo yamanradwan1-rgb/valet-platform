@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 import { dashboardSessionStateSchema } from "./location-overview.js";
 import { resourceVehicleIdentitySchema } from "./resource-vehicle-identity.js";
 
@@ -6,8 +7,8 @@ const uuidSchema = z.string().uuid();
 const cursorSchema = z.string().regex(/^[A-Za-z0-9_-]{8,512}$/);
 const timestampSchema = z.string().datetime({ offset: true });
 
-export const physicalResourceCodeSchema = z.string().trim().min(1).max(100);
-export const parkingSpotLabelSchema = z.string().trim().min(1).max(160);
+export const physicalResourceCodeSchema = z.string().trim().min(1).max(100).superRefine(utf16StringMax(100));
+export const parkingSpotLabelSchema = z.string().trim().min(1).max(160).superRefine(utf16StringMax(160));
 export const physicalResourceStatusSchema = z.enum(["ACTIVE", "INACTIVE"]);
 
 export const physicalResourceListQuerySchema = z
@@ -117,12 +118,12 @@ export const physicalResourceLabelSchema = z
     resourceId: uuidSchema,
     code: physicalResourceCodeSchema,
     version: z.literal("V2"),
-    qrPayload: z.string().min(1).max(160),
+    qrPayload: z.string().min(1).max(160).superRefine(utf16StringMax(160)),
     location: z
       .object({
         locationId: uuidSchema,
-        name: z.string().min(1).max(200),
-        code: z.string().min(1).max(100),
+        name: z.string().min(1).max(200).superRefine(utf16StringMax(200)),
+        code: z.string().min(1).max(100).superRefine(utf16StringMax(100)),
       })
       .strict(),
   })

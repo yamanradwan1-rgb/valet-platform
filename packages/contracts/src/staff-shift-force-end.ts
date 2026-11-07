@@ -1,7 +1,13 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 
-// Match the existing handoff/dispatch reason convention; preserve Unicode text.
-export const staffShiftForceEndReasonSchema = z.string().trim().min(1).max(500);
+// Preserve the existing 500 UTF-16 code-unit cap and Zod's max metadata.
+export const staffShiftForceEndReasonSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(500)
+  .superRefine(utf16StringMax(500));
 
 export const staffShiftForceEndRequestSchema = z
   .object({

@@ -1,8 +1,9 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 
 const uuidSchema = z.string().uuid();
 const utcTimestampSchema = z.string().datetime({ offset: false });
-const timezoneSchema = z.string().min(1).max(64);
+const timezoneSchema = z.string().min(1).max(64).superRefine(utf16StringMax(64));
 
 export const staffOperationalRoleSchema = z.enum([
   "VALET_EMPLOYEE",

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 import { staffValetSessionStateSchema } from "./staff-valet-session.js";
 import {
   auditInvestigationCoverageSchema,
@@ -30,7 +31,7 @@ export const auditInvestigationTimelineEventSchema = z.object({
   key: auditInvestigationTimelineKeySchema,
   occurredAt: auditInvestigationUtcSchema,
   recordedAt: auditInvestigationUtcSchema.optional(),
-  kind: z.string().min(2).max(100).regex(/^[A-Z][A-Z0-9_]+$/),
+  kind: z.string().min(2).max(100).superRefine(utf16StringMax(100)).regex(/^[A-Z][A-Z0-9_]+$/),
   quality: auditInvestigationEvidenceQualitySchema,
   actor: auditInvestigationSafePersonSchema.nullable(),
   participants: z.array(auditInvestigationParticipationSchema).max(4),

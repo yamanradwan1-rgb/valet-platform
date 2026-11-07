@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 
 export const staffPushProviderSchema = z.enum(["FCM", "APNS"]);
 export const staffPushPlatformSchema = z.enum(["ANDROID", "IOS"]);
@@ -44,12 +45,12 @@ export const staffPushRegistrationRequestSchema = z
     providerToken: z
       .string()
       .min(1)
-      .max(4096)
+      .max(4096).superRefine(utf16StringMax(4096))
       .refine((value) => value.trim().length > 0),
     installationId: z.string().uuid(),
     appIdentifier: z.literal("com.vaylet.employee"),
-    appVersion: z.string().trim().min(1).max(64),
-    appBuild: z.string().trim().min(1).max(64),
+    appVersion: z.string().trim().min(1).max(64).superRefine(utf16StringMax(64)),
+    appBuild: z.string().trim().min(1).max(64).superRefine(utf16StringMax(64)),
     locale: staffPushLocaleSchema,
   })
   .strict();
@@ -61,8 +62,8 @@ export const staffPushRegistrationResponseSchema = z
     platform: staffPushPlatformSchema,
     installationId: z.string().uuid(),
     appIdentifier: z.literal("com.vaylet.employee"),
-    appVersion: z.string().min(1).max(64),
-    appBuild: z.string().min(1).max(64),
+    appVersion: z.string().min(1).max(64).superRefine(utf16StringMax(64)),
+    appBuild: z.string().min(1).max(64).superRefine(utf16StringMax(64)),
     locale: staffPushLocaleSchema,
     state: staffPushRegistrationStateSchema,
     lastConfirmedAt: z.string().datetime({ offset: true }),

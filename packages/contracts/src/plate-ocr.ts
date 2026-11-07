@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 import { checkInUuidSchema } from "./check-in-common.js";
 
 export const PLATE_OCR_MAX_IMAGE_BYTES = 1024 * 1024;
@@ -13,7 +14,7 @@ export const plateOcrCandidateSchema = z
     plateNumberRaw: z
       .string()
       .min(1)
-      .max(40)
+      .max(40).superRefine(utf16StringMax(40))
       .refine((value) => value.trim().length > 0),
     confidence: z.number().finite().min(0).max(1),
   })

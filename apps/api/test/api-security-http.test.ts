@@ -1,8 +1,9 @@
 import "reflect-metadata";
 
-import { Controller, Get, Module } from "@nestjs/common";
+import { Body, Controller, Get, Module, Post } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import type { AddressInfo } from "node:net";
+import { gzipSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -16,6 +17,11 @@ class ProbeController {
   @Get()
   read() {
     return { ok: true };
+  }
+
+  @Post("echo")
+  echo(@Body() payload: unknown) {
+    return payload;
   }
 }
 
@@ -49,6 +55,22 @@ async function withApi(
 }
 
 describe("API HTTP security configuration", () => {
+  it("parses gzip JSON bodies through the Nest Express adapter", async () => {
+    await withApi("production", async (origin) => {
+      const payload = { probe: "compressed request", flags: ["safe"] };
+      const response = await fetch(`${origin}/v1/probe/echo`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "content-encoding": "gzip",
+        },
+        body: new Uint8Array(gzipSync(JSON.stringify(payload))),
+      });
+      expect(response.status).toBe(201);
+      expect(await response.json()).toEqual(payload);
+    });
+  }, 15_000);
+
   it.each(["production", "staging"])("does not expose Swagger UI or document routes in %s", async (env) => {
     await withApi(env, async (origin) => {
       for (const path of ["/docs", "/docs/", "/docs-json", "/docs-yaml"]) {

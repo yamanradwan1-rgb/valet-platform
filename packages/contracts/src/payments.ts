@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 
 export const paymentMoneySchema = z
   .string()
@@ -22,13 +23,13 @@ export const paymentServiceAmountCorrectionRequestSchema = z
   .object({ serviceAmount: paymentMoneySchema })
   .strict();
 
-const cashSubmissionKeySchema = z.string().min(1).max(200);
+const cashSubmissionKeySchema = z.string().min(1).max(200).superRefine(utf16StringMax(200));
 
 const refundReasonSchema = z
   .string()
   .trim()
   .min(1)
-  .max(1000)
+  .max(1000).superRefine(utf16StringMax(1000))
   .refine((value) => [...value].length <= 500 && !/\p{Cc}/u.test(value));
 
 export const cashReceiptRequestSchema = z
@@ -41,7 +42,7 @@ export const cashAdjustmentRequestSchema = z
       (value) => !/^0(?:\.0{1,3})?$/.test(value),
     ),
     entryType: z.enum(["ADJUSTMENT_INCREASE", "ADJUSTMENT_DECREASE"]),
-    reason: z.string().trim().min(1).max(500),
+    reason: z.string().trim().min(1).max(500).superRefine(utf16StringMax(500)),
     submissionIdempotencyKey: cashSubmissionKeySchema,
   })
   .strict();

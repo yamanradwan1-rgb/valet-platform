@@ -1,8 +1,9 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 
 export const routeHistoryQuerySchema = z
   .object({
-    cursor: z.string().min(1).max(512).optional(),
+    cursor: z.string().min(1).max(512).superRefine(utf16StringMax(512)).optional(),
     limit: z.coerce.number().int().min(1).max(500).default(100),
   })
   .strict();
@@ -17,7 +18,7 @@ const routeHistorySampleSchema = z
 
 export const routeHistoryResponseSchema = z
   .object({
-    nextCursor: z.string().min(1).max(512).nullable(),
+    nextCursor: z.string().min(1).max(512).superRefine(utf16StringMax(512)).nullable(),
     samples: z.array(routeHistorySampleSchema).max(500),
   })
   .strict();

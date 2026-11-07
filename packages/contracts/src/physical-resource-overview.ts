@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 import {
   parkingSpotListEntrySchema,
   physicalResourceCodeSchema,
@@ -31,7 +32,7 @@ export const physicalResourceKeyOverviewSchema = z
     keySlotId: uuid,
     code: physicalResourceCodeSchema,
     status: physicalResourceStatusSchema,
-    label: z.string().trim().min(1).max(160).nullable(),
+    label: z.string().trim().min(1).max(160).superRefine(utf16StringMax(160)).nullable(),
     usage: z.enum(["AVAILABLE", "IN_USE", "UNKNOWN"]),
     holdingSessionId: uuid.nullable(),
     holdingVehicle: resourceVehicleIdentitySchema.nullable(),

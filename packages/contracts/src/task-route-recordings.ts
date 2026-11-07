@@ -1,8 +1,9 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 
 export const taskRouteRecordingsQuerySchema = z
   .object({
-    cursor: z.string().min(1).max(512).optional(),
+    cursor: z.string().min(1).max(512).superRefine(utf16StringMax(512)).optional(),
     limit: z.coerce.number().int().min(1).max(500).default(100),
   })
   .strict();
@@ -20,7 +21,7 @@ export const taskRouteRecordingSchema = z
 export const taskRouteRecordingsResponseSchema = z
   .object({
     recordings: z.array(taskRouteRecordingSchema).max(500),
-    nextCursor: z.string().min(1).max(512).nullable(),
+    nextCursor: z.string().min(1).max(512).superRefine(utf16StringMax(512)).nullable(),
   })
   .strict();
 

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 
 /** Phase 1 only. Later categories are deliberately absent from the runtime DTO. */
 export const managementAlertPhaseOneCategorySchema = z.enum([
@@ -20,15 +21,15 @@ export const managementAlertSourceKindSchema = z.enum([
 
 export const managementAlertPreviewItemSchema = z
   .object({
-    id: z.string().min(1).max(260),
+    id: z.string().min(1).max(260).superRefine(utf16StringMax(260)),
     category: managementAlertPhaseOneCategorySchema,
     severity: managementAlertSeveritySchema,
     sourceKind: managementAlertSourceKindSchema,
     sourceId: z.string().uuid(),
-    episodeId: z.string().min(1).max(150),
+    episodeId: z.string().min(1).max(150).superRefine(utf16StringMax(150)),
     locationId: z.string().uuid(),
     occurredAt: z.string().datetime({ offset: true }),
-    title: z.string().min(1).max(100),
+    title: z.string().min(1).max(100).superRefine(utf16StringMax(100)),
   })
   .strict()
   .superRefine((item, context) => {

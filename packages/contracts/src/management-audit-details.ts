@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 import { incidentSeveritySchema, incidentTypeSchema } from "./incidents.js";
 import { staffValetSessionStateSchema } from "./staff-valet-session.js";
 import { staffShiftForceEndReasonSchema } from "./staff-shift-force-end.js";
@@ -106,7 +107,7 @@ export const managementAuditKnownDetailSchema = z.discriminatedUnion("kind", [
     .object({
       kind: z.literal("CONFIGURATION"),
       operation: z.enum(["SET", "CLEAR"]).optional(),
-      settingKey: z.string().min(1).max(100).optional(),
+      settingKey: z.string().min(1).max(100).superRefine(utf16StringMax(100)).optional(),
     })
     .strict(),
   z.object({ kind: z.literal("REPORT") }).strict(),
@@ -163,17 +164,17 @@ export const managementAuditKnownDetailSchema = z.discriminatedUnion("kind", [
         .string()
         .regex(/^[A-Z]{3}$/)
         .optional(),
-      newTimezone: z.string().min(1).max(255).optional(),
+      newTimezone: z.string().min(1).max(255).superRefine(utf16StringMax(255)).optional(),
       normalizationVersion: z.literal("JORDAN_MOBILE_V1").optional(),
       operation: z.enum(["SET", "CLEAR"]).optional(),
       previousCurrency: z
         .string()
         .regex(/^[A-Z]{3}$/)
         .optional(),
-      previousTimezone: z.string().min(1).max(255).optional(),
-      resourceCode: z.string().min(1).max(100).optional(),
+      previousTimezone: z.string().min(1).max(255).superRefine(utf16StringMax(255)).optional(),
+      resourceCode: z.string().min(1).max(100).superRefine(utf16StringMax(100)).optional(),
       resourceType: z.enum(["KEY_SLOT", "PARKING_SPOT"]).optional(),
-      settingKey: z.string().min(1).max(100).optional(),
+      settingKey: z.string().min(1).max(100).superRefine(utf16StringMax(100)).optional(),
       status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
       toAcceptingIntake: z.boolean().optional(),
       toStatus: z.enum(["ACTIVE", "INACTIVE"]).optional(),
