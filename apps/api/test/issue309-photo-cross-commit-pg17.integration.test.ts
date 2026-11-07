@@ -25,6 +25,15 @@ async function revoke(writer: PoolClient, item: PhotoFenceCase, kind: Revoker) {
 }
 
 async function ensureNoIdleTransaction(h: Issue309PhotoHttpFixture, writerPid?: number) {
+  // An HTTP response can finish before the Nest pool returns its final lease.
+  // Wait for its release event; on a stuck lease still collect the backend PID.
+  let unsettled: Error | undefined;
+  try {
+    await h.waitForNestPoolToSettle();
+  } catch (error) {
+    if (!(error instanceof Error)) throw error;
+    unsettled = error;
+  }
   const result = await h.db.admin.query<{
     pid: number;
     usename: string;
@@ -41,14 +50,37 @@ async function ensureNoIdleTransaction(h: Issue309PhotoHttpFixture, writerPid?: 
   // Preserve the zero-idle invariant while attributing the backend. Never
   // include pg_stat_activity.query: a failed CI assertion must not log SQL
   // text (or any bound values possibly present in statement diagnostics).
-  expect(result.rows, `Idle transaction(s); test writer PID=${writerPid ?? "none"}: ${JSON.stringify(result.rows)}`)
+  const attributed = result.rows.map((row) => ({
+    ...row,
+    owner: h.pgActivity.describe(row.pid),
+    testWriter: row.pid === writerPid,
+  }));
+  expect(attributed, `Idle transaction(s): ${JSON.stringify(attributed)}`)
     .toEqual([]);
+  if (unsettled) throw unsettled;
 }
 
 describe("Issue #309 two-connection real restricted PG17 + Node HTTP fence", () => {
   let h: Issue309PhotoHttpFixture;
   beforeAll(async () => { h = await openIssue309PhotoHttpFixture({ hypotheticalApprovedRoles:true }); },240_000);
   afterAll(async () => { await h?.close(); },90_000);
+
+  it("detects an intentionally uncommitted fixture transaction by backend PID",async()=>{
+    const writer = await h.db.admin.connect();
+    try {
+      const pid = (await writer.query<{pid:number}>(
+        "SELECT pg_backend_pid() AS pid",
+      )).rows[0]!.pid;
+      await writer.query("BEGIN");
+      await expect(ensureNoIdleTransaction(h,pid)).rejects.toThrow(
+        /"owner":"fixture-admin:checkout-\d+:leased","testWriter":true/,
+      );
+    } finally {
+      await writer.query("ROLLBACK");
+      writer.release();
+    }
+    await ensureNoIdleTransaction(h);
+  },90_000);
 
   it("COMMIT completed at PostgreSQL but its ACK was lost: never sends JPEG", async () => {
     const item = await seedPhotoFenceCase(h);
