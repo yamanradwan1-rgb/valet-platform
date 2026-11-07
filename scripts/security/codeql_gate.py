@@ -32,7 +32,7 @@ class Scan:
     category: str
     tool_name: str
     alerts: tuple[tuple[tuple[str, str, str, str], str], ...]
-    notifications: tuple[int, ...] = (0,) * 8
+    notifications: tuple[int, ...] = (0,) * 10
 
 
 def _object_no_duplicates(pairs: list) -> dict:
@@ -134,7 +134,7 @@ def _check_invocations(run: dict) -> tuple[int, ...]:
     invocations = run.get("invocations", [])
     if not isinstance(invocations, list) or not invocations:
         raise InvalidScan("missing or invalid CodeQL invocations")
-    counts = [0] * 8  # execution/configuration x note/warning/error/unknown
+    counts = [0] * 10  # execution/configuration x note/none/warning/error/unknown
     for value in invocations:
         invocation = _mapping(value, "CodeQL invocation")
         if invocation.get("executionSuccessful") is not True:
@@ -146,15 +146,15 @@ def _check_invocations(run: dict) -> tuple[int, ...]:
             for entry in notices:
                 notice = _mapping(entry, "CodeQL scan notification")
                 level = notice.get("level", "warning")
-                level_index = ("note", "warning", "error").index(level) if level in (
-                    "note", "warning", "error") else 3
-                counts[4 * index + level_index] += 1
+                levels = {"note": 0, "none": 1, "warning": 2, "error": 3}
+                level_index = levels.get(level, 4) if isinstance(level, str) else 4
+                counts[5 * index + level_index] += 1
     return tuple(counts)
 
 
 def _notice_summary(counts: tuple[int, ...]) -> str:
-    names = ("exec_note", "exec_warning", "exec_error", "exec_unknown",
-             "config_note", "config_warning", "config_error", "config_unknown")
+    names = ("exec_note", "exec_none", "exec_warning", "exec_error", "exec_unknown",
+             "config_note", "config_none", "config_warning", "config_error", "config_unknown")
     return ",".join(f"{name}={count}" for name, count in zip(names, counts))
 
 
@@ -252,7 +252,7 @@ def compare(head: Scan, base: Scan) -> dict:
     if (head.version != base.version or head.category != base.category
             or head.tool_name != base.tool_name):
         raise InvalidScan("CodeQL head/base tool version, identity or category differs")
-    if any(head.notifications[i] or base.notifications[i] for i in (1, 2, 3, 5, 6, 7)):
+    if any(head.notifications[i] or base.notifications[i] for i in (2, 3, 4, 7, 8, 9)):
         raise InvalidScan("CodeQL scan reported an error or warning; "
                           f"head={_notice_summary(head.notifications)}; "
                           f"base={_notice_summary(base.notifications)}")
