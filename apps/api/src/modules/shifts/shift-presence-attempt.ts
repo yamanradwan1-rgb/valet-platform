@@ -5,6 +5,7 @@ import type {
 } from "@valet/contracts";
 import type { PostgresTransaction } from "../../common/database/postgres";
 import { ShiftPresenceError } from "./shift-presence-errors";
+import type { PresenceOperationRow } from "./shift-presence-operation";
 import {
   fingerprintShiftPresenceIntent,
   fingerprintShiftPresenceRequest,
@@ -91,9 +92,7 @@ export async function recoverPresenceShiftAttempt(
     operationId,
     keyInput,
   );
-  const found = await transaction.query<
-    import("./shift-presence-operation").PresenceOperationRow
-  >(
+  const found = await transaction.query<PresenceOperationRow>(
     `SELECT * FROM shift_presence_operations WHERE user_id=$1 AND operation_id=$2`,
     [input.userId, operation.operationId],
   );
