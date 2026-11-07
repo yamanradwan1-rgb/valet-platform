@@ -31,6 +31,7 @@ class Scan:
     category: str
     rules: frozenset[str]
     alerts: tuple[tuple[tuple[str, str, str, str], str], ...]
+    notifications: tuple[int, ...] = (0,) * 8
 
 
 def _object_no_duplicates(pairs: list) -> dict:
@@ -128,22 +129,32 @@ def _location(result: dict) -> str:
     return path
 
 
-def _check_invocations(run: dict) -> None:
+def _check_invocations(run: dict) -> tuple[int, ...]:
     invocations = run.get("invocations", [])
-    if not isinstance(invocations, list):
-        raise InvalidScan("invalid CodeQL invocations")
+    if not isinstance(invocations, list) or not invocations:
+        raise InvalidScan("missing or invalid CodeQL invocations")
+    counts = [0] * 8  # execution/configuration x note/warning/error/unknown
     for value in invocations:
         invocation = _mapping(value, "CodeQL invocation")
         if invocation.get("executionSuccessful") is not True:
             raise InvalidScan("CodeQL scan did not confirm successful execution")
-        for kind in ("toolExecutionNotifications", "toolConfigurationNotifications"):
+        for index, kind in enumerate(("toolExecutionNotifications", "toolConfigurationNotifications")):
             notices = invocation.get(kind, [])
             if not isinstance(notices, list):
                 raise InvalidScan("invalid CodeQL scan notifications")
             for entry in notices:
                 notice = _mapping(entry, "CodeQL scan notification")
-                if notice.get("level", "warning") != "note":
-                    raise InvalidScan("CodeQL scan reported an error or warning")
+                level = notice.get("level", "warning")
+                level_index = ("note", "warning", "error").index(level) if level in (
+                    "note", "warning", "error") else 3
+                counts[4 * index + level_index] += 1
+    return tuple(counts)
+
+
+def _notice_summary(counts: tuple[int, ...]) -> str:
+    names = ("exec_note", "exec_warning", "exec_error", "exec_unknown",
+             "config_note", "config_warning", "config_error", "config_unknown")
+    return ",".join(f"{name}={count}" for name, count in zip(names, counts))
 
 
 def load_scan(path: str | Path) -> Scan:
@@ -167,7 +178,7 @@ def load_scan(path: str | Path) -> Scan:
     if not isinstance(runs, list) or len(runs) != 1:
         raise InvalidScan("expected exactly one CodeQL language run")
     run = _mapping(runs[0], "SARIF run")
-    _check_invocations(run)
+    notifications = _check_invocations(run)
     properties = _mapping(run.get("properties"), "CodeQL SARIF properties")
     if properties.get("semmle.formatSpecifier") != "sarifv2.1.0":
         raise InvalidScan("CodeQL SARIF must use pinned sarifv2.1.0 format")
@@ -224,7 +235,7 @@ def load_scan(path: str | Path) -> Scan:
         key = (rule_id, _location(result), fp,
                hashlib.sha256(detail.encode("utf-8")).hexdigest())
         alerts.append((key, _severity(rules[rule_id])))
-    return Scan(version, category, frozenset(rules), tuple(alerts))
+    return Scan(version, category, frozenset(rules), tuple(alerts), notifications)
 
 
 def compare(head: Scan, base: Scan) -> dict:
@@ -233,6 +244,10 @@ def compare(head: Scan, base: Scan) -> dict:
     # equality is NOT reliable query-suite provenance.
     if head.version != base.version or head.category != base.category:
         raise InvalidScan("CodeQL head/base tool version or category differs")
+    if any(head.notifications[i] or base.notifications[i] for i in (1, 2, 3, 5, 6, 7)):
+        raise InvalidScan("CodeQL scan reported an error or warning; "
+                          f"head={_notice_summary(head.notifications)}; "
+                          f"base={_notice_summary(base.notifications)}")
     grouped_head = defaultdict(list)
     grouped_base = defaultdict(list)
     for key, severity in head.alerts:

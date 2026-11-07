@@ -1,15 +1,11 @@
 """Adversarial contract tests for fail-closed CodeQL SARIF delta gating."""
 
-from contextlib import redirect_stderr, redirect_stdout
-from io import StringIO
 import json
-import os
 from pathlib import Path
 import subprocess
 import sys
 import tempfile
 import unittest
-from unittest.mock import patch
 
 import codeql_gate as gate
 
@@ -229,13 +225,29 @@ class CodeQLGateTests(unittest.TestCase):
         ):
             with self.subTest(change=change), self.assertRaises(gate.InvalidScan):
                 payload = report()
-                payload["runs"][0]["invocations"] = [change]
-                gate.load_scan(self.write("scanner-error.sarif", payload))
+                payload["runs"][0]["invocations"] = [{"executionSuccessful": True, **change}]
+                self.run_gate(payload, report())
         self.write("duplicate.sarif", report())
         (self.folder / "duplicate.sarif").write_text(
             '{"version":"2.1.0","version":"2.1.0","runs":[]}', encoding="utf-8")
         with self.assertRaisesRegex(gate.InvalidScan, "duplicate"):
             gate.load_scan(self.folder / "duplicate.sarif")
+        missing = report()
+        missing["runs"][0].pop("invocations")
+        with self.assertRaisesRegex(gate.InvalidScan, "invalid CodeQL invocations"):
+            gate.load_scan(self.write("no-invocations.sarif", missing))
+
+    def test_safe_head_base_notification_counts_still_fail_closed(self):
+        head, base = report(), report()
+        warning = {"level": "warning", "message": {"text": SECRET}}
+        head["runs"][0]["invocations"][0]["toolExecutionNotifications"] = [warning]
+        base["runs"][0]["invocations"][0]["toolConfigurationNotifications"] = [warning]
+        result = self.cli(head, base)
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("head=exec_note=0,exec_warning=1,exec_error=0", result.stderr)
+        self.assertIn("base=exec_note=0,exec_warning=0,exec_error=0", result.stderr)
+        self.assertIn("config_warning=1", result.stderr)
+        self.assertNotIn(SECRET, result.stdout + result.stderr)
 
     def test_extension_rule_reference_and_index_are_validated(self):
         head = report(finding())
