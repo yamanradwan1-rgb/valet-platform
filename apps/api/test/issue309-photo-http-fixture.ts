@@ -49,7 +49,8 @@ interface HttpResult {
 export interface Issue309PhotoHttpFixture {
   readonly baseUrl: string;
   readonly pgActivity: Issue309PhotoPgActivity;
-  waitForNestPoolToSettle(): Promise<void>;
+  readonly nestPool: PostgresPool;
+  waitForNestPoolToSettle(budgetMs: number): Promise<void>;
   activateDevelopmentPhotoView(): void;
   readonly db: Issue215HttpDatabase;
   readonly privateStore: S3PrivatePhotoStore;
@@ -154,8 +155,8 @@ export async function openIssue309PhotoHttpFixture(
       };
     }
     return {
-      db, privateStore, baseUrl, pgActivity,
-      waitForNestPoolToSettle: () => waitForNestPoolToSettle(nestPool),
+      db, privateStore, baseUrl, pgActivity, nestPool,
+      waitForNestPoolToSettle: (budgetMs) => waitForNestPoolToSettle(nestPool, budgetMs),
       activateDevelopmentPhotoView() {
         if (!options.developmentPolicy || process.env.NODE_ENV !== "test")
           throw new Error("Expected tested private MinIO startup before dev view test.");
