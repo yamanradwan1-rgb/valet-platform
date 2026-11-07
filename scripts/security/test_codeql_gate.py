@@ -247,8 +247,8 @@ class CodeQLGateTests(unittest.TestCase):
         base["runs"][0]["invocations"][0]["toolConfigurationNotifications"] = [warning]
         result = self.cli(head, base)
         self.assertEqual(result.returncode, 2)
-        self.assertIn("head=exec_note=0,exec_warning=1,exec_error=0", result.stderr)
-        self.assertIn("base=exec_note=0,exec_warning=0,exec_error=0", result.stderr)
+        self.assertIn("head=exec_note=0,exec_none=0,exec_warning=1,exec_error=0", result.stderr)
+        self.assertIn("base=exec_note=0,exec_none=0,exec_warning=0,exec_error=0", result.stderr)
         self.assertIn("config_warning=1", result.stderr)
         self.assertNotIn(SECRET, result.stdout + result.stderr)
 
