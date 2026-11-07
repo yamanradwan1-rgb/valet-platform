@@ -26,9 +26,11 @@ def text(value):
 
 def severity(value):
     if isinstance(value, str):
-        value = value.upper()
-        return {"ERROR": "HIGH", "WARNING": "MEDIUM", "INFO": "LOW",
-                "MODERATE": "MEDIUM"}.get(value, value)
+        value = value.strip().upper()
+        value = {"ERROR": "HIGH", "WARNING": "MEDIUM", "INFO": "LOW",
+                 "MODERATE": "MEDIUM", "NEGLIGIBLE": "LOW"}.get(value, value)
+        if value in {"LOW", "MEDIUM", "HIGH", "CRITICAL"}:
+            return value
     return "UNRATED"
 
 
@@ -125,12 +127,16 @@ def run(scanner, head_path, base_path=None):
     base = parser(load(base_path)) if base_path else []
     previous = {fingerprint(item): item["severity"] for item in base}
     new = [item for item in head if fingerprint(item) not in previous or
-           (item["severity"] in BLOCK and previous[fingerprint(item)] not in BLOCK)]
+           (item["severity"] in BLOCK and previous[fingerprint(item)] not in BLOCK) or
+           (item["severity"] == "CRITICAL" and previous[fingerprint(item)] != "CRITICAL") or
+           (scanner in {"osv", "trivy", "semgrep"} and
+            item["severity"] == "UNRATED" and previous[fingerprint(item)] != "UNRATED")]
     # Gitleaks scans *only* newly introduced commits/files, always gate any secret.
     # OSV advisories without severity must be reviewed, not silently treated as safe.
     blocked = [item for item in new if item["severity"] in BLOCK or
                (scanner == "gitleaks") or
-               (scanner == "osv" and item["severity"] == "UNRATED")]
+               (scanner in {"osv", "trivy", "semgrep"} and
+                item["severity"] == "UNRATED")]
     REPORTS.mkdir(exist_ok=True)
     path = REPORTS / f"{scanner}-sanitized.json"
     path.write_text(json.dumps({"scanner": scanner, "total": len(head),

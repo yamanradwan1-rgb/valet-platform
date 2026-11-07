@@ -9,8 +9,9 @@ import * as rowCardModule from "./vehicle-directory-row-card";
 import { VehiclesListLive } from "./vehicles-list-live";
 
 vi.mock("../../features/vehicles-directory", async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import("../../features/vehicles-directory")>();
+  const actual = (await importOriginal()) as typeof import(
+    "../../features/vehicles-directory"
+  );
   return {
     ...actual,
     useVehicleDirectory: vi.fn(),
