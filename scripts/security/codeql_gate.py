@@ -189,7 +189,7 @@ def load_scan(path: str | Path) -> Scan:
     # semanticVersion alone. Require a concrete CodeQL X.Y.Z release in both.
     versions = [driver[key] for key in ("semanticVersion", "version") if key in driver]
     if (not versions or any(not isinstance(value, str) or
-            not re.fullmatch(r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)", value)
+            not re.fullmatch(r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)", value)
             for value in versions) or len(set(versions)) != 1):
         raise InvalidScan("missing, malformed or conflicting CodeQL tool version")
     version = versions[0]
