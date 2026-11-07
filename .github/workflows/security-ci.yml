@@ -364,7 +364,7 @@ jobs:
           python3 -m unittest discover -s scripts/security -p 'test_semgrep_coverage.py' -v
           python3 -m unittest discover -s scripts/security -p 'test_resolve_scan_base.py' -v
           python3 -m unittest discover -s scripts/security -p 'test_verify_scanner_coverage.py' -v
-          python3 -m unittest discover -s scripts/security -p 'test_codeql_gate.py' -v
+          python3 -m unittest discover -s scripts/security -p 'test_codeql*.py' -v
       - name: Fail closed for failed / skipped security checks
         env:
           GITLEAKS: ${{ needs.secrets-gitleaks.result }}
