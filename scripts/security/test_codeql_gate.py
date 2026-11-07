@@ -210,7 +210,7 @@ class CodeQLGateTests(unittest.TestCase):
         self.assertEqual(self.run_gate(semantic, semantic)["blocked"], 0)
         self.assertEqual(self.run_gate(semantic, native)["blocked"], 0)
         for invalid in (None, "", "x.y.z", "2.27", "2.027.4", " 2.27.4",
-                        "2.27.4+extra", "__MISSING__"):
+                        "2.27.4+extra", "2.2\u0662.4", "__MISSING__"):
             driver["semanticVersion"] = invalid
             if invalid == "__MISSING__":
                 driver.pop("semanticVersion")
