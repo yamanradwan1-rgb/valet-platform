@@ -18,20 +18,16 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Select push/PR comparison
+      - name: Resolve verified security comparison base
         env:
-          EVENT: ${{ github.event_name }}
-          PR_BASE: ${{ github.event.pull_request.base.sha }}
-          BEFORE: ${{ github.event.before }}
+          SECURITY_EVENT: ${{ github.event_name }}
+          SECURITY_PR_BASE: ${{ github.event.pull_request.base.sha }}
+          SECURITY_BEFORE: ${{ github.event.before }}
+          SECURITY_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          SECURITY_REF: ${{ github.ref }}
         run: |
           mkdir -p security-reports
-          base="$BEFORE"
-          if [[ "$EVENT" == pull_request ]]; then base="$PR_BASE"; fi
-          if [[ -n "$base" && ! "$base" =~ ^0+$ ]] && git cat-file -e "$base^{commit}"; then
-            echo "SCAN_RANGE=$base..HEAD" >> "$GITHUB_ENV"
-          else
-            echo "SCAN_RANGE=--all" >> "$GITHUB_ENV"
-          fi
+          python3 scripts/security/resolve_scan_base.py
       - name: Gitleaks scan (redacted; raw stays on runner)
         run: |
           docker run --rm -v "$PWD:/src:ro" -v "$RUNNER_TEMP:/out" -w /src \
@@ -55,31 +51,28 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Select comparison commit
+      - name: Resolve verified security comparison base
         env:
-          EVENT: ${{ github.event_name }}
-          PR_BASE: ${{ github.event.pull_request.base.sha }}
-          BEFORE: ${{ github.event.before }}
+          SECURITY_EVENT: ${{ github.event_name }}
+          SECURITY_PR_BASE: ${{ github.event.pull_request.base.sha }}
+          SECURITY_BEFORE: ${{ github.event.before }}
+          SECURITY_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          SECURITY_REF: ${{ github.ref }}
         run: |
           mkdir -p security-reports
-          base="$BEFORE"
-          if [[ "$EVENT" == pull_request ]]; then base="$PR_BASE"; fi
-          if [[ -n "$base" && ! "$base" =~ ^0+$ ]] && git cat-file -e "$base^{commit}"; then
-            echo "SECURITY_BASE_SHA=$base" >> "$GITHUB_ENV"
-            # An unchanged scan scope needs no incremental Semgrep scan.
-            # Diff errors must never be interpreted as no changes.
-            if git diff --quiet "$base" HEAD -- apps packages scripts infra; then
-              echo "SEMGREP_NO_SCOPED_CHANGES=true" >> "$GITHUB_ENV"
-            else
-              status=$?
-              if [[ "$status" -ne 1 ]]; then
-                echo "::error::Could not determine Semgrep scan scope (git diff exit $status)"
-                exit "$status"
-              fi
-              echo "SEMGREP_NO_SCOPED_CHANGES=false" >> "$GITHUB_ENV"
-            fi
+          python3 scripts/security/resolve_scan_base.py
+      - name: Determine Semgrep scoped changes
+        run: |
+          # An unchanged scan scope needs no incremental Semgrep scan.
+          # Diff errors must never be interpreted as no changes.
+          if git diff --quiet "$SECURITY_BASE_SHA" HEAD -- apps packages scripts infra .github; then
+            echo "SEMGREP_NO_SCOPED_CHANGES=true" >> "$GITHUB_ENV"
           else
-            # Missing/unusable base: run Semgrep rather than presume no changes.
+            status=$?
+            if [[ "$status" -ne 1 ]]; then
+              echo "::error::Could not determine Semgrep scan scope (git diff exit $status)"
+              exit "$status"
+            fi
             echo "SEMGREP_NO_SCOPED_CHANGES=false" >> "$GITHUB_ENV"
           fi
       - name: Record no scoped changes (not a skipped security job)
@@ -94,7 +87,7 @@ jobs:
           report.write_text(json.dumps({
               "scanner": "semgrep",
               "status": "not_applicable",
-              "reason": "Verified no changes in apps, packages, scripts or infra",
+              "reason": "Verified no changes in apps, packages, scripts, infra or .github",
               "total": 0,
               "new": 0,
               "blocked": 0,
@@ -114,20 +107,13 @@ jobs:
         if: env.SEMGREP_NO_SCOPED_CHANGES != 'true'
         env:
           SECURITY_BASE_SHA: ${{ env.SECURITY_BASE_SHA }}
-        run: |
-          opts=()
-          if [[ -n "$SECURITY_BASE_SHA" ]]; then opts+=("--baseline-commit=$SECURITY_BASE_SHA"); fi
-          semgrep scan --config p/security-audit --config p/owasp-top-ten \
-            --metrics=off --disable-version-check --json \
-            --output security-reports/semgrep-head.json \
-            --exclude '**/node_modules/**' --exclude '**/dist/**' \
-            --exclude '**/.next/**' "${opts[@]}" apps packages scripts infra
+        run: bash scripts/security/run-semgrep-with-changed-targets.sh "$SECURITY_BASE_SHA"
       - name: Recover empty incremental Semgrep coverage with full head/base comparison
         if: env.SEMGREP_NO_SCOPED_CHANGES != 'true'
         run: |
           # A changed path can be intentionally excluded by Semgrep. Never
           # accept a zero-target incremental report as a successful scan.
-          coverage="$(python3 scripts/security/semgrep_coverage.py security-reports/semgrep-head.json)"
+          coverage="$(python3 scripts/security/semgrep_coverage.py security-reports/semgrep-head.json "$SECURITY_BASE_SHA")"
           if [[ "$coverage" == "fallback" ]]; then
             if [[ -z "$SECURITY_BASE_SHA" ]]; then
               echo "::error::Semgrep full scan yielded no targets and has no baseline"
@@ -138,7 +124,7 @@ jobs:
                 --metrics=off --disable-version-check --json \
                 --output "$1" \
                 --exclude '**/node_modules/**' --exclude '**/dist/**' \
-                --exclude '**/.next/**' apps packages scripts infra
+                --exclude '**/.next/**' apps packages scripts infra .github
             }
             git worktree add --detach "$RUNNER_TEMP/security-semgrep-base" "$SECURITY_BASE_SHA"
             semgrep_full_scan security-reports/semgrep-head.json
@@ -151,6 +137,8 @@ jobs:
       - name: Gate high and critical findings / parser errors
         if: env.SEMGREP_NO_SCOPED_CHANGES != 'true'
         run: |
+          python3 scripts/security/semgrep_coverage.py \
+            security-reports/semgrep-head.json "$SECURITY_BASE_SHA" --require-covered
           if [[ -n "$SEMGREP_BASE_REPORT" ]]; then
             python3 scripts/security/ci_gate.py semgrep security-reports/semgrep-head.json "$SEMGREP_BASE_REPORT"
           else
@@ -171,33 +159,42 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Prepare base worktree
+      - name: Resolve verified security comparison base
         env:
-          EVENT: ${{ github.event_name }}
-          PR_BASE: ${{ github.event.pull_request.base.sha }}
-          BEFORE: ${{ github.event.before }}
+          SECURITY_EVENT: ${{ github.event_name }}
+          SECURITY_PR_BASE: ${{ github.event.pull_request.base.sha }}
+          SECURITY_BEFORE: ${{ github.event.before }}
+          SECURITY_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          SECURITY_REF: ${{ github.ref }}
         run: |
           mkdir -p security-reports
-          base="$BEFORE"
-          if [[ "$EVENT" == pull_request ]]; then base="$PR_BASE"; fi
-          if [[ -n "$base" && ! "$base" =~ ^0+$ ]] && git cat-file -e "$base^{commit}"; then
-            git worktree add --detach "$RUNNER_TEMP/security-base" "$base"
-            echo "SECURITY_BASE_TREE=$RUNNER_TEMP/security-base" >> "$GITHUB_ENV"
-          fi
+          python3 scripts/security/resolve_scan_base.py
+      - name: Prepare base worktree
+        run: |
+          git worktree add --detach "$RUNNER_TEMP/security-base" "$SECURITY_BASE_SHA"
+          echo "SECURITY_BASE_TREE=$RUNNER_TEMP/security-base" >> "$GITHUB_ENV"
       - name: Scan head using official Trivy container
         run: |
           mkdir -p "$RUNNER_TEMP/trivy-cache"
           docker run --rm -v "$PWD:/src:ro" -v "$PWD/security-reports:/out:rw" \
             -v "$RUNNER_TEMP/trivy-cache:/root/.cache/trivy:rw" \
             ghcr.io/aquasecurity/trivy:0.68.2 fs --scanners vuln,misconfig \
-            --format json --exit-code 0 --output /out/trivy-head.json /src
+            --list-all-pkgs --format json --exit-code 0 --output /out/trivy-head.json /src
+      - name: Verify head Trivy lockfile extraction
+        run: |
+          python3 scripts/security/verify_scanner_coverage.py trivy \
+            security-reports/trivy-head.json "$PWD" --scan-exit-code 0
       - name: Scan base using the same image and cache
         if: env.SECURITY_BASE_TREE != ''
         run: |
           docker run --rm -v "$SECURITY_BASE_TREE:/src:ro" -v "$PWD/security-reports:/out:rw" \
             -v "$RUNNER_TEMP/trivy-cache:/root/.cache/trivy:rw" \
             ghcr.io/aquasecurity/trivy:0.68.2 fs --scanners vuln,misconfig \
-            --format json --exit-code 0 --output /out/trivy-base.json /src
+            --list-all-pkgs --format json --exit-code 0 --output /out/trivy-base.json /src
+      - name: Verify base Trivy lockfile extraction
+        run: |
+          python3 scripts/security/verify_scanner_coverage.py trivy \
+            security-reports/trivy-base.json "$SECURITY_BASE_TREE" --scan-exit-code 0
       - name: Gate new high and critical vulnerabilities
         env:
           BASE_TREE: ${{ env.SECURITY_BASE_TREE }}
@@ -222,37 +219,44 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Prepare base worktree
+      - name: Resolve verified security comparison base
         env:
-          EVENT: ${{ github.event_name }}
-          PR_BASE: ${{ github.event.pull_request.base.sha }}
-          BEFORE: ${{ github.event.before }}
+          SECURITY_EVENT: ${{ github.event_name }}
+          SECURITY_PR_BASE: ${{ github.event.pull_request.base.sha }}
+          SECURITY_BEFORE: ${{ github.event.before }}
+          SECURITY_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          SECURITY_REF: ${{ github.ref }}
         run: |
           mkdir -p security-reports
-          base="$BEFORE"
-          if [[ "$EVENT" == pull_request ]]; then base="$PR_BASE"; fi
-          if [[ -n "$base" && ! "$base" =~ ^0+$ ]] && git cat-file -e "$base^{commit}"; then
-            git worktree add --detach "$RUNNER_TEMP/security-base" "$base"
-            echo "SECURITY_BASE_TREE=$RUNNER_TEMP/security-base" >> "$GITHUB_ENV"
-          fi
+          python3 scripts/security/resolve_scan_base.py
+      - name: Prepare base worktree
+        run: |
+          git worktree add --detach "$RUNNER_TEMP/security-base" "$SECURITY_BASE_SHA"
+          echo "SECURITY_BASE_TREE=$RUNNER_TEMP/security-base" >> "$GITHUB_ENV"
       - name: OSV head scan
         run: |
           set +e
           docker run --rm -v "$PWD:/src:ro" ghcr.io/google/osv-scanner:v2.3.3 scan source \
-            --recursive --format=json /src > security-reports/osv-head.json
+            --lockfile=/src/pnpm-lock.yaml --recursive --format=json /src > security-reports/osv-head.json
           code=$?
           set -e
           test "$code" -le 1
+          python3 scripts/security/verify_scanner_coverage.py osv \
+            security-reports/osv-head.json "$PWD" \
+            --scan-exit-code "$code" --explicit-lockfile
       - name: OSV base scan
         if: env.SECURITY_BASE_TREE != ''
         run: |
           cd "$SECURITY_BASE_TREE"
           set +e
           docker run --rm -v "$PWD:/src:ro" ghcr.io/google/osv-scanner:v2.3.3 scan source \
-            --recursive --format=json /src > "$GITHUB_WORKSPACE/security-reports/osv-base.json"
+            --lockfile=/src/pnpm-lock.yaml --recursive --format=json /src > "$GITHUB_WORKSPACE/security-reports/osv-base.json"
           code=$?
           set -e
           test "$code" -le 1
+          python3 "$GITHUB_WORKSPACE/scripts/security/verify_scanner_coverage.py" osv \
+            "$GITHUB_WORKSPACE/security-reports/osv-base.json" "$PWD" \
+            --scan-exit-code "$code" --explicit-lockfile
       - name: Gate new high, critical, or unrated advisories
         env:
           BASE_TREE: ${{ env.SECURITY_BASE_TREE }}
@@ -271,7 +275,7 @@ jobs:
 
   sast-codeql:
     runs-on: ubuntu-24.04
-    timeout-minutes: 50
+    timeout-minutes: 90
     permissions:
       contents: read
       actions: read
@@ -279,16 +283,64 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           persist-credentials: false
-      - uses: github/codeql-action/init@v4
+      - name: Resolve verified security comparison base
+        env:
+          SECURITY_EVENT: ${{ github.event_name }}
+          SECURITY_PR_BASE: ${{ github.event.pull_request.base.sha }}
+          SECURITY_BEFORE: ${{ github.event.before }}
+          SECURITY_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          SECURITY_REF: ${{ github.ref }}
+        run: |
+          mkdir -p security-reports
+          python3 scripts/security/resolve_scan_base.py
+      - name: Checkout exact CodeQL baseline
+        run: git worktree add --detach "$RUNNER_TEMP/security-codeql-base" "$SECURITY_BASE_SHA"
+      - uses: github/codeql-action/setup-codeql@5895b2c9be147bc7f1c75ce72c5cb577febb1907 # v4
+        id: setup-codeql
         with:
           languages: javascript-typescript
-          build-mode: none
-          queries: security-extended
-      - uses: github/codeql-action/analyze@v4
+      - name: Analyze head and base with identical CodeQL CLI and queries
+        id: codeql-analyze
+        env:
+          CODEQL_BIN: ${{ steps.setup-codeql.outputs.codeql-path }}
+        run: |
+          set -euo pipefail
+          if [[ ! -x "$CODEQL_BIN" ]]; then
+            echo '::error::CodeQL CLI was not installed'
+            exit 2
+          fi
+          query_suite='codeql/javascript-queries:codeql-suites/javascript-security-extended.qls'
+          for revision in head base; do
+            source="$GITHUB_WORKSPACE"
+            if [[ "$revision" == base ]]; then source="$RUNNER_TEMP/security-codeql-base"; fi
+            "$CODEQL_BIN" database create "$RUNNER_TEMP/codeql-$revision-db" \
+              --language=javascript-typescript --build-mode=none --no-skip-empty \
+              --source-root="$source" --threads=2 --ram=4096
+            "$CODEQL_BIN" database analyze "$RUNNER_TEMP/codeql-$revision-db" \
+              "$query_suite" --format=sarifv2.1.0 \
+              --sarif-category=/language:javascript-typescript --threads=2 --ram=4096 \
+              --output="$RUNNER_TEMP/codeql-$revision.sarif"
+          done
+      - name: Upload CodeQL head to GitHub Code Scanning
+        if: ${{ steps.codeql-analyze.outcome == 'success' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+        uses: github/codeql-action/upload-sarif@5895b2c9be147bc7f1c75ce72c5cb577febb1907 # v4
         with:
+          sarif_file: ${{ runner.temp }}/codeql-head.sarif
           category: /language:javascript-typescript
-          upload: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'never' || 'always' }}
+      - name: Gate new CodeQL high and critical findings
+        run: |
+          python3 scripts/security/codeql_gate.py \
+            --head "$RUNNER_TEMP/codeql-head.sarif" \
+            --base "$RUNNER_TEMP/codeql-base.sarif" \
+            --out security-reports/codeql-sanitized.json
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: security-codeql-${{ github.run_id }}
+          path: security-reports/codeql-sanitized.json
+          retention-days: 7
 
   security-gate:
     if: always()
@@ -303,6 +355,9 @@ jobs:
         run: |
           python3 -m unittest discover -s scripts/security -p 'test_ci_gate.py' -v
           python3 -m unittest discover -s scripts/security -p 'test_semgrep_coverage.py' -v
+          python3 -m unittest discover -s scripts/security -p 'test_resolve_scan_base.py' -v
+          python3 -m unittest discover -s scripts/security -p 'test_verify_scanner_coverage.py' -v
+          python3 -m unittest discover -s scripts/security -p 'test_codeql*.py' -v
       - name: Fail closed for failed / skipped security checks
         env:
           GITLEAKS: ${{ needs.secrets-gitleaks.result }}

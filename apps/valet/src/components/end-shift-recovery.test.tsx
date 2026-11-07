@@ -41,7 +41,7 @@ let mounted: ReactTestRenderer | null = null;
 
 vi.mock("../features/shift/shift-api", () => ({ endShiftSession }));
 vi.mock("../features/shift", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("../features/shift")>();
+  const actual = (await importOriginal()) as typeof import("../features/shift");
   return {
     ...actual,
     // Observe callbacks while executing the real useEndShift/controller state.
@@ -55,10 +55,9 @@ vi.mock("../features/shift", async (importOriginal) => {
   };
 });
 vi.mock("../features/staff-operational-context", async (importOriginal) => {
-  const actual =
-    await importOriginal<
-      typeof import("../features/staff-operational-context")
-    >();
+  const actual = (await importOriginal()) as typeof import(
+    "../features/staff-operational-context"
+  );
   return {
     ...actual,
     useStaffOperationalContext: () => ({
@@ -76,8 +75,9 @@ vi.mock("../features/staff-operational-context", async (importOriginal) => {
   };
 });
 vi.mock("../lib/auth/staff-auth-context", async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import("../lib/auth/staff-auth-context")>();
+  const actual = (await importOriginal()) as typeof import(
+    "../lib/auth/staff-auth-context"
+  );
   return {
     ...actual,
     useOptionalStaffAuth: () => ({

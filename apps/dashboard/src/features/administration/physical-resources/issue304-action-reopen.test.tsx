@@ -11,7 +11,7 @@ const harness = vi.hoisted(() => ({
 // Retain the component's successful-create state across server renders so the
 // test reproduces the exact repeated-open failure without starting a browser.
 vi.mock("react", async (importOriginal) => {
-  const original = await importOriginal<typeof import("react")>();
+  const original = (await importOriginal()) as typeof import("react");
   return {
     ...original,
     useState: (initial: typeof harness.saved) => [

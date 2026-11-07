@@ -14,8 +14,9 @@ const sessionId = "11111111-1111-4111-8111-111111111111";
 const LINK = "https://customer.example.com/#guestToken=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef012345678-_";
 
 vi.mock("../../../features/guest-access", async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import("../../../features/guest-access")>();
+  const actual = (await importOriginal()) as typeof import(
+    "../../../features/guest-access"
+  );
   return {
     ...actual,
     useGuestAccess: vi.fn(),

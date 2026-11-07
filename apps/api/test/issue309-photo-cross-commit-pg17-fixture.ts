@@ -82,6 +82,7 @@ export async function runPhotoFenceHttp(
   options: FenceHarnessOptions = {},
 ): Promise<{ status: number; body: Buffer; calls: number; order: string[] }> {
   const runtime = createRuntimePostgresPool(h.db.runtimeUrl);
+  h.pgActivity.track(runtime, "photo-fence");
   const connect = runtime.connect.bind(runtime);
   const order: string[] = [];
   let checkout = 0;

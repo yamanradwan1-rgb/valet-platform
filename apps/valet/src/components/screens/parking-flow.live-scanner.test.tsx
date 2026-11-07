@@ -8,8 +8,9 @@ vi.mock("../../lib/connectivity/use-online-status", () => ({
 const { useParking } = await import("../../features/parking");
 
 vi.mock("../../features/parking", async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import("../../features/parking")>();
+  const actual = (await importOriginal()) as typeof import(
+    "../../features/parking"
+  );
   return { ...actual, useParking: vi.fn() };
 });
 

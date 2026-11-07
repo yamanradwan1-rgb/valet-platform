@@ -26,6 +26,7 @@ import {
   type Issue215HttpScope,
 } from "./issue215-http-fixture-database";
 import { readAttestedIssue215Minio } from "./issue215-http-fixture";
+import { Issue309PhotoPgActivity, waitForNestPoolToSettle } from "./issue309-photo-pg-activity";
 
 const environmentKeys = [
   "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_REGION", "DATABASE_URL",
@@ -47,6 +48,9 @@ interface HttpResult {
 
 export interface Issue309PhotoHttpFixture {
   readonly baseUrl: string;
+  readonly pgActivity: Issue309PhotoPgActivity;
+  readonly nestPool: PostgresPool;
+  waitForNestPoolToSettle(budgetMs: number): Promise<void>;
   activateDevelopmentPhotoView(): void;
   readonly db: Issue215HttpDatabase;
   readonly privateStore: S3PrivatePhotoStore;
@@ -72,6 +76,8 @@ export async function openIssue309PhotoHttpFixture(
   // private versioned bucket *before* a PostgreSQL database can be created.
   const s3 = readAttestedIssue215Minio();
   const db = await openIssue215HttpDatabase();
+  const pgActivity = new Issue309PhotoPgActivity();
+  pgActivity.track(db.admin, "fixture-admin");
   const oldEnv = new Map(environmentKeys.map((key) => [key, process.env[key]]));
   let app: INestApplication | undefined;
   let client: S3Client | undefined;
@@ -105,6 +111,9 @@ export async function openIssue309PhotoHttpFixture(
     app = await NestFactory.create(Issue309PhotoTestModule, {
       logger: false, abortOnError: false,
     });
+    const nestPool = app.get<PostgresPool>(RUNTIME_POSTGRES_POOL);
+    // Register before Nest bootstrap can acquire a runtime DB lease.
+    pgActivity.track(nestPool, "nest-http");
     await app.listen(0, "127.0.0.1");
     const baseUrl = await app.getUrl();
     client = new S3Client({
@@ -146,7 +155,8 @@ export async function openIssue309PhotoHttpFixture(
       };
     }
     return {
-      db, privateStore, baseUrl,
+      db, privateStore, baseUrl, pgActivity, nestPool,
+      waitForNestPoolToSettle: (budgetMs) => waitForNestPoolToSettle(nestPool, budgetMs),
       activateDevelopmentPhotoView() {
         if (!options.developmentPolicy || process.env.NODE_ENV !== "test")
           throw new Error("Expected tested private MinIO startup before dev view test.");
