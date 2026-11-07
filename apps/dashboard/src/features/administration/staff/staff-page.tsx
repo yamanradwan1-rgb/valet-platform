@@ -19,6 +19,7 @@ import {
 import { AdministrationPage, styles } from "../administration-ui";
 import { StaffEmployeesBody } from "./staff-employees-body";
 import { StaffShiftsBody } from "./staff-shifts-body";
+import { StaffExceptionsBody } from "./staff-exceptions-body";
 import { staffShiftHistoryCopy } from "./staff-shift-history-copy";
 import css from "./staff-reference.module.css";
 export function StaffPage() {
@@ -74,7 +75,7 @@ function StaffPageContent(props: {
   const consumeRecovery = useCallback(() => setRecovery(null), []);
   const companyAdmin = scope.authority === "COMPANY_ADMIN",
     locationManager = scope.authority === "LOCATION_MANAGER";
-  const [tab, setTab] = useState<"employees" | "shifts">(
+  const [tab, setTab] = useState<"employees" | "shifts" | "exceptions">(
     companyAdmin && !recovery ? "employees" : "shifts",
   );
   if (!companyAdmin && !locationManager) return null;
@@ -85,16 +86,20 @@ function StaffPageContent(props: {
       subtitle={
         tab === "shifts"
           ? staffShiftHistoryCopy(locale).subtitle
-          : companyAdmin
-            ? t.employeesSubtitle
-            : t.employeesLocationManagerStaffSubtitle
+          : tab === "exceptions"
+            ? locale === "ar"
+              ? "مراجعة طلبات استثناء الحضور للموقع المحدد واتخاذ قرار بشأنها."
+              : "Review and resolve Shift Presence exception requests for the selected Location."
+            : companyAdmin
+              ? t.employeesSubtitle
+              : t.employeesLocationManagerStaffSubtitle
       }
       subtitleSize="sm"
       title={t.employeesTitle}
       titleTracking="tight"
     >
       <div className={`${styles.tabs} ${styles.staffTabs} ${css.tabsOffset}`}>
-        {(["employees", "shifts"] as const).map((value) => (
+        {(["employees", "shifts", "exceptions"] as const).map((value) => (
           <button
             key={value}
             aria-pressed={tab === value}
@@ -102,17 +107,25 @@ function StaffPageContent(props: {
             onClick={() => setTab(value)}
             type="button"
           >
-            {value === "employees" ? t.employees : t.shifts}
+            {value === "employees"
+              ? t.employees
+              : value === "shifts"
+                ? t.shifts
+                : locale === "ar"
+                  ? "الاستثناءات"
+                  : "Exceptions"}
           </button>
         ))}
       </div>
       {tab === "employees" ? (
         <StaffEmployeesBody />
-      ) : (
+      ) : tab === "shifts" ? (
         <StaffShiftsBody
           recovery={recovery}
           onRecoveryConsumed={consumeRecovery}
         />
+      ) : (
+        <StaffExceptionsBody />
       )}
     </AdministrationPage>
   );
