@@ -107,14 +107,7 @@ jobs:
         if: env.SEMGREP_NO_SCOPED_CHANGES != 'true'
         env:
           SECURITY_BASE_SHA: ${{ env.SECURITY_BASE_SHA }}
-        run: |
-          opts=()
-          if [[ -n "$SECURITY_BASE_SHA" ]]; then opts+=("--baseline-commit=$SECURITY_BASE_SHA"); fi
-          semgrep scan --config p/security-audit --config p/owasp-top-ten \
-            --metrics=off --disable-version-check --json \
-            --output security-reports/semgrep-head.json \
-            --exclude '**/node_modules/**' --exclude '**/dist/**' \
-            --exclude '**/.next/**' "${opts[@]}" apps packages scripts infra .github
+        run: bash scripts/security/run-semgrep-with-changed-targets.sh "$SECURITY_BASE_SHA"
       - name: Recover empty incremental Semgrep coverage with full head/base comparison
         if: env.SEMGREP_NO_SCOPED_CHANGES != 'true'
         run: |

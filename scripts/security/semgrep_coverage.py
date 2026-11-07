@@ -173,8 +173,22 @@ def classify_coverage(report_path: str | Path, base: str | None = None,
     return "covered"
 
 
+def changed_targets_binary(base: str) -> bytes:
+    """NUL-delimited real Git targets for explicit Semgrep CLI scanning."""
+    targets = sorted(changed_eligible_paths(base))
+    for path in targets:
+        file = _REPO_ROOT / path
+        if (file.is_symlink() or not file.is_file() or
+                not file.resolve().is_relative_to(_REPO_ROOT.resolve())):
+            raise ValueError("Semgrep changed target is missing or unsafe")
+    return b"".join(path.encode("utf-8") + b"\0" for path in targets)
+
+
 if __name__ == "__main__":
     try:
+        if len(sys.argv) == 3 and sys.argv[1] == "--changed-targets":
+            sys.stdout.buffer.write(changed_targets_binary(sys.argv[2]))
+            sys.exit(0)
         if len(sys.argv) not in (2, 3, 4):
             raise ValueError("Usage: semgrep_coverage.py REPORT [BASE_SHA [--require-covered]]")
         if len(sys.argv) == 4 and sys.argv[3] != "--require-covered":
