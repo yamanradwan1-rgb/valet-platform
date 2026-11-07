@@ -1,6 +1,16 @@
 # Issue #442 — U-003 Security Qualification (2026-11-08)
 
-**Verdict: BLOCKED — SECURITY ARCHITECTURE DECISION REQUIRED**
+**Final U-003 verdict (after remediation review): BLOCKED — SECURITY ARCHITECTURE DECISION REQUIRED**
+
+**Prior qualification verdict (Read A / Read B): BLOCKED — SECURITY ARCHITECTURE DECISION REQUIRED.** These older findings remain recorded below and are not reinterpreted as passing candidates.
+
+**2026-11-08 remediation update:** [New U-003 Security Remediation Report](ISSUE_442_U003_SECURITY_REMEDIATION.md) documents the disposable Read C fail-closed candidate, a stricter complete Task history proof, correct worktree migration provisioning, the exact executed PostgreSQL race and performance results, the fresh independent review, and remaining authorization/response/timeout gates. The previous Read A and Read B disqualifications below remain historical evidence; the new candidate does **not** retroactively qualify either mechanism.
+
+The final full disposable PostgreSQL qualification suite run from the correct Issue #442 `apps/api` working directory completed with **61/61 tests passed, 0 failed, 0 skipped in 10 test files** (exit 0; duration 288.35s), including the final hardened SQL, Read C expiry check and complete-transaction benchmark, on the source baseline `41dfa50f1a6d721af6511e185e89bd5a6e916368` and the new ignored local probes. The old root-cwd fixture produced `22P02` by running migrations from an earlier main checkout; correctly provisioned disposable PostgreSQL has both issue #352 migrations (`20261029010400`, `20261029010500`) and `EMERGENCY_TAKEOVER` in `public.dispatch_event_type`, and the real Mark Ready → Handoff Pending → Complete Handoff test passes. This fixes the qualification **environment** without altering production code or schema.
+
+An earlier full suite passed 59/59 before the Read C benchmark and deterministic **post-history credential expiry** test were added. The hardened SQL was then tightened to require canonical Request requester type and release Audit entity/actor/Task parity, and a focused run passed **7/7** (six hardened-evidence scenarios plus the new late-expiry test). The final **61-pass** full regression re-exercised all ten files with those changes. Never interpret a passing falsification of the old A/B design as their security qualification.
+
+**Current scope of proof:** Reader-first and writer-first *sampled* new Membership/Shift/Grant/Location/User races, Native refresh/logout, real Task reassignment/cancellation/completion, rollback and selected NOWAIT deadlock avoidance passed. The disposable full-history SQL rejects sampled malformed/unmatched witnesses and measured 62 exact Task Dispatch events. Authorization release through an actual optional GET's HTTP 401/404/no-store/concealment and a whole-transaction/pool/response deadline remain unverified. The fresh independent Code Review specifically rechecked the revised SQL and expiry fence and **denied sign-off** on the remaining architecture/integration gaps. The case remains BLOCKED. No API or Native changes were made.
 
 **Examined source revision:** `51976aa8a8ce2e646b2bf149a5d47afd23c782ba` on `fix/issue-442-retrieval-cancel-state`. This is a qualification of a proposed read, not a production route or deployment. The endpoint `GET /v1/staff/tasks/:taskId/outcome` has **not** been implemented.
 
@@ -100,15 +110,13 @@ These independent findings were cross-checked against the local probe outcomes a
 
 ## Reproduction and remaining prerequisites
 
-From the existing Issue #442 worktree (`D:\\kndoom\\valet-platform\\tmp\\issue-442`), with the supported local disposable PostgreSQL harness and installed dependencies:
+**Correct current disposable PostgreSQL reproduction:** start Vitest from `apps/api` **inside** the Issue #442 worktree so `ShiftTestContext` migrates the worktree's 111-migration schema rather than the older main checkout. The old root-invoked commands are historical only and must not be reused:
 
 ~~~powershell
-git rev-parse HEAD
-git status --short --branch
-pnpm exec vitest run --config tmp/u003/qualification.config.mjs --reporter=verbose
-pnpm exec vitest run --config tmp/u003/qualification.config.mjs --reporter=verbose -t '^(?!.*30/35)'
+cd 'D:\kndoom\valet-platform\tmp\issue-442\apps\api'
+pnpm exec vitest run --config ../../tmp/u003/qualification.config.mjs --reporter=default
 ~~~
 
-These temporary files are investigation assets and **not part of the pushed documentation**. The last command isolates the currently executable subset while explicitly excluding the failing completion path; it must not be mistaken for a whole-suite pass.
+The command above passed **all 61 tests in 10 files with zero skips** after the final disposable changes, including the formerly blocked Completion test and new late-credential-expiry test. All original `tmp/u003` probes were preserved and the supplemental probes remain Git-ignored, excluded from the documentation-only push.
 
-Before requesting U-003 qualification, design/approve a minimal compatible read boundary; prove all current auth/operational locks through response release (including new Membership/Shift scope); handle lock-order cycles without speculative locks; make the historical SQL fail closed on missing, duplicated, malformed, unmatched or contradictory scoped events; prove terminal completion with the required release witness and Emergency Takeover provenance when supported; reconcile the observed enum-schema mismatch through an authorized separate task; execute real writer-first/reader-first tests, complete timeout/deadlock matrix and representative larger-history EXPLAIN; and obtain independent security sign-off. Maintain exact Task UUID concealment and the approved five-case UI boundary.
+**Still required:** approve and qualify a production-compatible Read C or alternative boundary across all real writers, verify its whole-request/pool/transaction deadline and neutral/retry policy, extend corrupt/legacy history and cold/dense-Task tests, and separately qualify Emergency Takeover evidence when authorized. A future authorized endpoint must prove exact 401 vs concealed 404 vs transient failure, `no-store`, indistinguishability/timing, correct final response release and no stale positive after revocation. The fresh independent review denied final sign-off despite the local PostgreSQL pass. No production API, security behavior, migration or Native UI was changed.
