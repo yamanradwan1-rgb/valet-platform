@@ -3,7 +3,7 @@ import { EmployeeApiClient } from "../../lib/api/employee-api-client";
 import type { StaffValetSessionDetailResponse } from "@valet/contracts";
 
 vi.mock("react", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("react")>();
+  const actual = (await importOriginal()) as typeof import("react");
   return {
     ...actual,
     useCallback: (callback: unknown) => callback,

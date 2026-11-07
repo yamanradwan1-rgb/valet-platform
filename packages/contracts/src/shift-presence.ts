@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 
 import {
   shiftPresenceModeSchema,
@@ -46,8 +47,8 @@ export const shiftPresenceZoneSchema = z
     id: uuid,
     organizationId: uuid,
     locationId: uuid,
-    code: z.string().trim().min(1).max(64),
-    label: z.string().trim().min(1).max(200),
+    code: z.string().trim().min(1).max(64).superRefine(utf16StringMax(64)),
+    label: z.string().trim().min(1).max(200).superRefine(utf16StringMax(200)),
     latitude: z.number().min(-90).max(90),
     longitude: z.number().min(-180).max(180),
     radiusMeters: z.number().min(5).max(1000),

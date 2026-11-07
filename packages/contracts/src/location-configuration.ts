@@ -1,11 +1,12 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 
 import { paymentMoneySchema } from "./payments.js";
 
 const uuidSchema = z.string().uuid();
 const timestampSchema = z.string().datetime({ offset: true });
 const currencyCodeSchema = z.string().regex(/^[A-Z]{3}$/);
-const timezoneSchema = z.string().min(1).max(64);
+const timezoneSchema = z.string().min(1).max(64).superRefine(utf16StringMax(64));
 
 export const configurationSettingKeySchema = z.enum([
   "checkInPhotosRequired",

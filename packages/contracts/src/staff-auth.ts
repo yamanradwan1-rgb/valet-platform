@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 
 const accessTokenPattern = /^vsa1\.[A-Za-z0-9_-]{43}$/;
 const refreshTokenPattern = /^vsr1\.[A-Za-z0-9_-]{43}$/;
@@ -21,7 +22,7 @@ function utf8ByteLength(value: string): number {
 
 export const staffLoginRequestSchema = z
   .object({
-    email: z.string().trim().toLowerCase().max(254).email(),
+    email: z.string().trim().toLowerCase().max(254).superRefine(utf16StringMax(254)).email(),
     password: z
       .string()
       .min(1)

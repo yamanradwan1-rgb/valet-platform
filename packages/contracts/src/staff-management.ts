@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 import { staffPendingInvitationSchema } from "./staff-activation.js";
 
 const uuidSchema = z.string().uuid();
@@ -50,7 +51,7 @@ export const staffDirectoryQuerySchema = z
 
 export const staffManagementIdentitySchema = z
   .object({
-    email: z.string().email().max(320),
+    email: z.string().email().max(320).superRefine(utf16StringMax(320)),
     firstName: staffNameSchema.nullable(),
     lastName: staffNameSchema.nullable(),
   })
@@ -71,16 +72,16 @@ export function staffManagementDisplayName(
 export const staffManagementLocationAccessSchema = z
   .object({
     locationId: uuidSchema,
-    name: z.string().min(1).max(200),
+    name: z.string().min(1).max(200).superRefine(utf16StringMax(200)),
     status: z.enum(["ACTIVE", "INACTIVE"]),
   })
   .strict();
 
 export const staffLocationAccessItemSchema = z
   .object({
-    code: z.string().min(1).max(100),
+    code: z.string().min(1).max(100).superRefine(utf16StringMax(100)),
     locationId: uuidSchema,
-    name: z.string().min(1).max(200),
+    name: z.string().min(1).max(200).superRefine(utf16StringMax(200)),
     status: z.enum(["ACTIVE", "INACTIVE"]),
   })
   .strict();

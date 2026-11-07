@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 import { overviewListQuerySchema } from "./location-overview-pagination.js";
 
 export const incidentListFilterSchema = z.enum(["ALL", "ACTIVE", "RESOLVED"]);
@@ -11,7 +12,7 @@ export const incidentResolutionRequestSchema = z
   .object({
     operationId: z.string().uuid(),
     expectedStatus: z.enum(["OPEN", "INVESTIGATING"]),
-    resolutionNotes: z.string().trim().min(1).max(1000),
+    resolutionNotes: z.string().trim().min(1).max(1000).superRefine(utf16StringMax(1000)),
   })
   .strict();
 export type IncidentListFilter = z.infer<typeof incidentListFilterSchema>;

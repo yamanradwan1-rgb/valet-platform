@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 
 export const guestInformationLocaleSchema = z.enum(["en", "ar"]);
 const uuidSchema = z.string().uuid();
@@ -13,7 +14,7 @@ const persistedHttpsHostnamePattern =
 export const guestInformationHttpsUrlSchema = z
   .string()
   .trim()
-  .max(2048)
+  .max(2048).superRefine(utf16StringMax(2048))
   .refine((value) => {
     if (!value) return true;
     // WHATWG URL treats a backslash as a slash for special schemes; forbid
@@ -39,7 +40,7 @@ export const guestInformationHttpsUrlSchema = z
 
 export const guestPrivacyLocaleDraftSchema = z
   .object({
-    text: z.string().max(5000),
+    text: z.string().max(5000).superRefine(utf16StringMax(5000)),
     url: guestInformationHttpsUrlSchema,
   })
   .strict();
@@ -83,7 +84,7 @@ export const managementGuestPrivacyResponseSchema = z
 export const guestPrivacyProjectionSchema = z
   .object({
     status: z.enum(["PUBLISHED", "UNAVAILABLE"]),
-    text: z.string().max(5000).nullable(),
+    text: z.string().max(5000).superRefine(utf16StringMax(5000)).nullable(),
     url: guestInformationHttpsUrlSchema.nullable(),
     version: z.number().int().positive().nullable(),
     publishedAt: dateTimeSchema.nullable(),

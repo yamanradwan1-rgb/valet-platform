@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 import { incidentSeveritySchema, incidentTypeSchema } from "./incidents.js";
 import {
   auditInvestigationEvidenceQualitySchema,
@@ -36,7 +37,7 @@ const eventDetailBase = {
 export const auditInvestigationEventDetailSchema = z.discriminatedUnion("source", [
   z.object({
     ...eventDetailBase, source: z.literal("AUDIT"),
-    kind: z.string().min(2).max(100).regex(/^[A-Z][A-Z0-9_]+$/),
+    kind: z.string().min(2).max(100).superRefine(utf16StringMax(100)).regex(/^[A-Z][A-Z0-9_]+$/),
     outcome: z.enum(["RECORDED", "VERIFIED", "FAILED"]).optional(),
   }).strict(),
   z.object({

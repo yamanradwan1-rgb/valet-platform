@@ -1,10 +1,11 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 import { parkingZoneSelectorSchema } from "./physical-resource-configuration.js";
 
 const uuidSchema = z.string().uuid();
-const codeSchema = z.string().trim().min(1).max(64);
-const labelSchema = z.string().trim().min(1).max(160);
-const levelLabelSchema = z.string().trim().min(1).max(64).nullable();
+const codeSchema = z.string().trim().min(1).max(64).superRefine(utf16StringMax(64));
+const labelSchema = z.string().trim().min(1).max(160).superRefine(utf16StringMax(160));
+const levelLabelSchema = z.string().trim().min(1).max(64).superRefine(utf16StringMax(64)).nullable();
 const latitudeSchema = z.number().finite().min(-90).max(90);
 const longitudeSchema = z.number().finite().min(-180).max(180);
 const timestampSchema = z.string().datetime({ offset: true });

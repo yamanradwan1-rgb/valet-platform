@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 
 const uuidSchema = z.string().uuid();
 const timestampSchema = z.string().datetime({ offset: true });
@@ -12,7 +13,7 @@ const boundedRequiredText = (maximum: number) =>
   z
     .string()
     .min(1)
-    .max(maximum)
+    .max(maximum).superRefine(utf16StringMax(maximum))
     .refine((value) => value.trim().length > 0);
 
 export const managementLocationCreateRequestSchema = z
@@ -70,10 +71,10 @@ export const managementLocationLifecycleResponseSchema = z
   .object({
     organizationId: uuidSchema,
     locationId: uuidSchema,
-    name: z.string().min(1).max(200),
-    code: z.string().min(1).max(100),
-    addressText: z.string().min(1).max(1000),
-    timezone: z.string().min(1).max(255),
+    name: z.string().min(1).max(200).superRefine(utf16StringMax(200)),
+    code: z.string().min(1).max(100).superRefine(utf16StringMax(100)),
+    addressText: z.string().min(1).max(1000).superRefine(utf16StringMax(1000)),
+    timezone: z.string().min(1).max(255).superRefine(utf16StringMax(255)),
     currency: currencySchema,
     status: z.enum(["ACTIVE", "INACTIVE"]),
     acceptingIntake: z.boolean(),
@@ -88,8 +89,8 @@ export const managementLocationTimezoneCorrectionResponseSchema = z
     location: managementLocationLifecycleResponseSchema,
     impact: z
       .object({
-        previousTimezone: z.string().min(1).max(255),
-        newTimezone: z.string().min(1).max(255),
+        previousTimezone: z.string().min(1).max(255).superRefine(utf16StringMax(255)),
+        newTimezone: z.string().min(1).max(255).superRefine(utf16StringMax(255)),
         historicalTimestampsRewritten: z.literal(false),
         historicalReportFactsRewritten: z.literal(false),
       })

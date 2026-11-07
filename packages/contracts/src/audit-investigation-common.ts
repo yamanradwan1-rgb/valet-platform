@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { utf16StringMin } from "./utf16-string-min.js";
+import { utf16StringMax } from "./utf16-string-max.js";
 
 /** Issue #300 purpose-only contracts. Caller authority is always server-derived. */
 export const auditInvestigationUuidSchema = z.string().uuid();
@@ -24,7 +26,7 @@ export const auditInvestigationCursorInstantSchema = z
 export const auditInvestigationCursorSchema = z
   .string()
   .min(8)
-  .max(4096)
+  .max(4096).superRefine(utf16StringMax(4096))
   .regex(/^[A-Za-z0-9_-]+$/);
 export const auditInvestigationSourceSchema = z.enum([
   "AUDIT",
@@ -45,7 +47,7 @@ export const auditInvestigationParticipationRoleSchema = z.enum([
 ]);
 export const auditInvestigationCurrentLabelSchema = z
   .object({
-    value: z.string().trim().min(1).max(201).nullable(),
+    value: z.string().trim().min(1).max(201).superRefine(utf16StringMax(201)).nullable(),
     basis: z.literal("CURRENT"),
     unavailable: z.boolean(),
   })
@@ -57,7 +59,7 @@ export const auditInvestigationCurrentLabelSchema = z
 export const auditInvestigationSafePersonSchema = z
   .object({
     membershipId: auditInvestigationUuidSchema,
-    currentDisplayName: z.string().trim().min(3).max(201).nullable(),
+    currentDisplayName: z.string().trim().superRefine(utf16StringMin(3)).max(201).superRefine(utf16StringMax(201)).nullable(),
   })
   .strict();
 export const auditInvestigationParticipationSchema = z
@@ -135,7 +137,7 @@ const cursorBase = {
   databaseSnapshot: z
     .string()
     .min(3)
-    .max(512)
+    .max(512).superRefine(utf16StringMax(512))
     .regex(/^\d+:\d+:(?:\d+(?:,\d+)*)?$/),
   issuedAt: auditInvestigationUtcSchema,
   expiresAt: auditInvestigationUtcSchema,

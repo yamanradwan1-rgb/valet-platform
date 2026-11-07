@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 
 import { analyticsPeriodQuerySchema } from "./location-analytics-common.js";
 import {
@@ -13,7 +14,7 @@ import { keyExceptionTypeSchema } from "./location-analytics-kpis.js";
 import { carsHandledDayEntrySchema } from "./location-analytics-operational.js";
 
 const uuidSchema = z.string().uuid();
-const timezoneSchema = z.string().min(1).max(64);
+const timezoneSchema = z.string().min(1).max(64).superRefine(utf16StringMax(64));
 const utcTimestampSchema = z.string().datetime({ offset: false });
 const percentageSchema = z.string().regex(/^\d+\.\d{2}$/);
 const ratioSchema = z.string().regex(/^\d+\.\d{3}$/);

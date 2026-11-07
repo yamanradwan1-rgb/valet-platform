@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 
 const uuidSchema = z.string().uuid();
 const cursorSchema = z.string().regex(/^[A-Za-z0-9_-]{8,512}$/);
@@ -55,18 +56,18 @@ export const managementContextQuerySchema = z
 export const managementOrganizationSchema = z
   .object({
     organizationId: uuidSchema,
-    name: z.string().min(1).max(200),
-    timezone: z.string().min(1).max(255),
+    name: z.string().min(1).max(200).superRefine(utf16StringMax(200)),
+    timezone: z.string().min(1).max(255).superRefine(utf16StringMax(255)),
   })
   .strict();
 
 export const managementLocationSchema = z
   .object({
     locationId: uuidSchema,
-    name: z.string().min(1).max(200),
-    code: z.string().min(1).max(100),
+    name: z.string().min(1).max(200).superRefine(utf16StringMax(200)),
+    code: z.string().min(1).max(100).superRefine(utf16StringMax(100)),
     status: z.enum(["ACTIVE", "INACTIVE"]),
-    timezone: z.string().min(1).max(255),
+    timezone: z.string().min(1).max(255).superRefine(utf16StringMax(255)),
     currency: z.string().regex(/^[A-Z]{3}$/),
   })
   .strict();

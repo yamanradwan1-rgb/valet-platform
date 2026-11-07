@@ -1,8 +1,9 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 
 const uuidSchema = z.string().uuid();
 const localDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
-const timezoneSchema = z.string().min(1).max(64);
+const timezoneSchema = z.string().min(1).max(64).superRefine(utf16StringMax(64));
 
 export const analyticsPeriodQuerySchema = z
   .object({

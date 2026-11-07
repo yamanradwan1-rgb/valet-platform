@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 import { staffValetSessionStateSchema } from "./staff-valet-session.js";
 import {
   auditInvestigationCoverageSchema,
@@ -20,11 +21,11 @@ export const auditInvestigationSearchQuerySchema = z.object({
   sessionId: auditInvestigationUuidSchema.optional(),
   keySlotId: auditInvestigationUuidSchema.optional(),
   membershipId: auditInvestigationUuidSchema.optional(),
-  plateCountry: z.string().trim().min(1).max(8)
+  plateCountry: z.string().trim().min(1).max(8).superRefine(utf16StringMax(8))
     .regex(/^[A-Z0-9_-]+$/).optional(),
-  plate: z.string().trim().min(1).max(32).optional(),
-  make: z.string().trim().min(1).max(80).optional(),
-  model: z.string().trim().min(1).max(80).optional(),
+  plate: z.string().trim().min(1).max(32).superRefine(utf16StringMax(32)).optional(),
+  make: z.string().trim().min(1).max(80).superRefine(utf16StringMax(80)).optional(),
+  model: z.string().trim().min(1).max(80).superRefine(utf16StringMax(80)).optional(),
   limit: z.coerce.number().int().min(1).max(100).default(25),
   cursor: auditInvestigationCursorSchema.optional(),
 }).strict().refine((query) => {

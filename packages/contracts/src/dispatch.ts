@@ -1,10 +1,11 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 
 import { staffValetSessionStateSchema } from "./staff-valet-session.js";
 
 const uuidSchema = z.string().uuid();
 const versionSchema = z.number().int().positive();
-const reasonSchema = z.string().trim().max(500);
+const reasonSchema = z.string().trim().max(500).superRefine(utf16StringMax(500));
 
 export const taskProjectionSchema = z
   .object({

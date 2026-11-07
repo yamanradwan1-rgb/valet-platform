@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMax } from "./utf16-string-max.js";
 
 import { reportIncidentResponseSchema } from "./incidents.js";
 
@@ -39,7 +40,7 @@ export const incidentRecoveryMarkerSchema = z
   .object({
     createdAt: z.string().datetime({ offset: false }),
     incidentId: incidentRecoveryIdSchema,
-    installationGeneration: z.string().min(1).max(128),
+    installationGeneration: z.string().min(1).max(128).superRefine(utf16StringMax(128)),
     locationId: z.string().uuid(),
     membershipId: z.string().uuid(),
     organizationId: z.string().uuid(),
