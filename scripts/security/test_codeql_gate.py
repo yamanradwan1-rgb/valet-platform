@@ -179,25 +179,20 @@ class CodeQLGateTests(unittest.TestCase):
         ]
         missing_format = report()
         del missing_format["runs"][0]["properties"]
-        cases.append(missing_format)
         missing_category = report()
         del missing_category["runs"][0]["automationDetails"]
-        cases.append(missing_category)
         missing_invocation_success = report()
         missing_invocation_success["runs"][0]["invocations"] = [{}]
-        cases.append(missing_invocation_success)
         wrong_index = report(finding())
         wrong_index["runs"][0]["results"][0]["ruleIndex"] = 3
-        cases.append(wrong_index)
         conflicting_index = report(finding())
         conflicting_index["runs"][0]["results"][0]["ruleIndex"] = 0
         conflicting_index["runs"][0]["results"][0]["rule"] = {"index": 1}
-        cases.append(conflicting_index)
         conflicting_reference = report(finding())
         conflicting_reference["runs"][0]["results"][0]["rule"] = {"id": "js/other"}
-        cases.append(conflicting_reference)
-        invalid_url = report(finding(file="http://["))
-        cases.append(invalid_url)
+        cases.extend((missing_format, missing_category, missing_invocation_success,
+                      wrong_index, conflicting_index, conflicting_reference,
+                      report(finding(file="http://["))))
         for index, payload in enumerate(cases):
             with self.subTest(index=index), self.assertRaises(gate.InvalidScan):
                 gate.load_scan(self.write(f"invalid-{index}.sarif", payload))
@@ -208,14 +203,23 @@ class CodeQLGateTests(unittest.TestCase):
                 self.run_gate(report(finding(), score=score), report(finding(), score=score))
 
     def test_tool_version_or_category_mismatch_fails_closed(self):
-        cases = [
-            (report(finding(), version="2.25.0"), report(finding())),
-            (report(finding(), category="python"), report(finding())),
-        ]
-        for head, base in cases:
-            with self.subTest(head=head["runs"][0]["automationDetails"]["id"]):
-                with self.assertRaises(gate.InvalidScan):
-                    self.run_gate(head, base)
+        native = report(finding(), version="2.27.4")
+        semantic = report(finding(), version="2.27.4")
+        driver = semantic["runs"][0]["tool"]["driver"]
+        driver["semanticVersion"] = driver.pop("version")
+        self.assertEqual(self.run_gate(semantic, semantic)["blocked"], 0)
+        self.assertEqual(self.run_gate(semantic, native)["blocked"], 0)
+        for invalid in (None, "", "x.y.z", "2.27", "2.027.4", " 2.27.4",
+                        "2.27.4+extra", "__MISSING__"):
+            driver["semanticVersion"] = invalid
+            if invalid == "__MISSING__":
+                driver.pop("semanticVersion")
+            self.assertRaises(gate.InvalidScan, self.run_gate, semantic, native)
+        driver.update(version="2.27.4", semanticVersion="2.27.3")
+        self.assertRaisesRegex(gate.InvalidScan, "conflicting", self.run_gate, semantic, native)
+        for head in (report(finding(), version="2.25.0"),
+                     report(finding(), category="python")):
+            self.assertRaises(gate.InvalidScan, self.run_gate, head, native)
 
     def test_execution_errors_warning_notifications_and_duplicate_json_fail(self):
         for change in (
@@ -227,7 +231,6 @@ class CodeQLGateTests(unittest.TestCase):
                 payload = report()
                 payload["runs"][0]["invocations"] = [{"executionSuccessful": True, **change}]
                 self.run_gate(payload, report())
-        self.write("duplicate.sarif", report())
         (self.folder / "duplicate.sarif").write_text(
             '{"version":"2.1.0","version":"2.1.0","runs":[]}', encoding="utf-8")
         with self.assertRaisesRegex(gate.InvalidScan, "duplicate"):
@@ -289,12 +292,9 @@ class CodeQLGateTests(unittest.TestCase):
         self.assertEqual(same.returncode, 2)
 
     def test_log_never_prints_raw_source_on_corruption(self):
-        head = report(finding(source=SECRET, message=SECRET))
-        base = report()
-        run = self.cli(head, base)
-        self.assertNotIn(SECRET, run.stdout + run.stderr)
+        run = self.cli(report(finding(source=SECRET, message=SECRET)), report())
         self.assertEqual(run.returncode, 1)
-
+        self.assertNotIn(SECRET, run.stdout + run.stderr)
 
 if __name__ == "__main__":
     unittest.main()

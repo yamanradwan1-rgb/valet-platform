@@ -13,6 +13,7 @@ from decimal import Decimal, InvalidOperation
 import hashlib
 import json
 from pathlib import Path
+import re
 import sys
 from urllib.parse import unquote, urlsplit
 
@@ -184,7 +185,14 @@ def load_scan(path: str | Path) -> Scan:
         raise InvalidScan("CodeQL SARIF must use pinned sarifv2.1.0 format")
     tool = _mapping(run.get("tool"), "SARIF tool")
     driver = _mapping(tool.get("driver"), "CodeQL driver")
-    version = _string(driver.get("version"), "CodeQL tool version")
+    # SARIF toolComponent permits either field; CodeQL SARIF samples use
+    # semanticVersion alone. Require a concrete CodeQL X.Y.Z release in both.
+    versions = [driver[key] for key in ("semanticVersion", "version") if key in driver]
+    if (not versions or any(not isinstance(value, str) or
+            not re.fullmatch(r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)", value)
+            for value in versions) or len(set(versions)) != 1):
+        raise InvalidScan("missing, malformed or conflicting CodeQL tool version")
+    version = versions[0]
     automation = run.get("automationDetails", {})
     category = _string(_mapping(automation, "analysis category").get("id"),
                        "CodeQL analysis category")
