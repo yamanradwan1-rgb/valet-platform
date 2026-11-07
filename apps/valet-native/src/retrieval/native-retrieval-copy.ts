@@ -1,6 +1,11 @@
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import { getNativeEmployeeDictionary } from "../i18n/native-employee-dictionary";
 
+const conflictBodyByLocale = {
+  ar: "تحقّق من حالة المهمة أو عُد إلى قائمة المهام.",
+  en: "Check task status or return to the queue.",
+} satisfies Record<FoundationLocale, string>;
+
 export interface NativeRetrievalCopy {
   readonly assignedBody: string;
   readonly back: string;
@@ -52,8 +57,8 @@ export function getNativeRetrievalCopy(
     back: d.back,
     backToTasks: d.backToQueue,
     checkState: d.retry,
-    conflictBody: d.operationFailed,
-    conflictTitle: d.connectionIssue,
+    conflictBody: conflictBodyByLocale[locale],
+    conflictTitle: d.cannotResumeRetrieval,
     expectedKeySlot: d.expectedKeySlot,
     elapsed: d.elapsed,
     enterKeySlotCode: d.enterKeySlotCode,

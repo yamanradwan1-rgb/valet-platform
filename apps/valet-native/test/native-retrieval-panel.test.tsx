@@ -1,4 +1,18 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+const appearance = vi.hoisted(() => ({ mode: "light" as "light" | "dark" }));
+vi.mock("../src/appearance/employee-appearance-context", async () => {
+  const { employeePalettes } =
+    await import("../src/appearance/employee-palette");
+  return {
+    useEmployeePalette: () => employeePalettes[appearance.mode],
+    useEmployeeStyles: <T,>(styles: { light: T; dark: T }) =>
+      styles[appearance.mode],
+  };
+});
+afterEach(() => {
+  appearance.mode = "light";
+});
 
 vi.mock("react", () => ({
   useCallback: (callback: unknown) => callback,
@@ -200,18 +214,37 @@ describe("MOB-013 Native Retrieval", () => {
   });
 
   it.each([
-    ["ambiguous", "Connection issue"],
-    ["conflict", "Connection issue"],
-    ["unavailable", "Cannot resume retrieval flow"],
+    ["ambiguous", "en", "Connection issue", "ltr"],
+    ["conflict", "en", "Cannot resume retrieval flow", "ltr"],
+    ["conflict", "ar", "تعذر استئناف عملية الاسترجاع", "rtl"],
+    ["unavailable", "en", "Cannot resume retrieval flow", "ltr"],
   ] as const)(
-    "presents the %s recovery state without a protected retry",
-    (phase, title) => {
-      const { nodes, retrieval } = render(phase);
-      expect(content(nodes)).toContain(title);
-      const check = action(nodes, "Retry")!;
+    "presents the %s recovery state in %s without a protected retry",
+    (phase, locale, title, direction) => {
+      appearance.mode = locale === "ar" ? "dark" : "light";
+      const { nodes, onBack, retrieval } = render(phase, locale);
+      const copy = getNativeRetrievalCopy(locale);
+      const titleNode = nodes.find((node) => node.props.children === title)!;
+      expect(style(titleNode)).toMatchObject({
+        color: locale === "ar" ? "#FF9DA4" : "#D95C63",
+        textAlign: locale === "ar" ? "right" : "left",
+      });
+      const scroll = nodes.find((node) => node.type === "ScrollView");
+      expect(scroll?.props.contentContainerStyle).toContainEqual({ direction });
+      if (phase === "conflict") {
+        expect(content(nodes)).toContain(
+          locale === "ar"
+            ? "تحقّق من حالة المهمة أو عُد إلى قائمة المهام."
+            : "Check task status or return to the queue.",
+        );
+        expect(content(nodes)).not.toContain(copy.unknownTitle);
+        (action(nodes, copy.backToTasks)!.props.onPress as () => void)();
+        expect(onBack).toHaveBeenCalledOnce();
+      }
+      const check = action(nodes, copy.checkState)!;
       (check.props.onPress as () => void)();
       expect(retrieval.checkServerState).toHaveBeenCalledOnce();
-      expect(action(nodes, "Start Retrieval")).toBeUndefined();
+      expect(action(nodes, copy.startRetrieval)).toBeUndefined();
     },
   );
 
