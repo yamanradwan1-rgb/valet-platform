@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMin } from "./utf16-string-min.js";
 import { utf16StringMax } from "./utf16-string-max.js";
 
 import {
@@ -36,7 +37,7 @@ export const managementAuditActorSchema = z.discriminatedUnion("type", [
       type: z.literal("MEMBERSHIP"),
       membershipId: uuidSchema,
       // Current membership directory identity; never a historical audit snapshot.
-      currentDisplayName: z.string().min(3).max(401).superRefine(utf16StringMax(401))
+      currentDisplayName: z.string().superRefine(utf16StringMin(3)).max(401).superRefine(utf16StringMax(401))
         .refine((value) =>
           Array.from(value).length <= 201 && value.trim() === value,
         ).optional(),

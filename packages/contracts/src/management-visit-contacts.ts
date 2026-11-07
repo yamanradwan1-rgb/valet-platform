@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { utf16StringMin } from "./utf16-string-min.js";
 import { utf16StringMax } from "./utf16-string-max.js";
 
 const uuidSchema = z.string().uuid();
@@ -10,7 +11,7 @@ export const managementVisitContactSearchQuerySchema = z
   .object({
     cursor: cursorSchema.optional(),
     limit: pageLimitSchema,
-    name: z.string().min(2).max(80).superRefine(utf16StringMax(80)).optional(),
+    name: z.string().superRefine(utf16StringMin(2)).max(80).superRefine(utf16StringMax(80)).optional(),
     phone: z.string().min(1).max(40).superRefine(utf16StringMax(40)).optional(),
     plate: z.string().min(1).max(64).superRefine(utf16StringMax(64)).optional(),
     plateCountry: z.string().min(1).max(8).superRefine(utf16StringMax(8)).optional(),
