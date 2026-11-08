@@ -1,4 +1,5 @@
 import type { PostgresPool } from "../../common/database/postgres";
+import { lockLocationLifecycle } from "../../common/database/location-lifecycle-lock";
 import { recordAdminActivityInTransaction } from "../auth/mfa/mfa-assurance-policy";
 import { classifyEmergencyTakeoverDomain } from "./emergency-takeover-domain";
 import { consumeUnconsumedHandoffProofsForTakeover } from "../retrieval/handoff-takeover-proof-guard";
@@ -49,6 +50,9 @@ export function createEmergencyTakeoverCommandExecutor(pool: PostgresPool) {
       // the Task, then recheck the credential in the protected transaction.
       const sessionId = await hintEmergencyTaskSession(tx, request.taskId);
       const session = await lockEmergencySession(tx, sessionId);
+      // Preserve Location -> Staff Session order against management lifecycle writers.
+      // Location identity is sourced from the locked persisted ValetSession.
+      await lockLocationLifecycle(tx, session.location_id, "SHARED");
       // Current credential is required even on identical historical replay.
       await requireCurrentEmergencyCredential(tx, request.staffSessionContext);
       const task = await lockEmergencyTask(tx, request.taskId, session);

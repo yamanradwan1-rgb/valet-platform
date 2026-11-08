@@ -1,7 +1,6 @@
 import { UnauthorizedException } from "@nestjs/common";
 
 import type { PostgresTransaction } from "../../common/database/postgres";
-import { lockLocationLifecycle } from "../../common/database/location-lifecycle-lock";
 import { requireMfaAssuranceInTransaction } from "../auth/mfa/mfa-assurance-policy";
 import { MfaStepUpRequiredError } from "../auth/mfa/mfa-errors";
 import { localMfaBypassEnabled } from "../auth/mfa/local-mfa-bypass";
@@ -30,7 +29,6 @@ export async function requireEmergencyTakeoverActor(
   session: LockedEmergencySession,
   context: StaffSessionContext,
 ): Promise<EmergencyTakeoverActor> {
-  await lockLocationLifecycle(tx, session.location_id, "SHARED");
   const result = await tx.query<{ membership_id: string; role: string }>(
     `SELECT membership.id::text AS membership_id, membership.role::text AS role
      FROM organization_memberships AS membership
