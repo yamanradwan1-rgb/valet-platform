@@ -4452,3 +4452,30 @@ does not itself approve merge or deployment.
 
 Full focused contract:
 [DEC-108_LOCATION_ACCESS_REVOCATION_DELIVERY.md](decisions/DEC-108_LOCATION_ACCESS_REVOCATION_DELIVERY.md).
+
+## DEC-112 — Issue #442 purpose-bound historical Task outcome in-flight release
+
+Status: **Accepted — Owner U-003 policy only; Gate A/B implementation NOT QUALIFIED**
+Date: 2026-11-08
+
+The Owner expressly accepts a previously authorized **exact Retrieval Task,
+reason-only** outcome completing inside a bounded in-flight interval after a
+later authorization or Task change. Authorization invalidated before final
+complete protected proof forbids a positive. A Task change committed before
+proof must be freshly recomputed from exact canonical Task/Request/Session
+history and may be positive only when currently authorized and fully proven.
+Each new request must reauthorize. Known security revocation triggers best-effort
+preventable-response cancellation, preserving DEC-081; DEC-108 LocationAccess
+authorization remains narrow. Unobserved post-proof revocation is a
+purpose-specific accepted residual, not general historical access or
+cross-tenant permission. Credential/absolute expiry at final controllable
+handoff **always suppresses positive**. Initial qualification ceilings:
+**2,000ms application admission-to-handoff, 150ms final full proof completion
+BEFORE COMMIT-to-handoff**. Neither is a proven production SLO; COMMIT does not
+restart the lease. No last-byte/network recall promise, streaming,
+background release or command replay. All sixteen category-specific rules,
+residual scope and unresolved technical qualification appear in:
+`docs/decisions/DEC-112_ISSUE_442_U003_INFLIGHT_OUTCOME_RELEASE.md`.
+**Gate A remains closed** pending independent source/PG/HTTP architecture
+qualification; this acceptance does not authorize Outcome GET before Gate A,
+Native before Gate B, PR, merge, deployment or Issue closure.
