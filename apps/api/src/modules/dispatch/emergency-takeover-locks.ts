@@ -27,10 +27,13 @@ export async function lockEmergencySession(
   tx: PostgresTransaction,
   sessionId: string,
 ): Promise<LockedEmergencySession> {
+  // Version/updated_at are non-key writes: serialize physical Session writers
+  // without blocking the parent KEY SHARE needed by Task-first Audit FK checks.
+  // FOR UPDATE here would deadlock with Reassign's Task lock and Audit insert.
   const result = await tx.query<LockedEmergencySession>(
     `SELECT id::text, organization_id::text, location_id::text,
             state::text, version
-     FROM valet_sessions WHERE id=$1 FOR UPDATE`,
+     FROM valet_sessions WHERE id=$1 FOR NO KEY UPDATE`,
     [sessionId],
   );
   const session = result.rows[0];
