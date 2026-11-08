@@ -2,6 +2,8 @@
 
 **Recorded:** 2026-11-09 (Asia/Amman). **Status:** `PAUSED — GATE A BLOCKED — INSUFFICIENT EVIDENCE`. **Do not present this as feature completion.**
 
+**Open continuation issue:** [#448 — Resume Gate A security qualification, conditional Gate B and Native](https://github.com/yamanradwan1-rgb/valet-platform/issues/448). **Exact existing branch:** [`fix/issue-442-retrieval-cancel-state`](https://github.com/yamanradwan1-rgb/valet-platform/tree/fix/issue-442-retrieval-cancel-state). This is a reciprocal navigation link and does not imply GitHub's native Development-sidebar association.
+
 ## 1. Repository identity and delivery contract
 
 - Repository: `yamanradwan1-rgb/valet-platform` (public); original issue: [#442](https://github.com/yamanradwan1-rgb/valet-platform/issues/442).
