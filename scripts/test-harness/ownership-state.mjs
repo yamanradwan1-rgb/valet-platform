@@ -13,6 +13,7 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { requiresIssue215StaleOwnerPreflight } from "./issue215-target-preflight.mjs";
+import { assertClusterRecoveryPermitted } from "./resource-quarantine.mjs";
 
 import {
   isLeaseHeartbeatFresh,
@@ -84,9 +85,11 @@ export function acquireClusterLease({
   const clusterDir = join(stateRoot, key);
   const ownerPath = join(clusterDir, "owner.json");
   mkdirSync(clusterDir, { recursive: true });
+  assertClusterRecoveryPermitted(clusterDir);
   mkdirSync(runDirectory(databaseUrl, runId, stateRoot), { recursive: true });
   let staleOwner;
   for (;;) {
+    assertClusterRecoveryPermitted(clusterDir);
     const tempPath = join(
       clusterDir,
       `owner-${process.pid}-${randomBytes(6).toString("hex")}.tmp`,
@@ -97,7 +100,8 @@ export function acquireClusterLease({
         JSON.stringify({
           cluster: clusterIdentity(databaseUrl),
           issue215Protected,
-          issue215RecoveryRequired: requiresIssue215StaleOwnerPreflight(staleOwner),
+          issue215RecoveryRequired:
+            requiresIssue215StaleOwnerPreflight(staleOwner),
           pid: process.pid,
           projectName,
           recoveryRunIds:
@@ -121,10 +125,10 @@ export function acquireClusterLease({
       }
       if (error?.code !== "EEXIST") throw error;
       const existing = readOwner(ownerPath);
-      if (
-        isProcessAlive(existing.pid) &&
-        isLeaseHeartbeatFresh(clusterDir, existing.runId, existing.startedAt)
-      ) {
+      // An alive-but-paused owner can resume and register a quarantine marker
+      // between a contender's marker check and stale-lease replacement.
+      // Stale heartbeat alone is NEVER evidence its owned writers have ended.
+      if (isProcessAlive(existing.pid)) {
         throw new Error(
           `PostgreSQL test cluster ${existing.cluster} is already owned by ` +
             `${existing.projectName} (pid ${existing.pid}, run ${existing.runId}). ` +
@@ -132,6 +136,7 @@ export function acquireClusterLease({
         );
       }
       staleOwner = existing;
+      assertClusterRecoveryPermitted(clusterDir);
       stopLeaseHeartbeat(clusterDir, existing.runId);
       try {
         unlinkSync(ownerPath);
