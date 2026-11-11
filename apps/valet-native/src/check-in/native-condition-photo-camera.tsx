@@ -158,18 +158,21 @@ export function NativeConditionPhotoCamera({
     }
   };
 
-  const retake = () => {
-    if (!handle) return;
-    const previous = handle;
-    revision.current += 1;
-    ownedHandle.current = null;
-    onReleaseCapture?.(previous);
+  const resetReview = () => {
     setHandle(null);
     setPreviewUri(null);
     setReady(false);
     setCameraKey((value) => value + 1);
+  };
+
+  const retake = () => {
+    if (handle === null || ownedHandle.current !== handle) return;
+    revision.current += 1;
+    ownedHandle.current = null;
+    onReleaseCapture?.(handle);
+    resetReview();
     const revisionStamp = revision.current;
-    void files.discard(previous).catch(() => {
+    void files.discard(handle).catch(() => {
       if (revision.current !== revisionStamp || !active()) return;
       const pinned = getNativeTelemetry().pinned;
       const token = pinned.begin("photo");
@@ -180,19 +183,27 @@ export function NativeConditionPhotoCamera({
   };
 
   const confirm = async () => {
-    if (handle === null || !active() || confirming.current) return;
+    if (handle === null || ownedHandle.current !== handle ||
+        !active() || confirming.current) return;
     confirming.current = true;
     setBusy(true);
     try {
       const thumbnailUri = await onPrepareCapture?.(handle) ?? null;
       if (!active() || ownedHandle.current !== handle) return;
-      if (!photo.capture(handle, thumbnailUri)) return;
+      // The session owns disposal on rejection as well as on acceptance.
+      // Transfer before capture can notify listeners and unmount this modal.
       ownedHandle.current = null;
+      if (!photo.capture(handle, thumbnailUri)) {
+        resetReview();
+        setError(true);
+        return;
+      }
       setHandle(null);
       setPreviewUri(null);
+      void photo.upload(handle);
       onClose();
     } catch {
-      if (active()) setError(true);
+      if (active() && ownedHandle.current === handle) setError(true);
     } finally {
       confirming.current = false;
       setBusy(false);

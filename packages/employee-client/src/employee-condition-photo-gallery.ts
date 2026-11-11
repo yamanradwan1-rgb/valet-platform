@@ -76,8 +76,9 @@ export class EmployeeConditionPhotoGallery {
     return slot.slotId;
   }
 
-  uploadCandidate(allowSameByteResend = false) {
+  uploadCandidate(allowSameByteResend = false, confirmedHandle?: string) {
     const slot = this.slots.find((item) => item.handle !== null &&
+      (confirmedHandle === undefined || item.handle === confirmedHandle) &&
       item.phase === (allowSameByteResend ? "UPLOAD_PENDING" : "CAPTURED_LOCAL"));
     return slot ? { slotId: slot.slotId, handle: slot.handle!,
       captureGeneration: slot.captureGeneration, operationId: slot.operationId } : null;

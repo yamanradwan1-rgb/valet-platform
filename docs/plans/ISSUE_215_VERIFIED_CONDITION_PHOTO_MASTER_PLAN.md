@@ -8,6 +8,8 @@ Document status: **COMPLETE MASTER PLAN — OWNER C1/U-001–U-007 DIRECTION ACC
 
 **P0 source/baseline handoff:** [docs/validation/ISSUE_215_P0_BASELINE_AND_HANDOFF.md](../validation/ISSUE_215_P0_BASELINE_AND_HANDOFF.md) records checked current code, QR visual/source fingerprints, #263 correction boundaries, the existing auth-writer lock-order caveat, operational owner gates, and P1 eligibility. Source fingerprint evidence is not a physical screenshot.
 
+**Native confirmation follow-up ([#453](https://github.com/yamanradwan1-rgb/valet-platform/issues/453)):** The camera review confirmation transfers the prepared private JPEG to the first available gallery slot and starts the existing upload for that exact capture. The camera closes while the request is in flight. The card presents upload status and explicit server recovery actions. Required-photo completion still depends on authoritative discovery and the existing server guards.
+
 ## 1. Executive Summary
 
 Issue #215 remains a real capability gap on fetched main `923b5ce595fd2a2df9eadc6c7aa5041bd0bb7a93`. Current registration accepts metadata; the locked condition guard deliberately evaluates `FALSE AS qualifying_photo_present`. No production photo byte pipeline or condition-photo client transport was found in tracked source. This is a protected fail-closed state, not a reason to count existing rows.

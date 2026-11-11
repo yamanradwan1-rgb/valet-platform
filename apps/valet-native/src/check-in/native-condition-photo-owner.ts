@@ -33,7 +33,9 @@ export function useNativeConditionPhotoOwner(
     );
     const photo = new EmployeeConditionPhotoSession({
       createOperationId: diagnostics.createOperationId,
-      captureReady: (handle) => {
+      captureReady: (handle): boolean => {
+        if (photo.current().scope?.authGeneration !== auth.current().authGeneration)
+          return false;
         try { files.file(handle); return true; } catch { return false; }
       },
       discard: (handle) => files.discard(handle),
