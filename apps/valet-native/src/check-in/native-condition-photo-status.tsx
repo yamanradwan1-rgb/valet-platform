@@ -36,7 +36,6 @@ export function NativeConditionPhotoStatus({
   const status = snapshot.status;
   const slots = b1Slots(snapshot);
   const hasEmpty = slots.some((slot) => slot.phase === "EMPTY");
-  const hasLocal = slots.some((slot) => slot.phase === "CAPTURED_LOCAL");
   const selectedPhase = slots.find((slot) => slot.slotId === selectedSlot)?.phase;
   const canCapture = snapshot.required !== null &&
     phase !== "uploading" && phase !== "pending" && phase !== "unknown" &&
@@ -71,9 +70,6 @@ export function NativeConditionPhotoStatus({
       {canCapture ? (
         <CheckInButton label={copy.open} variant="secondary"
           onPress={() => setCameraOpen(true)} />
-      ) : null}
-      {hasLocal && phase !== "uploading" && phase !== "pending" && phase !== "unknown" ? (
-        <CheckInButton label={copy.confirm} onPress={() => void photo.upload()} />
       ) : null}
       {(selectedPhase === "CAPTURED_LOCAL" || selectedPhase === "UPLOAD_FAILED") &&
         phase !== "uploading" && phase !== "pending" && phase !== "unknown" ? (

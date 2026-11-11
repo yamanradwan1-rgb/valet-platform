@@ -89,6 +89,7 @@ export class EmployeeConditionPhotoSession {
     this.discardSources(retired.sources, retired.thumbnails);
     this.publish({
       ...this.snapshot,
+      ownerRevision: ++this.ownerRevision,
       hasCapture: false,
       phase: wasUploading ? "unknown" :
         this.snapshot.phase === "captured" ?
@@ -210,18 +211,16 @@ export class EmployeeConditionPhotoSession {
       await this.discover();
   }
 
-  upload(): Promise<void> {
-    const scope = this.snapshot.scope;
-    const allowSameByteResend = this.snapshot.phase === "pending" &&
-      this.snapshot.status?.status === "PENDING" &&
-      this.snapshot.status.retryAction === "RESEND_SAME_BYTES";
-    const candidate = this.gallery.uploadCandidate(allowSameByteResend);
-    const handle = candidate?.handle ?? null;
+  upload(confirmedHandle?: string): Promise<void> {
     const state = this.snapshot;
-    if (this.flight || scope === null || candidate === null || handle === null ||
-      (state.phase === "unknown" ||
-        (state.phase === "pending" && state.status?.status === "PENDING" &&
-          state.status.retryAction !== "RESEND_SAME_BYTES"))) return Promise.resolve();
+    const scope = state.scope;
+    const allowSameByteResend = confirmedHandle === undefined && state.phase === "pending" &&
+      state.status?.status === "PENDING" && state.status.retryAction === "RESEND_SAME_BYTES";
+    if (this.flight || scope === null || state.phase === "unknown" ||
+      (state.status?.status === "PENDING" && !allowSameByteResend)) return Promise.resolve();
+    const candidate = this.gallery.uploadCandidate(allowSameByteResend, confirmedHandle);
+    if (candidate === null) return Promise.resolve();
+    const { handle } = candidate;
     if (this.options.captureReady && !this.options.captureReady(handle)) {
       this.discardSources([handle], []);
       this.gallery.markMissingSource(candidate.slotId);
@@ -253,6 +252,7 @@ export class EmployeeConditionPhotoSession {
     return (async () => {
       let refresh = false;
       try {
+        if (!this.isCurrent(id, key, revision, abort)) return;
         const value = await this.options.transport.upload(scope.sessionId, op, handle, abort.signal);
         if (this.isCurrent(id, key, revision, abort)) {
           this.accept(value);
