@@ -90,6 +90,7 @@ export function NativeRetrievalPanel({
         ) : snapshot.phase === "ambiguous" ? (
           <NativeRetrievalRecover
             body={copy.unknownBody}
+            checkLabel={copy.unknownCheckLabel}
             copy={copy}
             onCheck={() => void retrieval.checkServerState()}
             textAlign={textAlign}

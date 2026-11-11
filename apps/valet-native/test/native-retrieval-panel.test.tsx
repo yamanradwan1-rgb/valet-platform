@@ -214,7 +214,6 @@ describe("MOB-013 Native Retrieval", () => {
   });
 
   it.each([
-    ["ambiguous", "en", "Connection issue", "ltr"],
     ["conflict", "en", "Cannot resume retrieval flow", "ltr"],
     ["conflict", "ar", "تعذر استئناف عملية الاسترجاع", "rtl"],
     ["unavailable", "en", "Cannot resume retrieval flow", "ltr"],

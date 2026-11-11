@@ -6,6 +6,21 @@ const conflictBodyByLocale = {
   en: "Check task status or return to the queue.",
 } satisfies Record<FoundationLocale, string>;
 
+const unknownTitleByLocale = {
+  ar: "تعذر التحقق من حالة المهمة",
+  en: "Unable to verify task status",
+} satisfies Record<FoundationLocale, string>;
+
+const unknownBodyByLocale = {
+  ar: "تعذر التأكد من نتيجة العملية. تحقّق من حالة المهمة قبل اتخاذ إجراء آخر.",
+  en: "The operation result could not be confirmed. Check task status before taking another action.",
+} satisfies Record<FoundationLocale, string>;
+
+const unknownCheckLabelByLocale = {
+  ar: "تحقق من حالة المهمة",
+  en: "Check task status",
+} satisfies Record<FoundationLocale, string>;
+
 export interface NativeRetrievalCopy {
   readonly assignedBody: string;
   readonly back: string;
@@ -34,6 +49,7 @@ export interface NativeRetrievalCopy {
   readonly taskTitle: string;
   readonly vehicle: string;
   readonly unknownBody: string;
+  readonly unknownCheckLabel: string;
   readonly unknownTitle: string;
   readonly unavailableBody: string;
   readonly unavailableTitle: string;
@@ -79,8 +95,9 @@ export function getNativeRetrievalCopy(
     startingRetrieval: d.startingRetrieval,
     taskTitle: d.retrievalOperation,
     vehicle: d.vehicle,
-    unknownBody: d.operationFailed,
-    unknownTitle: d.connectionIssue,
+    unknownBody: unknownBodyByLocale[locale],
+    unknownCheckLabel: unknownCheckLabelByLocale[locale],
+    unknownTitle: unknownTitleByLocale[locale],
     unavailableBody: d.operationFailed,
     unavailableTitle: d.cannotResumeRetrieval,
     vehicleReady: d.markReady,

@@ -220,6 +220,7 @@ function ElapsedValue({ startTimeIso }: { readonly startTimeIso: string }) {
 
 export function NativeRetrievalRecover({
   body,
+  checkLabel,
   copy,
   onBack,
   onCheck,
@@ -227,6 +228,7 @@ export function NativeRetrievalRecover({
   title,
 }: {
   readonly body: string;
+  readonly checkLabel?: string;
   readonly copy: NativeRetrievalCopy;
   readonly onBack?: (() => void) | undefined;
   readonly onCheck: () => void;
@@ -238,7 +240,7 @@ export function NativeRetrievalRecover({
       <EmployeeErrorNotice textAlign={textAlign} title={title}>
         {body}
       </EmployeeErrorNotice>
-      <EmployeeButton label={copy.checkState} onPress={onCheck} />
+      <EmployeeButton label={checkLabel ?? copy.checkState} onPress={onCheck} />
       {onBack ? (
         <EmployeeButton
           label={copy.backToTasks}
