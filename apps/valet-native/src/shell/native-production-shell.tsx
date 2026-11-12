@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import type { NativeLocalePreference } from "../i18n/native-locale-preference";
 import { useNativeEmployeeLocale } from "../i18n/use-native-employee-locale";
+import { captureNativeCheckInRoute } from "../check-in/native-check-in-ownership";
 import { useNativePushAttention } from "../notifications/use-native-push-attention";
 import { useNativeBatteryStatus } from "../notifications/use-native-battery-status";
 import { useNativeProductionBackHandler } from "./native-production-back-handler";
@@ -261,10 +262,15 @@ export function NativeProductionShell({
     );
   }
 
+  const isCheckInRouteCurrent = controller.captureRoute("check-in");
   return (
     <NativeProductionWorkspace
       authSnapshot={authSnapshot}
       battery={battery}
+      captureCheckInRoute={(sessionId) =>
+        captureNativeCheckInRoute(runtime.checkIn, sessionId, isCheckInRouteCurrent)
+      }
+      isVehiclesRouteCurrent={controller.captureRoute("vehicles")}
       contextual={contextual}
       locale={locale}
       handoff={handoff}

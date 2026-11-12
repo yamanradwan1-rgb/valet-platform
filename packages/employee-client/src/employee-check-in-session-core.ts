@@ -1,4 +1,9 @@
-import { hydratedCheckInSnapshot } from "./employee-check-in-hydrated-snapshot";
+import {
+  failedCheckInHydration,
+  hydratedCheckInSnapshot,
+  isCheckInHydrationDenied,
+  isCheckInRevalidationEligible,
+} from "./employee-check-in-hydrated-snapshot";
 import type { IntakeRequest } from "@valet/contracts";
 
 import { checkInIntakeSnapshot } from "./employee-check-in-intake-snapshot";
@@ -23,6 +28,7 @@ export class EmployeeCheckInSessionCore {
   protected sequence = 0;
   protected snapshot = emptyEmployeeCheckInSnapshot();
   protected workflowOwner: string | null = null;
+  private routeDetached = false;
   private readonly subscribers = new Set<
     (snapshot: EmployeeCheckInSnapshot) => void
   >();
@@ -50,7 +56,12 @@ export class EmployeeCheckInSessionCore {
       this.snapshot.locationId === locationId &&
       this.workflowOwner === workflowOwner
     ) {
-      return Promise.resolve();
+      const active = this.snapshot.active;
+      const revalidate = this.requiresRouteRevalidation();
+      this.routeDetached = false;
+      return revalidate && active !== null
+        ? this.hydrate(active.sessionId, false, true)
+        : Promise.resolve();
     }
     this.invalidate(identityGeneration, locationId, workflowOwner);
     return this.discover(false);
@@ -59,8 +70,17 @@ export class EmployeeCheckInSessionCore {
   clear(): void {
     this.sequence += 1;
     this.pendingRequest = null;
+    this.routeDetached = false;
     this.workflowOwner = null;
     this.publish(emptyEmployeeCheckInSnapshot());
+  }
+
+  detachRoute(): void {
+    this.routeDetached = true;
+  }
+
+  requiresRouteRevalidation(): boolean {
+    return this.routeDetached && isCheckInRevalidationEligible(this.snapshot);
   }
 
   suspendForBackground(): void {
@@ -143,7 +163,10 @@ export class EmployeeCheckInSessionCore {
 
   retryDiscovery(): Promise<void> {
     if (this.snapshot.phase !== "discovery-error") return Promise.resolve();
-    return this.discover(false);
+    const active = this.snapshot.active;
+    return active === null
+      ? this.discover(false)
+      : this.hydrate(active.sessionId, false, true);
   }
 
   protected applyIntakeOutcome(outcome: EmployeeCheckInIntakeOutcome): void {
@@ -228,6 +251,7 @@ export class EmployeeCheckInSessionCore {
   protected async hydrate(
     sessionId: string,
     checkingInOnly = false,
+    preserveCompatible = false,
   ): Promise<void> {
     const request = ++this.sequence;
     this.publish({ ...this.snapshot, error: null, phase: "discovering" });
@@ -241,14 +265,14 @@ export class EmployeeCheckInSessionCore {
       if (checkingInOnly && active.state !== "CHECKING_IN")
         throw new Error("The check-in has changed.");
       this.pendingRequest = null;
-      this.publish(hydratedCheckInSnapshot(this.snapshot, active));
+      this.publish(
+        hydratedCheckInSnapshot(this.snapshot, active, preserveCompatible),
+      );
     } catch (error) {
       if (!this.isCurrent(request)) return;
-      this.publish({
-        ...this.snapshot,
-        error: operationalFailure(error),
-        phase: "discovery-error",
-      });
+      const failure = operationalFailure(error);
+      if (isCheckInHydrationDenied(failure)) this.pendingRequest = null;
+      this.publish(failedCheckInHydration(this.snapshot, failure));
     }
   }
 
@@ -259,6 +283,7 @@ export class EmployeeCheckInSessionCore {
   ): void {
     this.sequence += 1;
     this.pendingRequest = null;
+    this.routeDetached = false;
     this.workflowOwner = workflowOwner;
     this.publish({
       ...emptyEmployeeCheckInSnapshot(),

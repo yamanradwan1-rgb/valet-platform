@@ -4,6 +4,7 @@ import {
   shouldAttemptEmployeeConnectivityRecovery,
   type EmployeeConnectivityStatus,
   type EmployeeOperationalScope,
+  type EmployeeOperationalSnapshot,
   type EmployeeRevalidationBatch,
   type NativeAuthSnapshot,
 } from "@valet/employee-client";
@@ -29,6 +30,7 @@ export class NativeProductionLifecycleOwner {
   private authGeneration: number | undefined;
   private authPhase: NativeAuthSnapshot["phase"] | undefined;
   private confirmedAuthority: ConfirmedOperationalAuthority | undefined;
+  private deniedGeneration: number | undefined;
   private disposed = false;
   private foreground = false;
   private operationsForeground = false;
@@ -77,6 +79,42 @@ export class NativeProductionLifecycleOwner {
     if (becameAuthenticated && this.foreground) {
       this.revalidation.request("auth-ready");
     }
+  }
+
+  observeOperations(snapshot: EmployeeOperationalSnapshot): boolean {
+    const auth = this.runtime.auth.current();
+    if (
+      this.disposed ||
+      auth.phase !== "authenticated" ||
+      auth.authGeneration !== snapshot.identityGeneration
+    ) {
+      return false;
+    }
+    const state = deriveProductionShellState(auth, snapshot);
+    const previous = this.confirmedAuthority;
+    if (productionShellStateRetiresOperationalAuthority(state)) {
+      if (this.deniedGeneration === auth.authGeneration) return false;
+      this.deniedGeneration = auth.authGeneration;
+      this.confirmedAuthority = undefined;
+    } else if (state.kind === "active") {
+      this.deniedGeneration = undefined;
+      this.confirmedAuthority = {
+        generation: auth.authGeneration,
+        scope: state.scope,
+      };
+      if (
+        previous === undefined ||
+        (previous.generation === auth.authGeneration &&
+          previous.scope.role === state.scope.role &&
+          isSameEmployeeOperationalScope(previous.scope, state.scope))
+      ) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+    retireNativeWorkflowScope(this.runtime);
+    return true;
   }
 
   setConnectivity(status: EmployeeConnectivityStatus): void {
@@ -160,9 +198,8 @@ export class NativeProductionLifecycleOwner {
     if (!this.canContinue(generation)) return;
     const current = this.runtime.operations.current();
     const shellState = deriveProductionShellState(auth, current);
+    const authorityRetired = this.observeOperations(current);
     if (productionShellStateRetiresOperationalAuthority(shellState)) {
-      this.confirmedAuthority = undefined;
-      retireNativeWorkflowScope(this.runtime);
       if (measuringRecovery)
         finishPhysicalMetric("reconnect_recovery_ms", "failure", "auth-loss");
       return;
@@ -172,15 +209,7 @@ export class NativeProductionLifecycleOwner {
         finishPhysicalMetric("reconnect_recovery_ms", "failure", "unknown");
       return;
     }
-    const previous = this.confirmedAuthority;
-    const authorityChanged =
-      previous !== undefined &&
-      (previous.generation !== generation ||
-        previous.scope.role !== shellState.scope.role ||
-        !isSameEmployeeOperationalScope(previous.scope, shellState.scope));
-    this.confirmedAuthority = { generation, scope: shellState.scope };
-    if (authorityChanged) {
-      retireNativeWorkflowScope(this.runtime);
+    if (authorityRetired) {
       if (measuringRecovery)
         finishPhysicalMetric("reconnect_recovery_ms", "success");
       return;

@@ -29,6 +29,7 @@ export function useNativePushResponse(input: {
       ? undefined
       : new NativePushRouteCoordinator({
           auth: input.auth,
+          canRouteTasks: () => !input.runtime?.parkingCancellation?.protected(),
           operations: input.runtime.operations,
           observe: recordNativePushRouteObservation,
           routeTasks: () => {
@@ -36,7 +37,7 @@ export function useNativePushResponse(input: {
               destination: "tasks",
               source: "notification",
             });
-            if (receipt !== "rejected") input.onRoute();
+            if (receipt === "resolved") input.onRoute();
             return receipt;
           },
         }),
@@ -51,12 +52,17 @@ export function useNativePushResponse(input: {
     const unregisterPurge = nativeIdentityState.register(() =>
       coordinator.purgeIdentityScoped(),
     );
+    const cancellation = input.runtime?.parkingCancellation;
+    const unsubscribeCancellation = cancellation?.subscribe(() => {
+      if (!cancellation.protected()) coordinator.retry();
+    });
     return () => {
+      unsubscribeCancellation?.();
       unsubscribeResponse();
       unregisterPurge();
       coordinator.dispose();
     };
-  }, [coordinator]);
+  }, [coordinator, input.runtime]);
 
   useEffect(() => coordinator?.setAuth(input.auth), [coordinator, input.auth]);
 

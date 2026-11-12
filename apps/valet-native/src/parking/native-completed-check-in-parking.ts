@@ -8,6 +8,7 @@ import { isSameEmployeeOperationalScope } from "@valet/employee-client";
 
 export async function openCompletedCheckInParking(input: {
   readonly identityGeneration: number;
+  readonly isEntryCurrent?: () => boolean;
   readonly operations: EmployeeOperationalSession;
   readonly parking: EmployeeParkingStartSession;
   readonly scope: EmployeeOperationalScope;
@@ -67,6 +68,7 @@ function isHeldStarted(
 function hasCurrentAuthority(
   input: Parameters<typeof openCompletedCheckInParking>[0],
 ) {
+  if (input.isEntryCurrent?.() === false) return false;
   const current = input.operations.current();
   return (
     current.phase === "ready" &&
@@ -117,7 +119,7 @@ export function launchCompletedCheckInParking(
       : Promise.resolve(false);
   const operation = (async () => {
     const started = await openCompletedCheckInParking(input);
-    if (!started) return false;
+    if (!started || input.isEntryCurrent?.() === false) return false;
     input.clearCheckIn();
     input.navigateParking();
     return true;

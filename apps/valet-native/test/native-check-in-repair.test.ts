@@ -70,14 +70,6 @@ function render(
   patch: Partial<EmployeeCheckInSnapshot>,
   locale: "en" | "ar" = "ar",
 ) {
-  const session = {
-    confirmIdentity: vi.fn(),
-    continueWithoutRecognition: vi.fn(),
-    editIdentity: vi.fn(),
-    setVehicle: vi.fn(),
-    reviewIdentity: vi.fn(),
-    resume: vi.fn(),
-  } as unknown as EmployeeCheckInSession;
   const onClose = vi.fn();
   const state: EmployeeCheckInSnapshot = {
     active: null,
@@ -93,6 +85,16 @@ function render(
     vehicle,
     ...patch,
   };
+  const session = {
+    current: () => state,
+    backFromCustomer: vi.fn(() => state.phase === "customer"),
+    confirmIdentity: vi.fn(),
+    continueWithoutRecognition: vi.fn(),
+    editIdentity: vi.fn(),
+    setVehicle: vi.fn(),
+    reviewIdentity: vi.fn(),
+    resume: vi.fn(),
+  } as unknown as EmployeeCheckInSession;
   const nodes = expand(
     NativeCheckInWorkflow({
       auth: {} as NativeAuthSession,
@@ -268,7 +270,7 @@ describe("Native Check-In review regressions", () => {
     const blocked = phase === "submitting" || phase === "recognizing";
     expect(back.props.disabled).toBe(blocked);
     (back.props.onPress as () => void)();
-    expect(onClose).toHaveBeenCalledTimes(blocked ? 0 : 1);
+    expect(onClose).toHaveBeenCalledTimes(phase === "intake-ambiguous" ? 1 : 0);
     if (phase === "intake-ambiguous")
       expect(
         nodes.some((node) => node.props.accessibilityLabel === "Retry"),

@@ -44,10 +44,12 @@ import type { ProductionDestination } from "./production-shell-controller";
 export function NativeProductionWorkspace({
   authSnapshot,
   battery,
+  captureCheckInRoute,
   confirmParking,
   connectivity,
   contextual,
   handoff,
+  isVehiclesRouteCurrent,
   locale,
   navigate,
   onSelectLocale,
@@ -122,6 +124,7 @@ export function NativeProductionWorkspace({
               launchCompletedCheckInParking({
                 clearCheckIn: () => runtime.checkIn.clear(),
                 identityGeneration: authSnapshot.authGeneration,
+                isEntryCurrent: captureCheckInRoute(sessionId),
                 navigateParking: () => navigate("parking"),
                 operations: runtime.operations,
                 parking: runtime.parking,
@@ -181,7 +184,9 @@ export function NativeProductionWorkspace({
         ) : shell.destination === "vehicles" ? (
           <NativeVehiclesRoute
             runtime={runtime}
-            onContinue={() => navigate("check-in")}
+            onContinue={() => {
+              if (isVehiclesRouteCurrent()) navigate("check-in");
+            }}
             key={`${authSnapshot.authGeneration}:${shell.scope.membershipId}:${shell.scope.locationId}:${shell.scope.shiftId}`}
             locale={locale}
             scope={shell.scope}

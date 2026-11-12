@@ -96,6 +96,9 @@ export function NativeCheckInWorkflow({
     previousPhase.current = snapshot.phase;
   }, [snapshot]);
   const back = () => {
+    if (["customer", "vehicle-details", "returning"].includes(snapshot.phase)) {
+      if (session.current() !== snapshot || session.backFromCustomer()) return;
+    }
     if (
       resolvedSnapshot.phase === "created" &&
       resolvedSnapshot.continuation.mode !== "view"

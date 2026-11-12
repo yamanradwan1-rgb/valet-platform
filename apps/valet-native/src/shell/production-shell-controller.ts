@@ -126,6 +126,7 @@ export class ProductionShellController {
   private authorityReady = false;
   private destination: ActiveProductionDestination = "tasks";
   private pending: PendingIntent | null = null;
+  private routeRevision = 0;
   private purgeLatched = false;
   private purgeRevision = 0;
 
@@ -143,9 +144,19 @@ export class ProductionShellController {
     return this.purgeRevision;
   }
 
+  isActiveDestination(destination: ProductionDestination): boolean {
+    return this.authorityReady && this.destination === destination;
+  }
+
+  captureRoute(destination: ProductionDestination): () => boolean {
+    const revision = this.routeRevision;
+    return () =>
+      this.routeRevision === revision && this.isActiveDestination(destination);
+  }
+
   back(): boolean {
     if (!this.authorityReady || this.destination === "tasks") return false;
-    this.destination = "tasks";
+    this.setDestination("tasks");
     return true;
   }
 
@@ -228,7 +239,7 @@ export class ProductionShellController {
   }
 
   private purgeProtectedState(): void {
-    this.destination = "tasks";
+    this.setDestination("tasks");
     this.pending = null;
     if (this.purgeLatched) return;
     this.purgeLatched = true;
@@ -237,11 +248,17 @@ export class ProductionShellController {
 
   private resolveIntent(intent: ProductionRouteIntent): IntentReceipt {
     if (productionRouteIsAllowed(intent)) {
-      this.destination = intent.destination;
+      this.setDestination(intent.destination);
       return "resolved";
     }
-    this.destination = "tasks";
+    this.setDestination("tasks");
     return "rejected";
+  }
+
+  private setDestination(destination: ProductionDestination): void {
+    if (this.destination === destination) return;
+    this.destination = destination;
+    this.routeRevision += 1;
   }
 }
 
