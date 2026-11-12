@@ -9,6 +9,31 @@ const fixedColors = new Set([
   "employee-ui/employee-tokens.ts", // Immutable historical design constants.
   "guest-access/native-guest-access-qr.tsx", // QR black/white quiet zone.
 ]);
+// Owner-approved #451 V2 local swatches and borders; every other literal remains illegal.
+const approvedCheckInColorLiterals: Readonly<
+  Record<string, ReadonlySet<string>>
+> = {
+  "check-in/native-check-in-color-values.ts": new Set([
+    "#FFFFFF",
+    "#090B10",
+    "#C3CCD6",
+    "#636D79",
+    "#255DA6",
+    "#B82B38",
+    "#754B3A",
+    "#36704F",
+  ]),
+  "check-in/native-check-in-color-styles.ts": new Set([
+    "#7D8B9F",
+    "#0F54CB",
+    "#607189",
+  ]),
+  "check-in/native-check-in-color-selector.tsx": new Set([
+    "#0F54CB",
+    "#E3CAA0",
+    "#BC913D",
+  ]),
+};
 const literalTokenConsumers = new Set([
   "check-in/native-plate-roi-viewport.tsx", // White camera ROI + navy shadow.
   "check-in/native-check-in-styles.ts", // Legacy unused public re-export.
@@ -39,7 +64,8 @@ describe("production Native appearance boundaries", () => {
         if (
           ts.isStringLiteral(node) &&
           !fixedColors.has(relative) &&
-          (/^#[\da-f]{3,8}$/i.test(node.text) || /^rgba?\(/.test(node.text))
+          (/^#[\da-f]{3,8}$/i.test(node.text) || /^rgba?\(/.test(node.text)) &&
+          !approvedCheckInColorLiterals[relative]?.has(node.text)
         )
           violations.push(`${relative}:${node.text}`);
         if (

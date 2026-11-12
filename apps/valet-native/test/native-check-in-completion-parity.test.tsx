@@ -148,7 +148,44 @@ describe("UI-PARITY-08 Check-In sequence", () => {
     const labels = nodes
       .filter((node) => node.type === "TextInput")
       .map((node) => node.props.accessibilityLabel);
-    expect(labels).toEqual(["Make", "Model", "Color"]);
+    expect(labels).toEqual(["Make", "Model"]);
+    const colors = [
+      "White",
+      "Black",
+      "Silver",
+      "Gray",
+      "Blue",
+      "Red",
+      "Brown",
+      "Beige / Gold",
+      "Green",
+    ];
+    const colorButtons = nodes.filter(
+      (node) =>
+        node.type === "Pressable" &&
+        colors.includes(node.props.accessibilityLabel as string),
+    );
+    expect(colorButtons.map((node) => node.props.accessibilityLabel)).toEqual(
+      colors,
+    );
+    const makeIndex = nodes.findIndex(
+      (node) =>
+        node.type === "TextInput" && node.props.accessibilityLabel === "Make",
+    );
+    const modelIndex = nodes.findIndex(
+      (node) =>
+        node.type === "TextInput" && node.props.accessibilityLabel === "Model",
+    );
+    const colorHeadingIndex = nodes.findIndex(
+      (node) =>
+        node.props.accessibilityRole === "header" &&
+        node.props.children === "Color",
+    );
+    const colorPresetIndex = nodes.indexOf(colorButtons[0]!);
+    expect(makeIndex).toBeGreaterThan(-1);
+    expect(modelIndex).toBeGreaterThan(makeIndex);
+    expect(colorHeadingIndex).toBeGreaterThan(modelIndex);
+    expect(colorPresetIndex).toBeGreaterThan(colorHeadingIndex);
     expect(spoken(nodes)).toContain("Skip vehicle details");
   });
 
