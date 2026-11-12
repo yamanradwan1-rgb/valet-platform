@@ -45,6 +45,7 @@ export function NativeCheckInColorSelector({
   const copy = colorCopy[locale];
   const preset = findNativeVehicleColorPreset(color);
   const [otherRequested, setOtherRequested] = useState(false);
+  const [customFocused, setCustomFocused] = useState(false);
   const [customBuffer, setCustomBuffer] = useState(() =>
     preset ? "" : (color ?? ""),
   );
@@ -58,6 +59,7 @@ export function NativeCheckInColorSelector({
 
   const selectPreset = (value: string) => {
     if (customSelected && color && !preset) setCustomBuffer(color);
+    setCustomFocused(false);
     setOtherRequested(false);
     Keyboard.dismiss();
     if (color !== value) onChange(value);
@@ -72,6 +74,7 @@ export function NativeCheckInColorSelector({
   const clear = () => {
     Keyboard.dismiss();
     setCustomBuffer("");
+    setCustomFocused(false);
     setOtherRequested(false);
     onChange(null);
   };
@@ -186,9 +189,15 @@ export function NativeCheckInColorSelector({
           autoCorrect={false}
           // Android maxLength measures UTF-16 units; validation enforces 80 Unicode code points.
           maxLength={160}
+          onBlur={() => setCustomFocused(false)}
           onChangeText={updateCustom}
+          onFocus={() => setCustomFocused(true)}
           ref={customInput}
-          style={[s.customInput, employeeTextStyle("human", textAlign)]}
+          style={[
+            s.customInput,
+            customFocused && s.customInputFocused,
+            employeeTextStyle("human", textAlign),
+          ]}
           value={color && !preset ? color : otherRequested ? customBuffer : ""}
         />
       ) : null}

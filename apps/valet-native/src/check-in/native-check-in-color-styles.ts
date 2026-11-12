@@ -77,4 +77,8 @@ export const nativeCheckInColorStylesTheme = createEmployeeStyles((p) => ({
     height: 48,
     marginTop: 6,
   },
+  customInputFocused: {
+    borderColor: p.mode === "dark" ? p.linkPrimary : "#0F54CB",
+    borderWidth: 2,
+  },
 }));
