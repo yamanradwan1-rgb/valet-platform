@@ -9,26 +9,29 @@ let hookIndex = 0;
 let hookSlots: unknown[] = [];
 const dismiss = vi.fn();
 
-vi.mock("react", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("react")>()),
-  useEffect: vi.fn(),
-  useState: (initial: unknown) => {
-    const index = hookIndex++;
-    if (!(index in hookSlots))
-      hookSlots[index] = typeof initial === "function" ? initial() : initial;
-    return [
-      hookSlots[index],
-      (next: unknown) => {
-        hookSlots[index] = next;
-      },
-    ];
-  },
-  useRef: (initial: unknown) => {
-    const index = hookIndex++;
-    if (!(index in hookSlots)) hookSlots[index] = { current: initial };
-    return hookSlots[index];
-  },
-}));
+vi.mock("react", async (importOriginal) => {
+  const original = await importOriginal();
+  return {
+    ...(original as object),
+    useEffect: vi.fn(),
+    useState: (initial: unknown) => {
+      const index = hookIndex++;
+      if (!(index in hookSlots))
+        hookSlots[index] = typeof initial === "function" ? initial() : initial;
+      return [
+        hookSlots[index],
+        (next: unknown) => {
+          hookSlots[index] = next;
+        },
+      ];
+    },
+    useRef: (initial: unknown) => {
+      const index = hookIndex++;
+      if (!(index in hookSlots)) hookSlots[index] = { current: initial };
+      return hookSlots[index];
+    },
+  };
+});
 vi.mock("react-native", () => ({
   ActivityIndicator: "ActivityIndicator",
   Keyboard: { dismiss },
