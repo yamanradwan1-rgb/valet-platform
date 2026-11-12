@@ -32,4 +32,18 @@ describe("#451 canonical vehicle color values", () => {
     expect(serializeNativeCustomColor("  \u3000 ")).toBeNull();
     expect(serializeNativeCustomColor("Midnight Plum")).toBe("Midnight Plum");
   });
+
+  it("caps after NFKC expansion while retaining valid decomposed input", () => {
+    const ligatures = "ﬃ".repeat(80);
+    const capped = capNativeCustomColor(ligatures);
+    expect(capped).toBe("ﬃ".repeat(26));
+    expect(serializeNativeCustomColor(ligatures)).toBe(capped);
+    expect(Array.from(capped.trim().normalize("NFKC"))).toHaveLength(78);
+
+    const decomposed = "A".repeat(79) + "e\u0301";
+    expect(Array.from(decomposed)).toHaveLength(81);
+    expect(Array.from(decomposed.trim().normalize("NFKC"))).toHaveLength(80);
+    expect(capNativeCustomColor(decomposed)).toBe(decomposed);
+    expect(serializeNativeCustomColor(decomposed)).toBe(decomposed);
+  });
 });

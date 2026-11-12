@@ -17,7 +17,15 @@ export function findNativeVehicleColorPreset(value: string | null | undefined) {
 }
 
 export function capNativeCustomColor(value: string): string {
-  return Array.from(value).slice(0, 80).join("");
+  let capped = "";
+  for (const char of value) {
+    const candidate = capped + char;
+    // The API measures code points AFTER trimming and NFKC. A ligature such
+    // as ﬃ expands to three code points; composed sequences may contract.
+    if (Array.from(candidate.trim().normalize("NFKC")).length > 80) break;
+    capped = candidate;
+  }
+  return capped;
 }
 
 export function serializeNativeCustomColor(value: string): string | null {

@@ -153,6 +153,14 @@ describe("#451 Native Vehicle Color / V2 Variant A", () => {
         press(tile(nodes, preset[locale]));
         expect(onChange).toHaveBeenCalledTimes(1);
         expect(onChange).toHaveBeenCalledWith(preset.value);
+        hookSlots = [];
+        const savedChange = vi.fn();
+        const saved = renderSelector(preset.value, locale, savedChange);
+        const selected = tile(saved, preset[locale]);
+        expect(selected.props.accessibilityState).toEqual({ selected: true });
+        press(selected);
+        press(selected);
+        expect(savedChange).not.toHaveBeenCalled();
       }
     }
   });
