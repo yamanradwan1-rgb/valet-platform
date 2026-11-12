@@ -55,6 +55,14 @@ The complete prototype directory remains read-only, and all existing `a-` captur
 - COS independent read-only contract audit: no API/DB or returning-correction blocker. Independent read-only commit review identified NFKC pre-cap defect; worker fixed it in `d7b444a9`. Final reviewer independently confirmed the correction and tests. Native Android UI still requires real device/emulator screenshots at the requested 12 scenarios, TalkBack/keyboard/focus and large-text checks; no connected device or configured AVD was available. Physical visual parity is NOT verified and should not be represented as signoff.
 - Portable employee-client on pinned baseline: lint exit 0, typecheck exit 0, full suite 928/928 exit 0; root build-contract suite 8/8 exit 0. This verifies existing contracts, not production runtime.
 
+## Final local CI and freeze-gate reconciliation
+
+- On the integrated branch, `pnpm --filter @valet/valet-native test` first ran 1921 tests: 1918 passed and three legacy pre-#451 expectations failed, specifically `native-check-in-completion-parity.test.tsx` (Color TextInput), `native-appearance-coverage.test.ts` (frozen V2 local swatch literals) and `native-appearance-style-freeze.test.ts` (the new authorized local themed Color sheet).
+- Writer corrected **only those three test files** in commit `ea994db5cc0bcfc2214723c38272d196448022dd`, cherry-picked locally as `905559954c57470a905b8497cda796b3eaebfc84`. These changes preserve all unrelated appearance freeze checks and original fixture content, allow only exact approved Color-source file/literal pairs, assert the approved Color sheet's Light/Dark geometry and selected/focus styling, and check the nine labeled buttons and surrounding Make/Model/Continue/Skip order. No production style or shared tokens were modified.
+- **Final integrated Native suite**: `pnpm --filter @valet/valet-native test` — 265 test files, 1921/1921 tests passed, exit 0. `pnpm --filter @valet/valet-native lint` — exit 0; `pnpm --filter @valet/valet-native typecheck` — exit 0.
+- Root `pnpm build` verification mode — 10 tasks completed successfully, exit 0; `pnpm architecture:check` — exit 0 with the existing grandfathered warnings. The original project root `main` was not modified. Two unrelated generated files produced by validation (`docs/validation/issue-345/render-comparison.json` during tests and `apps/valet/next-env.d.ts` during build) were restored to their initially clean tracked state after those commands; neither is part of the task commits.
+- Remote CI was not run because no push/PR is authorized yet. Android physical render parity, interactive keyboard/focus behavior, TalkBack and shift-timing observations remain unverified. Browser mock screenshots and passing static checks do not establish Native pixel fidelity.
+
 ## Baseline and isolation
 
 - Verified `git fetch origin main`, pinned `origin/main` at `fba739b63762aab40e59ba5f3dcce633989a6ad0`.
