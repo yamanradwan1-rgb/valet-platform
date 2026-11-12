@@ -113,6 +113,8 @@ function render(locale: "en" | "ar", handoff = handoffSnapshot(), contextual = c
     taskTracking: {},
   };
   const tree = NativeProductionWorkspace({
+    captureCheckInRoute: () => () => true,
+    isVehiclesRouteCurrent: () => true,
     authSnapshot: { authGeneration: 3, phase: "authenticated" },
     battery: { status: "configured", openSettings: vi.fn(), onAppActive: vi.fn() },
     confirmParking: {} as never,

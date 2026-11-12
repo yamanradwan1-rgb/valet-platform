@@ -13,6 +13,7 @@ import { EmployeeCheckInContinuationSession } from "./employee-check-in-continua
 import type { EmployeeCheckInVehicleDraft } from "./employee-check-in-types";
 
 export class EmployeeCheckInSession extends EmployeeCheckInContinuationSession {
+  private customerBack: "vehicle-details" | "returning" | "consumed" | null = null;
   private returningCorrection: {
     readonly color: string | null;
     readonly make: string | null;
@@ -30,17 +31,20 @@ export class EmployeeCheckInSession extends EmployeeCheckInContinuationSession {
       current.locationId !== locationId ||
       this.workflowOwner !== workflowOwner
     ) {
+      this.customerBack = null;
       this.returningCorrection = null;
     }
     return super.activate(identityGeneration, locationId, workflowOwner);
   }
 
   clear(): void {
+    this.customerBack = null;
     this.returningCorrection = null;
     super.clear();
   }
 
   startNew(): void {
+    this.customerBack = null;
     this.returningCorrection = null;
     super.startNew();
   }
@@ -80,6 +84,7 @@ export class EmployeeCheckInSession extends EmployeeCheckInContinuationSession {
     )
       return;
     this.pendingRequest = null;
+    this.customerBack = null;
     this.returningCorrection = null;
     this.publish({
       ...this.snapshot,
@@ -156,11 +161,28 @@ export class EmployeeCheckInSession extends EmployeeCheckInContinuationSession {
       });
       return;
     }
-    this.publish({ ...this.snapshot, error: null, phase: "customer" });
+    this.enterCustomer("vehicle-details");
   }
 
   chooseDifferentCustomer(): void {
     if (this.snapshot.phase !== "returning") return;
+    this.enterCustomer("returning");
+  }
+
+  backFromCustomer(): boolean {
+    const { phase } = this.snapshot;
+    const previous = this.customerBack;
+    if (phase === "customer" && previous !== null && previous !== "consumed") {
+      this.customerBack = "consumed";
+      this.publish({ ...this.snapshot, error: null, phase: previous });
+      return true;
+    }
+    return previous === "consumed" &&
+      (phase === "vehicle-details" || phase === "returning");
+  }
+
+  private enterCustomer(from: "vehicle-details" | "returning"): void {
+    this.customerBack = from;
     this.publish({ ...this.snapshot, error: null, phase: "customer" });
   }
 
@@ -239,6 +261,7 @@ export class EmployeeCheckInSession extends EmployeeCheckInContinuationSession {
       vehicleIdentity: buildCheckInIdentity(this.snapshot.vehicle),
     };
     this.pendingRequest = input;
+    if (this.snapshot.phase === "returning") this.customerBack = "returning";
     const request = ++this.sequence;
     this.publish({ ...this.snapshot, error: null, phase: "submitting" });
     const outcome = await runEmployeeCheckInIntake(
@@ -255,8 +278,11 @@ export class EmployeeCheckInSession extends EmployeeCheckInContinuationSession {
         make: correction.make ?? "",
         model: correction.model ?? "",
       });
-      await this.submitVehicleDetails();
+      const correctionOperation = this.submitVehicleDetails();
+      const correctionRequest = this.sequence;
+      await correctionOperation;
       if (
+        this.isCurrent(correctionRequest) &&
         this.snapshot.phase === "created" &&
         this.snapshot.continuation.mode === "view"
       ) {

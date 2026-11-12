@@ -46,6 +46,10 @@ export function useNativeProductionLifecycle(
     const unsubscribeAuth = runtime.auth.subscribe((snapshot) => {
       owner.observeAuth(snapshot);
     });
+    // Observe each authoritative publication even if React batches scope changes.
+    const unsubscribeOperations = runtime.operations.subscribe((snapshot) => {
+      owner.observeOperations(snapshot);
+    });
     const unsubscribe = runtime.connectivity.subscribe((status) => {
       setConnectivity(status);
       // Record only on CHANGE — never on every subscription tick.
@@ -76,6 +80,7 @@ export function useNativeProductionLifecycle(
     );
     return () => {
       unsubscribeAuth();
+      unsubscribeOperations();
       unsubscribe();
       disposeAppState();
       owner.dispose();

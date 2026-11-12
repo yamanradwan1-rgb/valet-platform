@@ -6,7 +6,6 @@ import type {
 } from "@valet/employee-client";
 
 import type { NativeEmployeeRuntime } from "../auth/native-auth-runtime";
-import { retireNativeWorkflowScope } from "../shell/native-workflow-scope-retirement";
 import type { ProductionShellController } from "../shell/production-shell-controller";
 import { useNativeRetrievalAttention } from "../tasks/use-native-retrieval-attention";
 import { useNativePushLifecycle } from "./use-native-push-lifecycle";
@@ -31,10 +30,7 @@ export function useNativePushAttention(
   const response = useNativePushResponse({
     auth,
     controller,
-    onRoute: () => {
-      if (runtime !== undefined) retireNativeWorkflowScope(runtime);
-      onRoute();
-    },
+    onRoute,
     operations,
     runtime,
   });

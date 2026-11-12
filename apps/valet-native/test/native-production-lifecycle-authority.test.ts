@@ -71,7 +71,11 @@ function fixture(responses: EmployeeOperationalSnapshot[]) {
       setOnline: vi.fn(),
       suspendForBackground: vi.fn(),
     },
-    taskTracking: { clear: vi.fn(), setForeground: vi.fn(), setOnline: vi.fn() },
+    taskTracking: {
+      clear: vi.fn(),
+      setForeground: vi.fn(),
+      setOnline: vi.fn(),
+    },
     vehicleDirectory: {
       ...workflow(),
       refresh: vi.fn(async () => undefined),
@@ -160,6 +164,25 @@ describe("Native production lifecycle authority", () => {
     expect(test.release.checkServerState).not.toHaveBeenCalled();
     expect(test.protectedCommand).not.toHaveBeenCalled();
   });
+
+  it.each([
+    scopeB,
+    { ...scope, membershipId: "replacement-membership" },
+    { ...scope, organizationId: "replacement-organization" },
+    { ...scope, shiftId: "replacement-shift" },
+    { ...scope, role: "VALET_SUPERVISOR" },
+  ] as const)(
+    "retires Check-In when scope changes and returns before a render ($locationId, $role)",
+    (next) => {
+      const test = fixture([]);
+      const owner = new NativeProductionLifecycleOwner(test.runtime);
+      const scopeA = operations("ready", { retainedScope: scope });
+      owner.observeOperations(scopeA);
+      owner.observeOperations(operations("ready", { retainedScope: next }));
+      owner.observeOperations(scopeA);
+      expect(test.runtime.checkIn.clear).toHaveBeenCalledTimes(2);
+    },
+  );
 
   it("prioritizes visible Guest Access over an underlying workflow", async () => {
     const test = fixture([operations("ready", { retainedScope: scope })]);

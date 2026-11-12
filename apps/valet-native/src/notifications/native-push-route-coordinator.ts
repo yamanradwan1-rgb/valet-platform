@@ -26,6 +26,7 @@ interface PendingAttention {
 
 export interface NativePushRouteCoordinatorOptions {
   readonly auth: NativeAuthSnapshot;
+  readonly canRouteTasks?: () => boolean;
   readonly now?: (() => number) | undefined;
   readonly observe?:
     ((observation: NativePushRouteObservation) => void) | undefined;
@@ -127,6 +128,7 @@ export class NativePushRouteCoordinator {
       this.disposed ||
       !this.foreground ||
       this.auth.phase !== "authenticated" ||
+      this.options.canRouteTasks?.() === false ||
       this.pending.length === 0
     ) {
       return;
@@ -160,7 +162,7 @@ export class NativePushRouteCoordinator {
       const startedAt = this.now();
       const baseline = this.options.operations.current();
       await this.options.operations.refresh();
-      if (!this.isCurrent(generation, attemptEpoch)) return;
+      if (!this.isCurrent(attention, generation, attemptEpoch)) return;
       let snapshot = this.options.operations.current();
       if (
         snapshot.phase === "ready" &&
@@ -169,7 +171,7 @@ export class NativePushRouteCoordinator {
         !queueAdvanced(snapshot, baseline)
       ) {
         await this.options.operations.refreshQueue();
-        if (!this.isCurrent(generation, attemptEpoch)) return;
+        if (!this.isCurrent(attention, generation, attemptEpoch)) return;
         snapshot = this.options.operations.current();
       }
       if (canonicalRefreshSucceeded(snapshot, baseline, generation)) {
@@ -177,6 +179,7 @@ export class NativePushRouteCoordinator {
           durationMs: Math.max(0, this.now() - startedAt),
           kind: "canonical-refresh-succeeded",
         });
+        if (this.options.canRouteTasks?.() === false) return;
         this.pending.shift();
         const receipt = this.options.routeTasks();
         this.observe({ kind: routeObservationKind(receipt) });
@@ -195,9 +198,15 @@ export class NativePushRouteCoordinator {
     }
   }
 
-  private isCurrent(generation: number, epoch: number): boolean {
+  private isCurrent(
+    attention: PendingAttention,
+    generation: number,
+    epoch: number,
+  ): boolean {
     return (
       !this.disposed &&
+      this.foreground &&
+      this.pending[0] === attention &&
       this.epoch === epoch &&
       this.auth.phase === "authenticated" &&
       this.auth.authGeneration === generation

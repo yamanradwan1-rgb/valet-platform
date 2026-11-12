@@ -4,6 +4,9 @@ import {
   launchCompletedCheckInParking,
   openCompletedCheckInParking,
 } from "../src/parking/native-completed-check-in-parking";
+import { ProductionShellController } from "../src/shell/production-shell-controller";
+import { deferred } from "./native-push-fixture";
+import { routeAuth, routeSnapshot } from "./native-push-route-fixture";
 
 describe("Check-In pre-start Parking continuation", () => {
   it.each(["assigned", "accepted"] as const)(
@@ -155,6 +158,46 @@ describe("Check-In pre-start Parking continuation", () => {
       sessionId: "session-1",
     });
     expect(result).toBe(false);
+    expect(clearCheckIn).not.toHaveBeenCalled();
+    expect(navigateParking).not.toHaveBeenCalled();
+  });
+
+  it("fences acceptance and navigation when a notification interrupts the old Check-In route", async () => {
+    const controller = new ProductionShellController();
+    const auth = routeAuth("authenticated");
+    controller.update(auth, routeSnapshot());
+    controller.receive({ destination: "check-in", source: "navigation" });
+    const refresh = deferred<void>();
+    const refreshQueue = vi.fn(() => refresh.promise);
+    const acceptTask = vi.fn();
+    const clearCheckIn = vi.fn();
+    const navigateParking = vi.fn();
+    const launch = launchCompletedCheckInParking({
+      clearCheckIn,
+      identityGeneration: 7,
+      isEntryCurrent: controller.captureRoute("check-in"),
+      navigateParking,
+      operations: {
+        current: readyAuthority,
+        refreshQueue,
+        acceptTask,
+      } as never,
+      parking: {
+        current: () => ({
+          phase: "assigned",
+          task: { taskId: "task-1", sessionId: "session-1" },
+        }),
+        openCompletedCheckIn: vi.fn(async () => undefined),
+      } as never,
+      scope: {} as never,
+      sessionId: "session-1",
+    });
+    await vi.waitFor(() => expect(refreshQueue).toHaveBeenCalledOnce());
+    controller.receive({ destination: "tasks", source: "notification" });
+    controller.receive({ destination: "check-in", source: "navigation" });
+    refresh.resolve();
+    expect(await launch).toBe(false);
+    expect(acceptTask).not.toHaveBeenCalled();
     expect(clearCheckIn).not.toHaveBeenCalled();
     expect(navigateParking).not.toHaveBeenCalled();
   });

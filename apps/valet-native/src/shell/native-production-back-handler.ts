@@ -40,16 +40,20 @@ export function useNativeProductionBackHandler(
             return true;
           }
         }
-        if (shell.kind !== "active" || shell.destination === "tasks") {
+        if (
+          shell.kind !== "active" ||
+          shell.destination === "tasks" ||
+          !controller.isActiveDestination(shell.destination)
+        ) {
           return false;
         }
         if (
           runtime !== undefined &&
           shell.destination === "check-in" &&
-          checkInBackBlocked(
+          (checkInBackBlocked(
             runtime.checkIn.current().phase,
             runtime.checkIn.current().continuation?.mode,
-          )
+          ) || runtime.checkIn.backFromCustomer())
         ) {
           return true;
         }
@@ -110,7 +114,6 @@ export function useNativeProductionBackHandler(
             return true;
           }
         }
-        runtime?.checkIn.clear();
         const handled = controller.back();
         if (handled) onNavigation();
         return handled;

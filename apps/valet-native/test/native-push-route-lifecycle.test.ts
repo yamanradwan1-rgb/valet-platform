@@ -53,6 +53,26 @@ describe("native push route canonical lifecycle", () => {
     expect(routeTasks).toHaveBeenCalledOnce();
   });
 
+  it("keeps a route pending when a canonical refresh finishes in the background", async () => {
+    const { coordinator, operations, routeTasks } = harness();
+    operations.onRefresh = () => {
+      coordinator.setForeground(false);
+      operations.currentSnapshot = routeSnapshot({ count: 1 });
+    };
+    coordinator.setForeground(true);
+    coordinator.receive(responseIntent());
+    await coordinator.whenIdle();
+    expect(routeTasks).not.toHaveBeenCalled();
+
+    operations.onRefresh = () => {
+      operations.currentSnapshot = routeSnapshot({ count: 2 });
+    };
+    coordinator.setForeground(true);
+    await coordinator.whenIdle();
+    expect(operations.refreshCalls).toBe(2);
+    expect(routeTasks).toHaveBeenCalledOnce();
+  });
+
   it("uses the canonical refresh path for foreground banner OPEN", async () => {
     const { coordinator, operations, routeTasks } = harness();
     operations.onRefresh = () => {

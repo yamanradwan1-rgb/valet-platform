@@ -37,12 +37,17 @@ export function NativeCheckInRoute({
     (listener) => checkIn.subscribe(listener),
     () => checkIn.current(),
   );
+  const visibleSnapshot = checkIn.requiresRouteRevalidation()
+    ? { ...snapshot, phase: "discovering" as const }
+    : snapshot;
 
   useEffect(() => {
     beginPhysicalMetric("check_in_field_time_ms", "operator-flow");
     void checkIn.activate(identityGeneration, scope.locationId, workflowOwner);
-    return () =>
+    return () => {
+      checkIn.detachRoute();
       finishPhysicalMetric("check_in_field_time_ms", "failure", "cancelled");
+    };
   }, [checkIn, identityGeneration, scope.locationId, workflowOwner]);
 
   useEffect(() => {
@@ -63,7 +68,7 @@ export function NativeCheckInRoute({
       onOpenGuestAccess={onOpenGuestAccess}
       onOpenParking={onOpenParking}
       session={checkIn}
-      snapshot={snapshot}
+      snapshot={visibleSnapshot}
       scope={scope}
     />
   );
