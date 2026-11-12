@@ -18,10 +18,12 @@ import { UnselectedScopeFoundation } from "./unselected-scope-foundation";
 import { useFoundationLogout } from "./use-foundation-logout";
 
 export function ManagementFoundationApp({
+  alertsControlOverride,
   accountSecurity = false,
   children,
   accessRequirement = "DASHBOARD",
 }: {
+  readonly alertsControlOverride?: ReactNode;
   readonly accountSecurity?: boolean;
   readonly children?: ReactNode;
   readonly accessRequirement?: DashboardRouteAccessRequirement;
@@ -116,6 +118,7 @@ export function ManagementFoundationApp({
   return (
     <SelectedManagementShell
       accessRequirement={accessRequirement}
+      alertsControlOverride={alertsControlOverride}
       api={api}
       currentPath={currentPath}
       logoutPending={logoutPending}

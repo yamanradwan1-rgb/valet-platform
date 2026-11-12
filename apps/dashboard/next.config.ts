@@ -27,14 +27,24 @@ const nextConfig: NextConfig = {
     }];
   },
   transpilePackages: ["@valet/ui"],
-  // Explicit opt-in for a local isolated worktree preview. Production config is
-  // unchanged unless the developer requests this non-deployed preview mode.
+  // Issue #432 prototype isolation: resolve the override to a null stub in
+  // production and to the local prototype only in non-production builds.
   webpack(config) {
-    if (process.env.ISSUE_300_LOCAL_PREVIEW !== "1") return config;
+    const prototypeControlPath = path.resolve(
+      process.cwd(),
+      process.env.NODE_ENV === "production"
+        ? "src/features/management-alerts/management-alerts-prototype-disabled.tsx"
+        : "src/features/management-alerts/prototype/management-alerts-prototype-control.tsx",
+    );
     config.resolve.alias = {
       ...(Array.isArray(config.resolve.alias) ? {} : config.resolve.alias),
-      "@valet/contracts": path.resolve(process.cwd(), "../../packages/contracts/dist"),
-      "@valet/ui": path.resolve(process.cwd(), "../../packages/ui/dist"),
+      "@issue432/management-alerts-prototype-control": prototypeControlPath,
+      ...(process.env.ISSUE_300_LOCAL_PREVIEW === "1"
+        ? {
+            "@valet/contracts": path.resolve(process.cwd(), "../../packages/contracts/dist"),
+            "@valet/ui": path.resolve(process.cwd(), "../../packages/ui/dist"),
+          }
+        : {}),
     };
     return config;
   },
@@ -44,6 +54,10 @@ const nextConfig: NextConfig = {
     root: path.resolve(process.cwd(), "../.."),
     resolveAlias: {
       "@valet/contracts": "../../packages/contracts/dist/index.js",
+      "@issue432/management-alerts-prototype-control":
+        process.env.NODE_ENV === "production"
+          ? "./src/features/management-alerts/management-alerts-prototype-disabled.tsx"
+          : "./src/features/management-alerts/prototype/management-alerts-prototype-control.tsx",
     },
   },
   async rewrites() {

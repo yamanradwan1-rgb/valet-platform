@@ -6,14 +6,19 @@ import type { DashboardRouteAccessRequirement } from "../../lib/scope/dashboard-
 import { ManagementFoundationApp } from "./management-foundation-app";
 
 export function ProtectedDashboardRoute({
+  alertsControlOverride,
   children,
   accessRequirement = "DASHBOARD",
 }: {
+  readonly alertsControlOverride?: ReactNode;
   readonly children: ReactNode;
   readonly accessRequirement?: DashboardRouteAccessRequirement;
 }) {
   return (
-    <ManagementFoundationApp accessRequirement={accessRequirement}>
+    <ManagementFoundationApp
+      accessRequirement={accessRequirement}
+      alertsControlOverride={alertsControlOverride}
+    >
       {children}
     </ManagementFoundationApp>
   );

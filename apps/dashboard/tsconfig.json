@@ -7,6 +7,11 @@
     "jsx": "preserve",
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "noEmit": true,
+    "paths": {
+      "@issue432/management-alerts-prototype-control": [
+        "./src/features/management-alerts/prototype/management-alerts-prototype-control.tsx"
+      ]
+    },
     "plugins": [{ "name": "next" }]
   },
   "include": [

@@ -35,9 +35,10 @@ import { useSelectedScopeRevalidation } from "./use-selected-scope-revalidation"
 import { useNestedMfaBridge } from "./use-nested-mfa-bridge";
 import { useSelectedManagementShellTransition } from "./selected-management-shell-transition";
 import { useSelectedManagementDraftMemory } from "./use-selected-management-draft-memory";
-import { ManagementAlertsControl } from "../../features/management-alerts/management-alerts-control";
+import { resolveManagementAlertsControl } from "../../features/management-alerts/management-alerts-control-slot";
 
 export function SelectedManagementShell({
+  alertsControlOverride,
   accessRequirement,
   api,
   children,
@@ -45,6 +46,7 @@ export function SelectedManagementShell({
   logoutPending,
   requestLogout,
 }: {
+  readonly alertsControlOverride?: ReactNode;
   readonly accessRequirement: DashboardRouteAccessRequirement;
   readonly api: DashboardApiClient;
   readonly children?: ReactNode;
@@ -213,15 +215,11 @@ export function SelectedManagementShell({
 
   return (
     <DashboardShell
-      alertsControl={
-        <ManagementAlertsControl
-          key={`${presentationBindingKey}:${routeRevalidation.status}:${routeRevalidation.routeAccess?.commercial.dashboardAccess}`}
-          api={api}
-          authorized={Boolean(routeRevalidation.status === "valid" && routeRevalidation.routeAccess?.commercial.dashboardAccess)}
-          selectionRevision={selectionRevision}
-          selectedScope={selectedScope}
-        />
-      }
+      alertsControl={resolveManagementAlertsControl({
+        api, authorized: Boolean(routeRevalidation.status === "valid" && routeRevalidation.routeAccess?.commercial.dashboardAccess),
+        controlKey: `${presentationBindingKey}:${routeRevalidation.status}:${routeRevalidation.routeAccess?.commercial.dashboardAccess}`,
+        override: alertsControlOverride, selectionRevision, selectedScope,
+      })}
       accountControl={
         <Button
           disabled={logoutPending}
