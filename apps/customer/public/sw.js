@@ -11,6 +11,10 @@ const PUBLIC_ASSETS = new Set([
   "/icons/icon-512.png",
   "/icons/icon-maskable-512.png",
   "/icons/apple-touch-icon.png",
+  "/icons/guest-slate-v1/icon-192.png",
+  "/icons/guest-slate-v1/icon-512.png",
+  "/icons/guest-slate-v1/icon-maskable-512.png",
+  "/icons/guest-slate-v1/apple-touch-icon.png",
 ]);
 const READY_PUSH_COPY = Object.freeze({
   en: Object.freeze({

@@ -9,6 +9,14 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "VAYLET Management",
   description: "VAYLET Management Dashboard",
+  icons: {
+    icon: "/icons/management-titanium-v1/icon-192.png",
+    apple: "/icons/management-titanium-v1/apple-touch-icon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    title: "Vaylet Mgmt",
+  },
 };
 
 export const viewport: Viewport = {
