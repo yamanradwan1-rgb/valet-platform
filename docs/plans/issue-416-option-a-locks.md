@@ -184,6 +184,25 @@ accepted reservation counting/abuse policy. Negative tests must force
 two-lease pool starvation/contention, failed finalization, rollback and lost
 COMMIT while asserting no nested connection acquisition under domain locks.
 
+**Future R02 reset issue is a four-key bundle, not four sequential admissions.**
+The pre-domain short lease locks the exact four registered scope/key hashes
+in canonical logical-key order, checks all 3/20/100/30 rolling-15m caps,
+inserts four PENDING rows plus one unique private bundle receipt, then COMMITs
+all-or-none; a denied scope rolls back **all** pending inserts. Its caller
+may not hold any rank01–17 domain lock while requesting that lease. A lost
+bundle-COMMIT acknowledgment requires exact same-op fresh-lease bundle
+reconciliation, **no** new four-key reserve; an unresolved bundle stays
+PENDING, never discounts earlier COUNTED usage. After a domain commit,
+receipt-bound finalization changes the four rows together to COUNTED on
+changed issuance or IGNORED on current authorized linkless no-op, never
+partially. R03 pre-parser client-address attempt counting must still commit
+even when parsing/credential fails; its optional canonical credential-key
+attempt has its own independently durable count. Add PG17 two-connection
+and four-key contention tests: cap denial at each of 4 keys, blocked
+advisory locks in reverse request order, pre-reserve U/timeout/rollback,
+post-domain finalize U, source quota drift, malformed redeem, and no nested
+lease while domain locks are held. These are proposed tests **NOT RUN**.
+
 The internal `prepare` phase is purpose-specific and can lock but cannot mutate
 protected authority. Runtime can deny service through lock requests; it cannot
 obtain proof issuance from prepare. Only genuine app credential verification
@@ -206,15 +225,46 @@ operations, and must never confer authority.
 | 06 | `location-lifecycle:<locationUUID>` shared for eligibility, exclusive for lifecycle mutation; sorted locations, mode chosen before any lock |
 | 07 | `staff-management-org:<orgUUID>` exclusive for membership/grant/onboarding/activation/reset authority; sorted orgs |
 | 08 | sorted `staff-push-install-lock:v1:<digest>` and `staff-push-token-lock:v1:<digest>` keys when registration uniqueness is involved |
-| 09 | Users X, sorted PostgreSQL UUID; **then** all matching private L1 User admission gates and exact version/provenance rows S, in `(object_kind ASC, object_uuid PostgreSQL ASC)` order; insert fresh User only under email fence; no joined multi-table locking |
-| 10 | Organization rows S (X if mutating) sorted UUID; subscription/typed entitlement rows S (X if mutating) sorted organization UUID; **then** matching O/E admission gates and accepted versions S by `(object_kind,object_uuid)` |
-| 11 | memberships X sorted (organizationUUID, membershipUUID), including all actor/target/Admin candidates; Locations S/X sorted UUID then grants S/X sorted (org,member,location); **then** matching M/L/G gates and accepted versions S by `(object_kind,object_uuid)`; all-status membership/grant completeness includes HOLD rows |
-| 12 | sessions X sorted UUID, including target sessions for global revoke; refresh rows X sorted (sessionUUID,generation,UUID); **then** matching SS/RC admission gates and accepted lineage/version S by `(object_kind,object_uuid)` |
-| 13 | factors X for mutation or S for assurance/last-Admin, sorted (userUUID,factorUUID); recovery codes X sorted (factorUUID,generation,slot,UUID); **then** matching F/C admission gates and exact seed/step/generation/consumption versions S by `(object_kind,object_uuid)` |
-| 14 | invitations/reset rows X sorted (userUUID,generation,UUID); registrations X sorted UUID; deliveries X sorted UUID only if mutated; **X01 Shift row X and exact closure only after earlier-rank authority, with no Task row X**; **then** matching authority-bearing invitation/reset/P admission gates and versions S by `(object_kind,object_uuid)`; bounded terminal-only PD cleanup and Shift domain state do not become independent legacy Staff signers |
+| 09 | Users X, sorted PostgreSQL UUID; **then** matching private L1 User admission/material rows in pre-elected `S` for unchanged evidence or `X` for changed accepted User material, sorted `(object_kind ASC, decoded typed UUID tuple ASC)`; insert fresh User only under email fence; no joined multi-table locking |
+| 10 | Organization rows S (X if mutating) sorted UUID; subscription/typed entitlement rows S (X if mutating) sorted organization UUID; **then** matching O/E admission/material rows in pre-elected `S` unchanged or `X` changed by `(object_kind,decoded typed UUID tuple)` |
+| 11 | memberships X sorted (organizationUUID, membershipUUID), including all actor/target/Admin candidates; Locations S/X sorted UUID then grants S/X sorted (org,member,location); **then** matching M/L/G admission/material rows `S` unchanged or upfront `X` changed by `(object_kind,decoded typed UUID tuple)`; all-status membership/grant completeness includes HOLD rows |
+| 12 | sessions X sorted UUID, including target sessions for global revoke; refresh rows X sorted (sessionUUID,generation,UUID); **then** matching SS/RC admission/material rows `S` unchanged or upfront `X` changed by `(object_kind,decoded typed UUID tuple)` |
+| 13 | factors X for mutation or S for assurance/last-Admin, sorted (userUUID,factorUUID); recovery codes X sorted (factorUUID,generation,slot,UUID); **then** matching F/C admission/material rows `S` unchanged or upfront `X` changed by `(object_kind,decoded typed UUID tuple)` |
+| 14 | invitations/reset rows X sorted (userUUID,generation,UUID); registrations X sorted UUID; deliveries X sorted UUID only if mutated; **X01 Shift row X and exact closure only after earlier-rank authority, with no Task row X**; **then** matching authority-bearing invitation/reset/P admission/material rows `S` unchanged or upfront `X` changed by `(object_kind,decoded typed UUID tuple)`; bounded terminal-only PD cleanup and Shift domain state do not become independent legacy Staff signers |
 | 15 | private selected proof-key record S; key selection is fixed in prepare and cannot change after this point |
 | 16 | private transaction challenge X; then private receipt row X/INSERT under rank-01 operation fence |
 | 17 | atomic domain/audit writes in previously locked order; append-only audit insertion and private receipt finalization. Any independently durable anti-abuse reservation was acquired before rank 01 and is finalized only after the domain lease is released and its outcome is known or reconciled |
+
+**Frozen S/X intent matrix for existing L1 material (PROPOSED):** predeclare the
+following modes during source-verified operation discovery, before rank01.
+Every other required positive-authority admission is S; no normal command
+may change `HOLD→ADMIT`, and a fresh object is inserted with its new
+private admission provenance atomically under its already-held parent X.
+
+| Purpose | Existing admitted material that must be X from prepare to COMMIT | Admission creation / unchanged S examples |
+| --- | --- | --- |
+| A01 | None for existing User/password (last-login is excluded from the security-material digest) | Existing admitted User S; new SS/RC admission inserted atomically |
+| A02 / A03 | Existing SS and RC lineage X; A03 terminalized P X | Current User S; new rotated RC inserted, or same accepted old lineage revocation commits |
+| A04 / A05 / A06 | A04 existing pending F X only when state changes; A05 F+SS X; A06 F accepted step+SS assurance X | A04 read-only exact pending resume F S; newly born pending F and A05 C codes inserted with new admission |
+| A07 / A08 / A09 | A07 old F+C X, A08 F+SS X (and any touched old C), A09 SS admin activity X | Other admitted User/Organization/actor membership S; new pending F/C generated under parent locks |
+| M01 / M02 / M03 | Target M X; M03 changed G X; piggyback current actor SS activity X if it advances | Other manager/last-admin candidate M and O/E/U/F/L positive dependencies S |
+| M04 / M05 / M06 | M04 new U/M/G/I admission INSERT; M05 old I X/new I INSERT; M06 U/M/I X; actor SS X only if activity advanced | Verified current actor U/O/E/M/F/L S except specifically changed records |
+| M08 / M09 / M10 | Changed Location L X or Organization policy O X, plus actor SS X if admin activity is advanced | Unchanged Organization/entitlement/membership/grants/factor S |
+| M11 / M12 | Existing changed P X and newly created P admission INSERT | Exact current U/SS S; other prior owner P X only if terminalized |
+| R02 / R03 | R02 new reset row admission INSERT, actor SS X only if activity advances; R03 target User+reset+terminalized SS/RC/P X | Current issuer/target authority and all-status membership completeness S except modified User/SS |
+| X01 Shift Force End | Shift domain row X at rank14; actor SS admission X only for committed admin activity update; Shift closure INSERT (Shift has no preexisting Staff authority admission) | Current U/O/E/M/G/L/F/unchanged SS S |
+| P01 / P02 / M14 / M15 | Operator P01 new U/M/G admission INSERT; P02 changed O/E X; M14 User/terminal SS/RC/P X; M15 F/C and affected SS X | Separately attested operator, other unchanged positive authority S; held target may be terminally revoked only by allowed operator purpose |
+| A10/A11/M07/R01/M13/P03–P05 | No ordinary authenticated protected writer admission mode; read/guard and independent restricted maintenance/test authority | No signer or generic `vap1` proof from a read/fixture/worker |
+
+If the live business mutation changes an additional accepted security-material
+record omitted by an earlier source version (such as new touched lineage),
+the command must **ROLLBACK and rediscover** rather than acquiring a new X
+late or silently keeping the stale S. For any two commands changing the same
+admitted User, factor, role, invitation or session, the second must wait on
+the first's upfront X; after wake it rechecks exact current digest/version and
+either makes a separately genuinely authorized next change or rejects stale
+operation. Test both writer→writer and operator HOLD→writer permutations with
+C/R/D/U/T, `40P01`, `55P03`, no nested lease and no S→X upgrade.
 
 ### L1 ADMIT/HOLD SQL admission-fence invariant (PROPOSED, mandatory for Option A)
 
@@ -247,10 +297,17 @@ admission exception is an explicitly typed non-authorizing effect, never a
 generic bypass or a reason to hide held memberships in a sole-company count.
 
 Each class has a **private, canonical, unique current gate** keyed by
-`(audience, object_kind, object_id)`, with boundary epoch and a monotone
-`admission_version` in protected gate/evidence state. Composite object keys
-include exact parent Organization/User scope in their collision-free typed
-identity, not a caller-asserted digest. Its decision is explicit ADMIT or
+`(audience, object_kind, object_key_bytes)`, with boundary epoch and a monotone
+`admission_version` in protected gate/evidence state. A singleton UUID is
+`0x01 || 16 canonical UUID bytes`; a Location grant's composite key is
+`0x02 || organization UUID16 || membership UUID16 || location UUID16`
+(49 bytes). This is necessary because the real grant table has composite
+`(membership_id,location_id)` PK, **no grant-row UUID**. SQL derives complete
+parent Organization scope and key constituents from the locked rows; neither
+a caller hash, truncated UUID nor an idempotency key may name an authority
+gate. Sort same-kind gates by the **decoded ordered UUID tuple**, then lock
+their canonical bytes, not by an unreviewed collation of text or hash values.
+Its decision is explicit ADMIT or
 HOLD/RETIRE; a separate accepted-version/provenance record binds the exact
 typed security-material version or digest, generation, immutable parent IDs,
 and trust source/controlled operation. A generic `updated_at`, client version,
@@ -269,16 +326,22 @@ or unversioned current gates/records **deny**, never default to ADMIT.
 For **every rank 09–14 authority object**, choose the complete parent/gate set
 before locking: **first acquire all ordinary parent rows in the existing rank's
 canonical resource/UUID order**, **then**, before the next rank, acquire their
-private admission gates and accepted-current-version rows **`FOR SHARE` on the
-SAME leased transaction**, sorted by `(object_kind ASC, object_uuid PostgreSQL
-ASC)`; composite keys add their stable scope only as a fixed disambiguator.
+private admission gates and accepted-current-version rows on the **SAME leased
+transaction**, sorted by `(object_kind ASC, decoded typed UUID tuple ASC)`. A
+command pre-elects `FOR UPDATE` for every gate/material record whose accepted
+security material/version it changes; the other gates are `FOR SHARE`. For a
+given source object this preselected mode is fixed before rank01, never chosen
+after discovery or after locking another row. Composite keys add their stable
+scope only as a fixed disambiguator.
 Never interleave gate X from one class before a smaller parent's row, or sort
-by hashed advisory integers. Retain all SHARE locks through COMMIT/ROLLBACK.
+by hashed advisory integers. Retain all chosen S/X locks through COMMIT/ROLLBACK.
 The gate/version rows are **inside the parent's rank**, not a late synthetic
 rank after 15; neither a joined `FOR UPDATE` nor a pre-lock admission query
-proves acquisition order. **No SHARE-to-EXCLUSIVE lock upgrade**: normal
-commands elect S, while a controlled operator elects gate X and parent X
-intent before entering the rank prefix. If discovery finds an extra earlier
+proves acquisition order. **No SHARE-to-EXCLUSIVE lock upgrade**: a normal
+authenticated writer must also elect gate X upfront when it will advance the
+corresponding admitted material, while a controlled operator elects gate X
+and parent X intent for disposition changes before entering the rank prefix.
+If discovery finds an extra earlier
 object or changed membership/grant/lineage set, abandon the transaction,
 rediscover and use a fresh challenge, never acquire a lower rank late.
 
@@ -299,8 +362,13 @@ not invent or silently renumber an S1 field.
 Protected post-T0 writers may create a new object or advance an admitted
 security-material version **only** via an authenticated, typed, narrow SQL
 command that atomically records the accepted successor-version provenance with
-its domain change and audit/receipt. Keep the existing trust gate SHARE-locked;
-do not upgrade it late or silently change HOLD to ADMIT. New born objects get
+its domain change and audit/receipt. For an **existing changed object**, keep
+the trust gate/current accepted-material row **X-locked from prepare through
+COMMIT**, increment its monotone version and replace its accepted digest
+atomically with the domain/audit/receipt; an unchanged dependency retains S.
+This is an authenticated continuation of ADMIT, not a new operator admission:
+do not upgrade a previously S-held gate or silently change HOLD to ADMIT.
+New born objects get
 their protected gate/version in that same COMMIT, derived from independently
 admitted parents and verified ceremony, never from ordinary runtime INSERT.
 **For a missing gate**, neither a SELECT returning zero rows nor a failed
@@ -324,12 +392,12 @@ object/version and audit may do this. It elects **exclusive gate/parent intent
 upfront** and uses the **same rank 01–14 parent prefix**, locking all affected
 parent rows/eligibility fences first in their established resource/UUID order,
 then the rank's admission gates **`FOR UPDATE` (X)** ordered by
-`(object_kind ASC, object_uuid PostgreSQL ASC)`, with the exact accepted
+`(object_kind ASC, decoded typed UUID tuple ASC)`, with the exact accepted
 material version **and** expected `admission_version` checked. It increments
 the monotone admission version and commits HOLD plus receipt/audit; no
 SHARE-to-X upgrade after obtaining a signer proof. It cannot first lock admission
 X and then acquire an earlier parent, and cannot borrow a User/tenant admin or
-ordinary runtime SQL signer. A live command's admission SHARE blocks operator
+ordinary runtime SQL signer. A live command's selected admission S/X lock blocks operator
 X until the command commits; if HOLD X commits first, every subsequently
 unblocked prepare/execute sees HOLD and **cannot** commit protected state.
 **HOLD COMMIT** is the authority-denial linearization barrier, not an operator
@@ -634,7 +702,7 @@ never prints a previous secret.
 | **R02 reset issue** | New generation, old generation revoke, reset audit+receipt commit, then quota **COUNTED** for actual new link. | Stale expected generation, current CA/MFA/target/entitlement or quota deny; rollback cannot create token. | Same current authorized operation returns **LINK_UNAVAILABLE** with no link or new budget; U reconcile immutable receipt/latest generation before returning safe status or finalizing quota. No second link or automatic new operation. |
 | **R03 reset redeem** | Password replacement+winning token consume+other reset revokes+all target SS/RC/P terminal+security audit atomically. | Generic invalid/expired/role-denied; failed protected business transaction does **not** undo counted public limiter attempts; no issuer MFA renewal. | Already consumed bearer generic failure; U new-lease readback by protected receipt/current generation, without redisclosing password or repeating UPDATE. **Never** compensate by restoring old password or revoked sessions. |
 | **X01 Shift force end** | Exact staff Shift ACTIVE→ENDED, immutable closure and derived tenant audit commit together; no Task row locks taken. | Current actor SS/F/CA-or-LM scope/L1 gates, 5m sensitive MFA, Shift/Location ownership and open-Task blocker deny without partial closure; blocked lock or CAS timeout rolls back Shift/closure/audit. | Same-operation exact fingerprint may return only authorized safe closure; change conflicts. UNKNOWN requires fresh `vsa1`/MFA/L1-gated lease and private receipt+Shift/audit readback; old stored access hash never authorizes direct SQL. |
-| **L1 operator ADMIT→HOLD / READ gates** | Independently authorized operator takes the complete parent rank sequence and each affected admission gate X; its monotone HOLD + immutable controlled audit/receipt COMMIT is the denial barrier. Ordinary protected commands retain gate S through their COMMIT. | Unknown/missing/stale object or expected version, held parent, unfinished admission migration, untrusted operator, or lock timeout blocks the requested action; no partial protected write/approval. | On U, new privileged lease takes same ordered fences and reconciles durable HOLD/receipt against independent monotone checkpoint. Do not turn a timeout into confirmed HOLD, silently un-HOLD or accept a stale ADMIT from a restored snapshot; ordinary replay must recheck admission before returning even safe facts. |
+| **L1 operator ADMIT→HOLD / READ gates** | Independently authorized operator takes the complete parent rank sequence and each affected admission gate X; its monotone HOLD + immutable controlled audit/receipt COMMIT is the denial barrier. Ordinary protected commands preselect S for unchanged admission or X for a material successor update and retain that mode through COMMIT. | Unknown/missing/stale object or expected version, held parent, unfinished admission migration, untrusted operator, or lock timeout blocks the requested action; no partial protected write/approval. | On U, new privileged lease takes same ordered fences and reconciles durable HOLD/receipt against independent monotone checkpoint. Do not turn a timeout into confirmed HOLD, silently un-HOLD or accept a stale ADMIT from a restored snapshot; ordinary replay must recheck admission before returning even safe facts. |
 
 Post-domain limiter finalization must never share a live domain lease via another
 pool connection. For M04/05 and R02, a finalizer crash/UNKNOWN must leave a
@@ -751,7 +819,8 @@ source ceremonies, never a fake successful signer. A is a genuinely authorized
 CONTROLLED_OPERATOR transition of an **exact current object/version** from ADMIT
 to HOLD (rank01 operator purpose, its matching parent prefix rank02–14, then
 the private gate X *within the parent's rank*); B is a real corresponding
-authenticated command taking its same parent followed by gate S. Observe the
+authenticated command taking its same parent followed by gate S for an
+unchanged dependency or X pre-elected for any material-version update. Observe the
 actual parent/admission wait through `pg_blocking_pids`, `pg_locks` and a
 test-only `pgrowlocks`/test query if available, plus exact row lock modes,
 backend/full XID, live version and safe receipt IDs. A's audit/receipt and
@@ -774,8 +843,9 @@ B only through an independently verified new lease and fresh ceremony, and
 then assert the matching C/R/D/U result. An UNKNOWN before the prior X fence
 can be acquired must remain transient, not absent.
 
-**Reverse ownership for every pair**: B obtains all parent+admission SHARE
-locks and valid proof **first**, then A attempts parent+admission X. The
+**Reverse ownership for every pair**: B obtains all parent+admission S/X
+locks chosen upfront by its intended mutation and valid proof **first**,
+then A attempts parent+admission X. The
 operator **must wait through B's COMMIT, ROLLBACK, pre-COMMIT disconnect or
 lost-ack COMMIT**, with no early HOLD success. If B committed legitimately,
 its protected result linearizes **before** A's subsequent HOLD COMMIT;
@@ -806,8 +876,9 @@ mismatched exact version, or older restored ADMIT**; separately approved
 monotone controlled retirement of held state remains permitted without
 creating new Staff authority;
 no direct runtime/PUBLIC/inherited-role right may INSERT/UPDATE admission or
-produce its successor evidence. Prove private gate SHARE acquired for *each*
-dependency and held through COMMIT, operator gate X cannot overtake it, and
+produce its successor evidence. Prove private gate S for each unchanged
+dependency and pre-elected X for every changed accepted material, both held
+through COMMIT; operator gate X cannot overtake either, and
 neither the application nor the SQL command requests a nested pool lease under
 domain locks. Compare committed domain, audit, admission, receipt and external
 checkpoint state after C/R/D/U/T. No mock-only or one-direction PASS proves

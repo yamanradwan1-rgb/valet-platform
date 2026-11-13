@@ -97,3 +97,25 @@ deployed SQL verifier confidentiality, actual `pgcrypto`, operator roles,
 controlled backup/restore, deployed effective grants and external commercial
 writers are separate **EXTERNAL — NOT VERIFIED** gates. Owner decisions
 S1/U1/L1/L2 remain **PROPOSED/PENDING**. No additional DEC is Accepted.
+
+### Independent full-package review of pinned `fa8626b8` and corrective actions
+
+All three **independent read-only** reviewers completed a source and
+documentation inspection at exactly
+`fa8626b8ab0b187b08225d967a41cef4747f6353` (a historical review SHA,
+**not** the later corrections). They did not edit any source/docs, run SQL,
+change grants, obtain secrets, create a PR or deploy. The pinned design was
+**not ready** because of real source/contract precision defects:
+
+| Reviewer | Actual findings at pinned SHA | Correction subsequently proposed; final delta proof |
+| --- | --- | --- |
+| W6 Auth/Crypto — MAJOR | Admission current-material update required `FOR UPDATE` by L1 cutover but `FOR SHARE` by S1/U2/locks (potential late upgrade), and X01 named nonexistent `Shift.updated_at`; otherwise checked S1 binary TLV, 18-field 323-byte fixture/HMAC, key custody and U2 nullable arrays. | Pre-elected gate X for every changed admitted material, S unchanged; explicit class-specific mode table and two-writer/HOLD PG17 tests. X01 binds actual `Shift.started_at/status/org/location/member`. New corrected SHA must be re-read; tests NOT RUN. |
+| W7 SQL/Concurrency — MAJOR/SIGNIFICANT | Same S/X conflict; Location grant has composite `(membership_id,location_id)` PK and no UUID yet L1 gate required one; X01 nonexistent timestamp; M11 installation ID typed TEXT although source is UUID; existing generic runtime account-security append can forge four MFA USER events; R02 four quota reserves could leave partial PENDING due one-key API; R02 client-settable TTL. | U1/S1/U2/locks/cutover use collision-free grant key `0x02||orgUUID16||memberUUID16||locationUUID16`; M11 installation is binary UUID; protect four MFA audit names under future narrow writer (migration 112 unchanged); reserve all four R02 keys in one short atomic pre-domain transaction and remove client-selectable TTL (DB 900s); X01 and lock modes corrected. Source-only correction; PG/ACL tests NOT RUN. |
+| W8 Operations/Cutover — MAJOR | Same S/X admission-mode ambiguity could deadlock or violate material version fencing; actual operator/environment key/storage/rollback not attested. | Proposed S/X selection aligned with L1, 21 planned races and uninterrupted release/restore HOLD barriers. Owner S1/U1/L1/L2 and production backup/injection/operator attestation remain pending; no code or release proof. |
+
+**Correction disposition at authoring:** documentation changes are pending an
+independent **new-SHA delta read** and cannot retroactively change the pinned
+reviewers' historical MAJOR findings into PASS. A successful read-only delta
+review can close design *wording/source precision* only; runtime forgery,
+cryptography, old-role denial, backup/DR and PostgreSQL 17 races remain
+**NOT RUN / EXTERNAL — NOT VERIFIED**.

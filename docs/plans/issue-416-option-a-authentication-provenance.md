@@ -439,20 +439,36 @@ historical-session trust shortcut or unconditional global reenrollment.
 
 **Admission revocation/HOLD fence (PROPOSED, mandatory for S1):** a protected
 `auth_proof_private.authority_admissions` registry keyed by
-`(audience, object_kind, object_id)` stores `ADMIT | HOLD | RETIRE`, an
+`(audience, object_kind, object_key_bytes)` stores `ADMIT | HOLD | RETIRE`, an
 increment-only `admission_version`, independently attested source/operation
 reference and immutable audit link, with no writable runtime/PUBLIC access.
+`object_key_bytes` is a **collision-free typed canonical identity**, never a
+SHA/truncated UUID/client-selected surrogate: singleton existing UUID rows use
+`0x01 || UUID(16 bytes)`, while composite Location grants lacking a row UUID
+use `0x02 || organizationUUID(16) || membershipUUID(16) || locationUUID(16)`;
+SQL derives all constituent IDs from locked persisted relationships and
+enforces a unique `(audience,kind,keyBytes)` row. Current source
+`MembershipLocationAccess` has composite PK `(membership_id,location_id)`
+with Organization ownership, so a fictitious grant UUID is forbidden.
 This is a proposed future object, not existing DDL. During prepare **and
-execute**, SQL must take `FOR SHARE` on every admission row needed by the
-command's capability **at the same ordered parent-row lock rank**: User at 09,
+execute**, SQL must lock every required admission and material-version row
+**at its parent-row rank with its lock mode elected upfront**: `FOR UPDATE`
+for any object's admission/material row whose accepted version this command
+will change; `FOR SHARE` only for unchanged authority dependencies. Never
+upgrade SHARE→UPDATE after acquiring a lower-ranked resource. The exact
+ranks are User at 09,
 Organization/entitlement at 10, member/grants/Location at 11, session at 12
 for post-T0 issuance lineage, factor/current recovery generation at 13 and
 invitation/reset if selected at 14. Every purpose's private kind-03 locked
 state TLV binds the complete required admission object identities, versions
 and dispositions; no missing row means implicit ADMIT, no `HOLD` can sign or
 execute and an independent password/TOTP ceremony does not override HOLD.
-The protected operator mutation `ADMIT→HOLD/RETIRE`, or reviewed re-admission,
-takes the **same parent ranks** and `FOR UPDATE` on admission rows, verifies
+An ordinary genuinely authenticated typed material mutation advances its
+admitted successor digest and `admission_version` under the **upfront X lock**
+in the same domain+receipt+audit COMMIT, retaining ADMIT disposition; it
+cannot convert HOLD to ADMIT. The protected operator disposition mutation
+`ADMIT→HOLD/RETIRE`, or reviewed re-admission, takes the **same parent ranks**
+and `FOR UPDATE` on admission rows, verifies
 independent operator approval and exact prior version, appends immutable
 security audit and commits before returning success. If operator HOLD commits
 first, a late proof is denied even if the app earlier signed; if a properly

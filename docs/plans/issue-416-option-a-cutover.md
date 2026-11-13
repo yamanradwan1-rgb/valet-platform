@@ -80,7 +80,8 @@ external attestation is an explicit HOLD, never implicit acceptance. No
 password, seed, code, verifier, token or proof enters the public manifest.
 
 The manifest records release/audience, Company/Organization boundary, object
-class/id, expected state/version or digest, disposition ADMIT/HOLD/RETIRE,
+class/typed canonical object key, expected state/version or digest,
+disposition ADMIT/HOLD/RETIRE,
 source-of-trust reference, verified approver and operator identity, timestamp,
 and recovery case where needed. It includes object-class total counts, missing
 and unresolved counts, and a safe manifest digest. Each ADMIT is an explicit
@@ -92,6 +93,15 @@ and per-object admission state behind protected ACLs; ordinary runtime SQL
 cannot change admissions or approve itself. Exact implementation schema and
 concurrency rules remain U2 implementation work, not a runtime-role write or a
 generic JSON policy store. Existing business/security history stays unchanged.
+The protected admission registry uses the exact collision-free typed key
+`(audience, object_kind, object_key_bytes)` and accepts no client-selected
+surrogate: singleton existing UUID objects encode `0x01 || UUID16`, while
+`membership_location_access` grants have **no row UUID** and encode
+`0x02 || organizationUUID16 || membershipUUID16 || locationUUID16` (49 bytes)
+under their actual composite PK. Both L1 baseline and later HOLD/RETIRE cases
+must store/lock these same typed bytes with the exact parent relationships;
+grant deletion/recreation never silently revives an older ADMIT. Mismatched
+composite scope, missing parent or version => HOLD, including older backups.
 
 Admission is a dependency graph: session -> User -> membership/role/grants ->
 Organization -> relevant entitlement; MFA assurance additionally -> admitted

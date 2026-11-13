@@ -74,6 +74,21 @@ Final independent review of the complete pinned revised aggregate is **PENDING**
 until its SHA and reviewer dispositions are recorded. No PostgreSQL 17
 concurrency or signer implementation tests were executed here.
 
+**Independent candidate review at SHA `fa8626b8ab0b187b08225d967a41cef4747f6353`:**
+W6/W7/W8 each completed a read-only full-design review and returned
+**MAJOR source/design findings** (not PASS). They discovered conflicting
+`FOR SHARE` vs upfront `FOR UPDATE` admission row modes, a nonexistent
+`Shift.updated_at` optimistic field, missing collision-free grant composite
+admission identity, M11 UUID typed as text, generic MFA security-audit
+forgery through the old runtime append function, and incomplete atomic
+four-scope reset-issue quota reservation with an unnecessary caller TTL.
+These are documented with evidence, impact and proposed corrections in
+[the fresh independent review ledger](../plans/issue-416-option-a-final-independent-review.md).
+The subsequent documentation-only correction commit requires **new pinned
+independent delta review** before a final source-design verdict is claimed.
+Migration 112 remains unchanged; no live grants, SQL, application, crypto or
+API runtime behavior changed by these amendments.
+
 ## Option A Codex recovery and later design reconciliation (2026-11-13)
 
 The later design-only recovery has its own source-verified history and
