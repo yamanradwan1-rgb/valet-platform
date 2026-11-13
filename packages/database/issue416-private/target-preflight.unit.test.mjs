@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { resolveAttestedScript } from "./attested-node-child.mjs";
+import { assertMigrationMode, resolvePrismaMigrateInvocation } from "./prisma-migrations.mjs";
 import { assertDockerIdentity } from "./docker-target.mjs";
 import { assertSqlIdentity } from "./postgres-target.mjs";
 import { assertTargetEnvironment, sanitizedChildEnvironment, TARGET } from "./target-contract.mjs";
@@ -127,6 +128,23 @@ describe("Issue416 SQL identity", () => {
       .toBe(fixtureSql().server_started);
   });
 
+  it("permits CREATEROLE only to the exact synthetic migration principal", () => {
+    const migration = {
+      ...fixtureSql(),
+      actor: TARGET.trustedMigrationRole,
+      session_role: TARGET.trustedMigrationRole,
+      can_create_role: true,
+    };
+    expect(assertSqlIdentity(migration, TARGET.trustedMigrationRole))
+      .toBe(migration.server_started);
+    expect(() => assertSqlIdentity({ ...migration, can_create_role: false },
+      TARGET.trustedMigrationRole)).toThrow("SQL attestation refused");
+    expect(() => assertSqlIdentity({ ...fixtureSql(), can_create_role: true },
+      TARGET.roles.DATABASE_URL[0])).toThrow("SQL attestation refused");
+    expect(() => assertSqlIdentity({ ...migration, actor: TARGET.roles.TEST_DATABASE_URL[0] },
+      TARGET.trustedMigrationRole)).toThrow("SQL attestation refused");
+  });
+
   it.each([
     ["database", "database", "shared_qa"],
     ["owner", "database_owner", "other_owner"],
@@ -158,4 +176,19 @@ describe("Issue416 DDL child path fence", () => {
       expect(() => resolveAttestedScript(path)).toThrow();
     },
   );
+});
+
+describe("Issue416 dedicated Prisma migration runner", () => {
+  it("resolves only the pinned repository Prisma CLI", () => {
+    const invocation = resolvePrismaMigrateInvocation();
+    expect(invocation.cli).toMatch(/prisma[\\/]build[\\/]index\.js$/);
+    expect(invocation.argv).toEqual(["migrate", "deploy"]);
+  });
+
+  it("requires an explicit apply command; rejects all other DDL modes", () => {
+    expect(() => assertMigrationMode("--apply")).not.toThrow();
+    for (const candidate of [undefined, "migrate", "--reset", "--help", "--schema=other"]) {
+      expect(() => assertMigrationMode(candidate)).toThrow("explicit --apply");
+    }
+  });
 });

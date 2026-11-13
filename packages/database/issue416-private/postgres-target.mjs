@@ -9,6 +9,9 @@ function refuse(reason) {
 }
 
 export function assertSqlIdentity(identity, expectedRole) {
+  // Only this exact synthetic migration login may CREATE ROLE (needed for the
+  // NOLOGIN proof-owner role in forward-only Issue416 migrations).
+  const mayCreateRole = expectedRole === TARGET.trustedMigrationRole;
   if (identity?.database !== TARGET.database ||
       identity.database_owner !== TARGET.owner ||
       identity.actor !== expectedRole || identity.session_role !== expectedRole ||
@@ -18,7 +21,7 @@ export function assertSqlIdentity(identity, expectedRole) {
       identity.server_version < 170000 || identity.server_version >= 180000 ||
       typeof identity.server_started !== "string" || !identity.server_started ||
       identity.is_superuser !== false || identity.can_create_db !== false ||
-      identity.can_create_role !== false || identity.can_bypass_rls !== false ||
+      identity.can_create_role !== mayCreateRole || identity.can_bypass_rls !== false ||
       identity.can_replicate !== false || identity.inherits_owner !== false) {
     refuse(`database/version/owner/role for ${expectedRole}`);
   }

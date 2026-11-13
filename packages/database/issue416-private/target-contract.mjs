@@ -5,6 +5,7 @@ export const TARGET = Object.freeze({
   volume: "vaylet-issue416-w9-pg17-data",
   database: "issue416_w9_db",
   owner: "issue416_w9_owner",
+  trustedMigrationRole: "issue416_w9_migration",
   port: "55416",
   image: "postgres:17-alpine",
   roles: Object.freeze({
@@ -65,6 +66,9 @@ export function assertTargetEnvironment(env = process.env) {
     urls[name] = value;
   }
   if (new Set(Object.values(urls)).size !== 3) fail("roles are not distinct");
+  if (TARGET.roles.MIGRATION_DATABASE_URL[0] !== TARGET.trustedMigrationRole) {
+    fail("privileged fixture migration principal drift");
+  }
   return Object.freeze(urls);
 }
 

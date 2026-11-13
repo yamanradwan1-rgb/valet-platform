@@ -26,6 +26,22 @@ pnpm --dir packages/database exec vitest run --config vitest.issue416-vap1.confi
 pnpm --dir packages/database exec vitest run --config vitest.issue416-vap1.config.mjs --project issue416-pg17-private
 ```
 
+Once W2's reviewed forward-only migration SQL is integrated into the test
+worktree, the **explicit DDL entrypoint** is:
+
+```powershell
+node packages/database/issue416-private/run-migrations.mjs --apply
+```
+
+It requires the same three explicit test URLs and verifies the running Docker
+and PostgreSQL identities twice before the migration and again afterwards.
+The pinned installed Prisma 7.9.1 CLI is invoked as a sanitized Node child
+with its own pre-entrypoint attestation. Do not call the generic pnpm migrate
+runner: it depends on inherited `npm_execpath` and its usual fallback paths.
+On this dedicated test target `issue416_w9_migration` alone is allowed
+`CREATEROLE` to create the future private NOLOGIN owner in migration 113;
+test/runtime roles remain `NOCREATEROLE` with no owner membership.
+
 `--prepare` must PASS **before** creating the container; it denies an existing
 name, volume, or occupied dedicated port. The compose command is the only
 explicitly operator-started container creation. `--inspect` attests Docker

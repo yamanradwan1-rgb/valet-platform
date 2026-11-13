@@ -34,25 +34,39 @@ describe("Issue416 isolated PG17 non-mutating role negatives", () => {
       const result = await queryFrom(key, `
         SELECT has_database_privilege(current_user, current_database(), 'CREATE') AS db_create,
                has_schema_privilege(current_user, 'public', 'CREATE') AS schema_create,
-               pg_has_role(current_user, $1::name, 'MEMBER') AS owner_member`,
+               r.rolcreaterole AS can_create_role,
+               pg_has_role(current_user, $1::name, 'MEMBER') AS owner_member
+        FROM pg_roles r WHERE r.rolname = current_user`,
       [TARGET.owner]);
       expect(result.rows).toEqual([{
-        db_create: false, schema_create: false, owner_member: false,
+        db_create: false, schema_create: false, can_create_role: false,
+        owner_member: false,
       }]);
       expect(role).not.toBe(TARGET.owner);
     },
   );
 
-  it("migration role is limited to the synthetic fixture", async () => {
+  it("migration role has ONLY test-owned CREATE/CREATEROLE authority", async () => {
     const result = await queryFrom("MIGRATION_DATABASE_URL", `
       SELECT current_user AS actor,
              has_database_privilege(current_user, current_database(), 'CREATE') AS db_create,
-             pg_has_role(current_user, $1::name, 'MEMBER') AS owner_member`,
-    [TARGET.owner]);
-    expect(result.rows).toEqual([{
-      actor: TARGET.roles.MIGRATION_DATABASE_URL[0],
-      db_create: true,
-      owner_member: false,
-    }]);
+             has_schema_privilege(current_user, 'public', 'CREATE') AS schema_create,
+             r.rolcreaterole AS can_create_role,
+             r.rolsuper AS superuser,
+             pg_has_role(current_user, $1::name, 'MEMBER') AS owner_member
+      FROM pg_roles r WHERE r.rolname = current_user`,
+      [TARGET.owner]);
+      expect(result.rows).toEqual([{
+        actor: TARGET.trustedMigrationRole,
+        db_create: true, schema_create: true, can_create_role: true,
+        superuser: false, owner_member: false,
+      }]);
+  });
+
+  it("PG17 fixture exposes pgcrypto extension without installing it here", async () => {
+    const result = await queryFrom("MIGRATION_DATABASE_URL", `
+      SELECT EXISTS(SELECT 1 FROM pg_available_extensions
+                    WHERE name = 'pgcrypto') AS available`);
+    expect(result.rows).toEqual([{ available: true }]);
   });
 });
