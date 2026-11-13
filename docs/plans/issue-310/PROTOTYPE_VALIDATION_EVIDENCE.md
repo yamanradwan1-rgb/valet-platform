@@ -9,7 +9,7 @@ Work date: 2026-11-13–14 (Asia/Amman). **Design approval: PENDING OWNER.**
 - Worktree: `D:\kndoom\valet-platform\tmp\issue-310-last-mile-worktree`.
 - Original source/remote: `de338f4da187297aacd0fc7005ece9b6f041fe61`.
 - Plan-only commit: `eeaa522717efd37e3041b7b1e208bddc6394d65f`, normally pushed and independently confirmed with `git ls-remote` before prototype work.
-- Prototype immutable source commit: recorded in the final evidence update after the validated source is committed. No claimed test is based on an invented future SHA.
+- Prototype immutable source commit: `2dfbe21e8232b428e566d923e66461278926761d`. All final source checks and the 242-file/1706-test run used this exact source; subsequent delivery evidence updates change documentation only.
 - No PR, merge, production endpoint/schema/credential change, deployment, Meta call or messaging activation is part of this delivery.
 
 ## Exact scope
