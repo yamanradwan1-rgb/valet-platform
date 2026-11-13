@@ -177,4 +177,53 @@ describe("VAP1 exact binary TLV — independent S1 reference vectors", () => {
         .digest("hex")).not.toBe(original);
     }
   });
+
+  it("matches migration113 keyId, audience and purpose syntax at exact boundaries", () => {
+    for (const keyId of ["A", "Z" + "9._:-".repeat(12) + "123", "k1._:-"]) {
+      expect(() => encodeVap1Proof({ ...testProof, keyId })).not.toThrow();
+    }
+    expect(("Z" + "9._:-".repeat(12) + "123").length).toBe(64);
+    for (const audience of ["0", "A" + "9._:-".repeat(19), "test.env:stage-1"]) {
+      expect(() => encodeVap1Proof({ ...testProof, audience })).not.toThrow();
+    }
+    expect(("A" + "9._:-".repeat(19)).length).toBe(96);
+    for (const purpose of ["ABC", "LOGIN", "STAFF_LOGIN_COMMIT", "A" + "B_".repeat(47) + "C"]) {
+      expect(() => encodeVap1Proof({ ...testProof, purpose })).not.toThrow();
+    }
+    expect(("A" + "B_".repeat(47) + "C").length).toBe(96);
+  });
+
+  it("rejects SQL-invalid field-specific identifiers on encode and decode", () => {
+    const invalid = [
+      { id: 2, values: ["", "0key", "_key", "k/name", "k key", "A".repeat(65), "abc\n"] },
+      { id: 3, values: ["", "_aud", "a/b", "a b", "a".repeat(97), "aud\n"] },
+      { id: 4, values: ["", "AB", "2ABC", "staff_login_commit", "A/B", "A-B",
+        "A.B", "A".repeat(97), "LOGIN\n"] },
+    ] as const;
+    for (const { id, values } of invalid) {
+      for (const value of values) {
+        const altered = {
+          ...testProof,
+          ...(id === 2 ? { keyId: value } : id === 3 ? { audience: value } :
+            { purpose: value }),
+        };
+        expect(() => encodeVap1Proof(altered)).toThrow();
+        // A generic TLV frame may be syntactically valid yet NOT a valid proof.
+        const frame = decodeVap1Frame(encodeVap1Proof(testProof));
+        const malicious = encodeVap1Frame(2, frame.fields.map((field) =>
+          field.id === id && field.type === "utf8" ? { ...field, value } : field,
+        ));
+        expect(() => decodeVap1Proof(malicious)).toThrow();
+      }
+    }
+  });
+
+  it("does not elevate syntactically valid illustrative purposes into a signer", () => {
+    // LOGIN is S1's fixed syntactic vector but is not a registered A01 signer.
+    // No callable signer/key loader is exported by this codec-only module.
+    expect(decodeVap1Proof(encodeVap1Proof(testProof)).purpose).toBe("LOGIN");
+    expect(decodeVap1Proof(encodeVap1Proof({
+      ...testProof, purpose: "SYNTHETIC_TEST_PURPOSE",
+    })).purpose).toBe("SYNTHETIC_TEST_PURPOSE");
+  });
 });

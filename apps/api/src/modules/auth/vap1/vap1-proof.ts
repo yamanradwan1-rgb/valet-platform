@@ -25,7 +25,11 @@ export interface Vap1ProofFields {
   readonly expiresAtMs: bigint;
 }
 
-const IDENTIFIER = /^[A-Za-z0-9][A-Za-z0-9_.:/-]*$/;
+// Match migration113's distinct SQL CHECKs, not a shared permissive identifier.
+// The complete-match check also rejects the final-newline exception of JS `$`.
+const KEY_ID_PATTERN = /^[A-Za-z][A-Za-z0-9._:-]{0,63}$/;
+const AUDIENCE_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,95}$/;
+const PURPOSE_PATTERN = /^[A-Z][A-Z0-9_]{2,95}$/;
 const MAX_U64 = (1n << 64n) - 1n;
 const EXPECTED_TYPES: readonly Vap1WireType[] = [
   "utf8", "utf8", "utf8", "utf8", "uuid", "bytes",
@@ -33,9 +37,9 @@ const EXPECTED_TYPES: readonly Vap1WireType[] = [
   "uuid", "sha256", "sha256", "u64", "u64",
 ];
 
-function registeredIdentifier(value: string, maxLength: number): void {
-  if (typeof value !== "string" || value.length > maxLength || !IDENTIFIER.test(value)) {
-    throw new Error("VAP1 invalid registered identifier");
+function requireSqlIdentifier(value: string, pattern: RegExp, field: string): void {
+  if (typeof value !== "string" || pattern.exec(value)?.[0] !== value) {
+    throw new Error(`VAP1 invalid ${field}`);
   }
 }
 
@@ -45,9 +49,11 @@ function optionalUuid(id: number, value: string | null): Vap1Field {
 }
 
 function validateProof(proof: Vap1ProofFields): void {
-  registeredIdentifier(proof.keyId, 64);
-  registeredIdentifier(proof.audience, 96);
-  registeredIdentifier(proof.purpose, 96);
+  requireSqlIdentifier(proof.keyId, KEY_ID_PATTERN, "keyId");
+  requireSqlIdentifier(proof.audience, AUDIENCE_PATTERN, "audience");
+  // Syntax only. The authenticated signer/SQL writer must also enforce the
+  // enabled, actor-bound purpose registry; S1's LOGIN vector is not a route.
+  requireSqlIdentifier(proof.purpose, PURPOSE_PATTERN, "purpose");
   if (!["STAFF", "ANONYMOUS", "OPERATOR"].includes(proof.actorKind)) {
     throw new Error("VAP1 invalid actor kind");
   }
