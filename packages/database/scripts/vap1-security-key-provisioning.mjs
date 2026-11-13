@@ -40,10 +40,20 @@ export async function provisionSyntheticVap1Key(
   try {
     await client.query("SET LOCAL ROLE vap1_proof_owner");
     const boundary = await client.query(
-      "SELECT phase FROM auth_proof_private.security_boundary WHERE singleton FOR UPDATE",
+      "SELECT phase,deployment_audience FROM auth_proof_private.security_boundary WHERE singleton FOR UPDATE",
     );
     if (boundary.rows[0]?.phase !== "LEGACY_COMPAT") {
       throw new Error("Synthetic key fixture cannot modify protected boundary.");
+    }
+    if (boundary.rows[0].deployment_audience !== null &&
+        boundary.rows[0].deployment_audience !== audience) {
+      throw new Error("Synthetic key fixture refuses a different deployment audience.");
+    }
+    if (boundary.rows[0].deployment_audience === null) {
+      await client.query(
+        "UPDATE auth_proof_private.security_boundary SET deployment_audience=$1 WHERE singleton AND phase='LEGACY_COMPAT'",
+        [audience],
+      );
     }
     await client.query(
       "SELECT pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended($1,0))",
