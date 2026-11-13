@@ -1,5 +1,33 @@
 # Issue #416 security foundation evidence
 
+## Option A Codex recovery and later design reconciliation (2026-11-13)
+
+The later design-only recovery has its own source-verified history and
+[delivery/decision ledger](../plans/issue-416-option-a-recovery-handoff.md).
+The two local Codex documentation commits were found in Git and replayed
+unchanged onto the original `62d0a3d3f97a4186d2dd85642212efc7b4f35d42`
+feature baseline: legacy admission/cutover `2323544b` became `06cc29e0`,
+and source lock/outcome analysis `29cfadcb` became `940cc907` via
+`cherry-pick -x`. The resulting documents remain **PROPOSED DESIGN**, not
+accepted architecture, runtime validation or proof of live secret custody.
+
+The recovered [cutover](../plans/issue-416-option-a-cutover.md),
+[locks](../plans/issue-416-option-a-locks.md), and new
+[key-custody specification](../plans/issue-416-option-a-key-custody.md)
+extend the [central Option A proposal](../plans/issue-416-option-a-authentication-provenance.md).
+Exact latest integration/review SHA and U2 source writer inventory are recorded
+in the updated handoff once integrated. No authentication code, DB privileges,
+migration or reset UI/API has been modified by this design-only recovery.
+
+The older evidence below is intentionally **historical**. Earlier PostgreSQL
+tests validated only audit reservation migration **112** and prior runtime
+roles; none executed the new command-proof, verifier custody, legacy admission
+or future SQL lock graph. Production custody/cutover, proof secrecy and new
+PostgreSQL concurrency tests remain **BLOCKED/NOT RUN**. Prior independent
+review documents assessed an older design and do not constitute approval of
+the recovered aggregate. This record preserves the actual historical results
+without relabeling them as fresh passes.
+
 ## Later Option A design-only phase
 
 The Owner subsequently selected Option A's architectural direction and authorized

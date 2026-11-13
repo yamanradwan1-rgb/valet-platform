@@ -4,16 +4,21 @@ Status: Proposed — Owner Approval Required.
 
 ## Executive verdict and baseline
 
-OPTION A DESIGN BLOCKED — ADDITIONAL SECURITY DECISION REQUIRED.
+OPTION A DESIGN PARTIALLY CLOSED — OWNER DECISIONS REQUIRED.
 
 Option A is the Owner-selected direction. This package specifies a candidate
-protocol and the remaining contracts. It authorizes no implementation. U1 key
-custody and U2 exhaustive typed writer/lock closure prevent implementation-ready
-status. No new DEC is marked Accepted.
+protocol and its remaining contracts; it authorizes no implementation. The
+recovered cutover and lock supplements make legacy and ordering proposals
+reviewable, but neither proves deployment security or production concurrency.
+U1 key custody, U2 typed writer/ceremony coverage and material Owner decisions
+still gate implementation. No new DEC is marked Accepted.
 
-Main inspected is bfb4fdccf9d557c371313c9e357faa52e0a71014. Starting feature HEAD
-is 350d88b090c9dbe1f8d7fa29d6390e28afa9ae19, clean at kickoff. Issue #416 remained
-open with no comments. Existing shared contracts and audit migration 112 remain.
+The design baseline is origin/main bfb4fdccf9d557c371313c9e357faa52e0a71014;
+the existing feature HEAD before this recovery was
+62d0a3d3f97a4186d2dd85642212efc7b4f35d42. Both original documentation
+commits 2323544b (legacy) and 29cfadcb (locks) have that exact parent and were
+recovered intact into the isolated integration history. Issue #416 remained open
+with no comments. Existing shared contracts and audit migration 112 remain.
 Applicable authority includes AGENTS.md, docs/00,06,08,13,17, canonical DEC-023/025,
 and focused Accepted DEC-024/072/075/076/078/079/080/081. Source discovery and
 review are distinct from executed authentication-provenance tests.
@@ -29,8 +34,11 @@ review are distinct from executed authentication-provenance tests.
 | DERIVED | All direct authority-establishing writes and weaker SQL entry points must migrate |
 | PROPOSED | Per-command HMAC proof and transaction-bound one-use challenge |
 | PROPOSED | Drained cutover with legacy-session revocation and reauthentication |
-| UNRESOLVED U1 | Production proof-key custody, at-rest storage, provisioning and rotation ownership |
-| UNRESOLVED U2 | Exhaustive typed command inventory, Organization/entitlement writers and lock migration |
+| PROPOSED L1 | Selective legacy account/factor/authority admission and mediated recovery; see cutover supplement |
+| PROPOSED L2 | Drained boundary with proof-capable rollback (or explicitly approved secure outage); see cutover supplement |
+| PROPOSED LOCKS | Normalized writer resource ranking, key retirement barrier and retry cases; see locks supplement |
+| UNRESOLVED U1 | Actual proof-key custody, at-rest storage, provisioning and rotation ownership |
+| SOURCE-INVENTORIED U2 / UNRESOLVED PROOF | Source-backed writer/SQL-signature manifest exists; strict command schemas, external Organization/entitlement writers, effective grants and races are unverified |
 
 No custody/Task/Dispatch transitions or Company-default/Location-override changes.
 
@@ -61,11 +69,15 @@ accepted credential verification against state whose establishment and updates
 are protected after the coordinated cutover. This is a proposed invariant that
 future implementation tests must demonstrate.
 
-## Current writer inventory
+## Current writer inventory (historical overview)
 
 Paths are relative to apps/api/src/modules unless specified. Direct DML rights
 are configured in packages/database/scripts/mfa-runtime-privileges.mjs. Existing
-management/onboarding functions also have runtime EXECUTE grants.
+management/onboarding functions also have runtime EXECUTE grants. This compact
+overview is superseded by the source-backed [U2 writer and SQL inventory](issue-416-option-a-writer-inventory.md),
+cataloging A01–A11, M01–M15, provisioning, reset R01–R03, callable SQL
+signatures, trigger and cleanup dependencies. U2 does not claim closed canonical
+purpose payload schemas, all deployed overloads or effective grants.
 
 | Writer / operation | Objects | Current rights | Authentication source | Protection / migration |
 | --- | --- | --- | --- | --- |
@@ -155,19 +167,29 @@ have established them. A new password login alone cannot cure untrusted policy.
 
 ## Key custody and confidentiality U1
 
-An app startup secret and private SQL verification secret are required. A private
-SQL table enforces ACL separation but does not prove at-rest/backup security.
-No secret may appear in function source, migration literals, GUCs or runtime-
-readable helpers. The repository supplies no complete command-key delivery and
-rotation contract. Recommend approved encrypted-at-rest verifier storage and
-protected app-secret injection with named operator ownership. U1 must select the
-actual mechanism, provisioning/backup access and retirement procedure before code.
-An asymmetric verifier requires separately approved PostgreSQL support; built-in
-pgcrypto signature support must not be assumed.
+The source-grounded [U1 proof-key custody contract](issue-416-option-a-key-custody.md)
+details the current app/deployment/DB boundaries, symmetric HMAC signer and SQL
+verifier responsibilities, provisioning, rotation, recovery and security proof
+gates. A private SQL table enforces ACL separation but does not prove at-rest
+encryption or safe backup. Never place reusable keys in function source,
+migration literals, GUCs, runtime-readable helpers or unprotected logs.
+The repository does not implement a complete protected verifier-delivery and
+backup/restore mechanism; real production operators/secret storage remain
+unattested, so **U1 is technically blocked pending a demonstrable viable
+custody boundary and Owner selection**. An asymmetric verifier alternative
+requires separately reviewed PostgreSQL verification support; `pgcrypto`
+signatures must not be presumed available.
 
 Proposed key states are ACTIVE_SIGNING, VERIFY_ONLY and RETIRED. New challenges
-use the active key; verification overlap is at most the 30-second command TTL.
-Retirement invalidates outstanding proof immediately while receipts remain.
+use the active key; verification-only overlap must cover enforced proof lifetime,
+explicit clock skew and bounded in-flight completion, with no assertion that
+30 seconds is an exact overlap cap.
+Retirement is a serialized database COMMIT barrier: executions that obtained
+the verifier-key SHARE lock before retirement can complete before it commits;
+after retirement commits, no command under that key can newly commit. A key
+incident must close ingress, drain/cancel and prove this barrier. No instantaneous
+revocation of already committed effects is claimed. Retired IDs and receipts
+remain across restore/rollback.
 Outage fails closed with infrastructure errors, never fabricated bad credentials.
 
 Proofs and candidate hashes remain sensitive until consumed/expired. No reusable
@@ -187,7 +209,7 @@ tests do not attest deployment secrecy. Production controls remain a release gat
 | Push | User-security, session, sorted registration keys | no active binding after reset revocation |
 | Management | API assurance locks session/User before org advisory; nested/direct SQL has its own membership/factor prefix | enumerate API and SQL-only entrypoints separately |
 | Onboarding | email, sorted User-security, org, membership/User/invite | maintain identity and membership serialization |
-| Reset | email, sorted Users, MFA session/User, org, remaining rows | preserve Issue416 normalized order and current authority |
+| Reset (future) | the v9 sketch puts email/User, session/User, then org; proposed replacement ranks email/User advisory, org fences and ordered rows | preserve current authority and approved reset semantics; test the replacement ranking before accepting it |
 
 All commands require six outcomes. First execution verifies proof/current facts,
 locks, mutates/audits/receipts and commits. Identical retry uses fresh proof and
@@ -196,21 +218,27 @@ at receipt identity. Changed payload conflicts without mutation. Post-success
 retry reauthorizes. Unknown commit reconciles receipt without inventing a new
 operation or redisclosing secrets. Refresh retains its accepted consumed-replay
 family-revocation exception. Reset issue retries remain linkless; redeem replay
-remains generically invalid. Same-session pending MFA enrollment retains its accepted seed retrieval; foreign sessions cannot retrieve it. Recovery-code reissue and replacement credentials remain governed by their existing single-disclosure contracts. No receipt stores raw secrets. No new public HTTP error contract is accepted here.
+remains generically invalid. Same-session pending MFA enrollment retains its accepted seed retrieval; foreign sessions cannot retrieve it. Recovery-code reissue and replacement credentials remain governed by their existing single-disclosure contracts. No receipt stores raw secrets. Issue #416's Owner-approved future HTTP/error mapping remains binding; this internal proof design adds no separate public API.
 
-U2 must supply each transaction A/B lock graph, commit/rollback/disconnect branch
-and SQLSTATE mapping for every listed pair. This matrix identifies current
-inversions; it does not claim deadlock freedom.
+The recovered [lock and outcome contract](issue-416-option-a-locks.md) specifies
+proposed ranks 01–17, source-entrypoint/nested-lock evidence, six retry outcomes
+and fourteen future two-connection PostgreSQL races. These are design rules for
+replacement commands, not proof that current entrypoints are already safe or
+that deployment has no undocumented writers. All real PostgreSQL concurrency,
+timeout, rollback and unknown-COMMIT tests remain NOT RUN.
 
 ## Legacy, rollout and rollback
 
-PROPOSED drained coordinated cutover. Stop auth/security traffic, drain transactions,
-install proof-aware code disabled, provision keys, apply additive private schema/
-functions, migrate all consumers and atomically remove weaker grants/EXECUTE.
-Revoke all legacy sessions and disable/clear their push endpoints. Preserve MFA
-factors/codes only under the separately approved provenance policy. Genuine password
-and MFA establish protected authority. Mixed old/new writers are prohibited.
-Startup verifies effective ACLs/key readiness before protected traffic resumes.
+The recovered [legacy and cutover contract](issue-416-option-a-cutover.md)
+defines separate PROPOSED Owner decisions L1 selective trust admission and L2
+drained cutover/compatible rollback. It inventories active/pending factors,
+recovery codes, User/password, membership/grants, Organization, entitlements,
+legacy sessions/refresh, push and controlled operator recovery. Unknown origins
+enter HOLD with independently verified recovery, not automatic grandfathering;
+fresh password login cannot validate an untrusted existing factor or role.
+Its C0–C6 cutover requires inventory, backup/restore evidence, proof-capable N/R
+artifacts, draining relevant writers, irreversible legacy-session revocation,
+grants/EXECUTE retirement and verified startup. No cutover has occurred.
 
 Rollback targets the last proof-capable version with reset disabled. Never restore
 unsafe grants or retired keys. If no compatible version exists, retain secure
@@ -268,8 +296,10 @@ issue-416-option-a-review-sql.md and issue-416-option-a-review-ops.md. Reviewer
 findings must retain severity, evidence, correction and future acceptance tests.
 U1 and U2 remain blocking contracts, even if the candidate direction is defensible.
 The next implementation phase cannot begin without further architecture closure.
-Owner approval must address concrete custody, factor provenance, payload/writer
-coverage and lock/cutover details. Option A selection is retained throughout.
+Owner approval must address actual custody, legacy-factor/authority admission,
+the downtime/rollback tradeoff and the material difference from Issue #416's
+original v9 SQL bearer/grant design. Engineering must source-close typed
+writers and prove the final lock graph. Option A selection is retained.
 
 
 ## Repository planning gate index
@@ -301,10 +331,15 @@ migration. Reprovisioning and startup checks must enforce the same final ACLs.
 
 ### Unresolved decisions
 
-U1 requires an approved actual custody mechanism. U2 requires typed command and
-writer closure, legacy-factor bootstrap and complete lock/retry/disclosure tables.
-Recommendations are encrypted verifier custody and a drained cutover; they are
-not adopted policy. A named operator and recovery procedure remain unspecified.
+U1 documents the proposed custody and rotation contract, but deployed signer/
+SQL verifier protection remains unattested. U2 inventories code writers and
+function signatures, but strict per-purpose payloads, effective ACLs and
+external operators are not fully proven. The locks supplement supplies a
+proposed rank/retry matrix without real concurrency tests. The cutover proposal
+includes L1 legacy admission/HOLD and L2 drained release, both Owner decisions.
+S1 requires Owner reconciliation of Option A's internal SQL proof/grant scope
+with the earlier approved v9 reset design. Operator identity, real backup/restore
+and a proof-compatible rollback artifact remain unverified.
 
 ### Risks / boundary violations
 
@@ -333,8 +368,10 @@ QA/production deployment, activation and issue closure.
 
 ### Ready-to-implement verdict
 
-DECISION REQUIRED. Owner direction approval alone does not close U1/U2. The
-implementation phase cannot begin without further detailed architecture closure.
+OPTION A DESIGN PARTIALLY CLOSED — OWNER DECISIONS REQUIRED. Owner approval of
+the Option A direction alone does not approve U1/L1/L2/S1 or authorize a
+production proof root. The implementation phase remains blocked pending final
+writer/ceremony closure, independent review and actual deployment evidence.
 
 SQL must recheck proof expiry and current authority after waits, before mutation.
 Receipt and domain-lock ordering require a single reviewed graph under both
@@ -354,20 +391,22 @@ or replacement ceremony, and behavior when provenance is unavailable. Forced
 login cannot prove prior policy or factor establishment; no history rewrite.
 
 Remaining BLOCKER AUTH-01/U1 requires an actual secret-delivery and SQL verifier
-at-rest/backup contract. Recommend a separately approved encrypted verifier
-store with named operators and incident retirement, subject to deployment
-capabilities. Current Accepted Decisions do not select that operating boundary.
+at-rest/backup contract. An encrypted verifier store with controlled operator
+custody is a candidate only if supported by a deployment capability attestation;
+neither this design nor Accepted Decisions establish such a deployed service.
 
-Remaining BLOCKER AUTH-02/U2 and AUTH-03/U2 require exact per-command typed
-ceremony/payload contracts and an approved legacy authority/factor bootstrap.
-SQL-01..04 remain MAJOR closure requirements for ACL/provisioner parity, upstream
-command signatures, custody and the complete lock graph. Recommend controlled
-baseline validation/recovery for objects without trusted provenance, with
-explicit Owner authorization for operational impact.
+Remaining BLOCKER AUTH-02/U2 now has a source-backed typed writer/function
+inventory, but exact payload schemas, signer guards and tested effective
+grant/old-signature retirement remain open. AUTH-03's legacy
+authority/factor bootstrap is specified as PROPOSED L1 in the cutover companion;
+it still needs explicit Owner acceptance, including no-code recovery.
+SQL-01..04 remain MAJOR verification obligations for effective ACL/provisioner
+parity, upstream signatures and the proposed lock graph. Recommend selective
+baseline validation/recovery of objects without trusted provenance, with Owner
+authorization for user and operational impact.
 
-The 30-second proof TTL never extends current pool statement/lock/idle/transaction
-budgets. Challenge cleanup, key admission versus in-flight retirement, replica
-refresh and unknown-commit recovery need exact U2 linearization rules. The
-direction is defensible; implementation still requires additional architecture
-closure and independent review. All three reviews are source-only and do not
-approve a completed cryptographic or PostgreSQL runtime boundary.
+The proposed 30-second proof TTL never extends current pool statement/lock/
+idle/transaction budgets. The lock supplement defines a candidate key retirement
+COMMIT barrier, challenge/receipt order and unknown-COMMIT recovery, none tested.
+The three older reviews covered an earlier draft and cannot approve this recovered
+aggregate; final read-only Auth/SQL/Ops review must target the new package.
