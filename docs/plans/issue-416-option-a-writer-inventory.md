@@ -568,8 +568,8 @@ proof revalidation; no new F INSERT, no fresh seed, and no raw seed returned
 from SQL. The API uses `unprotectTotpSecret` and the accepted same-session
 provisioning response. The protected read consumes its challenge and records
 only safe nonsecret completion; the generic write/receipt mutation rule is
-inapplicable to this A04-resume **disclosure-only** variant. A04-create and
-A04-resume's **exact future execute return** is a distinct closed composite
+inapplicable to this A04-resume **disclosure-only** variant. The
+A04-resume **exact future execute return** is a distinct closed composite
 `public.vap1_mfa_enroll_resume_result_v1(status, factor_id UUID,
 protected_secret_envelope TEXT)` with `status` fixed to the approved
 `PENDING_SAME_SESSION` result; no caller-selected output field, raw seed,

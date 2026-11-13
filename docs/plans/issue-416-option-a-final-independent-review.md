@@ -163,3 +163,36 @@ the A04-resume protected `RETURNS` type explicit and records these review
 facts; a final SHA check remains necessary because the result-type text was
 not in `ca9bb2fb`. The sole deliverable judgment is **conditional** source
 design coherence, **not** implementation-ready authentication or approval.
+
+### Full independent final-source re-pin of `88cad360`
+
+**Exact reviewed clean SHA:**
+`88cad36059fbf5ba42c7b93812fbba4c5399bb24`, with only
+`docs/plans/issue-416-option-a-writer-inventory.md`, this independent-review
+ledger and `docs/validation/ISSUE_416_SECURITY_FOUNDATION.md` changed
+since the independently reviewed `ca9bb2fb` contract. W6/W7/W8 each
+returned **DESIGN-ONLY PASS, NO NEW SOURCE MAJOR** after read-only Git/source
+inspection; no self-review or SQL/runtime tests:
+
+- **W6 Auth/Crypto:** approved the exact
+  `vap1_mfa_enroll_resume_result_v1(status,factor_id,protected_secret_envelope)`
+  as a post-proof, same-original-session A04-resume return only; no plaintext
+  seed/MAC/ciphertext enters receipt, and source AES-GCM AAD/app-only key
+  invariant remains. Flagged only a minor introductory wording ambiguity,
+  subsequently corrected in U2 without changing the return type.
+- **W7 SQL/Concurrency:** independently checked the distinct A04-resume
+  SQL composite result against U2's otherwise generic nonsecret write result,
+  precise `mte1` encrypted persistence/source and the 21 proposed races;
+  found no new MAJOR. New composite DDL/SQL and real tests remain future work.
+- **W8 Operations:** verified this protected same-session encrypted result does
+  not alter L1/T0 PENDING retirement, backup encryption/escrow, key separation,
+  operator HOLD, C0–C6 or proof-compatible N/R. Exactly four unsigned Owner
+  approval families remain S1/U1/L1/L2.
+
+All three reviewers inspected the **same** `88cad360` SHA and expressly
+excluded test/prod proof from their PASS. A final minor editorial clarification
+and evidence/packet status sync after this pinned SHA do not amend the
+cryptographic, SQL, lock, MFA or cutover design. The final SHA must be
+confirmed by read-only delta inspection. External deployment attestation,
+real PostgreSQL 17 privilege/crypto/race tests and Owner acceptance are
+still **NOT VERIFIED / NOT RUN / PENDING**.
