@@ -1,5 +1,6 @@
 -- Issue #416 S1: binary VAP1 proof bytes, constructed only in private SQL.
 -- No generic runtime-callable signer, encoder or MAC oracle is created.
+BEGIN;
 SET ROLE vap1_proof_owner;
 
 CREATE FUNCTION auth_proof_private.u8(p_value integer)
@@ -233,3 +234,4 @@ $$;
 
 REVOKE ALL ON ALL FUNCTIONS IN SCHEMA auth_proof_private FROM PUBLIC;
 RESET ROLE;
+COMMIT;

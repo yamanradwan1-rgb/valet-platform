@@ -1,5 +1,6 @@
 -- Issue #416 / Option A. Additive, dormant private authority substrate.
 -- No staff writer or runtime privilege is enabled by this migration.
+BEGIN;
 DO $vap1$
 DECLARE
   v_migrator text := current_user;
@@ -39,7 +40,6 @@ END;
 $vap1$;
 
 CREATE SCHEMA auth_proof_private AUTHORIZATION vap1_proof_owner;
-REVOKE ALL ON SCHEMA auth_proof_private FROM PUBLIC;
 -- Keep pgcrypto out of a new writable public schema. Existing extension
 -- installations are not relocated; verifier validates their actual catalog OID.
 CREATE SCHEMA IF NOT EXISTS auth_proof_crypto;
@@ -55,6 +55,7 @@ GRANT REFERENCES(id) ON TABLE public.anti_abuse_events
   TO vap1_proof_owner;
 
 SET ROLE vap1_proof_owner;
+REVOKE ALL ON SCHEMA auth_proof_private FROM PUBLIC;
 
 CREATE TABLE auth_proof_private.proof_keys (
   audience text NOT NULL CHECK (
@@ -241,3 +242,4 @@ CREATE TABLE auth_proof_private.limiter_bindings (
 REVOKE ALL ON ALL TABLES IN SCHEMA auth_proof_private FROM PUBLIC;
 REVOKE ALL ON ALL SEQUENCES IN SCHEMA auth_proof_private FROM PUBLIC;
 RESET ROLE;
+COMMIT;

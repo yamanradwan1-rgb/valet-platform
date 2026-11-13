@@ -1,6 +1,7 @@
 -- Issue #416: private one-transaction challenge/verification primitives.
 -- Callable ONLY from a distinct purpose-specific, audited SQL SECURITY DEFINER
 -- command owned by vap1_proof_owner after independently locked admission.
+BEGIN;
 SET ROLE vap1_proof_owner;
 
 CREATE FUNCTION auth_proof_private.open_challenge(
@@ -231,3 +232,4 @@ CREATE TRIGGER vap1_receipt_immutable
 
 REVOKE ALL ON ALL FUNCTIONS IN SCHEMA auth_proof_private FROM PUBLIC;
 RESET ROLE;
+COMMIT;

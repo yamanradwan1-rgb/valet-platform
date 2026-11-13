@@ -1,5 +1,6 @@
 -- Option A: DB-held key material/version and cutover state are monotone.
 -- This migration never inserts a key and never activates a staff proof.
+BEGIN;
 SET ROLE vap1_proof_owner;
 
 CREATE FUNCTION auth_proof_private.protect_key_change()
@@ -117,3 +118,4 @@ $vap1$;
 
 REVOKE ALL ON ALL FUNCTIONS IN SCHEMA auth_proof_private FROM PUBLIC;
 RESET ROLE;
+COMMIT;

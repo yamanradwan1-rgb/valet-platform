@@ -1,6 +1,7 @@
 -- Issue #416 / Option A. Preserve v9 MFA app events before a coordinated
 -- PROTECTED cutover; deny SQL-only forged USER MFA activity after cutover.
 -- The reset and controlled-operator reservations remain unconditionally denied.
+BEGIN;
 SET ROLE vap1_proof_owner;
 DO $vap1$
 DECLARE v_owner text;
@@ -70,3 +71,4 @@ $$;
 REVOKE ALL ON FUNCTION public.append_runtime_account_security_audit_event(
     UUID, TEXT, UUID, public.account_security_actor_type, UUID, TIMESTAMPTZ
 ) FROM PUBLIC;
+COMMIT;
