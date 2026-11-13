@@ -66,8 +66,13 @@ export async function assertLegacyRuntimeProvisioningAllowed(client) {
     "SELECT pg_catalog.to_regclass('auth_proof_private.security_boundary') AS relation",
   );
   if (exists.rows[0]?.relation === null) return;
+  // Hold the SAME boundary row lock until the provisioning transaction COMMIT.
+  // Otherwise LEGACY_COMPAT preflight could race a C3 DRAINED transition,
+  // regranting old auth SQL authority *after* the operator's REVOKEs.
+  // Operator promotion UPDATE blocks on our FOR SHARE and must retire grants
+  // only after this transaction has completed.
   const result = await client.query(
-    "SELECT phase FROM auth_proof_private.security_boundary WHERE singleton",
+    "SELECT phase FROM auth_proof_private.security_boundary WHERE singleton FOR SHARE",
   );
   if (result.rowCount !== 1 || result.rows[0].phase !== "LEGACY_COMPAT") {
     throw new Error(
