@@ -52,5 +52,23 @@ Their reports substantiate known open security decisions, not a claim of an
 exploited production vulnerability. Documentation corrections address the
 specified ambiguity; the underlying mechanisms, privilege closure, controlled
 legacy recovery and concurrency/restore/secrecy gates remain **BLOCKED or
-NOT RUN**. The final corrected commit must be inspected before its hash can be
-used as independent review evidence.
+NOT RUN**. The corrected semantic design has now received independent delta
+verification at the commit below.
+
+## Independent delta re-review of the corrected design
+
+All three independent reviewers re-examined the semantic correction diff from
+`944ae18c0c232551a909306a39fcd852a8747ace` to
+`698aec06ee7e3b24b1667094e6bbc05ecae58610` without modifying files:
+
+| Reviewer | Re-review disposition and limitations |
+| --- | --- |
+| Worker 3 — Auth/Crypto | **PASS for documentation corrections**: purpose-specific typed prepare, protected actor/target/generation/payload binding, key promotion epoch and stale replica fence, correct Argon2/TOTP ordering. No new material contradiction; SQL/crypto/PG implementation NOT RUN. |
+| Worker 4 — SQL/Concurrency | **PASS for documentation corrections**: onboarding M04/M05 reservation on completed pre-domain lease, post-domain/unknown result finalization, 15th two-lease test, accurate COMMIT outcome tracker exception and 12 settings/branding signature count. Follow-up also reviewed two MINOR wording fixes in `cutover.md` and `locks.md`: historical provisioner denial tested in isolated C3/C4 before reopening, changed issuance COUNTED and unchanged replay IGNORED. Deployed ACL and race tests NOT RUN. |
+| Worker 5 — Ops/Cutover | **PASS for documentation corrections**: old privileged runner/credential fencing before C6, older-snapshot per-object monotone recovery or conservative HOLD, corrected historical SHA labeling. Release, restore and operator proof NOT RUN. |
+
+An additional final Git commit records these review reports and mirrors the
+unchanged/replay distinction in the U2 inventory; it does not claim that its
+metadata alone was independently tested. The reviews are **source-design-only**.
+U1/S1/L1/L2 Owner choices, strict U2 proof/ACL closure, real PostgreSQL 17
+concurrency and runtime secret/deployment evidence remain **BLOCKED/NOT RUN**.

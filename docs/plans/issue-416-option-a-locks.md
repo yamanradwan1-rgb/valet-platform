@@ -160,8 +160,10 @@ issuer/Organization, target and operation. Acquire no second pool lease while
 holding domain locks. Revalidate all previously discovered facts under the
 command's ordered locks. Denial or a lost pre-reservation response cannot mint
 authority or bypass quotas. On confirmed domain success, finalize the durable
-reservation after the domain transaction releases its lease; on confirmed
-rollback, finalize the policy-appropriate ignored/failure outcome. On unknown
+reservation after releasing the domain lease: **COUNTED** only if create/resend
+actually committed a **changed issuance**, while an exact same-operation
+linkless replay with no change is **IGNORED**, preserving current policy.
+On confirmed rollback, finalize the policy-appropriate ignored/failure outcome. On unknown
 COMMIT, leave a bounded recoverable pending reservation and reconcile the
 private operation receipt on a new lease before finalization; never assume
 `IGNORED` from a transport exception or consume a new generation blindly.
@@ -360,7 +362,7 @@ acquisition. No assertion here is an executed result.
 | 12 key retirement / proof execute | A key15 X, B waits S after all domain locks. C B rejects retired key with no protected write; R,D active key may execute if proof still valid; U query protected key state through trusted operational boundary. Reverse B-first S forces retirement to wait until B commit/rollback; record no successful old-key execution commit after confirmed retirement commit. |
 | 13 duplicate proof / conflicting proof | Same purpose/op rank01; B separately test identical fingerprint, changed fingerprint, and copied exact tx proof on different backend. C identical safe receipt, changed conflict, copied binding rejected; R,D fresh valid B first-executes, copied proof still rejects; U fresh proof reconciliation only. Test same op different purpose cannot borrow receipt, and challenge reused in same tx cannot duplicate effect. |
 | 14 unknown COMMIT / receipt reconcile | A holds op01 through COMMIT; B new-lease authenticated reconcile same identity waits op01. C/U committed receipt reports only safe completion; R,D absence permits explicit first execution using fresh proof. While A is unresolved B must time out transiently, not return absent. Exercise server COMMIT success with lost ack and precommit termination independently. |
-| 15 onboarding quota reservation / protected create-resend | A holds outer domain ranks for create/resend while B attempts durable anti-abuse admission. New design **must not** request a second pool lease until A releases its domain lease; reserve ahead of A's locks on a short completed lease and bind to the typed operation. C finalize confirmed consumed reservation; R,D finalize policy-appropriate noncommit; U retain pending then new-lease reconcile domain receipt before finalizing. Exercise 2-connection pool exhaustion, parallel same-target reservation, postcommit finalization failure and quota exhaustion without signer-proof bypass. |
+| 15 onboarding quota reservation / protected create-resend | A holds outer domain ranks for create/resend while B attempts durable anti-abuse admission. New design **must not** request a second pool lease until A releases its domain lease; reserve ahead of A's locks on a short completed lease and bind to the typed operation. C COUNTED only for committed changed invitation issuance, but IGNORED for same-operation linkless unchanged replay; R,D finalize policy-appropriate noncommit; U retain pending then new-lease reconcile domain receipt before finalizing. Exercise 2-connection pool exhaustion, parallel same-target reservation, postcommit finalization failure and quota exhaustion without signer-proof bypass. |
 
 For all fifteen, after C/R/D/U verify no partial credential/factor/reset/push
 mutation without corresponding required audit, no raw secret stored in receipt,

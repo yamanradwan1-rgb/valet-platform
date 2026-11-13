@@ -105,8 +105,10 @@ bounded read-only discovery. It must bind the returned reservation identity to
 M04/M05's immutable operation fingerprint, then fully reauthorize and lock the
 real actor/target state inside the protected command. Never acquire a second
 pool lease while the domain transaction owns locks. Finalize the reservation
-only after the domain lease is released: known success, confirmed rollback and
-unknown COMMIT have distinct durable outcomes. Unknown COMMIT requires a fresh
+only after releasing the domain lease: COUNTED for a committed **changed**
+invitation issuance, IGNORED for an authorized unchanged same-operation linkless
+replay; confirmed rollback and unknown COMMIT have distinct durable outcomes.
+Unknown COMMIT requires a fresh
 lease/receipt reconciliation before setting `IGNORED`; a network exception
 cannot prove rollback. Negative tests exercise a constrained two-connection
 pool, an exhausted second lease, failed quota finalization, mismatched operation

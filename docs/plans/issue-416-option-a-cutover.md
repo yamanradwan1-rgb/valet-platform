@@ -177,8 +177,12 @@ new-session reconciliation without changing accepted command identities.
    Revoke/rotate the historical migration/admin credential and fence its
    runner identity/configuration before C3; an old runner that still owns a
    privileged live credential can restore weak grants after the ACL snapshot.
-   Test the **old** provisioner using its previous credential after C6: it must
-   fail authentication/authorization. Test approved N/R plus the **new**
+   In an isolated C3/C4 rehearsal **before C6 reopens any traffic**, test the
+   **old** provisioner using its previous revoked credential: it must fail
+   authentication/authorization. Never execute a historically privileged
+   provisioner against reopened production. After C6, monitor effective ACL
+   drift with safe reads and revoke protected readiness on any regression.
+   Test approved N/R plus the **new**
    separated privileged identity twice, proving restrictive grants persist.
    Seal executable artifacts, startup versions and operator job allowlist;
    continuous role/grant drift detection must remove unsafe replicas from
