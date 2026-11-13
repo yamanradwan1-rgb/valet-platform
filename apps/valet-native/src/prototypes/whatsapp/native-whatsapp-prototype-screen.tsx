@@ -62,14 +62,20 @@ function PrototypeScreen({
   const direction = locale === "ar" ? "rtl" : "ltr";
   const textAlign = locale === "ar" ? "right" : "left";
   const [state, setState] = useState(initialState);
+  const choice = `${initialState}:${locale}:${theme}:${baseline}`;
+  const [previousChoice, setPreviousChoice] = useState(choice);
+  // React discards this stale render and immediately renders the finite choice.
+  if (previousChoice !== choice) {
+    setPreviousChoice(choice);
+    setState(initialState);
+  }
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   // Keep the preview session mounted so its original appearance survives query
   // changes. Reset only local demo work when a finite preview choice changes.
   useEffect(() => {
     if (timer.current !== undefined) clearTimeout(timer.current);
     timer.current = undefined;
-    setState(initialState);
-  }, [initialState, locale, theme, baseline]);
+  }, [choice]);
   useEffect(
     () => () => {
       if (timer.current !== undefined) clearTimeout(timer.current);

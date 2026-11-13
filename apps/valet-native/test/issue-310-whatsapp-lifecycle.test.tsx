@@ -10,16 +10,20 @@ const hooks = vi.hoisted(() => ({
   pending: [] as (() => void)[],
   refIndex: 0,
   effectIndex: 0,
-  state: undefined as unknown,
+  states: [] as unknown[],
+  stateIndex: 0,
 }));
 vi.mock("react", async () => ({
   ...(await vi.importActual<typeof import("react")>("react")),
   useRef: (value: unknown) =>
     (hooks.refs[hooks.refIndex++] ??= { current: value }),
-  useState: (value: unknown) => [
-    (hooks.state ??= value),
-    (next: unknown) => (hooks.state = next),
-  ],
+  useState: (value: unknown) => {
+    const index = hooks.stateIndex++;
+    return [
+      (hooks.states[index] ??= value),
+      (next: unknown) => (hooks.states[index] = next),
+    ];
+  },
   useEffect: (effect: () => void | (() => void), deps: readonly unknown[]) => {
     const index = hooks.effectIndex++;
     const old = hooks.effects[index];
@@ -75,6 +79,7 @@ function elements(value: unknown): Element[] {
 function render(changes: Partial<Props> = {}) {
   hooks.refIndex = 0;
   hooks.effectIndex = 0;
+  hooks.stateIndex = 0;
   const entry = NativeWhatsAppPrototypeScreen({
     baseline: false,
     initialState: "default",
@@ -95,7 +100,7 @@ afterEach(() => {
   hooks.refs = [];
   hooks.effects = [];
   hooks.pending = [];
-  hooks.state = undefined;
+  hooks.states = [];
   vi.unstubAllGlobals();
   vi.useRealTimers();
 });
@@ -116,7 +121,9 @@ describe("Issue #310 preview session lifecycle", () => {
   it("restores the original persisted theme after variant/theme changes and cancels old demo work", async () => {
     vi.stubGlobal("__DEV__", true);
     vi.useFakeTimers();
-    const write = vi.fn(async (_value: string) => {});
+    const write = vi.fn(async (value: string) => {
+      void value;
+    });
     hooks.owner = new NativeAppearanceOwner({ read: async () => null, write });
     await hooks.owner.restore();
     let tree = render();
@@ -124,11 +131,11 @@ describe("Issue #310 preview session lifecycle", () => {
     const parking = elements(tree).find((node) => node.type === "ParkingTask")!;
     const button = parking.props.whatsAppPrototype as Element;
     (button.props.onAdvance as () => void)();
-    expect(hooks.state).toBe("loading");
+    expect(hooks.states[0]).toBe("loading");
     render({ initialState: "accepted" });
-    expect(hooks.state).toBe("accepted");
+    expect(hooks.states[0]).toBe("accepted");
     await vi.advanceTimersByTimeAsync(1000);
-    expect(hooks.state).toBe("accepted");
+    expect(hooks.states[0]).toBe("accepted");
     render({ theme: "light", initialState: "delivered" });
     expect(hooks.owner.current().mode).toBe("light");
     tree = render({ initialState: "disabled" });
