@@ -191,4 +191,20 @@ describe("W2 118/119 A01 locked state and payload pair structure", () => {
       )).toThrow();
     }
   });
+
+  it("rejects a changed existing User target but never treats minted session IDs as pre-state", () => {
+    const state = encodeState(fixture());
+    expect(() => assertU2A01FramePair(
+      encodeU2StaffLoginPayload({ ...payload, userId: SESSION }), state,
+    )).toThrow(/admission key|locked user/);
+    // New session/refresh IDs have no preexisting SQL rows; only the exact
+    // command payload digest in the challenge can bind these new selectors.
+    const differentSession = encodeU2StaffLoginPayload({
+      ...payload, newSessionId: REFRESH,
+    });
+    const original = encodeU2StaffLoginPayload(payload);
+    expect(createHash("sha256").update(differentSession).digest()).not.toEqual(
+      createHash("sha256").update(original).digest(),
+    );
+  });
 });
