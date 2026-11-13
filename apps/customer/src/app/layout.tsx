@@ -12,8 +12,8 @@ export const metadata: Metadata = {
   description: 'Digital operating system for valet operations - Guest Experience',
   manifest: '/manifest.webmanifest',
   icons: {
-    icon: '/icons/icon-192.png',
-    apple: '/icons/apple-touch-icon.png',
+    icon: '/icons/guest-slate-v1/icon-192.png',
+    apple: '/icons/guest-slate-v1/apple-touch-icon.png',
   },
 };
 

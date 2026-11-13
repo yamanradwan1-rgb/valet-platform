@@ -100,6 +100,57 @@ describe('Guest Service Worker public-only cache contract', () => {
     expect(assets.entries.size).toBe(3);
   });
 
+  it('serves the Slate manifest and Apple icons through the exact public allowlist', async () => {
+    const { get, cachesByName } = sandbox();
+    const publicRoot = new URL('../../../public/', import.meta.url);
+    const manifest: { icons: { src: string; sizes: string; type: string; purpose: string }[] } =
+      JSON.parse(readFileSync(new URL('manifest.webmanifest', publicRoot), 'utf8'));
+    expect(manifest).toMatchObject({
+      name: 'VAYLET Guest',
+      short_name: 'VAYLET',
+      start_url: '/',
+      scope: '/',
+      display: 'standalone',
+    });
+    expect(manifest).not.toHaveProperty('id');
+    expect(manifest.icons.map(({ sizes, purpose }) => [sizes, purpose])).toEqual([
+      ['192x192', 'any'],
+      ['512x512', 'any'],
+      ['512x512', 'maskable'],
+    ]);
+    const apple = { src: '/icons/guest-slate-v1/apple-touch-icon.png', sizes: '180x180', type: 'image/png' };
+    for (const icon of [...manifest.icons, apple]) {
+      expect(icon.src).toMatch(/^\/icons\/guest-slate-v1\/[^/]+\.png$/);
+      expect(icon.type).toBe('image/png');
+      const png = readFileSync(new URL(icon.src.slice(1), publicRoot));
+      expect(png.subarray(0, 8).toString('hex')).toBe('89504e470d0a1a0a');
+      const dimensions = [png.readUInt32BE(16), png.readUInt32BE(20)];
+      expect(dimensions.join('x')).toBe(icon.sizes);
+      expect(await get(icon.src)).not.toBeNull();
+      expect(await get(icon.src, { Authorization: 'Bearer test' })).toBeNull();
+    }
+    expect(await get('/icons/guest-slate-v1/unlisted.png')).toBeNull();
+    expect(await get('/icons/guest-slate-v1/icon-192.png?v=1')).toBeNull();
+    expect(cachesByName.get('vaylet-guest-public-static-r2')?.entries.size).toBe(4);
+  });
+
+  it('fetches versioned artwork independently of an already cached legacy icon', async () => {
+    const { get, fetcher, cacheStorage } = sandbox();
+    const cache = await cacheStorage.open('vaylet-guest-public-static-r2');
+    const oldPath = '/icons/icon-512.png';
+    const newPath = '/icons/guest-slate-v1/icon-512.png';
+    await cache.put(new Request(origin + oldPath), browserResponse('legacy artwork'));
+
+    fetcher.mockRejectedValueOnce(new Error('offline'));
+    await expect(get(newPath)).rejects.toThrow('offline');
+    fetcher.mockResolvedValueOnce(browserResponse('approved Slate artwork'));
+    expect(await (await get(newPath))?.text()).toBe('approved Slate artwork');
+    fetcher.mockRejectedValueOnce(new Error('offline'));
+    expect(await (await get(newPath))?.text()).toBe('approved Slate artwork');
+    fetcher.mockRejectedValueOnce(new Error('offline'));
+    expect(await (await get(oldPath))?.text()).toBe('legacy artwork');
+  });
+
   it('migrates only allowlisted public assets from old cache and keeps unrelated caches', async () => {
     const { activate, cachesByName, cacheStorage } = sandbox();
     const old = await cacheStorage.open('vaylet-static-v1');
