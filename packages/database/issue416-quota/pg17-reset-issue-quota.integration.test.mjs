@@ -102,6 +102,17 @@ describe("Issue416 R02 private PG17 source-gated quota", () => {
         WHERE operation_id=$1 ORDER BY scope COLLATE "C"`, [op]);
       expect(rows.rows).toHaveLength(4);
       expect(rows.rows.every((row) => row.state === "PENDING")).toBe(true);
+      // Force the deferred four-row integrity check without COMMIT/fixture residue.
+      await client.query("SET CONSTRAINTS auth_proof_private.vap1_reset_bundle_integrity, auth_proof_private.vap1_reset_entry_integrity IMMEDIATE");
+      await client.query("SET CONSTRAINTS auth_proof_private.vap1_reset_bundle_integrity, auth_proof_private.vap1_reset_entry_integrity DEFERRED");
+
+      await client.query("SAVEPOINT partial_discount");
+      await client.query(`UPDATE auth_proof_private.reset_issue_quota_entries
+        SET state='IGNORED' WHERE reservation_id=$1`, [first.reservation_ids[0]]);
+      await expect(client.query(
+        "SET CONSTRAINTS auth_proof_private.vap1_reset_bundle_integrity, auth_proof_private.vap1_reset_entry_integrity IMMEDIATE",
+      )).rejects.toMatchObject({ code: "23514" });
+      await client.query("ROLLBACK TO SAVEPOINT partial_discount");
 
       await client.query("SAVEPOINT altered_payload");
       await expect(reserve(client, op, ids, keys, "different-payload"))

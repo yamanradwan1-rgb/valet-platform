@@ -77,6 +77,9 @@ describe("R02 source-only 4-scope protected quota contract", () => {
     assert.match(reserve, /VAP1_RESET_QUOTA_EXHAUSTED/);
     assert.match(reserve, /e\.occurred_at > v_now - INTERVAL '15 minutes'/);
     assert.match(sql, /CREATE INDEX vap1_reset_issue_quota_rolling_window/);
+    assert.match(sql, /CREATE CONSTRAINT TRIGGER vap1_reset_bundle_integrity/);
+    assert.match(sql, /CREATE CONSTRAINT TRIGGER vap1_reset_entry_integrity/);
+    assert.match(sql, /DEFERRABLE INITIALLY DEFERRED FOR EACH ROW/);
   });
 
   it("accepts only immutable signed domain evidence and never caller state", () => {

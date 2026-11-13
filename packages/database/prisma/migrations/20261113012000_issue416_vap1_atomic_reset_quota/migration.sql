@@ -144,6 +144,51 @@ CREATE TRIGGER vap1_reset_evidence_guard
   BEFORE UPDATE OR DELETE ON auth_proof_private.reset_issue_domain_evidence
   FOR EACH ROW EXECUTE FUNCTION auth_proof_private.reset_issue_quota_guard();
 
+-- Enforce the invariant at COMMIT, including against partial direct owner DML:
+-- exactly four matching hashes/states/timestamps must accompany every bundle.
+-- Deferral is necessary because the initial bundle row precedes its entries,
+-- while finalization updates all entries and then the parent within one tx.
+CREATE FUNCTION auth_proof_private.assert_reset_issue_bundle_integrity()
+RETURNS trigger LANGUAGE plpgsql SET search_path = pg_catalog AS $$
+DECLARE
+  v_bundle auth_proof_private.reset_issue_quota_bundles%ROWTYPE;
+  v_count bigint;
+BEGIN
+  SELECT * INTO v_bundle
+  FROM auth_proof_private.reset_issue_quota_bundles b
+  WHERE b.audience = NEW.audience AND b.operation_id = NEW.operation_id;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'VAP1_RESET_QUOTA_INCOMPLETE' USING ERRCODE = '23514';
+  END IF;
+  SELECT pg_catalog.count(*) INTO v_count
+  FROM auth_proof_private.reset_issue_quota_entries e
+  WHERE e.audience = NEW.audience AND e.operation_id = NEW.operation_id
+    AND e.state = v_bundle.state AND e.occurred_at = v_bundle.reserved_at
+    AND (
+      (e.scope = 'v1:staff-password-reset-issue-target-user'
+        AND e.key_hash = v_bundle.target_hash)
+      OR (e.scope = 'v1:staff-password-reset-issue-issuer-user'
+        AND e.key_hash = v_bundle.issuer_hash)
+      OR (e.scope = 'v1:staff-password-reset-issue-organization'
+        AND e.key_hash = v_bundle.organization_hash)
+      OR (e.scope = 'v1:staff-password-reset-issue-client-address'
+        AND e.key_hash = v_bundle.client_address_hash)
+    );
+  IF v_count <> 4 THEN
+    RAISE EXCEPTION 'VAP1_RESET_QUOTA_INCOMPLETE' USING ERRCODE = '23514';
+  END IF;
+  RETURN NULL;
+END;
+$$;
+CREATE CONSTRAINT TRIGGER vap1_reset_bundle_integrity
+  AFTER INSERT OR UPDATE ON auth_proof_private.reset_issue_quota_bundles
+  DEFERRABLE INITIALLY DEFERRED FOR EACH ROW
+  EXECUTE FUNCTION auth_proof_private.assert_reset_issue_bundle_integrity();
+CREATE CONSTRAINT TRIGGER vap1_reset_entry_integrity
+  AFTER INSERT OR UPDATE ON auth_proof_private.reset_issue_quota_entries
+  DEFERRABLE INITIALLY DEFERRED FOR EACH ROW
+  EXECUTE FUNCTION auth_proof_private.assert_reset_issue_bundle_integrity();
+
 -- Called only on a completed, separate pre-domain lease. No domain locks held.
 -- The fixed array order of returned reservation_ids is U2 source order:
 -- target, issuer, organization, trusted client-address. No bearer/IP stored.
@@ -429,6 +474,8 @@ $$;
 
 REVOKE ALL ON ALL TABLES IN SCHEMA auth_proof_private FROM PUBLIC;
 REVOKE ALL ON FUNCTION auth_proof_private.reset_issue_quota_guard() FROM PUBLIC;
+REVOKE ALL ON FUNCTION auth_proof_private.assert_reset_issue_bundle_integrity()
+  FROM PUBLIC;
 REVOKE ALL ON FUNCTION auth_proof_private.validate_reset_issue_domain_evidence()
   FROM PUBLIC;
 REVOKE ALL ON FUNCTION auth_proof_private.reserve_reset_issue_quota(
