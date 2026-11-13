@@ -48,6 +48,11 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA auth_proof_crypto;
 GRANT USAGE ON SCHEMA auth_proof_crypto TO vap1_proof_owner;
 ALTER DEFAULT PRIVILEGES FOR ROLE vap1_proof_owner
   REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;
+-- A01 private operation-bound limiter binding has a forward FK to the
+-- legacy durable reservation id. PostgreSQL requires REFERENCES privilege
+-- on that id for this distinct NOLOGIN table owner at CREATE TABLE time.
+GRANT REFERENCES(id) ON TABLE public.anti_abuse_events
+  TO vap1_proof_owner;
 
 SET ROLE vap1_proof_owner;
 
