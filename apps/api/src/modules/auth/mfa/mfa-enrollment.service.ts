@@ -29,7 +29,8 @@ import {
 } from "./mfa-session-repository";
 import { unprotectTotpSecret } from "./mfa-secret-protection";
 import { preparePendingMfaMaterial } from "./mfa-vap1-pending-material";
-import { generateTotpSecret, verifyTotpCode } from "./mfa-totp";
+import { verifyLockedEnrollmentConfirmation } from "./mfa-vap1-ceremony-checks";
+import { generateTotpSecret } from "./mfa-totp";
 import { generateRecoveryCodes } from "./mfa-recovery-code";
 
 export interface MfaProvisioningData {
@@ -117,15 +118,11 @@ export class MfaEnrollmentService {
         ) {
           throw new MfaEnrollmentNotAvailableError();
         }
-        const secret = unprotectTotpSecret(factor.protected_secret, {
-          factorId: factor.id,
-          userId: factor.user_id,
-        });
-        const acceptedStep = await verifyTotpCode({
-          code: input.code,
-          now: session.now,
-          secret,
-        });
+        const acceptedStep = await verifyLockedEnrollmentConfirmation(
+          input.code,
+          session,
+          factor,
+        );
         if (acceptedStep === undefined) throw new MfaVerificationFailedError();
         const recoverySetGeneration = 1;
         const recoveryCodes = generateRecoveryCodes({
