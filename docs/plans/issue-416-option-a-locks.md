@@ -1,7 +1,10 @@
 # Issue #416 — Option A lock and outcome closure
 
 Status: **PROPOSED DESIGN — not implemented, not an Accepted DEC**.
-Source baseline: `62d0a3d3f97a4186d2dd85642212efc7b4f35d42`.
+Historical proposal baseline: `62d0a3d3f97a4186d2dd85642212efc7b4f35d42`.
+Final source-reconciliation baseline: `eb2d0ba4aac496a238fff55bdfa9dbfdd66e1ed3`
+(`cos/issue416-final-locks`, initially clean; no tracked source delta from this
+base before this documentation-only edit).
 This supplement replaces the simplified lock sketch in the provenance draft;
 it does not authorize implementation, change public API semantics, or prove
 deadlock freedom. PostgreSQL concurrency tests below are **NOT RUN**.
@@ -37,6 +40,13 @@ which issues plain `BEGIN`; isolation is the connection default, not explicitly
 READ COMMITTED. Production default isolation is **EXTERNAL FACT NOT VERIFIED**.
 The two controlled tools and provisioning also issue plain BEGIN directly.
 X/S and advisory locks are held until transaction completion, not helper return.
+The legacy SQL SECURITY DEFINER functions execute inside their **caller's**
+transaction and isolation, not an autonomous transaction. A direct `SELECT
+function(...)` from the ordinary role need not enter the API caller's earlier
+session/factor locks. A wrapper that holds new rank-03/07/12 locks and then
+invokes an old definer which obtains rank-02 or 05/06 is **not** a valid migrated
+command. The explicitly REPEATABLE READ management snapshot/export paths are
+read-only exceptions, not evidence the above mutation paths use that isolation.
 
 | Entry point / actual nested path | Current ordered acquisitions and writes |
 | --- | --- |
@@ -305,7 +315,197 @@ domain protocol too. This document does not authorize locking arbitrary custody
 aggregates in auth code. If blocker proof requires an incompatible writer,
 fail closed and extend the reviewed graph before implementation.
 
+### Final per-command acquisition reconciliation (A01–A11)
+
+**Reading these matrices:** `current` is the source-observed acquisition order
+at the pinned baseline, **not** a safe order. `future` is the required proposed
+order; each such mutator additionally takes rank 01, key 15, challenge/receipt
+16, and atomic write/audit 17 unless explicitly identified as read-only or
+separate controlled maintenance. Rank ranges are expanded rather than invoked
+as a single combined SQL join; every row in a sorted class is locked
+individually in deterministic order. Default current isolation for the API
+mutators is `BEGIN` with **unverified session default**; future writers must
+explicitly establish and verify READ COMMITTED before any authority read or
+lock. In both old and proposed designs, COMMIT (not a function return, an HTTP
+reply, a prepared token, or an UPDATE alone) is the authoritative mutation
+linearization point. Safe pre-discovery is not authorization. Every future
+writer repeats actor, credential/proof version, current User/SS/F, scope and
+expiry checks **after the last contended lock and immediately before writes**;
+if discovery missed an earlier rank, roll back and rediscover on a new lease.
+
+| U2 ID | Current source acquisition (caller -> nested/trigger) | Future lock prefix and post-wait guard | COMMIT/replay/unknown-result obligation |
+| --- | --- | --- | --- |
+| **A01 login** | Argon2 before transaction; user-security A -> U X -> SS/RC INSERT -> U last-login; login-identifier quota UPDATE under local 2s lock timeout. | 03 verified User; 09 U X; 12 SS/RC create, plus quota state by its separately accepted admission contract. Recheck exact verified PHC, ACTIVE User and DB clock after wait. | SS/RC and last-login commit together; unknown COMMIT leaves no recoverable raw access/refresh token. Reconcile safe receipt/current SS with fresh proof; do not replay POST or return secret from receipt. |
+| **A02 refresh/replay** | R owner -> user-security A -> joined RC/SS/U X (join lock order unproven) -> RC/SS writes. | 03 owner, 09 U, 12 SS then RC ordered; re-evaluate raw `vsr1` verifier, consumed/expiry, User ACTIVE, session revoked/absolute expiry after wait. | Valid rotation commits one successor. Consumed-token reuse **commits family revocation then reports authentication failure**; never return cached successful rotation. Lost rotated response + old-token retry still triggers accepted family revoke. |
+| **A03 logout** | Joined RC/SS X before any User-security A; `revokeStaffSessionAndDisablePush` updates SS then unordered active P. | R token-to-owner discovery; 03 owner, 09 U, 12 SS/RC, 14 sorted P. Recheck exact refresh lineage and session owner; no client session-ID authority. | Monotone revoke/terminal push commit; repeats retain nondisclosing logout. Unknown cannot assert server revoke; reconcile on fresh lease; local client purge remains distinct. |
+| **A04 MFA pending begin/resume** | Joined SS/U X -> mfa-user A -> F X/INSERT; trigger pending-F INSERT -> owner SS KEY SHARE. | 03/04 owner, 09 U, 12 exact live SS X, 13 F X/create; ensure pending-F owner SS locked **before** trigger; recheck eligibility and clock. | Pending enrollment commits once; only exact initiating still-live SS may retrieve its seed under the accepted exception. A different session/failed proof cannot retrieve; no general secret receipt. |
+| **A05 MFA confirm** | Same joined SS/U -> mfa-user -> F X; accepted TOTP -> F ACTIVE, C INSERT by slot, SS assurance, account audit. | 03/04,09,12,13 sorted F/C; compare current pending owner/seed, TOTP step and all expiries after wait. | Confirmation, recovery slots and assurance atomic at COMMIT; consumed step/duplicate fails or gives only accepted safe state, never raw recovery codes. |
+| **A06 TOTP step-up** | Joined SS/U -> mfa-user -> F X; F.last_accepted_step -> SS assurance -> limiter. | 03/04,09,12,13; require current ACTIVE F and strictly newer accepted step; resample clock after any lock wait. | Step and exact-session assurance commit together; duplicate/stale step fails; unknown requires guarded fresh-lease state/receipt reread and cannot fake new MFA freshness. |
+| **A07 self recovery** | Joined SS/U -> mfa-user -> F X -> selected C X; consume C, retire F, insert session-owned pending F (SS trigger KEY SHARE), audit. | 03/04,09,12,13 sorted F/C, with pending owner SS already at rank12; verify HMAC recovery code and current generation again after wait. | Single code consumption + factor retirement + pending factor commit together. Never resurrect F or reused C; exact-session pending seed exception only. |
+| **A08 recovery-code reissue** | Joined SS/U -> mfa-user -> F X; accepted newer TOTP, next-generation C INSERT, F generation/step, SS assurance, audit. | 03/04,09,12,13; recheck active F, generation and step; sort new code slots and keep old-generation codes invalid. | New generation and audit commit atomically; raw codes disclose once only. Unknown receipt cannot redisclose list or silently mint a further generation. |
+| **A09 admin activity** | MFA guard joins SS/U X and reads F; guarded SS.last_admin_activity_at UPDATE; no independent F row lock. | 03/04 as required, 09 U, 11 actor scope if management-piggyback, 12 exact SS, 13 current F S. Do not let piggyback activity use a lower-ranked old management helper. | Only activity time may advance at committed authorized request; **never** mfa_authenticated_at. No-op duplicate safe, denial not proof. |
+| **A10 staff session context** | R opaque access hash/SS/U, with optional user-security A -> SS X for caller mutation; RR factor read fence may take F S. | **Read-only:** authenticated bearer lookup remains source of hint, not a signing command. Writers rebind 03/09/12/13 as applicable on their own READ COMMITTED transaction. | No mutation/receipt or credential proof from cached `StaffSessionContext`; REPEATABLE READ snapshots cannot authorize a later write. |
+| **A11 MFA state/assurance read** | R U/SS/F; A09 activity is a distinct mutation path. | **Read-only:** current source state may be projected; writer checks exact live SS, active F and timestamps under its own locks. | No proof issuance, assurance extension, or future-write guarantee from an `ASSURED` read. |
+
+Every A01–A09 signer is purpose-specific. A04/A07 pending-seed disclosure and
+A05/A08 recovery-code disclosure require their original exact identity and
+session rules; the receipt is **never** a recovery channel for their raw secrets.
+Current client login/refresh/step-up anti-abuse reservation flows must be
+mapped into separate pre-lock admission or already-held same-lease writes
+without introducing a second pooled connection while domain locks are held.
+
+### Management, push and controlled-operator reconciliation (M01–M15)
+
+The current API **caller** and SECURITY DEFINER **callee** must both be inspected
+as one transaction graph; no source-visible API guard grants authority to an
+independently callable SQL overload. `staff_management_set_*` begins inside SQL
+with staff-org A even if the API previously took SS/U X; `staff_onboarding_*`
+re-enters email/target locks; settings/location/presence definers acquire
+settings/lifecycle locks in distinct orders. These inner helpers cannot simply
+be called under a new rank prefix. Each row's *future* locks include the
+purpose/operation proof/receipt phases only for authenticated app commands,
+and an independently attested operator origin for controlled tools; worker
+maintenance has **no** delegated user-signer privilege.
+
+| U2 ID | Observed caller -> SQL/worker lock order (plain-BEGIN default unless noted) | Future ranks; after-wait recheck and commit fence | Replay, failure and correction boundary |
+| --- | --- | --- | --- |
+| **M01 role** | API assurance joined SS/U X -> staff-org A/actor M X -> target M; nested `staff_management_set_role` reacquires staff-org/actor M, optionally admin F S. Direct SQL starts at staff-org without SS. | 03 actor/target/other Admin candidates,04 relevant F users,07 org,09 U,10 O/E,11 sorted M/G/L,12 exact actor SS,13 usable Admin F S. Recheck MFA/current role/last Admin and expected M version after waits. | Changed role+audit commit; accepted no-op does not invent a new role event; stale version conflicts, same op changed payload conflicts. Retire direct old EXECUTE and nested lower-rank helper. |
+| **M02 status** | Same API and `staff_management_set_status` nested staff-org -> actor/target M X -> admin F S and operational blocker reads. | M01 ranks; complete handover/blocker predicates locked under their own compatible domain protocol, not fabricated task mutations. Recheck target lifecycle, last Admin and current scope. | Status+audit commit or no-op. Normal disable cannot bypass live-work blockers; unknown commit must inspect M version/audit on fresh lease. |
+| **M03 grants** | API SS/U -> staff-org -> M; `staff_management_set_location_access` reacquires org and locks LM Location/grants, then G INSERT/DELETE + M version. | 03/04 actor+target,06 sorted affected Location lifecycle S,07 org,09/10/11 complete grant/location set,12/13 actor proof. Recheck **all** active target and LM grants after wait, not first page. | Grant delta/M version/audit commit. Retry same desired state safe; changed version or grant coverage conflict, no phantom-location authority. |
+| **M04 create** | API email A -> sorted user-security A -> sensitive joined SS/U X -> staff-org A -> **nested separate pool** `antiAbuse.reserve()` -> SQL create repeats identity email/user A, staff-org, O/E S, M/U S, sorted L S -> U/M/G/I insert. | Reserve quota on **completed separate lease before rank01/domain locks**; then 02 email,03 actor+existing target,04 actor,06 affected Locations S,07 org,09/10/11,12 actor SS,13 actor F,14 I. Reauthorize email/target global identity and current issuer after waits; replace old SQL helper. | Changed invitation+audit COMMIT => COUNTED after domain lease release. Same-operation unchanged/linkless replay => IGNORED. Quota finalization failure leaves durable recovery, not second invitation. |
+| **M05 resend** | Same API nested quota and SQL identity reentry; SQL locks target M/U and existing I by generation before revoke/insert. | Same pre-reserve and 02/03/04/07/09–14 with **all historical invitation generations**; require current PENDING member/issuer and expected operation fingerprint. | A new changed I generation+audit commits once => COUNTED. Exact unchanged replay is linkless/IGNORED; lost response never yields raw invite or automatic generation advance. |
+| **M06 activate** | Public `vsi1` and password in app; SQL R invitation -> identity email+user A -> staff-org A -> O S/M X/U X/I X, no API Staff session. | R token/owner discovery, then 02 target email,03 User,07 org,09 U,10 O/E,11 M,14 I; recheck invite generation/expiry and **existing ACTIVE User password hash verified outside then matched under lock**. | Consumption/activation+audit COMMIT, no new SS. PENDING sets first password; ACTIVE requires existing password. A consumed replay stays safe only per accepted contract, never issues link. |
+| **M07 management guard** | CA: R role -> assurance joined SS/U X -> staff-org A -> M X + optional L X + E R. LM sensitive: assurance -> staff-org A -> M X -> sorted active L S; SQL-only staff actor helper starts staff-org. | **No standalone writer:** every management mutator uses 03/04,06 if location,07 org,09/10/11,12 session,13 F as needed; all current scope/entitlement verified after waits. | A read/guard return grants **no** future or SQL-only authority. A09 activity piggyback shares the same mutation ordering and COMMIT. |
+| **M08 Location lifecycle** | API management guard precedes `management_location_*`; SQL location-lifecycle A -> joined O/M X, create identity/operation A, currency may take settings-org A **later**. | 03 actor,04 F,05 settings org when required,06 affected L X,07 org,09 U,10 O/E,11 M/L,12 SS,13 F. New SQL must not obtain late rank05 under lifecycle/actor rows. | L status/intake/currency/timezone+audit commit, CAS `expectedUpdatedAt`; operations blocker/revision and all grants rechecked after wait. |
+| **M09 settings/branding** | API management authorization may hold SS/U -> staff-org; SQL `management_settings_lock_organization` takes settings-org A then joined M/O X, optional L X. 12 callable runtime signatures. | 03/04 actor,05 settings-org,06 affected L S/X if scope,07 org,09/10/11 ordered actor/O/L,12/13 proof. Never call existing settings definer underneath ranks 07/09/12. | O/L configuration or brand+audit commit, expected timestamp CAS; no org.status or entitlement write inferred. Changed/no-op semantics preserved; stale timestamp conflicts. |
+| **M10 presence policy** | API `protectPresenceManagementAuthority`: settings-org S/X -> lifecycle S -> user-security A/SS X -> joined SS/U X -> try staff-org A -> M X -> O/E/L/G/F S; SQL `shift_presence_set_policy` separately starts settings/lifecycle then joined SS/U and staff-org again. | 03/04 actor,05 settings-org X,06 lifecycle S sorted,07 org,09 U,10 O/E,11 M/L/G,12 SS,13 F; replace all nested prefix inversions and keep bounded try-lock/busy semantics. | Policy/revision/audit commit; rerun complete Location fanout readiness and 5min sensitive MFA after waits; stale revision/configuration conflicts without silent retry. |
+| **M11 push register** | API user-security A -> SS X -> sorted installation/token A -> P X sorted; insert/confirm/supersede with owner/session uniqueness, no SQL actor signer. | 03 **all implicated owner Users** discovered from P,08 sorted logical keys,09 owner U,12 live SS,14 sorted P; new owner/row discovered late => rollback/restart. | Owner/token binding or terminal supersession commits once; unique `23505` uses existing safe push conflict. Late revoked SS cannot produce ACTIVE P; unknown does not claim confirmed endpoint. |
+| **M12 push disable** | API user-security A -> exact SS X -> owned registration P X -> monotone terminal UPDATE. | 03 owner,09 U,12 exact SS,14 P; recheck genuine `vsa1`, registered SS owner/state and terminal timestamp after wait. | Exact P terminalization commits; already DISABLED is safe monotone result; no raw provider token resurfacing. |
+| **M13 push worker/maintenance** | Claim PD `SKIP LOCKED` + lease; stale P `SKIP LOCKED`, FCM outside DB lease, exact fenced finalization and short cleanup. | **Separate bounded worker role**, not A/M signer: 14 sorted currently eligible PD/P with SKIP LOCKED, no session/issuer proof; current eligibility rechecked before send/finalize. Must not acquire domain rank03 after PD/P X or alter authority. | Lease claim/finalization each commit independently; provider acceptance may be UNKNOWN and generic duplicate attention possible. On lost lease reject stale finalize; no rewriting Tasks, deleting active P or claiming exactly-once send. |
+| **M14 controlled disable** | Privileged CLI own BEGIN: operation A -> audit replay R -> user-security A -> U X -> unordered SS/P UPDATE -> controlled audit. | **Attested operator boundary** with 01 operation,03 target,09 U,12 sorted SS/RC,14 sorted P; no new public signer. Validate approved operator source, global User and exact op under all locks. | User DISABLED/session/P revocation+audit commit; same operation/payload safe replay. Unknown CLI COMMIT => new-connection audit+state reconcile, not re-enable/reissue. |
+| **M15 controlled MFA recovery** | Privileged CLI own BEGIN: operation A -> audit replay R -> U X -> **later** mfa-user A -> F X, no SS row. | Trusted operator 01,03/04 target,09 U,12 affected SS only if necessary to clear assurance,13 F/C; move mfa-user before U and sort affected sessions. | Retired factor+controlled audit commit; current F/generation checked; repeated exact op safe; accepted assurance invalidation prevents a retired F authorizing later management. |
+
+**Proven inversion examples:** current M01–03/M04–05 API locks session before
+staff-org while the SQL function may start with staff-org independently; M08
+late settings-org under lifecycle and M09 late settings-org after API management
+locks both contradict proposed ranks. M10 contains a real *source-order*
+settings/lifecycle -> session -> staff-org prefix (plus nested repeat). These
+are incompatible acquisition graphs and possible deadlock ingredients, **not**
+an observed PostgreSQL deadlock. Every replacement must either inline only
+non-locking private validation after rank acquisition, or split SQL to accept a
+transaction-private proof and recheck without taking a prior rank. A second
+`pool.connect()`/independent `inPostgresTransaction()` inside any held-domain
+transaction is prohibited, not solved by increasing pool size.
+
+### Privileged, future reset and SQL-definer closure (P01–P05, R01–R03)
+
+| U2 ID | Source/initial boundary | Future rank compatibility, revalidation and durable result |
+| --- | --- | --- |
+| **P01 controlled provisioning** | Privileged CLI `BEGIN`: O S -> unsorted L S -> R email -> U/M/G INSERT + tenant audit. No email/owner/org advisory. | Controlled operator admission (not merely supplied `operatorRef`); 02 normalized email,03 any existing User,06 sorted active Location lifecycle S,07 org,09 U,10 O,11 M/L/G; verify O ACTIVE, locations, global email uniqueness, allowed role and audit origin after wait. Successful initial account+audit COMMIT; 23505 email collision is conflict, not provisional proof. Unknown CLI COMMIT requires a **new** credentialed lease and durable operator operation fingerprint/receipt plus U/M/audit readback; current create-only CLI lacks a proven same-op receipt, so otherwise HOLD, never blindly retry with new User IDs. |
+| **P02 Org/E external writers** | No general production `organizations.status`/`organization_subscriptions.dashboard_access_enabled` writer established by repository source; fixture E/O UPDATE is NOT a deployed operator API. | **EXTERNAL UNVERIFIED:** enumerate every billing/DBA/operator principal, job, SQL path, owner, privilege and time of access. Writer must use 03 affected Users as applicable,05 settings org,06 affected lifecycle keys,07 staff org,09/10 O/E X,11 affected members/grants; exact authority/entitlement must be rechecked for every later R02/R03. Commit makes new eligibility effective; unknown operator result requires independently attested readback, not stale Dashboard projection. If external writer cannot join ranks, gate it offline during protected traffic. |
+| **P03 local-dev direct writes** | Dev password UPDATE and destructive auth-state cleanup bypass proof/monotone history. | No production command: fixture/dev role and executable absent from production allowlist, denied production principals. A future actual session cleanup needs 03 owner -> 12 ordered SS/RC -> 14 dependent P/PD while retaining audit/pending-owner/key/receipt history; do not run these scripts as compensation. |
+| **P04 E2E/capacity fixtures** | Fixture SQL mutates M/G/E/O/U/SS directly without app session ceremony. | No production command: test-only principal/config isolation and negative startup/ACL proof. Fixture seeding may prepare a synthetic PG17 test but does **not** certify the subsequent signer; a real credential/TOTP operation must follow. |
+| **P05 push cleanup** | `cleanup_staff_push_v1()` callable by runtime; terminal PD/intents/P `SKIP LOCKED` deletion, 7d/30d policy. | Accepted narrowly bounded maintenance exception, not reset/auth signer. On separate worker/maintenance boundary use ordered rank14 P/PD only where terminal/retention/FK criteria are actually met. Exclude active P, in-flight delivery and receipts needed by unknown-COMMIT reconciliation. Maintenance commit cannot reverse accepted session revocation or audit. |
+| **R01 reset status** | Not implemented. Current management reads use current session/role/entitlement without this new SQL boundary. | Read-only current authenticated CA, issuer SS/F scope, O/E, sole-org target membership across **all** statuses, ACTIVE U/M. Any rank03/07/10/11/12/13 locks elected for a stable status read must follow the proposed order; READ COMMITTED is a point-in-time result, not a future permission. No token, hash, operation ID or secret receipt in response; conceal stale/foreign actor. |
+| **R02 reset issue** | Not implemented. Issue #416 mandates `vspr1` single use, 15m DB-clock TTL, historical CAS generation, 3 target/20 issuer/100 org/30 client committed issuance caps. | Durable client/issuer/target/org admission is pre-domain and purpose bound; 02 target email -> 03 issuer+target+all all-status membership-related User candidates -> 04 issuer MFA -> 07 org -> 09 U -> 10 O/E -> 11 M/G complete scope -> 12 issuer SS -> 13 issuer F S -> 14 reset generations. Recheck exact 5m MFA, current CA, sole-company target, current entitlement and expected generation after wait. Changed new generation+audit+receipt COMMIT => counted after known/reconciled outcome. Same authorized op/fingerprint => **LINK_UNAVAILABLE** without original bearer/budget; changed fingerprint/stale CAS => conflict. UNKNOWN new-lease readback must not create another link. |
+| **R03 reset redeem** | Not implemented. Anonymous raw bearer, no issuer online SS/MFA renewal; must recheck current issuer U/CA/M/O/E and target sole-company authority. | Pre-parser durable address reservation (30/15m) and valid-shape credential-key reservation (5/15m) **COUNT even on business rollback**; separate completed leases prior to domain locks. Discover token/owner without row X, then 02 target email,03 target+issuer+all implicated Users sorted,07 each org,09 U,10 O/E,11 all-status M,12 every target SS/RC,14 winning reset/sibling rows + all target P. Revalidate token hash/generation/15m expiry, current issuer role/entitlement and target status after wait. COMMIT atomically changes password, consumes winner, revokes siblings/SS/RC/P and records account audit+receipt; no MFA-factor deletion, new login or custody mutation. Expired/consumed/replay fail generically; UNKNOWN fresh-lease readback never reapplies password or discloses token. |
+
+**SQL nested-call obligations (current, not a grant audit):** (1)
+`staff_management_authorize_staff_actor` calls the CA actor helper, which can
+reacquire staff-org/M; `staff_management_lock_admin_factors` holds last-usable
+Admin F S; the three `staff_management_set_*` signatures therefore need
+proof-required M01–03 replacements, not an API-only wrapper. (2)
+`staff_onboarding_create/resend` invoke `staff_onboarding_lock_identity`
+(email A and sorted user-security A), staff actor/O/E/Location helpers, and
+invitation insert/revoke; M04/05 must replace the lower-rank reentry and
+separate anti-abuse pool call. (3) `staff_onboarding_activate(text,text,text)`
+shares identity/staff-org helpers and accepts a caller-supplied ACTIVE account
+hash comparison; M06 needs genuine invite/password ceremony rather than just
+caller-readable hash. (4) All **seven** `management_location_*` signatures
+and **twelve** settings/branding signatures, plus
+`shift_presence_set_policy`, need rank-compatible definer implementations
+with verified current app actor/SS/factor rather than trusted actor IDs.
+(5) `cleanup_staff_push_v1()` is purpose-bounded P05, and the migration-112
+generic runtime security audit append must continue denying reserved reset
+event types and controlled-operator actor provenance. The pending-MFA owner
+trigger's SS `FOR KEY SHARE` follows rank12 for every F insertion.
+
+Audit actual `pg_proc` signatures (including historic overloads), definer
+owner, fixed `search_path`, `PUBLIC`/runtime/inherited effective EXECUTE and
+old-version provisioner behavior. `provision-runtime-role.mjs` currently
+reapplies MFA/table privilege writers; revoking a function once in a migration
+does not secure it against a privileged stale runner. The old provisioner must
+be denied **only in isolated C3/C4 rehearsal before C6 reopen**, with
+post-reopen safe ACL drift monitoring, per the cutover contract. No static
+source inspection can establish complete deployed function coverage.
+
+**Newly relevant writer-drift check at the pinned baseline:** `git diff
+eb2d0ba4..HEAD` was empty before this file edit; the targeted TS source
+search for direct protected-table UPDATE found the inventoried auth/MFA/push
+and controlled-tool writers plus dev/E2E fixture paths, but no new ordinary
+production Org/E authority writer. This does **not** cover external operator
+SQL, deployed jobs, unreviewed dynamic SQL or actual database grant drift; an
+attested deployment inventory remains mandatory.
+
 ## Six retry outcomes and secret exceptions
+
+### Outcome/timeout/compensation matrix — per typed command family
+
+The command's *observed transaction phase* is part of error classification:
+`40P01`, `40001`, `55P03` and `57014` **before** COMMIT require a
+confirmed rollback/closed lease before bounded re-attempt with a new genuine
+ceremony; they do **not** grant an automatic HTTP POST replay. A driver error
+after COMMIT was sent, including `57014`, `57P01`, a connection-class
+`08xxx` or a transport reset, is **UNKNOWN** irrespective of its code. A
+rollback attempt after this cannot prove non-commit. The actual helper records
+`UNAVAILABLE` in its outcome tracker and rethrows the **original** exception;
+it does not return a typed `UNAVAILABLE` value to callers.
+
+For each UNKNOWN, release/destroy the unusable lease, establish a *new* trusted
+lease and current proof/authorization (controlled operator for P commands;
+bearer/password/TOTP where accepted), verify same immutable
+purpose+operation+fingerprint+actor+target, lock the canonical operation/domain
+fences, reread the private committed receipt **and** protected state/audit.
+For anonymous R03, the server may reconcile its **original** token/verifier
+fingerprint against a private receipt under the strictly confined internal
+redeem authority; a consumed public bearer cannot become a fresh authenticated
+session, cannot renew issuer MFA, and must not grant a second redemption.
+Receipt absence cannot be declared until prior commit is known resolved and
+the matching fence can be acquired. An unresolved wait returns bounded
+transient/unavailable, not `not found`. Compensation never undoes a committed
+security revocation, reuse of a recovery code, or User password change, and
+never prints a previous secret.
+
+| Commands | Confirmed success / COMMIT linearization | Conflict, timeout or rollback (R/D) | Same-op replay, UNKNOWN recovery and compensation |
+| --- | --- | --- | --- |
+| **A01 login** | SS+initial RC+last-login+identifier reservation result. | Invalid password/User => uniform failure; lock/deadlock => rollback and bounded fresh-ceremony attempt only. | Receipt safely identifies committed issuance, not raw tokens; lost reply requires new login under policy, never secret reconstruction. Reset/disable racing after credential verification invalidates stale PHC. |
+| **A02 refresh** | Single RC consume+successor+SS access-rotation, **or** consumed RC => SS family revoke committed despite auth failure. | Revoked/expired/invalid => auth loss; precommit deadlock/timeout rolls back, no successor; no grace. | Consumed-token presentation is **not** idempotent success replay. UNKNOWN success => reconcile; old refresh replay may itself revoke family and require fresh login. Never regenerate old successor response. |
+| **A03 logout, M12 disable, M14 security disable** | Monotone SS/P/User terminal effects plus required audit commit. | Unmatched credentials/foreign registration fail non-disclosing; lock failure rolls back all local effects. | Exact already-terminal state can be reported only under its accepted safe contract; UNKNOWN reconcile terminal rows and audit on new lease. No compensating reactivation. |
+| **A04–A08 enrollment/TOTP/recovery** | F/C/SS step, generation and account audit advance as one; pending F's exact SS ownership remains intact. | Wrong/used TOTP or code and stale generation fail; deadline crossing after wait fails; rollback must not consume factor/code. | A04 pending seed exception is **same originating live session only**; A05/A08 raw codes never redisclosed; A06 step never silently extended; A07 consumed C irreversible. UNKNOWN reconcile F/C/SS/audit and require accepted fresh ceremony for a lost secret. |
+| **A09 / M07 guard, A10–A11 reads** | A09 activity UPDATE commits only with authorized management mutation; read-only guards have **no** mutation linearization. | Current role, F/session, freshness or tenant failure denies; stale prior read is not authority. | No cached assurance as a replacement for current locked credential; UNKNOWN A09 checks exact activity/domain receipt, no proof from read. |
+| **M01–M03 role/status/grants** | Exact desired-state M/G version and required tenant audit together. | Expected-version mismatch, loss of LM full coverage, live-work/last-Admin blocker or stale org => conflict/deny; no partial grant write. | Identical authorized no-op safe without extra audit, changed payload conflicts; UNKNOWN fresh-lease current role/grants/version+audit/receipt, never reapply an unconfirmed admin change. |
+| **M04–M05 onboarding** | Changed I generation + U/M/G if create + tenant audit; quota finalizes **COUNTED** only for changed issuance. | New quota denial blocks fresh issuance; precommit rollback/denied/no-op quota outcome **IGNORED** under accepted policy; failed finalization must remain recoverable. | Exact authorized unchanged operation replay is **linkless** and IGNORED; U requires private receipt reconciliation before quota finalization. No compensating second invitation or secret re-disclosure. |
+| **M06 activation** | I consumed, U/M activated or verified current ACTIVE, audit committed. | Password mismatch/invite stale/generation conflict after wait => safe failure, no password or member partial mutation. | Only accepted already-activated safe outcome on replay; unknown new-lease I/U/M/audit proof, never automatic activation with a different candidate password. |
+| **M08–M10 Location/settings/presence** | Typed Location or policy/branding change + version/revision + tenant audit. | CAS, current Location, entitlement, actor, presence readiness or handover conflict => deny; lock busy/timeout rolls back and preserves old version. | Identical replay only per existing operation key/no-op rules, not generic idempotency. UNKNOWN reread authoritative O/L/revision/audit/receipt; no blind config overwrite or custody mutation. |
+| **M11 register / M13 worker** | P owner/registration state commit; worker's claim and finalize are **separate** fenced commits, provider I/O outside DB. | Uniqueness conflict `23505` maps to existing safe push conflict; expired/stale lease cannot finalize; `SKIP LOCKED` skip is not proof of deletion. | Reconcile exact token/install/SS owner on fresh lease; never leak provider token. Remote provider UNKNOWN permits bounded generic duplicate attention only per DEC-075/076, never exactly-once claim or authority write. |
+| **M15 recovery / P01 provision / P02 external O/E** | Controlled operator-approved F retirement, new User/M/G, or O/E state and immutable audit each commits at their own explicit boundary. | Invalid operator provenance, conflicting email, stale authority or lock timeout => fail closed; externally uncoordinated O/E writer remains a release blocker. | Same operator operation+payload may safe-replay only with audit/receipt; UNKNOWN reread new lease with trusted operator identity, never fallback to a weaker app or SQL signer. |
+| **P03–P05 maintenance/fixtures** | No protected command for P03/P04 in production; P05 terminal cleanup transaction is independent. | Fixture invocation in production is privilege denial; P05 SKIP LOCKED/retention constraint skips safely. | P05 unknown requires new-lease terminal/FK proof, never DELETE ACTIVE P or receipt/audit; no dev fixture as compensation. |
+| **R01 status** | Authenticated read as of validated query/lock scope; no reset write. | Tenant, role, MFA, entitlement, all-status target membership denied/concealed as specified. | No link disclosed, no assumed serializable guarantee across requests; a later R02 must reauthorize. |
+| **R02 reset issue** | New generation, old generation revoke, reset audit+receipt commit, then quota **COUNTED** for actual new link. | Stale expected generation, current CA/MFA/target/entitlement or quota deny; rollback cannot create token. | Same current authorized operation returns **LINK_UNAVAILABLE** with no link or new budget; U reconcile immutable receipt/latest generation before returning safe status or finalizing quota. No second link or automatic new operation. |
+| **R03 reset redeem** | Password replacement+winning token consume+other reset revokes+all target SS/RC/P terminal+security audit atomically. | Generic invalid/expired/role-denied; failed protected business transaction does **not** undo counted public limiter attempts; no issuer MFA renewal. | Already consumed bearer generic failure; U new-lease readback by protected receipt/current generation, without redisclosing password or repeating UPDATE. **Never** compensate by restoring old password or revoked sessions. |
+
+Post-domain limiter finalization must never share a live domain lease via another
+pool connection. For M04/05 and R02, a finalizer crash/UNKNOWN must leave a
+durable pending reservation with bounded recovery and receipt-backed
+`COUNTED`/`IGNORED`; if no receipt exists after authoritative rollback,
+apply only the approved noncommit policy. For R03 public address/credential
+**attempt** quotas, the reservation/finalization policy instead counts failures
+and malformed requests as required by Issue #416; never reuse issuance quota
+semantics on public redeem. A duplicate request denied during pre-lock
+admission must not become a secret replay or bypass quotas: a separately
+authenticated, same-operation safe receipt read can confirm an already
+committed linkless outcome, while an unresolved operation remains transient;
+neither path silently issues a new generation.
 
 | Case | Proposed authoritative outcome |
 | --- | --- |
@@ -364,7 +564,57 @@ acquisition. No assertion here is an executed result.
 | 14 unknown COMMIT / receipt reconcile | A holds op01 through COMMIT; B new-lease authenticated reconcile same identity waits op01. C/U committed receipt reports only safe completion; R,D absence permits explicit first execution using fresh proof. While A is unresolved B must time out transiently, not return absent. Exercise server COMMIT success with lost ack and precommit termination independently. |
 | 15 onboarding quota reservation / protected create-resend | A holds outer domain ranks for create/resend while B attempts durable anti-abuse admission. New design **must not** request a second pool lease until A releases its domain lease; reserve ahead of A's locks on a short completed lease and bind to the typed operation. C COUNTED only for committed changed invitation issuance, but IGNORED for same-operation linkless unchanged replay; R,D finalize policy-appropriate noncommit; U retain pending then new-lease reconcile domain receipt before finalizing. Exercise 2-connection pool exhaustion, parallel same-target reservation, postcommit finalization failure and quota exhaustion without signer-proof bypass. |
 
-For all fifteen, after C/R/D/U verify no partial credential/factor/reset/push
+### Exact C/R/D/U/T harness and per-pair timeout acceptance
+
+`C` means coordinator observes server COMMIT completion and **then** releases
+the barrier; `R` is explicit server-confirmed ROLLBACK; `D` kills A's backend
+**before any COMMIT is sent** and observes rollback/no receipt; `U` allows the
+server to commit but drops only its acknowledgment so A's client sees UNKNOWN.
+These are four **distinct** fault injections, not four generic network errors.
+In `U`, a verifier on a third, *new* lease must first acquire the matching
+operation fence and see the committed receipt and domain/audit rows. The
+negative `T` branch leaves A holding its actual named fence beyond B's
+effective lock/statement/transaction deadline, records the exact blocked PID,
+`pg_locks` resource and SQLSTATE, then proves B's **complete** rollback on
+fresh lease; only afterward release A into C or R and force an independently
+authorized B revalidation. Neither the original B transaction nor its
+time-expired challenge may be resumed. For each case also reverse actor/target
+UUID order, reverse A/B when relevant, and cross the credential/MFA/invitation
+expiry boundary *while B is waiting*.
+
+| Race | Named B wait and deterministic T result | Post-T completion/compensation assertion (also apply C/R/D/U outcomes above) |
+| --- | --- | --- |
+| **1 password/login** | B waits owner03/User09 while A changes password; inject B lock timeout. | B has no SS/RC or last-login update; after C old password rejected, after R/D genuine current password may login; U re-read hash/receipt first. |
+| **2 disable/login** | B waits target03 or U09, never observes pre-disable User as final authority. | B inserts no SS; A C/U blocks subsequent login, A R/D permits only independently reverified login. |
+| **3 refresh/refresh** | B waits owner03/SS12 on same RC generation; on T no consumption or replacement by B. | A C/U winning rotate followed by B **fresh use of old consumed bearer** revokes family and returns failure **after COMMIT**; R/D permits exactly one fresh rotation, no grace/recovery of A's raw successor. |
+| **4 logout/refresh** | B waits 03/12; T creates no successor RC. | A C/U revocation terminal; A R/D permits revalidated current refresh. Reverse rotation-first then logout revokes the lineage current after rotation. |
+| **5 logout/MFA** | B waits User03/SS12; T cannot advance factor step, SS assurance or issue pending seed. | A C/U denies MFA on revoked SS; R/D permits fresh session+factor proof only. Reverse MFA-first then logout still revokes. |
+| **6 disable/MFA** | B waits user03/U09 and times out before F/SS writes. | No consumed C or F step from B; C/U blocks by DISABLED, R/D requires active User/exact session proof. |
+| **7 recovery/MFA** | B waits 03/04/F13; T cannot consume code or update SS assurance. | C/U retired F blocks old TOTP/recovery; R/D allows only still-current F ceremony. Reverse ordering preserves one accepted step before retirement. |
+| **8 management/MFA** | B waits actor03 or F13; T cannot advance factor or protected management version/audit. | C/U requires subsequent factor/SS recheck, R/D no fabricated assurance. Reverse recovery-first makes old-factor management reject. |
+| **9 role/reset** | B waits actor/target03 or org07/M11; T produces no reset row/link or M mutation. | A C/U forces current CA/sole-company/target recheck, R/D may issue only if current; receipt missing under A's lock is never early `not found`. |
+| **10 onboarding/reset** | B waits email02 or target03/org07; T cannot create link or consume invite generation. | C/U resets only if latest User/M eligibility remains valid; R/D re-discover target. A's quota is finalized by A's own known/reconciled outcome, not by B. |
+| **11 push/reset** | B waits User03/SS12/P14; T no ACTIVE P survives a committed reset by this command. | C/U if registration committed first, redemption disables it; R/D preserve only authorized registration; reverse redeem-first makes new owner binding fail. |
+| **12 retirement/execute** | B waits key15 S behind retiring X; forced expiry while blocked must reject after acquisition. | A C/U retired key prevents execute; R/D may proceed only before proof expiry with current key, never sign a stale challenge. Reverse execute-first S makes retirement wait through command COMMIT. |
+| **13 duplicate/conflict** | B waits purpose+operation01; T may not infer receipt absent, change fingerprint or execute a copied challenge. | A C/U identical safe response, changed fingerprint conflict; R/D B new proof may first-execute. Distinct purposes never share operation identity. |
+| **14 unknown/reconcile** | B new-lease reconciler waits operation01, T must yield transient without secret/absence claim. | A C/U receipt+state confirmed; A R/D absent only once its fence is acquired and rollback established. Never turn R/D into U or vice versa. |
+| **15 onboarding quota** | A's quota reservation completes **before** A takes domain locks; with pool max=2, B independently reserves on a short second lease **before its own domain locks** and releases it, then waits on A's email02/User03/org07. Force B timeout; instrument a hard prohibition on A acquiring a nested second lease. | A C changed issuance => COUNTED; A C unchanged same-op linkless replay => IGNORED; A R/D => documented noncommit finalization. A U => pending until new-lease receipt reconciliation. B's timed-out domain attempt is rolled back and its own reservation finalized/recovered independently; an exhausted quota cannot issue a link or be bypassed via signer proof. Inject finalizer failure and enforce one counted event per actual committed change. |
+
+Use deterministic session barriers around the *actual* rank and named SQL
+statement rather than fabricated `pg_sleep` success, and capture
+`pg_blocking_pids`, backend IDs, `SHOW transaction_isolation`, lock mode,
+server-clock sample, SQLSTATE, complete transaction outcome and the resulting
+committed receipt/audit row counts. At least one separate test deliberately
+exhausts the ordinary pool while a domain transaction is live: no protected
+command may request another pool lease and the result must be bounded
+unavailability, not an indefinite hang. To test post-COMMIT limiter failure,
+close only the **finalizer** connection, keep the domain receipt intact and
+recover the pending reservation without reissuing a token/link. Actual
+`lock_timeout` (2s), `statement_timeout` (3s), guest PG17
+`transaction_timeout` where applicable and the smaller lease/operation budget
+must be read from the test connection; a proposed proof TTL cannot extend them.
+
+For all fifteen, after C/R/D/U/T verify no partial credential/factor/reset/push
 mutation without corresponding required audit, no raw secret stored in receipt,
 no stale challenge accepted from recycled PID/connection, and key/expiry checks
 after waits. Add two-user cross-action permutation tests, UUID input reversal,
@@ -377,11 +627,13 @@ pair tests alone still do not establish global deadlock freedom.
 
 PROPOSED internal classification; preserve existing public error mappers.
 `40P01` deadlock, `40001` serialization, `55P03` lock unavailable/timeout and
-`57014` statement cancel/timeout require full rollback and a bounded transient
-result. No blanket automatic POST replay or new operation identity. `25P02`
+`57014` statement cancel/timeout **before COMMIT is attempted** require confirmed
+rollback and a bounded transient result. No blanket automatic POST replay or
+new operation identity. `25P02`
 means transaction already failed, rollback; do not execute more commands there.
-Connection-class `08...`, backend termination `57P01` or transport loss during
-COMMIT are UNKNOWN until fresh-lease receipt reconciliation; an attempted
+**Any** error after COMMIT is sent, including `57014`, connection-class
+`08...`, backend termination `57P01` or transport loss, is UNKNOWN until
+fresh-lease receipt reconciliation; an attempted
 ROLLBACK after lost COMMIT cannot prove noncommit.
 
 `23505` is mapped only for the known named operation/receipt uniqueness conflict
