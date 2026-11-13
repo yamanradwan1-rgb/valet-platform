@@ -68,9 +68,9 @@ describe("A04-create/A07 VAP1 candidate encrypted seed material", () => {
       { ...binding, userId: "00000000-0000-4000-8000-000000000003" },
       { ...binding, factorId: "00000000-0000-4000-8000-000000000004" },
     ]) {
-      expect(() => unprotectTotpSecret(material.protectedSecret, changed)).toThrow(
-        MfaSecurityUnavailableError,
-      );
+      expect(() =>
+        unprotectTotpSecret(material.protectedSecret, changed),
+      ).toThrow(MfaSecurityUnavailableError);
     }
   });
 

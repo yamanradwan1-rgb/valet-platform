@@ -41,10 +41,11 @@ describe("VAP1 MFA entrypoints do not trust a resolver context without raw Beare
 
     for (const operation of [
       () => enrollment.begin(actualAuthorization),
-      () => enrollment.confirm(actualAuthorization, {
-        code: "123456",
-        factorId: "00000000-0000-4000-8000-000000000003",
-      }),
+      () =>
+        enrollment.confirm(actualAuthorization, {
+          code: "123456",
+          factorId: "00000000-0000-4000-8000-000000000003",
+        }),
       () => stepUp.stepUp(actualAuthorization, "123456"),
       () => recovery.beginSelfRecovery(actualAuthorization, "not-a-code"),
       () => recovery.reissueRecoveryCodes(actualAuthorization, "123456"),
