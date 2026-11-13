@@ -34,9 +34,9 @@ import {
 } from "../anti-abuse/anti-abuse.service";
 import {
   generateStaffCredential,
-  refreshTokenPattern,
   staffCredentialHash,
 } from "./staff-auth-credential";
+import { hashSubmittedStaffRefresh } from "./staff-auth-vap1-refresh";
 import { logoutStaffSession } from "./staff-auth-logout";
 import { staffAuthTokenResult } from "./staff-auth-token-result";
 import {
@@ -177,13 +177,11 @@ export class StaffAuthService {
   }
 
   async refresh(refreshToken: string): Promise<StaffAuthTokens> {
-    if (!refreshTokenPattern.test(refreshToken)) {
-      throw new StaffAuthenticationError();
-    }
+    const refreshHash = hashSubmittedStaffRefresh(refreshToken);
+    if (refreshHash === undefined) throw new StaffAuthenticationError();
     const accessToken = generateStaffCredential("vsa1.");
     const replacementRefreshToken = generateStaffCredential("vsr1.");
     const replacementId = randomUUID();
-    const refreshHash = staffCredentialHash("refresh", refreshToken);
     const result = await inTransaction(this.pool, async (transaction) => {
       if (
         !(await lockStaffRefreshUserSecurityBoundary(transaction, refreshHash))
