@@ -82,6 +82,31 @@ export async function verifyVap1PrivateIsolation(client, runtimeRole) {
        WHERE n.nspname='auth_proof_private' AND r.rolname <> 'vap1_proof_owner'`,
   );
   if (ownerMismatch !== 0) throw new Error("VAP1 private function owner mismatch.");
+  const relationOwnerMismatch = await count(
+    client,
+    `SELECT count(*)::integer AS count
+       FROM pg_catalog.pg_class c
+       JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+       JOIN pg_catalog.pg_roles r ON r.oid=c.relowner
+       WHERE n.nspname='auth_proof_private'
+         AND c.relkind IN ('r','p','S','v','m','f')
+         AND r.rolname <> 'vap1_proof_owner'`,
+  );
+  if (relationOwnerMismatch !== 0) {
+    throw new Error("VAP1 private table, sequence or view owner mismatch.");
+  }
+  const runtimePrivateExecutable = await count(
+    client,
+    `SELECT count(*)::integer AS count
+       FROM pg_catalog.pg_proc p
+       JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace
+       WHERE n.nspname='auth_proof_private'
+         AND pg_catalog.has_function_privilege($1,p.oid,'EXECUTE')`,
+    [runtimeRole],
+  );
+  if (runtimePrivateExecutable !== 0) {
+    throw new Error("VAP1 runtime retains effective private EXECUTE privilege.");
+  }
   const publicFunctionExecute = await count(
     client,
     `SELECT count(*)::integer AS count FROM pg_catalog.pg_proc p
