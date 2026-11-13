@@ -1,8 +1,15 @@
 # Issue 416 — R02 protected reset-issuance quota (dormant)
 
-Migration `20261113012000_issue416_vap1_atomic_reset_quota` is a **future-only**
-private contract. It does not enable a password-reset endpoint, expose an SQL
-EXECUTE privilege to application roles, or alter the existing anti-abuse service.
+Migrations `20261113012000_issue416_vap1_atomic_reset_quota` (120, private
+tables/evidence/guards) and
+`20261113012400_issue416_vap1_atomic_reset_quota_functions` (124, private
+reservation/reconciliation functions) form a **future-only** contract. Each is
+under 300 physical lines and wraps its SQL changes in an explicit PostgreSQL
+`BEGIN`/`COMMIT` with `SET ROLE`/`RESET ROLE`, so a statement failure cannot
+leave partially installed schema/functions. Migration 124 depends on 120 and
+comes after W2-owned 121–123 in the forward-only ordering. Neither migration
+enables a password-reset endpoint, exposes EXECUTE to application roles, or
+alters the existing anti-abuse service.
 
 ## Pre-domain boundary
 
@@ -67,9 +74,11 @@ changed-link accounting must never be reused for R03.
 
 ## Tests and release gate
 
-`node --test packages/database/issue416-quota/*.unit.test.mjs` performs source
-contract checks. The opt-in isolated PG17 suite uses the W9 harness and can run
-**only** after 113–119 and 120 are successfully migrated under W9's triple URL,
-container identity and exclusive lease attestations. Until W2 fixes the
-currently blocked migration113, all PG17 quota tests are **NOT RUN**. No
+`node --test packages/database/issue416-quota/*.unit.test.mjs` performs source,
+hash-component, boundary and physical-line-count checks. The opt-in isolated
+PG17 suite uses the W9 harness and can run **only** after the 113–124 chain,
+including W2-owned 118/119/121–123 and both W12 migrations, is successfully
+migrated under W9's triple URL, container identity and exclusive lease
+attestations. The guarded PG17 fixture previously failed migration113 (P3018);
+all PG17 quota tests are **NOT RUN** pending W2/Prime safe recovery. No
 production DB, PR, push, merge or cutover is authorized by this change.

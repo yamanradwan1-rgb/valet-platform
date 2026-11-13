@@ -3,26 +3,29 @@ import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 
 // Static checks catch accidental contract drift. These are NOT PG17 execution.
-const sql = readFileSync(new URL(
+const storageSql = readFileSync(new URL(
   "../prisma/migrations/20261113012000_issue416_vap1_atomic_reset_quota/migration.sql",
   import.meta.url,
 ), "utf8");
+const functionsSql = readFileSync(new URL(
+  "../prisma/migrations/20261113012400_issue416_vap1_atomic_reset_quota_functions/migration.sql",
+  import.meta.url,
+), "utf8");
+const sql = `${storageSql}\n${functionsSql}`;
 const source = readFileSync(new URL(
   "../../../apps/api/src/modules/anti-abuse/anti-abuse-key.ts",
   import.meta.url,
 ), "utf8");
 
-function section(start, end) {
+function section(start) {
   const from = sql.indexOf(`CREATE FUNCTION auth_proof_private.${start}(`);
   assert.ok(from >= 0, `missing ${start}`);
-  const to = end
-    ? sql.indexOf(`CREATE FUNCTION auth_proof_private.${end}(`, from + 1)
-    : sql.indexOf("REVOKE ALL ON ALL TABLES", from + 1);
+  const to = sql.indexOf("\n$$;", from);
   assert.ok(to > from, `${start} section ends unexpectedly`);
-  return sql.slice(from, to);
+  return sql.slice(from, to + "\n$$;".length);
 }
 
-const reserve = section("reserve_reset_issue_quota", "validate_reset_issue_domain_evidence");
+const reserve = section("reserve_reset_issue_quota");
 const reconcile = section("reconcile_reset_issue_quota");
 
 const issuePolicies = [
@@ -38,6 +41,39 @@ function exactQuotas(text) {
 }
 
 describe("R02 source-only 4-scope protected quota contract", () => {
+  it("splits into two individually atomic migrations under 300 physical lines", () => {
+    for (const [body, label] of [
+      [storageSql, "120"], [functionsSql, "124"],
+    ]) {
+      const lineCount = body.trimEnd().split(/\r?\n/).length;
+      assert.ok(lineCount <= 300, `migration${label} has ${lineCount} lines`);
+      assert.equal((body.match(/^BEGIN;$/gm) ?? []).length, 1);
+      assert.equal((body.match(/^COMMIT;$/gm) ?? []).length, 1);
+      assert.equal((body.match(/^SET ROLE vap1_proof_owner;$/gm) ?? []).length, 1);
+      assert.equal((body.match(/^RESET ROLE;$/gm) ?? []).length, 1);
+      assert.ok(body.indexOf("BEGIN;") < body.indexOf("SET ROLE vap1_proof_owner;"));
+      assert.ok(body.indexOf("RESET ROLE;") < body.lastIndexOf("COMMIT;"));
+    }
+    assert.match(storageSql, /CREATE TABLE auth_proof_private\.reset_issue_quota_bundles/);
+    assert.match(storageSql, /CREATE TABLE auth_proof_private\.reset_issue_domain_evidence/);
+    assert.match(storageSql, /CREATE TRIGGER vap1_reset_evidence_source_guard/);
+    assert.doesNotMatch(storageSql, /CREATE FUNCTION auth_proof_private\.reserve_reset_issue_quota\(/);
+    assert.doesNotMatch(storageSql, /CREATE FUNCTION auth_proof_private\.reconcile_reset_issue_quota\(/);
+    assert.match(functionsSql, /CREATE FUNCTION auth_proof_private\.reserve_reset_issue_quota\(/);
+    assert.match(functionsSql, /CREATE FUNCTION auth_proof_private\.reconcile_reset_issue_quota\(/);
+    assert.doesNotMatch(functionsSql, /CREATE (?:TABLE|TRIGGER|CONSTRAINT TRIGGER) /);
+  });
+
+  it("extracts the third hash component as the exact 32-byte HMAC digest", () => {
+    const digest = "ab".repeat(32);
+    const keyHash = `anti-abuse-hmac-sha256:v1:${digest}`;
+    assert.deepEqual(keyHash.split(":"), ["anti-abuse-hmac-sha256", "v1", digest]);
+    assert.equal(Buffer.from(keyHash.split(":")[2], "hex").length, 32);
+    assert.match(storageSql, /pg_catalog\.split_part\(key_hash, ':', 3\)/);
+    assert.match(functionsSql, /pg_catalog\.split_part\(v_key\.key_hash, ':', 3\)/);
+    assert.doesNotMatch(sql, /split_part\((?:v_key\.)?key_hash, ':', [12]\)/);
+  });
+
   it("uses precisely the W4 scopes/rolling caps in both lock and count passes", () => {
     const expected = issuePolicies.map(([scope, key, cap]) => [scope, key, cap]);
     assert.deepEqual(exactQuotas(reserve), [...expected, ...expected]);
@@ -83,7 +119,7 @@ describe("R02 source-only 4-scope protected quota contract", () => {
   });
 
   it("accepts only immutable signed domain evidence and never caller state", () => {
-    const evidence = section("validate_reset_issue_domain_evidence", "reconcile_reset_issue_quota");
+    const evidence = section("validate_reset_issue_domain_evidence");
     assert.match(evidence, /r\.purpose = 'RESET_ISSUE'/);
     assert.match(evidence, /c\.consumed_at IS NOT NULL/);
     assert.match(evidence, /c\.membership_id = v_bundle\.issuer_membership_id/);
