@@ -90,10 +90,18 @@ export function selectAdmissionLocks(dependencies, changedKeys = []) {
   if (!Array.isArray(dependencies) || !Array.isArray(changedKeys)) {
     throw new Error("L1_INVALID_DEPENDENCY_SET");
   }
+  if (dependencies.length === 0) {
+    throw new Error("L1_EMPTY_DEPENDENCY_SET");
+  }
   const changed = new Set(changedKeys.map(admissionKeyId));
   const rows = new Map();
+  let audience;
   for (const key of dependencies) {
     const id = admissionKeyId(key);
+    if (audience !== undefined && audience !== key.audience) {
+      throw new Error("L1_CROSS_AUDIENCE_DEPENDENCY");
+    }
+    audience = key.audience;
     if (rows.has(id)) throw new Error("L1_DUPLICATE_DEPENDENCY");
     rows.set(id, Object.freeze({
       key, rank: key.rank,
@@ -110,21 +118,47 @@ export function selectAdmissionLocks(dependencies, changedKeys = []) {
 // Pre/post-proof simulation only. W2 SQL must perform the *real* ranked
 // row-lock acquisition and execute-time re-read under the SAME transaction.
 export function assessAdmissionDependencies(lockedGates, requirements) {
-  if (!Array.isArray(lockedGates) || !Array.isArray(requirements)) {
+  if (!Array.isArray(lockedGates) || !Array.isArray(requirements) ||
+      !lockedGates.length || !requirements.length) {
     return Object.freeze({ allowed: false, reason: "L1_MISSING_GATES" });
   }
-  const gates = new Map(lockedGates.map((gate) =>
-    [admissionKeyId(gate.key), gate]));
-  for (const required of requirements) {
-    const gate = gates.get(admissionKeyId(required.key));
-    if (!gate || gate.disposition !== "ADMIT" ||
-        !Number.isSafeInteger(gate.admissionVersion) ||
-        gate.admissionVersion < 1 ||
-        gate.admissionVersion !== required.admissionVersion ||
-        gate.materialDigest !== required.materialDigest ||
-        gate.generation !== (required.generation ?? null)) {
+  try {
+    const gates = new Map();
+    for (const gate of lockedGates) {
+      const id = admissionKeyId(gate?.key);
+      if (gates.has(id)) {
+        return Object.freeze({ allowed: false, reason: "L1_DUPLICATE_GATE" });
+      }
+      gates.set(id, gate);
+    }
+    const requiredIds = new Set();
+    let audience;
+    for (const required of requirements) {
+      const id = admissionKeyId(required?.key);
+      if (requiredIds.has(id)) {
+        return Object.freeze({ allowed: false, reason: "L1_DUPLICATE_REQUIREMENT" });
+      }
+      requiredIds.add(id);
+      if (audience !== undefined && audience !== required.key.audience) {
+        return Object.freeze({ allowed: false, reason: "L1_CROSS_AUDIENCE_REQUIRED" });
+      }
+      audience = required.key.audience;
+      const gate = gates.get(id);
+      if (!gate || gate.disposition !== "ADMIT" ||
+          !Number.isSafeInteger(gate.admissionVersion) ||
+          gate.admissionVersion < 1 ||
+          gate.admissionVersion !== required.admissionVersion ||
+          gate.materialDigest !== required.materialDigest ||
+          !SHA256_RE.test(gate.materialDigest ?? "") ||
+          gate.generation !== (required.generation ?? null)) {
+        return Object.freeze({ allowed: false, reason: "L1_ADMISSION_DENIED" });
+      }
+    }
+    if ([...gates.values()].some((gate) => gate.key.audience !== audience)) {
       return Object.freeze({ allowed: false, reason: "L1_ADMISSION_DENIED" });
     }
+  } catch {
+    return Object.freeze({ allowed: false, reason: "L1_INVALID_GATE_INPUT" });
   }
   return Object.freeze({ allowed: true, reason: "SYNTHETIC_GATE_MATCH_ONLY" });
 }

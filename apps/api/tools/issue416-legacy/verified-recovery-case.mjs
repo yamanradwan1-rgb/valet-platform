@@ -1,4 +1,4 @@
-import { verify } from "node:crypto";
+import { createHash, createPublicKey, verify } from "node:crypto";
 import { admissionKeyId } from "./typed-admission-key.mjs";
 
 // Offline plan verification only. A real independently authenticated operator
@@ -23,7 +23,10 @@ function sorted(value) {
 }
 
 export function canonicalCaseBytes(caseBody) {
-  return Buffer.from(JSON.stringify(sorted(caseBody)), "utf8");
+  return Buffer.from(
+    "VAYLET_ISSUE416_SYNTHETIC_L1_CASE_V1\u0000" +
+    JSON.stringify(sorted(caseBody)), "utf8",
+  );
 }
 
 function validCase(body, nowMs) {
@@ -77,6 +80,7 @@ export function verifyRecoveryCase(envelope, trustedKeys, nowMs) {
   validCase(envelope.body, nowMs);
   const signed = canonicalCaseBytes(envelope.body);
   const accepted = new Map();
+  const publicKeyFingerprints = new Set();
   for (const signature of envelope.signatures) {
     if (!signature || !ROLES.includes(signature.role) ||
         typeof signature.keyId !== "string" ||
@@ -91,13 +95,23 @@ export function verifyRecoveryCase(envelope, trustedKeys, nowMs) {
       throw new Error("L1_UNTRUSTED_CASE_SIGNER");
     }
     let valid = false;
+    let keyFingerprint;
     try {
+      keyFingerprint = createHash("sha256").update(
+        (trusted.publicKey?.type === "public"
+          ? trusted.publicKey : createPublicKey(trusted.publicKey))
+          .export({ type: "spki", format: "der" }),
+      ).digest("hex");
       valid = verify(null, signed, trusted.publicKey,
         Buffer.from(signature.base64Signature, "base64"));
     } catch {
       throw new Error("L1_INVALID_CASE_SIGNATURE");
     }
     if (!valid) throw new Error("L1_INVALID_CASE_SIGNATURE");
+    if (publicKeyFingerprints.has(keyFingerprint)) {
+      throw new Error("L1_INDEPENDENT_APPROVAL_REQUIRED");
+    }
+    publicKeyFingerprints.add(keyFingerprint);
     accepted.set(signature.role, signature.keyId);
   }
   if (!ROLES.every((role) => accepted.has(role)) ||

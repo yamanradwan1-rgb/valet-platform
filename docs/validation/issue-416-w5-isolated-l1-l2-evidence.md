@@ -5,6 +5,10 @@ in deployed SQL, not operator identity proof, not a production cutover. Source
 baseline: `9b873610f00d5d520c9553d4a5185b9598e0fdb5` on the dedicated
 `cos/issue416-impl-w5` branch; worker-5 owns only the new isolated
 `apps/api/tools/issue416-{legacy,rehearsal}/` trees and this evidence file.
+Follow-up review compared the pinned W5 source against Prime's
+`b841fe566172f8f1eb64f111e73494df7ab2b2cf` contracts and W2's
+isolated migration `20261113011300_issue416_vap1_private_foundation`.
+These are **source snapshots**, not PG17/runtime acceptance.
 
 ## Facts and binding decisions
 
@@ -26,19 +30,49 @@ migration, provisioner, runtime Auth/MFA service or existing application route.
 
 | File group | Verified capability | Critical limitation |
 | --- | --- | --- |
-| `issue416-legacy/typed-admission-key.mjs` | Canonical `0x01 + UUID16` keys for singletons; `0x02 + orgUUID16 + membershipUUID16 + locationUUID16` for composite Location grants; explicit kind/rank and lossless deterministic display. | Must be compared with W2 authoritative SQL `bytea` canonicalization. No DB lookup. |
-| `issue416-legacy/selective-baseline.mjs` | Missing independently signed per-object case defaults to HOLD; exact material digest, generation, scope, duplicate/extra-case checking; digestible T0 **candidate** manifest; sorted pre-elected S/X lock intent and simulation of prepare/execute rechecks. | Cannot independently prove the supplied inventory is complete; cannot acquire SQL locks. Output status expressly does not authorize admission. |
-| `issue416-legacy/verified-recovery-case.mjs` | Checks bounded case body, expected material/admission version, time window and two distinct Ed25519 synthetic-role signatures against a separately passed trust store. Tampering or missing signer fails. | This is a **synthetic fixture verifier only**, NOT a selected production operator authentication provider/root. The actual independent Company contact/roster, operator authorization, role/approver policy and trusted key distribution are EXTERNAL—NOT VERIFIED. |
+| `issue416-legacy/typed-admission-key.mjs` | Canonical `0x01 + UUID16` keys for singletons; `0x02 + orgUUID16 + membershipUUID16 + locationUUID16` for composite Location grants; exactly the 13 SQL `object_kind` strings from migration 113; strict audience, rank and scope validation. | Static parity with W2 schema only, not real SQL `bytea` execution/locking. No DB lookup. |
+| `issue416-legacy/selective-baseline.mjs` | Missing independently signed per-object case defaults to HOLD; exact material digest, generation, scope, duplicate/extra-case checking; digestible T0 **candidate** manifest; sorted pre-elected S/X lock intent, denial of empty/cross-audience/duplicate requirements and gate rechecks. | Cannot independently prove the supplied inventory is complete; cannot acquire SQL locks or issue SQL proofs. Output status expressly does not authorize admission. |
+| `issue416-legacy/verified-recovery-case.mjs` | Checks domain-separated synthetic case signature bytes, bounded body, expected material/admission version, time window and two distinct Ed25519 synthetic-role signatures with different public-key fingerprints against a separately passed trust store. | This is a **synthetic fixture verifier only**, NOT a selected production operator authentication provider/root; different keys do not by themselves prove different humans. Actual independent Company contact/roster, operator authorization, role/approver policy and trusted key distribution are EXTERNAL—NOT VERIFIED. |
 | `issue416-legacy/controlled-transition.mjs` | Offline compare-and-swap transition plan with case reference, expected object material/version, mandatory monotone checkpoint intent and explicit required SQL/receipt/audit safeguards. | `executeControlledRecovery` refuses unconditionally. No online operator mutation or signed SQL writer is exposed. A caller-supplied `attested=true` remains *only a planning fixture*, not security evidence. |
-| `issue416-legacy/older-backup-fence.mjs` | Stale, missing, mismatched, pending-deny and complete-looking older snapshots **all remain HOLD**; flags reconciliation candidates without reviving authority. | External independent monotone ledger and recovery-key escrow absent; no real database restore. |
-| `issue416-rehearsal/disposable-pg17-preflight.mjs` | Pure shape guard for uniquely named `issue416_w5_*` target, PostgreSQL 17, different runtime/admin roles, dedicated labels/volume, localhost high port; explicitly excludes existing QA `45432` and default `5432`. | Supplied Docker/SQL JSON observations do **not** themselves attest reality. `refuseUnattestedPg17Run` refuses without verified exclusive lease. |
-| `issue416-rehearsal/cutover-plan.mjs` + `plan-only.mjs` | Offline C0–C6 checklist and 12 gated readiness categories; JSON report always refuses any real cutover. | Never accesses Docker, DB, application, secrets, backups, workers or production. |
+| `issue416-legacy/older-backup-fence.mjs` | Stale, missing, mismatched, pending-deny and complete-looking older snapshots **all remain HOLD**; 12 explicit monotone dimensions (codes, accepted TOTP, sessions/refresh, invitations/reset, roles/entitlements, keys, audit, anti-abuse and admission versions). | Caller-declared coverage and matching versions are not proof of an independent ledger; no ADMIT is ever returned and no real restore occurs. |
+| `issue416-rehearsal/disposable-pg17-preflight.mjs` | Pure shape guard for uniquely named `issue416_w5_*` target, PostgreSQL 17, different runtime/admin roles, dedicated labels/volume, localhost high port; explicitly excludes existing QA `45432` and default `5432`. | `allowed` is now **always false**, including a shape match; supplied Docker/SQL JSON observations do **not** attest reality. `refuseUnattestedPg17Run` always refuses. |
+| `issue416-rehearsal/writer-closure-contract.mjs` | No-DB model for **all 35** source families A01–A11, M01–M15, P01–P05, R01–R03, X01; explicitly separates signed writers from A10/A11/M07/R01 reads, M14/M15/P01/P02 controlled operators, M13/P05 bounded maintenance and P03/P04 nonproduction. Enumerates six MFA/reset audit event names and the generic CONTROLLED_OPERATOR exclusion. | No executable role privileges, function/overload ACLs, audit runtime denial or operator provenance attested. Even declared complete input returns `canDeclareProductionClosure=false`. |
+| `issue416-rehearsal/cutover-plan.mjs` + `plan-only.mjs` | Offline C0–C6 checklist, 18 gated readiness categories, including old auditor SQL forgery, 35 writers, unsafe limiter COUNTED→IGNORED, external entitlement writers, old SQL overloads and P05/P03/P04 separation. | `L2_EXECUTION_NOT_AUTHORIZED` always; never accesses Docker, DB, application, secrets, backups, workers or production. |
+
+## Source regressions found in follow-up (fixed in W5 only)
+
+1. **MAJOR ABI drift:** the first W5 version used short `U/O/.../G` for
+   the **SQL object-kind value**; W2 migration 113 explicitly requires
+   `USER/ORGANIZATION/.../GRANT`. The new typed key rejects all legacy
+   short aliases, invalid audience and cross-audience comparisons, and
+   preserves the 17/49-byte key framing.
+2. **Significant synthetic admission ambiguity:** an empty `requirements`
+   array previously returned `allowed=true`; repeated gate IDs could
+   silently replace a committed HOLD with an ADMIT in the input map. Both
+   now fail closed. Empty lock dependency sets and duplicate requirements
+   are rejected before any positive synthetic result.
+3. **Safety-proof overstatement:** matching user-provided Docker/SQL JSON
+   formerly returned `allowed=true` (labelled shape-only), which was easy
+   to misinterpret as PG17 eligibility. It now **always returns false**
+   for execution permission. Supplied older-backup `independentlyVerified`
+   and per-dimension data can only mark a *synthetic version-match
+   candidate*: all restored identities remain HOLD.
+4. **Missing closure gates:** prior L2 plan did not list 35 writer families,
+   audit-name forgery through `append_runtime_account_security_audit_event`,
+   old EXECUTE overloads, limiter discount privilege, operator-only P02
+   or P05/fixture retention as individually reviewable blockers. The
+   no-DB manifest and negative tests now surface them; migration 112 and
+   effective historical SQL privileges are unchanged by W5.
 
 ## Exact W2 contract required before integration
 
-1. W2 confirms stable enum/typings for `(audience, object_kind,
-   object_key_bytes)` and the special 49-byte grant key. The current
-   model's source-verified symbolic kinds are `U/O/E/M/L/G/SS/RC/F/C/I/R/P`.
+1. W2's current private foundation migration 113 supplies the exact
+   `(audience, object_kind, object_key_bytes)` identity, with canonical
+   object kinds `USER/ORGANIZATION/ENTITLEMENT/MEMBERSHIP/LOCATION/GRANT/
+   SESSION/REFRESH/FACTOR/RECOVERY_SET/INVITATION/PASSWORD_RESET/
+   PUSH_REGISTRATION` and a 49-byte grant key. W5's earlier symbolic
+   `U/O/E/M/L/G/SS/RC/F/C/I/R/P` strings were **not SQL compatible**;
+   corrected in this review. W2 still owns exact SQL writer/lock ABI.
 2. W2 owns the private gate and accepted-security-material registry schema,
    unique constraints, protected monotone `admission_version`, typed material
    digest/provenance/parent keys, and SQL-held missing-row fail-close behavior.
@@ -76,7 +110,7 @@ container, or SQL provenance was supplied to Worker 5.
 
 | Check | Result |
 | --- | --- |
-| Native `node --test apps/api/tools/issue416-legacy/tests/*.test.mjs apps/api/tools/issue416-rehearsal/tests/*.test.mjs` | **29/29 PASS** (exit 0, synthetic offline only); no PostgreSQL or live operator evidence |
+| Native `node --test apps/api/tools/issue416-legacy/tests/*.test.mjs apps/api/tools/issue416-rehearsal/tests/*.test.mjs` | **46/46 PASS** (exit 0, deterministic no-DB fixtures); does not prove PostgreSQL locks or live operator evidence |
 | `node apps/api/tools/issue416-rehearsal/plan-only.mjs` | **PASS** plan-only output; does not execute C0–C6 and prints `L2_EXECUTION_NOT_AUTHORIZED` |
 | `node scripts/architecture-check.mjs` | **PASS** exit 0; existing grandfathered size warnings are unrelated to the authored files |
 | Per-new-code-file `300`-line policy | **PASS** all new `.mjs` files at or below 300 physical lines |
@@ -86,6 +120,7 @@ container, or SQL provenance was supplied to Worker 5.
 | Actual T0 admission import, Staff session/refresh/push revocation | **NOT RUN / PROHIBITED** |
 | Old credential/provisioner denial / new provisioner twice-run | **NOT RUN** |
 | Physical encrypted backup, older-snapshot restore, key escrow, RPO/RTO | **NOT RUN / EXTERNAL—NOT VERIFIED** |
+| Source 35-writer/legacy-auditor effective SQL runtime denial | **NOT RUN** — tool only checks offline inventory/proposed evidence shape; old MFA audit-event forgery remains a source-level cutover blocker |
 | Production cutover, PR, merge, deploy, feature push | **NOT RUN / NOT AUTHORIZED** |
 
 ## Integration / release decision

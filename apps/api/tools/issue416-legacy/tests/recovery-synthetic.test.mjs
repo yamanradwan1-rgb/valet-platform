@@ -3,7 +3,9 @@ import test from "node:test";
 import {
   executeControlledRecovery, planControlledTransition,
 } from "../controlled-transition.mjs";
-import { reconcileOlderBackup } from "../older-backup-fence.mjs";
+import {
+  reconcileOlderBackup, REQUIRED_MONOTONE_DIMENSIONS,
+} from "../older-backup-fence.mjs";
 import { DIGEST, KEY, NOW, TRUST, fixtureCase } from "./synthetic-fixture.mjs";
 import { admissionKeyId } from "../typed-admission-key.mjs";
 
@@ -117,12 +119,15 @@ test("complete matching synthetic versions still cannot release HOLD", () => {
     admissionVersion: 4, boundaryEpoch: 8 }];
   const restored = reconcileOlderBackup(snapshot, {
     independentlyVerified: true, completeThroughBackupBoundary: true,
+    coveredDimensions: Object.fromEntries(
+      REQUIRED_MONOTONE_DIMENSIONS.map((name) => [name, true])),
     epoch: 8, objects: [{ key: KEY, version: 4,
       disposition: "ADMIT", epoch: 8, pendingDeny: false }],
   });
   assert.equal(restored.objects[0].disposition, "HOLD");
-  assert.equal(restored.objects[0].independentlyAttestedReconciliationCandidate,
+  assert.equal(restored.objects[0].suppliedFixtureVersionMatchOnly,
     true);
+  assert.equal(restored.missingMonotoneDimensions.length, 0);
   assert.equal(restored.mustKeepProtectedTrafficClosed, true);
   assert.equal(restored.status, "ISOLATED_RESTORE_PLAN_NOT_AUTHORIZATION");
   // A caller-provided JSON checkpoint is never a trusted production attestation.

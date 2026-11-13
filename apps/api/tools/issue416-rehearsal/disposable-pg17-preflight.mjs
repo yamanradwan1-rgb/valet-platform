@@ -57,8 +57,9 @@ export function inspectSyntheticTarget(target, observation) {
   }
   // A JSON observation can be forged; never call this a live attestation.
   return Object.freeze({
-    allowed: problems.length === 0,
+    allowed: false,
     status: problems.length ? "BLOCKED" : "SYNTHETIC_SHAPE_ONLY",
+    shapeMatched: problems.length === 0,
     blockers: Object.freeze(problems),
     needsIndependentDockerAndSqlObservation: true,
   });

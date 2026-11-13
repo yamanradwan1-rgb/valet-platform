@@ -30,8 +30,9 @@ const observation = {
 
 test("isolated synthetic target has shape only; not an actual PG attestation", () => {
   const result = inspectSyntheticTarget(target, observation);
-  assert.equal(result.allowed, true);
+  assert.equal(result.allowed, false);
   assert.equal(result.status, "SYNTHETIC_SHAPE_ONLY");
+  assert.equal(result.shapeMatched, true);
   assert.equal(result.needsIndependentDockerAndSqlObservation, true);
 });
 test("existing QA 45432 and default 5432 are denied", () => {

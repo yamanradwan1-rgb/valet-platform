@@ -15,31 +15,31 @@ test("singleton UUID binary framing is canonical and length 17", () => {
   assert.equal(Buffer.from(KEY.hex, "hex").length, 17);
   assert.equal(KEY.hex.slice(0, 2), "01");
   assert.equal(KEY.rank, 9);
-  assert.ok(admissionKeyId(KEY).includes(":U:01"));
+  assert.ok(admissionKeyId(KEY).includes(":USER:01"));
 });
 
 test("Location grant uses 49-byte 3-parent tuple, no surrogate ID", () => {
   const grant = admissionKey({ audience: KEY.audience,
-    kind: "G", ids: [ORG, MEMBER, LOCATION] });
+    kind: "GRANT", ids: [ORG, MEMBER, LOCATION] });
   assert.equal(Buffer.from(grant.hex, "hex").length, 49);
   assert.equal(grant.hex.slice(0, 2), "02");
   assert.equal(grant.rank, 11);
   assert.throws(() => admissionKey({ audience: KEY.audience,
-    kind: "G", ids: [MEMBER] }), /L1_INVALID_KEY_CARDINALITY/);
+    kind: "GRANT", ids: [MEMBER] }), /L1_INVALID_KEY_CARDINALITY/);
 });
 
 test("unknown kinds and noncanonical IDs fail closed", () => {
   assert.throws(() => admissionKey({ audience: KEY.audience,
     kind: "OPERATOR", ids: [USER] }), /L1_UNKNOWN_KIND/);
   assert.throws(() => admissionKey({ audience: KEY.audience,
-    kind: "U", ids: ["wrong"] }), /L1_INVALID_UUID/);
+    kind: "USER", ids: ["wrong"] }), /L1_INVALID_UUID/);
   assert.throws(() => admissionKey({ audience: "production",
-    kind: "G", ids: [ORG, MEMBER] }), /L1_INVALID_KEY_CARDINALITY/);
+    kind: "GRANT", ids: [ORG, MEMBER] }), /L1_INVALID_KEY_CARDINALITY/);
 });
 
 test("rank order precedes within-rank UUID sort", () => {
-  const o = admissionKey({ audience: KEY.audience, kind: "O", ids: [ORG] });
-  const g = admissionKey({ audience: KEY.audience, kind: "G",
+  const o = admissionKey({ audience: KEY.audience, kind: "ORGANIZATION", ids: [ORG] });
+  const g = admissionKey({ audience: KEY.audience, kind: "GRANT",
     ids: [ORG, MEMBER, LOCATION] });
   assert.ok(compareAdmissionKeys(KEY, o) < 0);
   assert.ok(compareAdmissionKeys(o, g) < 0);
@@ -99,7 +99,7 @@ test("mis-scoped and duplicate ADMIT evidence never enters baseline", () => {
 
 test("explicit preelected X lock for changed object, S for dependency", () => {
   const other = admissionKey({ audience: KEY.audience,
-    kind: "O", ids: [ORG] });
+    kind: "ORGANIZATION", ids: [ORG] });
   const selected = selectAdmissionLocks([other, KEY], [KEY]);
   assert.equal(selected[0].admissionMode, "FOR UPDATE");
   assert.equal(selected[1].admissionMode, "FOR SHARE");

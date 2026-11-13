@@ -7,7 +7,7 @@ export const ORG = "00000000-0000-4000-8000-000000000002";
 export const MEMBER = "00000000-0000-4000-8000-000000000003";
 export const LOCATION = "00000000-0000-4000-8000-000000000004";
 export const KEY = admissionKey({ audience: "issue416-w5-test",
-  kind: "U", ids: [USER] });
+  kind: "USER", ids: [USER] });
 export const DIGEST = "ab".repeat(32);
 export const NOW = 2_000_000_000_000;
 
