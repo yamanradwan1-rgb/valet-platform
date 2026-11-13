@@ -18,8 +18,19 @@ const m124 = fixture(
 );
 const antiAbuse = fixture("../../../apps/api/src/modules/anti-abuse/anti-abuse-key.ts");
 const acceptance = fixture("./PG17_ACCEPTANCE_NOT_RUN.md");
+const readme = fixture("./README.md");
 
 describe("P0-D source and acceptance-spec readiness — PG17 NOT RUN", () => {
+  it("documents 11950/11955 before 120, then 121–123 before 124", () => {
+    for (const doc of [acceptance, readme]) {
+      assert.match(doc,
+        /113–119[\s\S]{0,95}11950\/11955[\s\S]{0,95}120[\s\S]{0,50}121–123[\s\S]{0,40}124/);
+    }
+    assert.match(acceptance, /lexical forward-only order/);
+    assert.doesNotMatch(acceptance,
+      /113–119 and 121–123 are reviewed and applied in\s+order, then W12 120/);
+  });
+
   it("requires a guarded, explicitly NOT RUN acceptance matrix", () => {
     assert.match(acceptance, /SPECIFICATION ONLY.*NO PostgreSQL connection/s);
     assert.match(acceptance, /P3018\/42501/);

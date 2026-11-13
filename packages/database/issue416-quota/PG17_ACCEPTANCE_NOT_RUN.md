@@ -16,9 +16,11 @@ PG17 test file is *not* evidence that any of the cases below passed.
    target may be used. Require the W9 container/project label, exact allowlisted
    synthetic DB URL triplet, role identity, loopback port and exclusive lease.
    Never connect to live, shared QA, default 5432, or production databases.
-3. Confirm all W2 migrations 113–119 and 121–123 are reviewed and applied in
-   order, then W12 120 and 124, with no partially applied or failed migration.
-   Re-check schema owner/ACLs. W2 owns any 113–123 repairs.
+3. Confirm the **lexical forward-only order**: W2 113–119 (including any
+   11950/11955 migrations before 120) → W12 120 → W2 121–123 → W12 124.
+   Every prerequisite must be reviewed and applied successfully, with no
+   partially applied or failed migration. Re-check schema owner/ACLs. W2 owns
+   any 113–123 repairs; do not reorder or skip migrations.
 4. Future execution needs a purpose-limited, rollback-isolated fixture and
    verified cleanup/identity after every case. Concurrency and lost-ack cases
    necessarily need two independent leased connections; do not hold a domain

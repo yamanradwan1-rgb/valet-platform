@@ -80,9 +80,10 @@ It is a **specification**, not executable SQL or permission to connect to PG17.
 
 `node --test packages/database/issue416-quota/*.unit.test.mjs` performs source,
 hash-component, boundary and physical-line-count checks. The opt-in isolated
-PG17 suite uses the W9 harness and can run **only** after the 113–124 chain,
-including W2-owned 118/119/121–123 and both W12 migrations, is successfully
-migrated under W9's triple URL, container identity and exclusive lease
+PG17 suite uses the W9 harness and can run **only** after the forward-only
+lexical order W2 113–119 (plus any 11950/11955 before 120) → W12 120 →
+W2 121–123 → W12 124 is successfully migrated under W9's triple URL,
+container identity and exclusive lease
 attestations. The guarded PG17 fixture previously failed migration113 (P3018);
 all PG17 quota tests are **NOT RUN** pending W2/Prime safe recovery. No
 production DB, PR, push, merge or cutover is authorized by this change.
