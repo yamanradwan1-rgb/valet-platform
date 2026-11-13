@@ -27,7 +27,7 @@ This ledger distinguishes previous Option A **document/source review** from newl
 | Second guarded PG17 `run-migrations.mjs --apply` | **FAIL — PostgreSQL logs 42501 `permission denied to change default privileges`; Prisma subsequently reports 25P02 `current transaction is aborted`** | The initial error was `ALTER DEFAULT PRIVILEGES FOR ROLE` before NOINHERIT proof owner `SET ROLE`; source correction `59931e05` NOT PG17 validated |
 | W9 read-only `_prisma_migrations` + catalog after second failure | 112 SUCCESS, first 113 ROLLED_BACK, second 113 FAILED/UNFINISHED with empty logs; no private schema/proof owner/private relations/memberships | DDL fully rolled back; no generic reset/drop was performed |
 | Second 113 recovery guard and test | W9 provenance-pinned source+three-history-record guard integrated; **55/55 private unit tests PASS** | The subsequent actual `--resolve-113` invocation was blocked by the execution environment's safety checks; NOT executed; no further migration retry |
-| Latest feature SHA GitHub Actions / Security CI | NOT VERIFIED | Historical green run cannot attest this SHA |
+| Remote feature `9b873610...` Security CI run `43496016691` | **FAIL**: Gitleaks 1 finding, aggregate gate FAIL; CodeQL, Semgrep, Trivy and OSV succeeded | Historical run on remote design SHA, **not** CI for current local implementation SHA |
 | Source-level previous Option A W6/W7/W8 review | PASS for previous `9b873610...` design only | Not a code/PG17/prod assurance result |
 
 ## Distributed implementation ownership
@@ -42,6 +42,22 @@ This ledger distinguishes previous Option A **document/source review** from newl
 | G6 safe disposable PostgreSQL17 test target | W9 | Dedicated Issue416 private preflight/config/test harness | Parent+child attestation and 48/48+5/5 role/preflight PASS, 55/55 unit guard PASS; two actual 113 migration FAILs; second targeted Prisma recovery blocked/unexecuted |
 | Security review | W6/W7/W8 initial; W10 candidate | No edits | Static findings corrected or OPEN; final exact implementation SHA independent review and PG17 proof pending |
 | Integration and conditional Reset Backend/Dashboard | Prime | Shared integration and feature stage only after security proof | GATE CLOSED |
+
+## Continuation evidence — 2026-11-14 (source/read-only only)
+
+| Check | Observed result | Limit |
+| --- | --- | --- |
+| Prime Git and remote tracking | `cos/issue-416-recovery-prime` HEAD `68d83ce26ade96f39aa7a0d37b16cb94fb7df60e` clean **before** this continuation's edits; `origin/feat/issue-416-company-admin-password-reset` remained `9b873610f00d5d520c9553d4a5185b9598e0fdb5` | No remote push, PR or release |
+| Migration113 LF-normalized SHA256 | `4978f3388b650211a6d588af0c67dcd46a0e31cc2bbecda2589338b44aafffba` matches the pinned recovery guard; `SET ROLE` line 55, private schema `REVOKE` 56, owner default ACL alteration 59 | Correct source ordering only; **no** third PG17 application or second Prisma resolve attempted in this continuation |
+| W2 A01 draft inspection | Untracked 118/119/121/122/123 migration files present; respectively 176/154/95/181/106 physical lines | Draft source only, not copied/committed/applied; integration/review and actual signer remain pending |
+| VAP1/U2 focused Vitest | **PASS 25/25** across 4 non-PostgreSQL files | No Node↔SQL parity or actual authorization |
+| W9 guard source tests | **PASS 55/55** across 3 non-PostgreSQL files | No migration-history mutation or recovery verification |
+| R02 source-unit tests | **PASS 7/7** with `node --test packages/database/issue416-quota/*.unit.test.mjs` | No real SQL reservations or races |
+| API typecheck, targeted VAP1/U2 ESLint, architecture and Prisma validate | **PASS**, using synthetic fixture URLs for Prisma config; architecture reported unrelated grandfathered oversized files | Static source only; Prisma validate did not apply migrations |
+| Gitleaks historic failure triage | GitHub run `43496016691`, job `132129197513`, sanitized artifact `14070154626`: `generic-api-key` at `docs/plans/issue-416-option-a-writer-inventory.md:577`, historical commit `ca9bb2fb` | Reproduced locally with Gitleaks `v8.30.1` and exact prior CI comparison `eb2d0ba4..9b873610`; matched benign MFA test-plan prose `key, duplicate/unknown`, **not** a credential |
+| Narrow Gitleaks remedy | `.gitleaks.toml` adds one `generic-api-key` match-only allowlist for exactly that text in exactly that document; historical 14-commit re-scan **0 findings**, and integrated 32-commit `9b873610..68d83ce2` scan **0 findings** | Local reproduction only. Historical GitHub run remains **FAIL**, and current final SHA Security CI **NOT RUN**. No global scanner suppression or history rewrite |
+
+**Continuation safety boundary:** Previously blocked second `migrate resolve --rolled-back` was **not retried or bypassed**. Source improvements cannot satisfy the pending PG17 migration, ACL, crypto-parity, limiter, concurrency or independent final-code gates.
 
 ## Mandatory security blockers and validation backlog
 

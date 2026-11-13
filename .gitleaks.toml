@@ -22,3 +22,11 @@ targetRules = ["generic-api-key"]
 paths = ['''^apps/api/test/management-alert-timing-audit-projection\.test\.ts$''']
 regexTarget = "match"
 regexes = ['''^changedKeys: "alt01GraceSeconds"$''']
+
+[[allowlists]]
+description = "Issue416 MFA test-plan prose is not an API credential"
+condition = "AND"
+targetRules = ["generic-api-key"]
+paths = ['''^docs/plans/issue-416-option-a-writer-inventory\.md$''']
+regexTarget = "match"
+regexes = ['''^key, duplicate/unknown $''']
