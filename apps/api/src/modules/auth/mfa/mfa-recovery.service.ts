@@ -29,10 +29,8 @@ import {
   verifyRecoveryCodeVerifier,
 } from "./mfa-recovery-code";
 import { generateTotpSecret, verifyTotpCode } from "./mfa-totp";
-import {
-  protectTotpSecret,
-  unprotectTotpSecret,
-} from "./mfa-secret-protection";
+import { unprotectTotpSecret } from "./mfa-secret-protection";
+import { preparePendingMfaMaterial } from "./mfa-vap1-pending-material";
 import type { MfaProvisioningData } from "./mfa-enrollment.service";
 
 interface RecoveryVerifierRow {
@@ -105,12 +103,13 @@ export class MfaRecoveryService {
         await retireFactor(transaction, factor.id, session.now);
         const pendingFactorId = randomUUID();
         const secret = generateTotpSecret();
+        const material = preparePendingMfaMaterial(secret, {
+          factorId: pendingFactorId,
+          userId: session.user_id,
+        });
         await insertPendingFactor(transaction, {
           id: pendingFactorId,
-          protectedSecret: protectTotpSecret(secret, {
-            factorId: pendingFactorId,
-            userId: session.user_id,
-          }),
+          protectedSecret: material.protectedSecret,
           sessionId: session.id,
           userId: session.user_id,
         });

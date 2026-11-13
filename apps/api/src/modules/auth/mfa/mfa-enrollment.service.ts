@@ -26,10 +26,8 @@ import {
   lockMfaUser,
   requireManagementMfaEligibility,
 } from "./mfa-session-repository";
-import {
-  protectTotpSecret,
-  unprotectTotpSecret,
-} from "./mfa-secret-protection";
+import { unprotectTotpSecret } from "./mfa-secret-protection";
+import { preparePendingMfaMaterial } from "./mfa-vap1-pending-material";
 import { generateTotpSecret, verifyTotpCode } from "./mfa-totp";
 import { generateRecoveryCodes } from "./mfa-recovery-code";
 
@@ -80,13 +78,13 @@ export class MfaEnrollmentService {
       }
       const factorId = randomUUID();
       const secret = generateTotpSecret();
-      const protectedSecret = protectTotpSecret(secret, {
+      const material = preparePendingMfaMaterial(secret, {
         factorId,
         userId: session.user_id,
       });
       await insertPendingFactor(transaction, {
         id: factorId,
-        protectedSecret,
+        protectedSecret: material.protectedSecret,
         sessionId: session.id,
         userId: session.user_id,
       });
