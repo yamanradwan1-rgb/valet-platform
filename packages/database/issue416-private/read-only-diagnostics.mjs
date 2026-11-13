@@ -10,7 +10,7 @@ const { Client } = require("pg");
 // migrate resolve, or changes to failed migration bookkeeping are permitted.
 export const DIAGNOSTIC_QUERIES = Object.freeze({
   migrations: `
-    SELECT migration_name, started_at::text, finished_at::text,
+    SELECT id::text AS id, migration_name, checksum, started_at::text, finished_at::text,
            rolled_back_at::text, applied_steps_count,
            left(coalesce(logs, ''), 6000) AS logs
     FROM public._prisma_migrations

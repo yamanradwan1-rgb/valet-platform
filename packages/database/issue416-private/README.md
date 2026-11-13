@@ -52,10 +52,10 @@ node packages/database/issue416-private/diagnose-migration.mjs --read-only
 
 The script attests W9 from both parent and sanitized child before and after
 inspection, reads migration history, schema ownership/ACLs, existing private
-relations and role membership inside a `REPEATABLE READ READ ONLY` transaction,
+relations, role membership, and exact Prisma row IDs/checksums inside a
+`REPEATABLE READ READ ONLY` transaction,
 then rolls back. It does not invoke Prisma, modify migration history or
-repair failed migrations. An explicit target-attested `migrate resolve` adapter
-requires separate Prime/W2 approval and review before implementation; never
+repair failed migrations. Recovery requires separate Prime/W2 approval; never
 use the generic Prisma command directly as a recovery workaround.
 
 Only after Prime and W2 review the migration113 owner-role ordering fix and
@@ -66,14 +66,39 @@ used on the **same** attested W9 fixture with the three synthetic URL values:
 node packages/database/issue416-private/run-resolve-113.mjs --resolve-113
 ```
 
-**Do not run this command during diagnosis.** The adapter requires an exact
-failed 113 ledger signature, a successful 112 entry, no later migration, and
-zero private schema/relations/proof role. It verifies the fixed migration113
-source, holds the W9-exclusive fixture lease, invokes the pinned Prisma CLI
-with only `migrate resolve --rolled-back` for 113, and checks that every prior
-migration row, SQL role and membership remains unchanged. No schema objects
-or historical migrations are dropped/reset. This adapter is not a general
-recovery mechanism and does not re-run the migration automatically.
+**Do not run this command during diagnosis.** The adapter is pinned to the
+exact live W9 fixture row IDs and checksums: 112 successful, the first 113
+already marked rolled back with its original 42501 log, and the second 113
+unfinished with **empty logs**. It refuses other attempts, unfinished rows,
+later migrations, or any private schema/relations/proof role. It also pins the
+normalized-LF SHA256 of the reviewed migration113 source, which requires
+both the schema REVOKE and ALTER DEFAULT PRIVILEGES to occur after SET ROLE
+vap1_proof_owner. It holds the W9-exclusive fixture lease, invokes the pinned
+Prisma CLI with only `migrate resolve --rolled-back` for 113, and checks that
+only the **second** 113 row's `rolled_back_at` changes; all other Prisma rows,
+SQL roles and memberships must remain unchanged. No schema objects or
+historical migrations are dropped/reset. The adapter does not re-run SQL.
+
+If Prisma's multi-statement migration reports `current transaction is aborted`
+(`25P02`), that is a **secondary error**; inspect the original PostgreSQL
+server error first. The W9 second-run server log identified the first failure
+as `permission denied to change default privileges` in migration113. The
+correction moves ALTER DEFAULT PRIVILEGES into the proof-owner SET ROLE block.
+Do not blindly resolve or apply again based only on 25P02.
+
+For future statement-local diagnostics, W2 can design a separate, explicitly
+approved **W9-only** tracer: perform existing parent/child container and SQL
+attestation and acquire the same exclusive fixture lease; verify exact source
+fingerprint; use a PostgreSQL-aware statement parser that understands
+`DO $tag$ ... ; ... $tag$` (never split on literal semicolons); remove ONLY the
+verified outer `BEGIN`/`COMMIT` from a disposable in-memory copy; reject all
+other transaction-control statements; execute each statement sequentially
+inside a new `BEGIN` on one connection; capture the *first* SQLSTATE, source
+line and statement index; and **always ROLLBACK in a finally block**, even
+after complete success. Confirm unchanged catalog/roles after rollback and
+disconnect fail-closed if rollback cannot be confirmed. Never use psql's
+`--single-transaction` alone: it COMMITs on successful exit. No tracer is
+executed or authorized by merely documenting this procedure.
 
 `--prepare` must PASS **before** creating the container; it denies an existing
 name, volume, or occupied dedicated port. The compose command is the only
