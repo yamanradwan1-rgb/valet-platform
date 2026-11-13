@@ -42,6 +42,22 @@ On this dedicated test target `issue416_w9_migration` alone is allowed
 `CREATEROLE` to create the future private NOLOGIN owner in migration 113;
 test/runtime roles remain `NOCREATEROLE` with no owner membership.
 
+If Prisma P3018 reports a failed migration, **stop**. Preserve its logs and
+catalog state with the strictly read-only investigation command below, using
+the same explicit three synthetic URLs:
+
+```powershell
+node packages/database/issue416-private/diagnose-migration.mjs --read-only
+```
+
+The script attests W9 from both parent and sanitized child before and after
+inspection, reads migration history, schema ownership/ACLs, existing private
+relations and role membership inside a `REPEATABLE READ READ ONLY` transaction,
+then rolls back. It does not invoke Prisma, modify migration history or
+repair failed migrations. An explicit target-attested `migrate resolve` adapter
+requires separate Prime/W2 approval and review before implementation; never
+use the generic Prisma command directly as a recovery workaround.
+
 `--prepare` must PASS **before** creating the container; it denies an existing
 name, volume, or occupied dedicated port. The compose command is the only
 explicitly operator-started container creation. `--inspect` attests Docker
