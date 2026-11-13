@@ -104,6 +104,20 @@ COMMIT and log confidentiality acceptance. The new full-SHA independent
 review is **PENDING**; no live AES/HMAC/PG17/SQL tests have been executed
 for this future Option A mechanism.
 
+**Independent MFA/security-delta reviews at clean
+`ca9bb2fbd81c54b3956b4ce315bc62d2a0a13add`:** W6 Auth/Crypto,
+W7 SQL/Concurrency and W8 Operations all returned **PASS / NO NEW MAJOR
+for documentation-source consistency only**. W7's previously open A04/A07
+missing-encrypted-seed finding is **CLOSED IN DESIGN** through strict
+app-sealed `mte1` ciphertext+digest and separate same-session A04-resume.
+W8 requested a further explicit ciphertext-only closed SQL result type;
+that final precision addition was made after this pinned review and needs
+new-SHA inspection. The full independent source-review evidence is in
+[the aggregate review ledger](../plans/issue-416-option-a-final-independent-review.md).
+PostgreSQL, new signer/crypto, effective ACL, old provisioner, backup,
+production log canary and real cutover behavior are still **NOT RUN / NOT
+VERIFIED** and never inferred from the documentary PASS.
+
 ## Option A Codex recovery and later design reconciliation (2026-11-13)
 
 The later design-only recovery has its own source-verified history and

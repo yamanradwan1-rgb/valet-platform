@@ -142,3 +142,24 @@ retroactively make W7's reported MAJOR PASS. A new complete revision SHA and
 read-only final review must attest the correction before calling the
 documentation contract source-coherent. Runtime/key/ACL/backup/Owner approvals
 remain separate blocked or not-verified gates.
+
+### Final source-review closure of `ca9bb2fb` after MFA payload correction
+
+**Reviewed clean exact commit:**
+`ca9bb2fbd81c54b3956b4ce315bc62d2a0a13add` (compared with
+`02e19c9ae7b51dc4602da4d5cd3d1614f870b8fb`). All reviewers are
+independent of the corresponding authored design fixes and made **zero
+edits**. Their verdicts refer to source/documentation design only:
+
+| Reviewer and result | Source evidence, disposition and implementation acceptance |
+| --- | --- |
+| **W6 Auth/Crypto — PASS, no new MAJOR** | Verified source `mfa-secret-protection.ts:12–14,21–29,48–101`, `mfa-totp.ts:10–23` (32-character Base32 seed, `mte1` AES-256-GCM IV12/cipher32/tag16 and 88 ASCII chars), `mfa-crypto-config.ts:26–28` separate MFA encryption root, `mfa-factor-repository.ts:52–67` mandatory encrypted persistence. S1 and U2 bind envelope+digest under genuine app/AAD, SQL cannot validate GCM tag, and guarded A04-resume may disclose **only original ciphertext** to the app for the same admitted originating session. Former S/X and X01 corrections intact. Node/PG17, secrets/ACL/telemetry **NOT RUN**. |
+| **W7 PostgreSQL/Concurrency — PASS, no new MAJOR** | Reviewed U2 A04-create, A07 and distinct A04-resume against actual MFA create/recovery/owner-session source. Exact signed 88-character ciphertext plus SQL SHA256 commitment allows `protected_secret TEXT` INSERT; same-session protected resume preserves plaintext outside SQL and receipts. Prior six issues remain document-corrected: upfront S/X, composite grant key, real X01 `Shift.started_at`, M11 UUID, old MFA audit forgery and atomic R02 four-quota bundle/900s. SQL grant/proof, two-connection locks, key/ACL deployment **NOT RUN/NOT VERIFIED**. |
+| **W8 Operations/Cutover — PASS, no new MAJOR** | Confirmed separate MFA and VAP1 roots, sensitive ciphertext logging/backup controls, L1 pre-T0 pending factor/session retirement, ADMIT/HOLD and N/R proof-aware cutover. All four S1/U1/L1/L2 approval families remain unsigned. Future production injection, encryption, escrow, operational operators, independent ledger, pgcrypto, RPO/RTO and restore verification **EXTERNAL — NOT VERIFIED**. W8 requested the A04-resume ciphertext result be a closed typed SQL composite as an optional precision refinement, which was incorporated **after** this pinned review for final re-pin. |
+
+**Design-review disposition:** W6/W7/W8 found no residual source-resolvable
+MAJOR at the reviewed `ca9bb2fb` contract. The final follow-up only makes
+the A04-resume protected `RETURNS` type explicit and records these review
+facts; a final SHA check remains necessary because the result-type text was
+not in `ca9bb2fb`. The sole deliverable judgment is **conditional** source
+design coherence, **not** implementation-ready authentication or approval.

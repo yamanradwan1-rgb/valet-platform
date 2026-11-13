@@ -216,7 +216,7 @@ Implementation must remain **BLOCKED** pending explicit U1/U2/legacy and superse
 
 ## 8. Strict U2 typed purpose contracts — final proposed authoring specification
 
-**PROPOSED, NOT IMPLEMENTED.** Each WRITE suffix X defined below (including independently discovered transitive **X01** in §8.3a) maps to candidate PostgreSQL signatures public.vap1_prepare_X(p_operation_id uuid, p_request public.vap1_X_request_v1) RETURNS public.vap1_challenge_v1 and public.vap1_execute_X(p_proof_bytes bytea, p_mac bytea, p_payload public.vap1_X_payload_v1) RETURNS public.vap1_result_v1. Proof frame bytes and 32-byte MAC are **distinct** parameters under S1. Each request composite contains only purpose-specific discovery selectors; prepare derives subject, actor and scope from persisted rows. Each payload is a distinct CREATE TYPE composite with exactly its row's fields plus mandatory schema_version SMALLINT = 1 and operation_id UUID. No generic JSON authority object, generic UPDATE opcode or externally selectable signer. The exact CREATE TYPE definitions, private command result enum and installed SQL signature list are still **UNIMPLEMENTED engineering gates**, not existing code.
+**PROPOSED, NOT IMPLEMENTED.** Each WRITE suffix X defined below (including independently discovered transitive **X01** in §8.3a) maps to candidate PostgreSQL signatures public.vap1_prepare_X(p_operation_id uuid, p_request public.vap1_X_request_v1) RETURNS public.vap1_challenge_v1 and public.vap1_execute_X(p_proof_bytes bytea, p_mac bytea, p_payload public.vap1_X_payload_v1) RETURNS public.vap1_result_v1. **Exception:** A04-resume is an authenticated disclosure-only variant whose `vap1_execute_mfa_enroll_resume` returns the closed `public.vap1_mfa_enroll_resume_result_v1` with existing encrypted envelope solely after full proof and same-session gate; it never uses a generic nonsecret result to smuggle ciphertext into a receipt. Proof frame bytes and 32-byte MAC are **distinct** parameters under S1. Each request composite contains only purpose-specific discovery selectors; prepare derives subject, actor and scope from persisted rows. Each payload is a distinct CREATE TYPE composite with exactly its row's fields plus mandatory schema_version SMALLINT = 1 and operation_id UUID. No generic JSON authority object, generic UPDATE opcode or externally selectable signer. The exact CREATE TYPE definitions, private command result enum and installed SQL signature list are still **UNIMPLEMENTED engineering gates**, not existing code.
 
 Field notation: u = UUID; i = INTEGER (nonnegative checked); n = BIGINT; b = BOOLEAN; t = bounded/allowlisted TEXT; ts = TIMESTAMPTZ; h = TEXT with full source-versioned purpose-specific SHA-256 verifier prefix and 64 lowercase hex characters; d = BYTEA exactly 32 bytes of a canonical nonsecret digest; ids = sorted/distinct UUID[]; role = public.membership_role; status = public.membership_status. A question mark after a field makes that single field SQL NULL-able; all others are required, never implicit. Typed arrays must have a declared composite row shape, bounded length and deterministic ordering. Unknown fields, empty hashes, wrong digest prefix, duplicates, wrong scope, wrong version and invalid enums deny admission. Raw passwords, bearer tokens, TOTP and recovery codes are never SQL parameters.
 
@@ -569,6 +569,18 @@ from SQL. The API uses `unprotectTotpSecret` and the accepted same-session
 provisioning response. The protected read consumes its challenge and records
 only safe nonsecret completion; the generic write/receipt mutation rule is
 inapplicable to this A04-resume **disclosure-only** variant. A04-create and
+A04-resume's **exact future execute return** is a distinct closed composite
+`public.vap1_mfa_enroll_resume_result_v1(status, factor_id UUID,
+protected_secret_envelope TEXT)` with `status` fixed to the approved
+`PENDING_SAME_SESSION` result; no caller-selected output field, raw seed,
+recovery code, MAC, admission token or audit impersonation marker. It
+supersedes the generic `public.vap1_result_v1` **only for that read-only
+resume purpose**. The SQL verifier derives the factor ID from locked F and
+returns the canonical `mte1` ciphertext only after successful challenge
+consumption and full same-session/ADMIT revalidation; the trusted API
+decrypts it once and applies the existing pending response. The private
+receipt records a nonsecret status/factor ID only, never the composite's
+`protected_secret_envelope` field. A04-create and
 A07 first-success commit store exact ciphertext with the new F+admission,
 audit (when required) and receipt. A post-COMMIT retry must not regenerate a
 different IV/seed under the same operation or extract raw seed from receipt;
