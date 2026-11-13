@@ -39,8 +39,8 @@ const reservation = { id: randomUUID(), key };
 const context = { userId } as StaffSessionContext;
 const command = {
   operationId: randomUUID(), email: "employee@example.test", firstName: "A",
-  lastName: "B", role: "VALET_EMPLOYEE", locationIds: [randomUUID()],
-} as const;
+  lastName: "B", role: "VALET_EMPLOYEE" as const, locationIds: [randomUUID()],
+};
 const originalOrigin = process.env.STAFF_ACTIVATION_PUBLIC_ORIGIN;
 let held = 0;
 let commitLost = false;
