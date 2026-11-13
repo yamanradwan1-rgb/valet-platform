@@ -119,3 +119,26 @@ reviewers' historical MAJOR findings into PASS. A successful read-only delta
 review can close design *wording/source precision* only; runtime forgery,
 cryptography, old-role denial, backup/DR and PostgreSQL 17 races remain
 **NOT RUN / EXTERNAL — NOT VERIFIED**.
+
+### Re-pinned `02e19c9a` independent delta review — one new MFA payload finding
+
+W6 Crypto, W7 SQL/Concurrency and W8 Operations independently reviewed
+`02e19c9ae7b51dc4602da4d5cd3d1614f870b8fb` against the earlier
+`fa8626b8` design/source findings, with clean Git status. **W6 source-design
+delta PASS** on both former MAJORs (S/X upfront and X01 real `started_at`),
+consistent 49-byte grant identity, UUID push and typed R02 bundle; **W8
+source-design delta PASS** on S/X, L1/HOLD, key backup and drained N/R cutover;
+**W7 verified all six earlier SQL findings source-corrected**, but discovered
+**one new MAJOR**. All three were read-only; none ran PostgreSQL, deployed,
+changed privileges or examined live secrets. Their PASS wording describes
+corrected **documentation**, never implemented authentication guarantees.
+
+| New finding at `02e19c9a` | Source and correctness impact | Subsequent documentary remedy and required test |
+| --- | --- | --- |
+| **W7 MAJOR / source-data mismatch: A04/A07 pending MFA seed persistence** | `writer-inventory.md:507,510` supplied `pending_seed_digest:d` only for PENDING F creation, while `mfa-enrollment.service.ts:81–93`, `mfa-recovery.service.ts:105–116` call `protectTotpSecret` and `mfa-factor-repository.ts:52–67` inserts mandatory `protected_secret TEXT`; `mfa-secret-protection.ts:48–101` produces `mte1` owner-bound AES-256-GCM ciphertext. SHA256 digest cannot construct ciphertext; same-session resume would not recover original seed. | Distinct strict **A04-create** (bound encrypted envelope/digests) vs **A04-resume** (authenticated existing-ciphertext disclosure to app-only decrypt, no mutation) within A04 family; A07 likewise requires exact encrypted envelope. Signer encrypts/decrypt-verifies seed and User/Factor AAD before MAC; SQL format-checks ciphertext, verifies envelope SHA256, stores exact ciphertext and retains no secret in receipt. Must test genuine create/resume/recovery, wrong AAD, noncanonical ciphertext, unknown COMMIT, MFA owner/session/HOLD and log canaries on Node/PG17; **NOT RUN**. |
+
+The correction described above is **after pinned `02e19c9a`**; it does not
+retroactively make W7's reported MAJOR PASS. A new complete revision SHA and
+read-only final review must attest the correction before calling the
+documentation contract source-coherent. Runtime/key/ACL/backup/Owner approvals
+remain separate blocked or not-verified gates.

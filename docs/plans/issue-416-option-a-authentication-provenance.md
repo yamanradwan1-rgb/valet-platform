@@ -503,6 +503,30 @@ idempotent success. Receipts contain IDs, purpose/fingerprint, bounded status,
 generations/times and nonsecret audit linkage only — no raw/digested bearer,
 PHC, recovery verifier, factor seed, MAC, challenge or reconstructible secret.
 
+**MFA encrypted seed material is a separate confidential payload category.**
+Source `mfa-secret-protection.ts:48–101` and
+`mfa-factor-repository.ts:52–67` require an `mte1` AES-256-GCM encrypted
+`protected_secret` to create a PENDING factor; a SHA256 seed digest alone
+cannot populate that NOT NULL database column. U2 therefore proposes
+separate A04-create and A04-resume signatures plus A07's protected ciphertext
+field. The signed typed creation payload includes the exact canonical
+encrypted envelope and a SQL-checkable SHA256 commitment to those bytes,
+while genuine app-only encryption/decryption checks bind plaintext seed to
+current User+Factor AAD before the signer can attest it. SQL verifies the
+canonical envelope format, purpose MAC, digest, current User/session and
+admission and stores **only encrypted material**; SQL cannot verify GCM
+authenticity without the separate application MFA encryption key and must not
+pretend it can. A04-resume requires the **same original admitted Staff
+session**, purpose-scoped authenticated proof and current PENDING factor;
+execute may return the existing ciphertext to trusted app code only, which
+decrypts it and returns the *same* seed under the accepted exception.
+Even the encrypted `mte1` envelope and protected factor result are sensitive
+for parameter/error/proxy/telemetry confidentiality; no envelope, raw seed or
+decryptable payload may enter receipt or audit. Future independent Node/PG17
+tests and production log canaries are NOT RUN. This requirement does not
+authorize creating a second privileged pool or exposing raw TOTP to SQL,
+and changes none of the external MFA enrollment/confirmation semantics.
+
 | Material at API-to-SQL boundary | Proposed rule and why |
 | --- | --- |
 | Submitted password; raw `vsa1.`/`vsr1.`/`vspr1.`; raw invitation bearer; TOTP or raw recovery code | **NEVER** send as SQL argument, stored function input, GUC, query string, statement/trace/audit field. Verify genuine possession/ceremony **in trusted app**; SQL receives only purpose-specific non-bearer commitments and protected state. |

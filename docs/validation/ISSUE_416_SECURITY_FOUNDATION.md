@@ -89,6 +89,21 @@ independent delta review** before a final source-design verdict is claimed.
 Migration 112 remains unchanged; no live grants, SQL, application, crypto or
 API runtime behavior changed by these amendments.
 
+**Re-review at `02e19c9ae7b51dc4602da4d5cd3d1614f870b8fb`:** W6
+Auth/Crypto and W8 Operations returned design-only **PASS** for their
+previous corrections, and W7 SQL independently verified all six prior
+source defects closed **in documentation**. W7 additionally found a new
+**MAJOR**: typed A04/A07 PENDING MFA inserts had only `pending_seed_digest`,
+but the actual MFA repository requires `protected_secret TEXT` holding a
+User+Factor-AAD-bound `mte1` AES-GCM encrypted envelope. A SHA256 digest
+cannot be turned into the encrypted secret used for same-session pending
+resume. A documentation-only follow-up now specifies signed exact encrypted
+envelope plus SHA256 digest in **A04-create and A07**, a separate guarded
+**A04-resume** for the existing encrypted envelope, and Node/PG17, unknown
+COMMIT and log confidentiality acceptance. The new full-SHA independent
+review is **PENDING**; no live AES/HMAC/PG17/SQL tests have been executed
+for this future Option A mechanism.
+
 ## Option A Codex recovery and later design reconciliation (2026-11-13)
 
 The later design-only recovery has its own source-verified history and
