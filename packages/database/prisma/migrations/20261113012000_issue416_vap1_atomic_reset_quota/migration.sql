@@ -38,9 +38,16 @@ CREATE TABLE auth_proof_private.reset_issue_quota_bundles (
     AND organization_hash ~ '^anti-abuse-hmac-sha256:v1:[0-9a-f]{64}$'
     AND client_address_hash ~ '^anti-abuse-hmac-sha256:v1:[0-9a-f]{64}$'
   ),
-  CHECK ((state = 'PENDING' AND finalized_at IS NULL AND finalization_basis IS NULL)
-    OR (state <> 'PENDING' AND finalized_at IS NOT NULL
-      AND finalization_basis IS NOT NULL))
+  -- Terminal state and finalization basis must agree, including NULL cases.
+  CHECK (
+    (state = 'PENDING' AND finalized_at IS NULL AND finalization_basis IS NULL)
+    OR (state = 'COUNTED' AND finalized_at IS NOT NULL
+      AND finalization_basis IS NOT NULL
+      AND finalization_basis IN ('DOMAIN_CHANGED','EXPIRED_UNRESOLVED'))
+    OR (state = 'IGNORED' AND finalized_at IS NOT NULL
+      AND finalization_basis IS NOT NULL
+      AND finalization_basis = 'DOMAIN_UNCHANGED')
+  )
 );
 
 CREATE TABLE auth_proof_private.reset_issue_quota_entries (

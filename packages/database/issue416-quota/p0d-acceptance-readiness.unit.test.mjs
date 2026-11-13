@@ -78,6 +78,52 @@ describe("P0-D source and acceptance-spec readiness — PG17 NOT RUN", () => {
     assert.match(acceptance, /privileged bypass/);
   });
 
+  it("rejects every invalid terminal state/basis/timestamp pairing in migration120", () => {
+    const normalizedSql = m120.replace(/\r\n/g, "\n");
+    const start = normalizedSql.indexOf("CHECK (\n    (state = 'PENDING'");
+    const end = normalizedSql.indexOf("\n  )\n);", start);
+    assert.ok(start >= 0 && end > start, "bundle state CHECK must be explicit");
+    const check = normalizedSql.slice(start, end);
+    const branches = [...check.matchAll(
+      /\(state = '(PENDING|COUNTED|IGNORED)' AND finalized_at IS (NULL|NOT NULL)\s+AND finalization_basis IS (NULL|NOT NULL)(?:\s+AND finalization_basis (?:IN \(([^)]+)\)|= '([^']+)'))?\)/g,
+    )];
+    assert.equal(branches.length, 3, "require exactly three mutually exclusive arms");
+    assert.deepEqual(branches.map(([, state]) => state),
+      ["PENDING", "COUNTED", "IGNORED"]);
+    assert.doesNotMatch(check, /state <> 'PENDING'/);
+    assert.equal(
+      check.replace(branches[0][0], "").replace(branches[1][0], "")
+        .replace(branches[2][0], "").replace(/CHECK \(|\bOR\b|\s/g, ""),
+      "",
+      "no unreviewed alternative branch",
+    );
+
+    const decoded = branches.map(([, state, stamp, nullRule, list, exact]) => {
+      const allowedBases = nullRule === "NULL" ? [null]
+        : list ? [...list.matchAll(/'([^']+)'/g)].map((match) => match[1])
+          : [exact];
+      assert.equal(nullRule === "NULL", state === "PENDING");
+      return { state, stamped: stamp === "NOT NULL", allowedBases };
+    });
+    const bases = [null, "DOMAIN_CHANGED", "DOMAIN_UNCHANGED", "EXPIRED_UNRESOLVED"];
+    for (const state of ["PENDING", "COUNTED", "IGNORED"]) {
+      for (const basis of bases) {
+        for (const stamped of [false, true]) {
+          const permitted = decoded.some((arm) =>
+            arm.state === state && arm.stamped === stamped
+              && arm.allowedBases.includes(basis));
+          const expected = state === "PENDING" && basis === null && !stamped
+            || state === "COUNTED" && stamped
+              && ["DOMAIN_CHANGED", "EXPIRED_UNRESOLVED"].includes(basis)
+            || state === "IGNORED" && stamped && basis === "DOMAIN_UNCHANGED";
+          assert.equal(permitted, expected,
+            state + "/" + String(basis) + "/" + String(stamped));
+        }
+      }
+    }
+    assert.match(acceptance, /terminal-basis pair fix/);
+  });
+
   it("checks operation-first replay, all-or-none writes and unknown-COMMIT policy", () => {
     const opLock = m124.indexOf("hashtextextended(");
     const reread = m124.indexOf("FOR UPDATE;", opLock);

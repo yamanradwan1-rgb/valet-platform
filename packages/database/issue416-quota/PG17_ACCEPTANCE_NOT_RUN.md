@@ -39,7 +39,7 @@ PG17 test file is *not* evidence that any of the cases below passed.
 | Q07 | Commit receipt/evidence for one genuine **changed issuance** on a distinct domain transaction only after consuming an exact RESET_ISSUE challenge, committing generation+audit and proving all four reservation IDs. Finalize on fresh lease. | Four COUNTED together and stable on replay; evidence exactly binds issuer, subject, organization, session/MFA/current eligibility, request fingerprint, reset ID/generation, operation receipt and audit. No raw link can be redisclosed. |
 | Q08 | Exact authorized, same-operation linkless no-op receipt; invalid/forged/unconsumed/wrong-actor/wrong-tenant/wrong-generation receipt; cross-operation challenge; stale generation and changed request. | Only valid `LINK_UNAVAILABLE` no-op makes all four IGNORED. Every invalid case rejects evidence/finalization without changing PENDING state or granting a link. |
 | Q09 | Lost domain-COMMIT acknowledgment with absent, committed and delayed receipt; dropped finalizer, retry, delayed arrival; expiry without evidence. | Unknown stays PENDING pending fresh-lease receipt reconciliation; committed changed receipt makes all COUNTED; no evidence is conservatively COUNTED at 900s when reconciled; no transport-error `IGNORED`, duplicate generation or new link. |
-| Q10 | Attempt runtime and direct private-owner UPDATE/DELETE of ledger/evidence, single-row discount, parent/child mismatch, then all-four-entry+parent PENDING→IGNORED without a receipt as trusted owner. | Runtime has no UPDATE or owner membership. The source guard should reject single-row/partial or terminal mutations; if an all-four owner update succeeds, document it as a *privileged bypass*, not a passing receipt-proven discount. The future writer cannot hold direct table UPDATE grants; a receipt-bound narrow finalizer is mandatory. |
+| Q10 | Attempt runtime and direct private-owner UPDATE/DELETE of ledger/evidence, single-row discount, parent/child mismatch, then all-four-entry+parent PENDING→IGNORED without a receipt as trusted owner. Include invalid terminal state/basis pairs COUNTED+DOMAIN_UNCHANGED, IGNORED+DOMAIN_CHANGED, IGNORED+EXPIRED_UNRESOLVED, and NULL/finalized_at mismatch. | Runtime has no UPDATE or owner membership. SQL CHECK must reject all invalid state/basis/timestamp pairs regardless of caller; the source guard should reject single-row/partial or terminal mutations. If an all-four **valid-pair** owner update succeeds without a receipt, document it as a *privileged bypass*, not a passing receipt-proven discount. Future writer cannot hold direct UPDATE grants; a receipt-bound narrow finalizer is mandatory. |
 | Q11 | Attempt R02 issuance via existing `AntiAbuseService.reserve()`, mutable `public.anti_abuse_events`, legacy SQL writers, alternate endpoints, or old `limiter_bindings` public FK. | None can issue a reset or satisfy new private four-scope bundle. Signed R02 `LIMITER_RESERVATION_V1` must bind **private** reservation UUIDs/hashes/fingerprint with an accepted W2/Owner migration mapping, never old public IDs. |
 | Q12 | Malformed/expired/used R03 credential, and canonical credential, with two independent attempt scopes. Exercise R03 even when body parsing fails, then concurrent R02 issuance. | R03 trusted-address 30/15m is durable pre-parser; canonical credential 5/15m is separate. Neither returns or modifies an R02 bundle, uses R02 `IGNORED` discount, or grants reset issuance. |
 | Q13 | Rollback before reserve COMMIT, denied domain operation, confirmed domain rollback, unknown transaction outcome and receipt replay under connection-pool exhaustion. | Clear separate pre-domain and post-domain leases; no nested pool acquisition under domain locks; distinguish confirmed rollback from unknown commit; never mint link or discard a pending attempt without authoritative receipt. |
@@ -74,6 +74,18 @@ PG17 test file is *not* evidence that any of the cases below passed.
   writers must also receive **no direct UPDATE**. Q01/Q10 must prove the grant
   boundary and report privileged-owner behavior without claiming SQL itself
   enforces receipt provenance for arbitrary owner DML.
+- **W10 terminal-basis pair fix (source-only, PG17 NOT RUN).** Migration120's
+  bundles CHECK now only allows PENDING with NULL finalization fields, COUNTED
+  with DOMAIN_CHANGED or EXPIRED_UNRESOLVED and non-NULL finalized_at, or IGNORED
+  with DOMAIN_UNCHANGED and non-NULL finalized_at. This closes invalid pairing
+  even for direct owner DML, but does **not** establish receipt provenance or
+  validate CHANGED reset_id/generation against a committed reset record.
+  Integration activation remains BLOCKED. This source revision is limited to
+  W12's still-unapplied migration120 in the blocked synthetic fixture; it must
+  never rewrite an already-applied migration in any environment. If a target has
+  applied 120, coordinate an explicitly new forward-only constraint migration
+  after verifying its migration history. W13 owns prospective migration125;
+  W12 created no migration125 and must not collide with that numbering.
 - **Significant operations gap — unresolved reservations.** A finalizer
   invocation (124:212–217) transitions a PENDING attempt to conservatively
   COUNTED after 900s, but there is no scheduled recovery/reconciliation or
