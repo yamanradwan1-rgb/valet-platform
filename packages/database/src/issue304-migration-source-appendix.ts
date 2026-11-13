@@ -34,6 +34,10 @@ export const issue435AppendedMigrationDirectories = [
   "20261106011100_issue435_guest_push_registration_status",
 ] as const;
 
+export const issue416AppendedMigrationDirectories = [
+  "20261113011200_issue416_reserved_security_audit",
+] as const;
+
 export const expectedCurrentMigrationDirectories = [
   ...expectedMigrationDirectories,
   ...issue300AppendedMigrationDirectories,
@@ -41,4 +45,5 @@ export const expectedCurrentMigrationDirectories = [
   ...subsequentAppendedMigrationDirectories,
   ...issue429AppendedMigrationDirectories,
   ...issue435AppendedMigrationDirectories,
+  ...issue416AppendedMigrationDirectories,
 ] as const;

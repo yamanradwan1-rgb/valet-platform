@@ -2416,6 +2416,12 @@ Rules:
 - normal runtime writes `USER`/`SYSTEM`/`ANONYMOUS` events only through the
   fixed-search-path SECURITY DEFINER append function; the controlled-operator
   append boundary is not executable by the ordinary runtime role
+- Issue #416 reserves `STAFF_PASSWORD_RESET_LINK_ISSUED` and
+  `STAFF_PASSWORD_RESET_PASSWORD_CHANGED` for authoritative reset operations.
+  The generic runtime append function rejects both with SQLSTATE `42501`,
+  including an otherwise identical event-ID replay. The additive reservation
+  introduces no reset operation. Authentication and atomic reset audit append
+  remain gated on `docs/plans/issue-416-security-foundation.md`.
 - deployment of migration 35 is a drained, coordinated database/runtime-role
   cutover: apply the migration with ordinary runtime audit traffic stopped,
   reprovision the runtime role, then start the updated application. This avoids
