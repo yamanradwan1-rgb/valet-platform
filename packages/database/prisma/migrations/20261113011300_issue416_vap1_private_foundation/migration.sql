@@ -46,8 +46,6 @@ CREATE SCHEMA IF NOT EXISTS auth_proof_crypto;
 REVOKE CREATE ON SCHEMA auth_proof_crypto FROM PUBLIC;
 CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA auth_proof_crypto;
 GRANT USAGE ON SCHEMA auth_proof_crypto TO vap1_proof_owner;
-ALTER DEFAULT PRIVILEGES FOR ROLE vap1_proof_owner
-  REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;
 -- A01 private operation-bound limiter binding has a forward FK to the
 -- legacy durable reservation id. PostgreSQL requires REFERENCES privilege
 -- on that id for this distinct NOLOGIN table owner at CREATE TABLE time.
@@ -56,6 +54,10 @@ GRANT REFERENCES(id) ON TABLE public.anti_abuse_events
 
 SET ROLE vap1_proof_owner;
 REVOKE ALL ON SCHEMA auth_proof_private FROM PUBLIC;
+-- Default privileges belong to this NOLOGIN owner. The NOINHERIT migrator
+-- may SET ROLE but cannot ALTER its defaults before switching identities.
+ALTER DEFAULT PRIVILEGES FOR ROLE vap1_proof_owner
+  REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;
 
 CREATE TABLE auth_proof_private.proof_keys (
   audience text NOT NULL CHECK (
