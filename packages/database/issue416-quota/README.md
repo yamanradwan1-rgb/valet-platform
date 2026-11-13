@@ -74,6 +74,10 @@ changed-link accounting must never be reused for R03.
 
 ## Tests and release gate
 
+PG17_ACCEPTANCE_NOT_RUN.md contains the P0-D security/atomicity/receipt/
+concurrency acceptance matrix and its source-supported activation blockers.
+It is a **specification**, not executable SQL or permission to connect to PG17.
+
 `node --test packages/database/issue416-quota/*.unit.test.mjs` performs source,
 hash-component, boundary and physical-line-count checks. The opt-in isolated
 PG17 suite uses the W9 harness and can run **only** after the 113–124 chain,
