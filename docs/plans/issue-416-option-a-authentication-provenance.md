@@ -1,6 +1,6 @@
 # Issue #416 Option A authentication provenance
 
-Status: Proposed — Owner Approval Required.
+Status: S1 byte-level design specified for independent review — **not Owner-accepted or implemented**.
 
 ## Executive verdict and baseline
 
@@ -32,7 +32,7 @@ review are distinct from executed authentication-provenance tests.
 | LOCKED | SQL runtime credentials or readable hashes cannot create issuer authority |
 | LOCKED | DEC-025 ordinary credential and existing single application pool |
 | DERIVED | All direct authority-establishing writes and weaker SQL entry points must migrate |
-| PROPOSED | Per-command HMAC proof and transaction-bound one-use challenge |
+| PROPOSED S1 | The byte-precise per-command HMAC proof, transaction-bound one-use challenge and signer guards below; independent review and explicit Owner supersession still required |
 | PROPOSED | Drained cutover with legacy-session revocation and reauthentication |
 | PROPOSED L1 | Selective legacy account/factor/authority admission and mediated recovery; see cutover supplement |
 | PROPOSED L2 | Drained boundary with proof-capable rollback (or explicitly approved secure outage); see cutover supplement |
@@ -100,80 +100,348 @@ purpose payload schemas, all deployed overloads or effective grants.
 Current grants alone do not establish a completed account takeover. No exploit
 reproduction is performed. The future reset SQL boundary does not exist yet.
 
-## Proposed command protocol
+## S1 — proposed byte-precise authenticated command protocol
 
-Preserve opaque vsa1/vsr1 formats, accepted unkeyed verifier formats and one
-ordinary pool. PROPOSED internal proof version vap1 uses an independent 256-bit
-HMAC-SHA-256 key, distinct from MFA encryption/recovery keys and DB credentials.
-No raw access, refresh, password or TOTP crosses the SQL boundary.
+**Status/boundary:** a reviewable contract, not a deployed primitive, Accepted
+DEC amendment, live-key provisioner or validated PostgreSQL function. Preserve
+the DEC-023/072 opaque `vsa1.`/`vsr1.` formats, existing hash formats, transport,
+refresh replay-family revocation and one ordinary DEC-025 runtime pool. `vap1`
+is **internal**, never a staff/guest credential. It uses exactly one independent
+uniformly random **32-byte HMAC-SHA-256 root per audience/key version** (two
+controlled copies/uses: request-scoped trusted API signer and private SQL
+verifier), never the password/MFA/recovery/anti-abuse keys or DB credentials.
+This is a symmetric root, **not** a public verifier: compromise of a privileged
+SQL-key holder/DBA or API signer is outside the SQL-only E/F guarantee. U1 must
+approve actual custody, injection, storage/backup and accountable operators;
+neither an extra Staff-session resolver nor a new external signing service
+becomes a second issuer/trust root.
 
-Canonical signed UTF-8 bytes are a fixed ordered JSON array with no optional
-fields. Proposed fields are version, keyId, deploymentAudience, purpose,
-operationId, challenge, backendPid, fullTransactionId, userId, sessionId,
-organizationId, membershipId, priorSecurityVersion, payloadSha256, issuedAtMs,
-expiresAtMs. Absent scope is JSON null, UUIDs lowercase canonical, times safe
-integer UTC milliseconds. Closed purpose-specific payload schemas bind every
-candidate verifier, target, expected version and generation. Exact payload schemas
-are U2; a generic arbitrary-update envelope is prohibited.
+### Exact `vap1` canonical bytes (S1 protocol version 1)
 
-Proposed TTL is 30 seconds with no grace, checked against database wall time.
-Challenge creation binds a random 32-byte nonce to the current backend and full
-transaction ID. Execute on that same connection/transaction, verify MAC and exact
-payload digest, consume challenge and record private immutable operation receipt
-atomically with mutation/audit. Foreign backend/transaction cannot use a leaked
-proof. A copied proof cannot authorize a changed operation. Receipts contain no
-bearer, verifier, MAC or reconstructible credential. Nonce cleanup is bounded;
-retention and abandoned-transaction recovery remain part of U2 acceptance.
+There is **one encoding**, not a choice between JSON and binary. No signed JSON,
+JCS, implicit JavaScript serialization, SQL `jsonb::text`, locale-dependent
+conversion or concatenated delimited strings. All hash/MAC inputs are `bytea`
+with a canonical strict TLV frame. `frame(kind,fields)` is, in this order:
 
-SQL owner is a dedicated NOLOGIN security owner; search_path is fixed to
-pg_catalog,public. PUBLIC execution is denied. Runtime receives only specific
-command EXECUTE, with no private key/receipt/verifier helper access.
+```
+ASCII("VAYLET/VAP1") || 0x00 || kind:u8 || 0x0001:u16be || count:u16be
+|| repeated ascending (field_id:u16be || wire_type:u8 || length:u32be || value)
+kind 0x01 = purpose-specific command payload
+kind 0x02 = HMAC proof binding; kind 0x03 = protected-state/version snapshot
+```
 
-| Proposed function family | Caller and effects |
+This S1 definition **supersedes** the earlier tentative fixed UTF-8 JSON-array
+sketch still quoted in the separate U1 key-custody document; its shared
+cryptographic custody/rotation gates remain binding proposals. That companion
+must be reconciled by its owner before an implementation baseline is frozen.
+
+Wire types: `0x00=NULL` (length zero; allowed only in schema-declared nullable
+positions), `0x01=BOOL` (one byte `00`/`01`), `0x02=U32` (four big-endian bytes),
+`0x03=U64` (eight big-endian bytes), `0x04=UTF8` (strict valid UTF-8, no BOM,
+length in **bytes**), `0x05=UUID` (16 RFC-4122 network-order bytes, no text),
+`0x06=BYTES` (opaque bounded bytes) and `0x07=SHA256` (exactly 32 raw bytes).
+No floats, signed numbers, mixed numeric/text representations, alternate UUID
+spellings, loose null/empty equivalence, implicit Unicode normalization,
+unknown type/field, duplicate, reordered, missing or extra field are legal.
+Every purpose/schema has a fixed ascending field-ID/type/nullability list and
+strict byte-length bounds; decoders must consume **all** input, reject overflow
+and non-canonical encodings, and re-encode byte-for-byte identically. No
+mutable policy is inferred from an unrecognized schema version. Text fields
+for key ID, audience, purpose and actor kind use restricted ASCII identifiers
+with explicit registry values (not user-supplied free text); email uses the
+existing DEC-023 stored normalization *without* a new Unicode mapping. U64
+encoding is integer/`bigint` and never a lossy JavaScript `Number` or rounded
+PostgreSQL float; DB timestamp is integer UTC **milliseconds**, using an exact
+integer conversion from `clock_timestamp()`; full transaction ID is the
+decimal numeric value of PostgreSQL `pg_current_xact_id()` (`xid8`) encoded as
+U64, not a 32-bit `xid`, backend PID, or stringified driver object.
+
+`payloadBytes = frame(0x01, exact purpose-specific typed command fields)`;
+`payloadDigest = SHA256(payloadBytes)` (32 raw bytes). The same closed schema
+must cover intended operation, **all** candidate new credential hashes, target,
+before-state checks, generation and accepted business/audit effects; raw
+password/token/TOTP/recovery/invitation material is never a payload field.
+`stateDigest = SHA256(frame(0x03, typed locked current-state facts))`, with
+the per-purpose version/state schema generated **only** by the protected SQL
+prepare from locked persisted authority; it binds current User/password-hash
+version, session/lineage, factor/code/step, memberships/entitlements/role and
+target generations as applicable. No nonexistent generic `security_version`
+database column is assumed. The app's ceremony verifier must match the
+specific locked facts returned as bounded, nonsecret version commitments;
+an SQL-visible hash or prepared state digest is **not** proof of possession.
+Exact *per-purpose* payload/state field registries are a mandatory U2 design
+and two-implementation conformance gate **before release**, not runtime
+extension points for arbitrary JSON.
+
+The fixed **proof frame** has precisely the following 18 fields (all present,
+null only where explicitly permitted), in this order:
+
+| ID | Name | Type and binding |
+| --- | --- | --- |
+| 1 | `proofVersion` | UTF8 exact ASCII `vap1` |
+| 2 | `keyId` | UTF8 registered key ID, not chosen by caller |
+| 3 | `audience` | UTF8 immutable environment/deployment audience |
+| 4 | `purpose` | UTF8 exact registered single command purpose |
+| 5 | `operationId` | UUID exact idempotency identity |
+| 6 | `challengeNonce` | BYTES exactly 32 CSPRNG bytes, DB-created |
+| 7 | `backendPid` | U32 from `pg_backend_pid()` |
+| 8 | `fullXid` | U64 from `pg_current_xact_id()` |
+| 9 | `actorKind` | UTF8 registered `STAFF`, `ANONYMOUS` or `OPERATOR` |
+| 10 | `actorUserId` | UUID/NULL; null only for approved anonymous/operator purposes |
+| 11 | `actorSessionId` | UUID/NULL; required for authenticated Staff purposes |
+| 12 | `organizationId` | UUID/NULL; null only for purposes with no Organization scope |
+| 13 | `membershipId` | UUID/NULL; null only when schema legitimately lacks membership scope |
+| 14 | `subjectUserId` | UUID/NULL; resolved target, null only when truly inapplicable |
+| 15 | `stateDigest` | SHA256 protected locked versions/generations/scope |
+| 16 | `payloadDigest` | SHA256 exact typed payload bytes |
+| 17 | `issuedAtMs` | U64 database-clock UTC milliseconds |
+| 18 | `expiresAtMs` | U64 exactly `issuedAtMs + 30000` |
+
+The key **promotion epoch** and any other resource scope (Location, factor,
+credential, invitation, reset generation) are mandatory typed fields of the
+purpose-specific protected state frame and challenge row, not free-form
+attributes. The key ID in the proof frame and the epoch in the state frame,
+both bound in the private challenge, must equal the
+committed `ACTIVE_SIGNING` selection made under rank-15 key `FOR SHARE`; an
+app replica with a stale key/epoch **fails closed**. For `actorKind=OPERATOR`,
+ordinary Staff credentials do not attest a controlled operator ceremony;
+that separate attested source remains U2/operator review. For anonymous
+redemption, no Staff/role identity is invented. Initial password Login and
+invitation activation are also `ANONYMOUS` at prepare, without an established
+Staff session, and bind the intended User in `subjectUserId`. Only a genuine
+verified password/invitation ceremony may then establish its new authority.
+Refresh binds an existing session through genuine raw-token verification,
+not a client-supplied session UUID or previously selected Company.
+
+`proofBytes = frame(0x02, fields 1..18)`;
+`mac = HMAC_SHA256(keyId's **32 raw bytes**, proofBytes)`; `mac` is 32 raw bytes.
+The untrusted SQL API transports only the typed command arguments, immutable
+`proofBytes` and `mac` as bounded `bytea` values. Any returned descriptor is
+canonical bytes plus a private challenge handle, never an authorization claim.
+The signer independently **re-encodes** its locally authenticated request and
+typed locked descriptor; it must never offer `HMAC(sqlReturnedBytes)` or
+`HMAC(callerBytes)` as a blind helper. It checks purpose, operation, actor,
+subject/tenant, genuine session or token-ceremony evidence, payload/state
+commitments, issued/expiry, key ID and epoch *before* deriving the proof MAC.
+SQL rebuilds all frame fields from the private locked challenge, typed current
+payload and protected state; it must reject *any* supplied byte mismatch before
+checking the MAC. Runtime may not select a different key, audience, epoch,
+actor, target, session, version or expiry. No hash-of-a-hash shortcut replaces
+canonical input matching.
+
+**Deterministic conformance vectors (specification, not run evidence):** freeze
+both independent Node and SQL implementations against fixtures with the
+literal byte values below; the frames are **codec primitives**, not a complete
+valid 18-field authorization proof:
+
+```
+payload primitive: kind=01, schema=0001, count=0001,
+ field 0001=UTF8("LOGIN")
+ expected hex = 5641594c45542f56415031000100010001000104000000054c4f47494e
+proof primitive: same field 0001=UTF8("vap1"), kind=02
+ expected hex = 5641594c45542f564150310002000100010001040000000476617031
+HMAC primitive key = 000102030405060708090a0b0c0d0e0f
+                     101112131415161718191a1b1c1d1e1f
+SHA256(payload primitive) = f7461d21c52f716334a63b35ea279fb307821531c5978eba3d024aed736d159c
+SHA256(proof primitive)   = bb401a644eefdf8795b6d1ee56bb2cfc2410da770b12f70547aa5113f00a140e
+HMAC_SHA256(key, proof primitive) = b852ab32befc2a3781a12f0f1d5422763276e9454d839e6778313e38ef5ddc28
+```
+
+These three reference values were computed with .NET cryptographic routines
+and independently matched with Python `hashlib`/`hmac`; they cover only the
+primitive wire codec, **not** independent Node/PostgreSQL implementation or
+deployment proof. Freeze them in both
+conformance suites and also add a **full valid 18-field** fixture for fixed
+UUIDs, epoch/stateDigest, `0x00` null and 30-second timestamps. Reject same
+fixture after changing kind, UTF-8 bytes, field type/order, nullable vs zero,
+key ID, audience, purpose, target, UUID, backend, full XID, epoch, digest or
+one expiry millisecond. Never accept a primitive vector as a valid command.
+
+**Full 18-field syntactic proof-frame vector (Python reference):** schema 1,
+kind `0x02`; version=`vap1`, keyId=`k1`, audience=`test`, purpose=`LOGIN`,
+operationId=`00000000-0000-0000-0000-000000000001`, nonce=32 bytes `a5`,
+backend PID=1234, full XID=4294967297, actorKind=`ANONYMOUS`, fields
+10–13=`NULL`, subjectUserId=`00000000-0000-0000-0000-000000000002`,
+stateDigest=32 bytes `11`, payloadDigest=the full `f7461d21...` payload
+primitive digest above, issuedAtMs=1700000000000, expiresAtMs=1700000030000.
+The exact proof frame is **323 bytes**, and its expected values are:
+
+```
+SHA256(proof frame) = 9207707792636b1fca6f07b7ea0df1e0b39e0f04087c470701a1c0261de8fa29
+HMAC_SHA256(key 00..1f, proof frame) = 2b0da4ae9b1dc22e10bedc1e1c0a31fe1f2c339273f49092116eaa26d4799fbb
+```
+
+The repeated stateDigest is only a deterministic test value, **not** a
+SQL-locked state or acceptable live proof. Independent Node/PG17 encoders
+must reproduce the exact 323 bytes and both results before release.
+
+### Single-lease lifecycle and database verifier
+
+Acquire the rank-01 operation lock and other purpose-specific locks in the
+documented [rank-01..17 graph](issue-416-option-a-locks.md) on **one leased
+backend and one explicit write transaction**, with no extra pool lease while
+domain locks are held. Read-only discovery is never authority. Under those
+locks, SQL re-derives actor/tenant/subject/complete authorization, expected
+generations and canonical payload/state digests; restart with a fresh challenge
+on an earlier-rank phantom or changed fact. `auth_<purpose>_prepare(typed
+arguments)` is purpose-specific, cannot mutate authenticated authority or mint
+an authenticated success, and creates the 32-byte private nonce only **after
+ranks 01..15**, under a locked ACTIVE key, recording backend PID and **full**
+`xid8`. `pg_current_xact_id()` (assigning when needed) and `pg_backend_pid()`
+are SQL-authoritative. The SQL nonce generator must be an attested CSPRNG
+(candidate: privileged-installed `pgcrypto.gen_random_bytes(32)`); failure or
+extension absence blocks prepare, not a fallback to UUIDs, timestamps or
+application-provided randomness. Challenge is one-use, transaction-local in meaning and
+may not be copied into a new transaction, even on the same pooled connection.
+
+The **trusted request-scoped API signer**, not an HTTP endpoint, background job,
+SQL function, generic `sign(payload)` utility, diagnostic harness or injectable
+test bypass, performs the genuine operation-specific credential/ceremony below.
+It compares the actually observed credential/factor versions and scope with
+the locked descriptor and signs **only that exact prepared operation**, then
+invokes the matching narrow execute on that **same connection/transaction**.
+If ceremony was verified before locks (Argon2 Login/activation), compare the
+verified PHC/identity to the lock-protected row before signing; if verified
+inside locks (TOTP/recovery), no nested pool transaction or pre-lock assertion
+can replace verification. Do not sign from `StaffSessionContext` alone,
+`StaffPrincipal`, arbitrary request-supplied user/role/session, a DB-readable
+verifier, mutable SQL result, GUC, test fixture in production, or the local
+`VAYLET_LOCAL_DISABLE_MFA` path. A signer cannot accept generic purpose or
+payload bytes from runtime/controller: its callers invoke distinct typed
+internal operations with explicit allowlisted effect schemas.
+
+The `SECURITY DEFINER` execute recomputes the canonical bytes from protected
+facts, validates purpose/operation identity, active-or-legitimate-in-flight
+key/epoch, committed audience and exact current session/target/role/MFA rules;
+locks/rechecks after all waits, rechecks DB time **immediately before** effects,
+consumes the challenge with exact-once CAS and writes mutation + immutable audit
++ private nonsecret receipt in **one COMMIT**. Proposed expiry is **30,000 ms,
+no grace**: SQL uses `clock_timestamp()` and accepts only
+`issuedAtMs <= nowMs < expiresAtMs`; app clocks and client timestamps have no
+authority. A pre-expiry effect can commit after expiry only within existing
+bounded transaction/statement budgets; TTL does not extend those budgets.
+Connection loss, wrong backend/full-XID, retired key, reused nonce, changed
+payload, stale scope, foreign tenant or malformed fields always fail closed.
+
+For PostgreSQL 17, a candidate private verifier uses a *reviewed and
+privileged-installed* `pgcrypto` `hmac(data bytea, key bytea, 'sha256')`
+function, with any `digest(...,'sha256')` calls resolved to approved fixed
+schema signatures. **Extension availability, ACLs, search path and deployment
+are NOT verified.** A dedicated NOLOGIN function owner owns only audited
+private schema/objects; every definer fixes `search_path` to trusted schemas,
+fully qualifies table/functions, and denies `PUBLIC`, runtime inherited roles,
+default privileges and arbitrary execute on key lookup, generic verifier,
+challenge/receipt, promotion or operator helpers. No runtime-readable signing
+key, SECURITY DEFINER `sign`, verifier oracle or untrusted temporary/public
+schema search resolution.
+
+The earlier `auth_login_commit(jsonb,jsonb)`-style function-family names were
+illustrative, **not** a permitted generic JSON command ABI. Login, refresh,
+logout/revocation, factor begin/confirm/retire/step-up/recovery/reissue,
+management activity/roles/grants, onboarding/resend, activation, push and
+future reset commands each require distinct audited typed prepare/execute
+signatures and a closed one-purpose payload schema. Runtime-provided `jsonb`
+actor/scope/policy maps and generic `auth_command_challenge(text,uuid)` are
+forbidden even when they appear schema-validated. U2 owns exact callable
+signatures, transitive writers and old-function/overload denial.
+
+MAC comparison must reject non-32-byte input with uniform generic failure,
+then compare **all 32 bytes without early exit** in a reviewed fixed-length
+bytewise XOR/OR accumulator (or independently verified native constant-time
+primitive); ordinary PostgreSQL `bytea =`, `text =` or a prefix comparison is
+not claimed constant-time. Ensure errors/paths do not expose whether MAC,
+actor, membership, challenge, key or clock check failed. PL/pgSQL and database
+execution timing are **not proven constant-time** merely by the loop: require
+independent implementation/side-channel review and timing tests. A DB owner
+with key access can compute MACs; SQL-only runtime cannot.
+
+### Per-ceremony non-oracle signer guards (source-grounded)
+
+| Purpose | Required real proof in trusted API; SQL locked recheck |
 | --- | --- |
-| purpose-specific `auth_*_prepare(typed arguments)` returning a bounded challenge | runtime invokes only an explicitly authorized, narrowly typed prepare for the chosen purpose/operation; binds discovered actor, exact target/Organization, immutable payload fingerprint, relevant versions/generations, backend PID and full transaction ID **after** acquiring prescribed locks; exact SQL signatures remain U2 review items |
-| auth_login_commit(jsonb,jsonb) returns jsonb | proof plus strict payload, create session/first refresh and login timestamp |
-| auth_refresh_rotate(jsonb,jsonb) returns jsonb | consume/rotate lineage or commit accepted replay revocation |
-| auth_session_revoke(jsonb,jsonb) returns jsonb | monotone session and push terminalization |
-| auth_factor_enroll / activate / retire(jsonb,jsonb) returns jsonb | separate commands, protected factor lifecycle |
-| auth_mfa_step_up / recover / reissue(jsonb,jsonb) returns jsonb | separate commands, factor/code/assurance/audit atomicity |
-| auth_admin_activity(jsonb,jsonb) returns jsonb | bounded activity only |
-| authenticated management/onboarding/activation replacements | exact command-specific effects, signatures/payloads in U2 |
-| future reset status/issue/redeem | private verification plus Issue416 exact authorized effects |
+| Login (`staff-auth.service.ts:64-103`) | Parse accepted PHC and run real Argon2id over **submitted password** (or dummy on invalid lookup), verify outside login transaction, then same-User/PHC equality and ACTIVE under User lock. New `vsa1.`/`vsr1.` 32-byte values originate in API; only their purpose-prefixed derived lookup hashes cross SQL. SQL must not treat a copied PHC/hash or `User.id` as password verification. |
+| Refresh (`staff-auth.service.ts:179-287`) | Require genuine raw `vsr1.` supplied on the approved Web cookie/native body transport; trusted app computes correct versioned hash from that actual token and correlates locked credential/session lineage. SQL CAS consumes current generation and rotates one winner. A presented **consumed** token requires a separate strictly bounded replay-revocation outcome/purpose that proves actual raw-token possession via app-computed digest and matching locked consumed lineage, **not** a successful authentication claim; it **must COMMIT family revocation while returning authentication failure** per DEC-023. Receipt success shortcuts must not defeat it. |
+| Access session / logout / management | Validate the actual raw `vsa1.` Bearer through the existing resolver, *then* bind its exact locked session/User/expiry and current Org/membership/Location/role/entitlement/factor. `StaffSessionContext` (currently a DB lookup of `current_access_token_hash`) is a discovery helper only, **never sufficient issuance evidence**; the trusted signer must attest real bearer possession in this request and a fresh protected-state recheck. For logout using refresh, validate the real `vsr1.`; authorized monotone controlled cleanup has a separate fixed-purpose route. |
+| MFA enrollment/step-up (`mfa-enrollment.service.ts:60-184`, `mfa-step-up.service.ts:48-85`) | Require actual valid raw Staff access bearer and exact live session; for confirm/step-up verify user-submitted **TOTP** against app-decrypted current factor seed **inside locked transaction**, bind factor ID, pending same-session ownership, accepted step, factor/recovery generation and assurance. A SQL-visible factor row/TOTP timestamp does not authorize signing. Pending `begin` may redisclose the same seed only to the initiating current session, never a foreign session. No local MFA bypass may sign. |
+| MFA recovery/reissue (`mfa-recovery.service.ts:68-131,163-233`) | Genuine raw one-time recovery code verified by the application against protected selector/verifier and current generation under row lock, or genuine TOTP for reissue; SQL consumes one code/monotone step and retires/reissues exactly once, with single-disclosure output. Stored selector/verifier cannot be supplied to signer as simulated possession. |
+| Invitation activation (`staff-activation.service.ts:45-116`) | Actual raw invitation bearer received from the caller and hashed by app; SQL validates live invitation owner, expiry/consumption/generation after locks. Existing ACTIVE User also requires a genuine real Argon2id match against its current PHC. PENDING User instead must satisfy accepted new-password validation and app Argon2 creation; do not fabricate an existing password ceremony. No session silently issued. |
+| Future reset and operator | `vspr1.` raw one-use bearer is genuinely possessed by redeeming caller and **never sent raw to SQL**; SQL rechecks latest generation/eligible target and atomically consumes/revokes/audits. CA issue uses the exact current Staff bearer, current membership/Organization/sole-company eligibility and *five-minute* sensitive MFA. Controlled provisioner/disable/MFA-recovery are separate independently attested operator ceremonies, not an `operatorRef` string or assumed Staff session. S1 does not implement a reset or approve a new external API. |
 
-Slash names describe separate proposed functions. They are not executable SQL.
-There is **no** generic `auth_command_challenge(text,uuid)` endpoint that can
-accept a caller-supplied actor or produce an unscoped challenge. Each prepare
-must canonicalize an allowlisted purpose-specific payload, derive current
-actor/target/scope and generation from protected persistence, lock/recheck
-those facts and bind the immutable digest into its private one-use challenge.
-The application may sign only after genuinely verifying that purpose's raw
-credential/ceremony and comparing observed credential/factor versions to the
-locked challenge facts. A runtime-supplied JSON authority claim, GUC or
-SQL-only prepare result must never become signer authority. Negative tests must
-swap purpose, target, session, generation, payload, backend and transaction.
-Remove direct session/refresh/factor/code INSERT/UPDATE only once all legitimate
-consumers migrate. Review retained cleanup rights for monotonicity. Password writes
-remain denied. Preserve operational reads, limiter and approved push behavior.
-Migration/provisioning/verifiers must change together so old provisioning cannot
-restore grants. Old unproved definer signatures lose EXECUTE. Audit migration112
-remains intact; private reset commands append derived actors atomically later.
+**Legacy trust admission is a signer precondition, not a signing exception.**
+Under **proposed, not approved L1**, the drained T0 boundary permanently
+revokes every pre-boundary Staff session and refresh lineage; no legacy
+`vsa1.`/`vsr1.` possession, copied session hash, MFA timestamp or apparently
+recent assurance can yield a `vap1` proof after T0. New sessions require actual
+password verification of an **independently admitted** User, then protected
+issuance. Signer eligibility follows the approved admission dependency chain:
+admitted identity, exact current membership/grants, Organization, relevant
+commercial entitlement, and for MFA capabilities an independently admitted
+factor and recovery generation. An active legacy factor is **not** admitted
+by valid TOTP alone: L1 requires separately verified owner-to-factor provenance
+and an immutable operator admission; PENDING enrollment tied to a revoked
+legacy session is retired, not redisclosed to a new session. `HOLD` rejects
+the relevant protected capability without leaking which dependency failed;
+it does not delete history, silently change last-Admin counts or silently
+promote a user. Real password/OTP/recovery possession **cannot** repair an
+untrusted role, company boundary or entitlement. Until Owner decides L1 and
+the operator/import is independently attested, S1 does not authorize a
+historical-session trust shortcut or unconditional global reenrollment.
 
-## Signing oracle prevention
+### Receipts, SQL confidentiality and v9 supersession
 
-Login signs only after real Argon2 success, binding the verified password version
-that SQL rechecks under lock. Refresh signs only authenticated protected lineage;
-SQL consumes it under lock. MFA signs only a verified protected factor/pending
-session/step or recovery generation, then SQL atomically consumes and updates.
-No MFA proof is minted through VAYLET_LOCAL_DISABLE_MFA bypass. A signed mutable
-snapshot alone never establishes trust. Access verification can safely consume
-existing opaque verifiers only after every weaker authority writer is closed.
+The rank-01 operation fence keys `(audience,purpose,operationUUID)`; every
+candidate also binds the exact `payloadDigest` and preconditions. First valid
+execution consumes challenge and commits protected state/audit/immutable receipt
+atomically. Same operation + same fingerprint on retry requires a **fresh
+genuine ceremony and authorization** and returns only an allowed nonsecret
+status, never credentials, recovery codes, pending seed (except existing exact
+same-session pending-enrollment contract), invitation or reset link. Changed
+payload/tenant **within the same purpose and operation identity** returns a
+conflict without mutation. A copied proof under a *different purpose* fails
+MAC/typed-purpose verification, not an assumed cross-purpose receipt collision.
+A consumed reset link remains generic invalid regardless of receipt. Infrastructure
+lost-COMMIT is **UNKNOWN**, not proven rollback: preserve operation identity,
+recover on a new lease from private receipt + current protected state, do not
+blindly retry a mutation or redisclose secret. A deliberate consumed-refresh
+replay remains a failure **with committed family revocation**, not ordinary
+idempotent success. Receipts contain IDs, purpose/fingerprint, bounded status,
+generations/times and nonsecret audit linkage only — no raw/digested bearer,
+PHC, recovery verifier, factor seed, MAC, challenge or reconstructible secret.
 
-Cutover must include onboarding, activation, role/status/access, factor lifecycle
-and Organization/entitlement writers. Legacy session/MFA timestamps are never
-accepted as evidence they did not establish. Pre-cutover factors require a
-separate provenance/rotation policy under U2 if previous SQL capabilities could
-have established them. A new password login alone cannot cure untrusted policy.
+| Material at API-to-SQL boundary | Proposed rule and why |
+| --- | --- |
+| Submitted password; raw `vsa1.`/`vsr1.`/`vspr1.`; raw invitation bearer; TOTP or raw recovery code | **NEVER** send as SQL argument, stored function input, GUC, query string, statement/trace/audit field. Verify genuine possession/ceremony **in trusted app**; SQL receives only purpose-specific non-bearer commitments and protected state. |
+| Current PHC, accepted session/refresh hash, invite/reset hash, recovery selector/verifier, encrypted MFA seed | Existing **sensitive DB-stored** values required by current functionality; narrowly scoped read/locked comparison permitted. They are **not** proof of possession; avoid re-sending/logging where already in SQL, never expose as receipt or caller-visible signer claim. |
+| New access/refresh hashes, new password PHC, protected MFA seed, candidate recovery verifier, token-hash for indexed lookup | Purpose-specific **derived persistence** may enter SQL over approved parameterized TLS with scoped grants; never raw input, general-purpose authority claim, or logging. New credential plaintext/one-time recovery output remains app-only and is released only after known COMMIT. |
+| `proofBytes`, `mac`, private nonce/challenge, candidate state/payload digest | May pass only between signer and exact typed SQL command on one backend; treat as **sensitive transient authorization material**; disallow server/driver/proxy/audit/metrics/error/debug logging even though nonce is short-lived. No durable receipt storage of MAC/nonce. |
+| Operation UUID, scoped actor/tenant/subject IDs, code outcome, public-safe metadata | SQL may use typed values after independent current-state derivation/authorization; IDs and timestamps are **never** sufficient to establish actor or signer authority. |
+
+Issue #416 **Owner-approved v9 §A.E** allowed narrowly scoped direct
+session/refresh/push DML and SQL possession checking of raw `vsa1.` on a
+separately guarded confidentiality assumption, or a security-reviewed MAC
+substitution if secrets could not be protected. **This S1 proposal deliberately
+changes that internal mechanism:** no raw Staff/reset bearer across SQL,
+authenticated narrow typed writer `EXECUTE` instead of direct authority-write
+grants, and retired pre-proof SQL definer signatures/overloads. It must not
+silently claim v9's narrow DML/SQL-bearer permission already superseded. Obtain
+**explicit Owner S1 approval/supersession**, preserve v9 external reset
+authority/eligibility, one-time/TTL/audit/HTTP behavior and Accepted DECs,
+then migrate every transitive session/refresh/factor/code/onboarding/activation/
+management/Org/entitlement/push/controlled-tool writer in one *drained*
+release. Old provisioner/admin credentials and job runners must be fenced;
+keep DEC-024 durable abuse budgets/reservations and DEC-075/076 push invariants;
+after migration repeatedly reprovision and verify effective `PUBLIC`, runtime,
+inherited-role, default privilege, overloaded-definer and old binary denial.
+DEC-025 migration credentials never enter runtime. Do not grant direct password
+write or reenable weaker raw-bearer SQL, even as an outage workaround. Audit
+migration 112 is preserved; a controlled proof-capable rollback or secure
+outage is required by proposed L2.
+
+**Open gates remain:** S1 Owner internal-mechanism supersession, U1 symmetric
+root custody/logs/backup/rotation and pgcrypto deployment evidence, U2 closed
+typed SQL/JS schemas + executable issuer guard/privilege verification,
+L1 legacy identities/factors/authority admission and L2 drained cutover/DR
+are **not approved or executed** by this document. No claimed production proof.
 
 ## Key custody and confidentiality U1
 
@@ -420,5 +688,9 @@ authorization for user and operational impact.
 The proposed 30-second proof TTL never extends current pool statement/lock/
 idle/transaction budgets. The lock supplement defines a candidate key retirement
 COMMIT barrier, challenge/receipt order and unknown-COMMIT recovery, none tested.
-The three older reviews covered an earlier draft and cannot approve this recovered
-aggregate; final read-only Auth/SQL/Ops review must target the new package.
+The three older `issue-416-option-a-review-{auth,sql,ops}.md` documents cover an
+earlier draft. An independent aggregate review at `944ae18c`, its delta
+review at `698aec06`, and the recovery baseline `eb2d0ba4` are historical
+evidence only; this **new S1 encoding/signer protocol** must receive a fresh,
+SHA-pinned independent review and explicit applicable Owner approvals before
+implementation. Documentation inspection is not a substitute for PG17 proof.
