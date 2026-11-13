@@ -109,23 +109,61 @@ provides the **proposed** rank-15 key-lock/barrier design, not runtime proof.
    explicit operational review. A verifier that gets only a public hash of
    this HMAC key **cannot** verify HMACs.
 
-Candidate proof input is the fixed ordered, canonical UTF-8 array already
-proposed in `issue-416-option-a-authentication-provenance.md:98-114`:
-version, key ID, deployment audience, purpose, operation ID, current-transaction
-random challenge, backend PID **and full transaction ID**, verified current
-User/session/Organization/membership, security version, exact payload digest
-and bounded issued/expiry timestamps. The proposal is 256-bit independent
-HMAC-SHA-256 and 30-second no-grace proof lifetime; **neither value is a
-newly accepted Owner decision**. A transaction cannot successfully reuse a
-challenge, change command target or swap audience and retain a valid proof.
-Both implementations must MAC the **identical byte sequence**: API
-`createHmac('sha256', raw32ByteKey).update(canonicalUtf8Bytes).digest()`
-versus SQL `auth_proof_crypto.hmac(canonicalUtf8Bytes::bytea,
-key_bytes::bytea, 'sha256')`. No locale-dependent JSON serializer,
-implicit SQL text coercion, alternate base64 alphabet, uppercase UUID, or
-representation of an absent field may change the signed byte stream.
-Future U2 contract tests must pin canonical serialization and cross-language
-vectors before any key material is installed.
+**Canonical proof bytes are defined solely by S1** in
+`issue-416-option-a-authentication-provenance.md`, section
+**"Exact `vap1` canonical bytes (S1 protocol version 1)"**. There is no
+normative JSON, ordered UTF-8 array, JCS, `jsonb::text` or delimited-string
+encoding. All signed/digested frames are **strict binary TLV `bytea`**:
+
+```text
+frame(kind, fields) =
+  ASCII("VAYLET/VAP1") || 0x00 || kind:u8 || 0x0001:u16be || count:u16be
+  || ascending (field_id:u16be || wire_type:u8 || length:u32be || value)
+kind 0x01 = closed purpose-specific payload
+kind 0x02 = 18-field signed proof
+kind 0x03 = protected current-state/version snapshot
+```
+
+S1 fixes the wire types and constraints: `NULL` (only schema-permitted),
+`BOOL`, `U32`, `U64`, `UTF8` (strict bytes), `UUID` (16 network-order bytes),
+`BYTES` and `SHA256` (32 raw bytes); no unknown/duplicate/out-of-order fields,
+loose null equivalence, lossy numeric conversion or trailing bytes. The
+**full 64-bit PostgreSQL transaction ID** is encoded as U64 (`xid8` from
+`pg_current_xact_id()`), not 32-bit XID, decimal text or driver string.
+`payloadBytes = frame(0x01, exact typed purpose payload)` and
+`payloadDigest = SHA256(payloadBytes)`.
+`stateDigest = SHA256(frame(0x03, locked SQL-derived typed current-state facts))`;
+the key
+**promotion epoch** is a mandatory typed field of that protected state frame
+and the private challenge row, **not** an extra ad hoc proof-frame field.
+S1's fixed `proofBytes = frame(0x02, fields 1..18)` binds `vap1` version,
+registered `keyId`, deployment audience, purpose, operation UUID, DB-issued
+32-byte challenge nonce, backend PID, full XID, typed actor kind and nullable
+actor/session/Organization/membership/subject IDs, `stateDigest`,
+`payloadDigest`, and DB-authoritative issued/expiry UTC milliseconds. These
+are **exactly** S1's 18 schema fields, not a fresh U1-defined layout.
+The proposed TTL is **30,000 ms with no grace**, using the S1 database-clock
+comparison; it is not an already Accepted Owner decision.
+
+`mac = HMAC_SHA256(raw32ByteKey, proofBytes)` yields **32 raw bytes**.
+The trusted API computes
+`createHmac('sha256', raw32ByteKey).update(proofBytes).digest()`; the private
+SQL SECURITY DEFINER verifier computes
+`auth_proof_crypto.hmac(proofBytes::bytea, key_bytes::bytea, 'sha256')`
+under the fixed qualified schema/ACL boundary below. Both consume the **same
+canonical binary proofBytes**, never a JSON or text recoding. The signer
+must independently re-encode genuine ceremony/typed locked commitments; it
+must **not** blindly MAC untrusted `proofBytes` or SQL-returned bytes. SQL
+independently reconstructs S1's payload, current-state and proof frames from
+protected locked facts and the private challenge, rejecting byte mismatch
+*before* MAC verification. In-flight key selection/epoch must match the
+committed rank-15 key lock. Wrong backend/XID, epoch, purpose, target, nonce,
+scope, key or payload cannot authorize an altered command. Transport
+`proofBytes` and `mac` only as bounded sensitive `bytea` arguments to the
+exact typed SQL command; never log or store them in durable receipts.
+Pin two independent Node/PG17 codec implementations to S1's **published
+primitive vectors and full 323-byte, 18-field proof vector** plus negative
+byte/field/epoch tests before approval; no such conformance test ran here.
 
 The separate `vspr1.` reset link is a 32-byte random **bearer**, hash-only in
 storage, scoped by Issue #416's locked 15-minute/one-use contract. Its
@@ -144,8 +182,9 @@ and never reused, even after retirement. The suggested server-only input
 `VAYLET_AUTH_PROOF_KEYRING_JSON` is a strict bounded JSON array of
 `{ keyId, audience, keyB64url }`, where `keyB64url` is exactly 43
 canonical unpadded base64url characters encoding 32 bytes. This is a
-**future config contract**, not a present environment variable or implemented
-parser. A bounded keyring holds at most **two** roots during a single rotation:
+**future secret-injection config contract**, not a signed VAP1 proof frame,
+present environment variable or implemented parser. A bounded keyring holds
+at most **two** roots during a single rotation:
 old/current and candidate/new. A pre-promotion command holding the old key's
 rank-15 SHARE lock may finish signing and executing with that root; eviction
 must wait for that bounded in-flight command to finish. After promotion, new
@@ -184,7 +223,7 @@ This schema/table/role do **not exist** in the source today.
 The SECURITY DEFINER entrypoint uses a fixed trusted `search_path`
 (`pg_catalog` plus explicitly qualified trusted objects), never any
 runtime-writable schema or unqualified `hmac` name. An internally scoped
-`auth_proof_crypto.hmac(signed_bytes::bytea,key_bytes::bytea,'sha256')`
+`auth_proof_crypto.hmac(proofBytes::bytea,key_bytes::bytea,'sha256')`
 computes the expected 32 bytes. The migration owner must grant only the
 NOLOGIN definer owner the necessary `auth_proof_crypto` schema USAGE,
 specific `hmac` EXECUTE and private registry access. Ordinary runtime and
