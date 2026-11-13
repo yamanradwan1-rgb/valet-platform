@@ -74,21 +74,22 @@ test("self-declared evidence for all 35 writers is still not real SQL closure", 
   assert.equal(result.status, "SOURCE_INVENTORY_ONLY_NO_RELEASE_AUTHORITY");
 });
 
-test("all four MFA and two reset reserved auditor events remain explicit", () => {
+test("login-session, four MFA and two reset audit events stay reserved", () => {
   assert.deepEqual(RESERVED_SECURITY_AUDIT_EVENTS, [
+    "STAFF_LOGIN_SESSION_CREATED",
     "MFA_TOTP_ACTIVATED", "MFA_RECOVERY_CODE_USED",
     "MFA_FACTOR_REENROLLMENT_STARTED", "MFA_RECOVERY_CODES_REISSUED",
     "STAFF_PASSWORD_RESET_LINK_ISSUED",
     "STAFF_PASSWORD_RESET_PASSWORD_CHANGED",
   ]);
   const missing = assessOldAuditorClosure({
-    genericDeniedEventNames: RESERVED_SECURITY_AUDIT_EVENTS.slice(4),
+    genericDeniedEventNames: RESERVED_SECURITY_AUDIT_EVENTS.slice(5),
     genericControlledOperatorActorDenied: true,
     authenticatedAtomicEventAppend: true, migration112Unchanged: true,
     legitimateGenericEventsPreserved: true,
     evidenceRef: "synthetic-review", verifier: "worker5",
   });
-  assert.deepEqual(missing.missing, RESERVED_SECURITY_AUDIT_EVENTS.slice(0, 4));
+  assert.deepEqual(missing.missing, RESERVED_SECURITY_AUDIT_EVENTS.slice(0, 5));
   assert.equal(missing.status, "BLOCKED");
 });
 
@@ -106,6 +107,12 @@ test("audit gate requires CONTROLLED_OPERATOR rejection and protects old migrati
   assert.equal(assessOldAuditorClosure({
     ...complete, migration112Unchanged: false,
   }).status, "BLOCKED");
+  const loginUnfenced = assessOldAuditorClosure({
+    ...complete, genericDeniedEventNames: RESERVED_SECURITY_AUDIT_EVENTS
+      .filter((name) => name !== "STAFF_LOGIN_SESSION_CREATED"),
+  });
+  assert.deepEqual(loginUnfenced.missing, ["STAFF_LOGIN_SESSION_CREATED"]);
+  assert.equal(loginUnfenced.status, "BLOCKED");
   assert.equal(assessOldAuditorClosure({
     ...complete, genericDeniedEventNames: [...RESERVED_SECURITY_AUDIT_EVENTS,
       "MADE_UP_EVENT"],
@@ -122,6 +129,7 @@ test("L2 names writer, old auditor, quotas, external entitlement and P05 gates",
     "ALL_35_WRITER_FAMILIES_CLOSED",
     "LEGACY_SQL_EXECUTES_AND_OVERLOADS_DENIED",
     "OLD_GENERIC_AUDITOR_MFA_RESET_EVENTS_DENIED",
+    "OLD_GENERIC_AUDITOR_LOGIN_SESSION_EVENT_DENIED",
     "ANTI_ABUSE_COUNTED_IGNORED_FENCED",
     "EXTERNAL_ORG_ENTITLEMENT_WRITERS_ATTESTED",
     "P05_MAINTENANCE_AND_P03_P04_FIXTURES_FENCED",
@@ -131,5 +139,19 @@ test("L2 names writer, old auditor, quotas, external entitlement and P05 gates",
   }
   const rehearsal = describeSafeL2Rehearsal();
   assert.ok(rehearsal.steps.some((step) => step.includes("35")));
+  assert.ok(rehearsal.steps.some((step) => step.includes("login-session")));
   assert.equal(named.canRunLiveCutover, false);
+});
+
+test("a claimed old MFA/reset audit gate cannot satisfy missing login closure", () => {
+  const result = evaluateL2Evidence({
+    OLD_GENERIC_AUDITOR_MFA_RESET_EVENTS_DENIED: {
+      status: "VERIFIED", reference: "synthetic-old-audit-proof",
+      verifiedBy: "synthetic", observedAtMs: 123456,
+    },
+  });
+  assert.equal(result.results.find((row) =>
+    row.name === "OLD_GENERIC_AUDITOR_LOGIN_SESSION_EVENT_DENIED").status,
+  "BLOCKED");
+  assert.equal(result.canRunLiveCutover, false);
 });

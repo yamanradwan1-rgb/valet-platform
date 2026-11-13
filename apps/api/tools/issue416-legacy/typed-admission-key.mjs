@@ -8,7 +8,8 @@ export const ADMISSION_RANK = Object.freeze({
 });
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const AUDIENCE_RE = /^[a-z][a-z0-9_-]{1,63}$/;
+// Match W2 migration113's proof_keys/deployment_audience constraints.
+const AUDIENCE_RE = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,95}$/;
 
 function uuidBytes(value) {
   if (typeof value !== "string" || !UUID_RE.test(value)) {

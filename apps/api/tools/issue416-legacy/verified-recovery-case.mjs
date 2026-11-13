@@ -97,12 +97,15 @@ export function verifyRecoveryCase(envelope, trustedKeys, nowMs) {
     let valid = false;
     let keyFingerprint;
     try {
+      const publicKey = trusted.publicKey?.type === "public"
+        ? trusted.publicKey : createPublicKey(trusted.publicKey);
+      if (publicKey.asymmetricKeyType !== "ed25519") {
+        throw new Error("L1_INVALID_CASE_SIGNATURE");
+      }
       keyFingerprint = createHash("sha256").update(
-        (trusted.publicKey?.type === "public"
-          ? trusted.publicKey : createPublicKey(trusted.publicKey))
-          .export({ type: "spki", format: "der" }),
+        publicKey.export({ type: "spki", format: "der" }),
       ).digest("hex");
-      valid = verify(null, signed, trusted.publicKey,
+      valid = verify(null, signed, publicKey,
         Buffer.from(signature.base64Signature, "base64"));
     } catch {
       throw new Error("L1_INVALID_CASE_SIGNATURE");

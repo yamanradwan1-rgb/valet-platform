@@ -37,6 +37,22 @@ test("unknown kinds and noncanonical IDs fail closed", () => {
     kind: "GRANT", ids: [ORG, MEMBER] }), /L1_INVALID_KEY_CARDINALITY/);
 });
 
+test("L1 audience accepts migration113 proof-key grammar boundaries", () => {
+  for (const audience of ["a", "EU.prod:v1", "9", "A".repeat(80),
+    "A".repeat(96), "Z_1:prod.test-2"]) {
+    const key = admissionKey({ audience, kind: "USER", ids: [USER] });
+    assert.equal(key.audience, audience);
+    assert.equal(admissionKeyId(key).startsWith(`${audience}:USER:`), true);
+  }
+  for (const audience of ["", "A".repeat(97), ".prefix", ":prefix",
+    "-prefix", "a/b", "a b", "ü", "a\n", "a\u0000b"]) {
+    assert.throws(() => admissionKey({ audience, kind: "USER", ids: [USER] }),
+      /L1_INVALID_AUDIENCE/, audience);
+    assert.throws(() => admissionKeyId({ ...KEY, audience }),
+      /L1_INVALID_TYPED_KEY/, audience);
+  }
+});
+
 test("rank order precedes within-rank UUID sort", () => {
   const o = admissionKey({ audience: KEY.audience, kind: "ORGANIZATION", ids: [ORG] });
   const g = admissionKey({ audience: KEY.audience, kind: "GRANT",
@@ -52,6 +68,19 @@ test("unsigned legacy baseline never admits, including ACTIVE User", () => {
   assert.equal(result.rows[0].disposition, "HOLD");
   assert.equal(result.summary.held, 1);
   assert.equal(result.status, "ISOLATED_CANDIDATE_NOT_SQL_ADMITTED");
+});
+
+test("empty T0 input is only a zero-object offline candidate, not authority", () => {
+  const empty = buildSelectiveBaseline([], [], null, NOW);
+  assert.equal(empty.status, "ISOLATED_CANDIDATE_NOT_SQL_ADMITTED");
+  assert.deepEqual(empty.summary, { objects: 0, admitted: 0, held: 0 });
+  assert.deepEqual(empty.rows, []);
+  assert.throws(() => buildSelectiveBaseline(null, [], null, NOW),
+    /L1_MISSING_ATTESTED_INVENTORY/);
+  assert.throws(() => buildSelectiveBaseline([], null, null, NOW),
+    /L1_MISSING_ATTESTED_INVENTORY/);
+  assert.throws(() => buildSelectiveBaseline([], [fixtureCase()], TRUST, NOW),
+    /L1_CASE_OBJECT_ABSENT/);
 });
 
 test("two separately signed synthetic case identities admit only exact row", () => {

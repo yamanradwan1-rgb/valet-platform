@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { generateKeyPairSync, sign } from "node:crypto";
+import { readFileSync, readdirSync } from "node:fs";
 import test from "node:test";
 import {
   ADMISSION_RANK, admissionKey, admissionKeyId, compareAdmissionKeys,
@@ -22,12 +23,43 @@ const SQL_KINDS = [
   "INVITATION", "PASSWORD_RESET", "PUSH_REGISTRATION",
 ];
 
-test("W2 migration 113 uses exact 13 full object-kind labels, not aliases", () => {
+test("L1 declares the 13 source-derived W2 object-kind labels, not aliases", () => {
   assert.deepEqual(Object.keys(ADMISSION_RANK).sort(), [...SQL_KINDS].sort());
   assert.throws(() => admissionKey({
     audience: KEY.audience, kind: "U", ids: [USER],
   }), /L1_UNKNOWN_KIND/);
   assert.equal(KEY.kind, "USER");
+});
+
+test("local migration113 object kinds and audience match L1 when integrated", (t) => {
+  const directory = new URL("../../../../../packages/database/prisma/migrations/",
+    import.meta.url);
+  const filenames = readdirSync(directory).filter((name) =>
+    name.endsWith("issue416_vap1_private_foundation"));
+  if (!filenames.length) {
+    t.skip("migration113 absent from W5 base; rerun on integrated Prime");
+    return;
+  }
+  assert.equal(filenames.length, 1);
+  const sql = readFileSync(new URL(`${filenames[0]}/migration.sql`, directory),
+    "utf8");
+  const kinds = sql.match(/object_kind text NOT NULL CHECK \(object_kind IN \(([\s\S]*?)\)\)/);
+  assert.ok(kinds, "authority_admissions object_kind CHECK must exist");
+  const names = [...kinds[1].matchAll(/'([A-Z_]+)'/g)].map((match) => match[1]);
+  assert.deepEqual(names.sort(), Object.keys(ADMISSION_RANK).sort());
+  const audience = sql.match(/CREATE TABLE auth_proof_private\.proof_keys \([\s\S]*?audience ~ '([^']+)'/);
+  assert.ok(audience, "migration113 proof-key audience CHECK must exist");
+  const sqlAudience = new RegExp(audience[1]);
+  for (const value of ["a", "EU.prod:v1", "a".repeat(80),
+    "a".repeat(96), "a".repeat(97), "a/b", "", "é"]) {
+    const nodeAccepts = (() => {
+      try {
+        admissionKey({ audience: value, kind: "USER", ids: [USER] });
+        return true;
+      } catch { return false; }
+    })();
+    assert.equal(nodeAccepts, sqlAudience.test(value), value);
+  }
 });
 
 test("typed gate validation rejects unsupported audience and extra fields", () => {
@@ -107,6 +139,37 @@ test("case signatures have isolated protocol context and reject same-root roles"
     approve: { role: "SECURITY_APPROVER", enabled: true,
       publicKey: oneRoot.publicKey },
   }, NOW), /L1_INDEPENDENT_APPROVAL_REQUIRED/);
+});
+
+test("operator recovery signatures must use independent Ed25519 roots", () => {
+  const body = fixtureCase().body;
+  const message = canonicalCaseBytes(body);
+  for (const algorithm of ["ec", "rsa"]) {
+    const options = algorithm === "ec" ? { namedCurve: "prime256v1" }
+      : { modulusLength: 1536 }; // Base64 fits the preexisting 256-char bound.
+    const first = generateKeyPairSync(algorithm, options);
+    const second = generateKeyPairSync(algorithm, options);
+    const envelope = { body, signatures: [
+      { role: "CASE_VERIFIER", keyId: "one",
+        base64Signature: sign("sha256", message, first.privateKey).toString("base64") },
+      { role: "SECURITY_APPROVER", keyId: "two",
+        base64Signature: sign("sha256", message, second.privateKey).toString("base64") },
+    ] };
+    const trust = {
+      one: { role: "CASE_VERIFIER", enabled: true, publicKey: first.publicKey },
+      two: { role: "SECURITY_APPROVER", enabled: true,
+        publicKey: second.publicKey.export({ type: "spki", format: "pem" }) },
+    };
+    assert.throws(() => verifyRecoveryCase(envelope, trust, NOW),
+      /L1_INVALID_CASE_SIGNATURE/, algorithm);
+  }
+  const original = fixtureCase();
+  assert.equal(verifyRecoveryCase(original, TRUST, NOW).to, "ADMIT");
+  const pemTrust = Object.fromEntries(Object.entries(TRUST).map(
+    ([id, signer]) => [id, {
+      ...signer, publicKey: signer.publicKey.export({ type: "spki", format: "pem" }),
+    }]));
+  assert.equal(verifyRecoveryCase(original, pemTrust, NOW).approvedBy.length, 2);
 });
 
 test("partial monotone checkpoint cannot qualify even matching restored version", () => {

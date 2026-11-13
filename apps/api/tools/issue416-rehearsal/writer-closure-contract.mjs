@@ -22,6 +22,7 @@ export const WRITER_FAMILIES = Object.freeze([
 ].map((id) => Object.freeze({ id, contract: overrides[id] ?? SIGNED })));
 
 export const RESERVED_SECURITY_AUDIT_EVENTS = Object.freeze([
+  "STAFF_LOGIN_SESSION_CREATED",
   "MFA_TOTP_ACTIVATED",
   "MFA_RECOVERY_CODE_USED",
   "MFA_FACTOR_REENROLLMENT_STARTED",
