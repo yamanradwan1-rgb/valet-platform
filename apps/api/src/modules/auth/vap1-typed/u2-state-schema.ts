@@ -49,14 +49,19 @@ const authLimiterScopes = {
 
 /**
  * U2 §8.0a group fields 0005..0020 and all class-specific fixed-order records.
- * Empty enum registries intentionally HOLD unresolved legacy classifications.
+ * Group 0005 matches the 13 object kinds in private migration 113.
+ * Empty enum registries still HOLD unresolved legacy classifications.
  */
 export const U2_STATE_GROUPS: Readonly<Record<number, U2GroupSchema>> = {
   // audience, object_kind, key, disposition, version, epoch, digest, parent_key?
   5: {
     attributes: [
       text,
-      { type: "utf8", enumLabels: [] }, // U2 has not named the L1 object_kind enum labels.
+      { type: "utf8", enumLabels: [
+        "USER", "ORGANIZATION", "ENTITLEMENT", "MEMBERSHIP", "LOCATION", "GRANT",
+        "SESSION", "REFRESH", "FACTOR", "RECOVERY_SET", "INVITATION",
+        "PASSWORD_RESET", "PUSH_REGISTRATION",
+      ] },
       { type: "bytes", lengths: [17, 49] },
       { type: "utf8", enumLabels: ["ADMIT", "HOLD", "RETIRE"] },
       u64, u64, digest, nullableBytes,

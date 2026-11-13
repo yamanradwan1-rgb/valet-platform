@@ -38,27 +38,43 @@ export function encodeU2StateRow(
   }
   if (group === 5) {
     const key = fields[2];
-    if (key?.type !== "bytes" || (key.value[0] !== 1 && key.value[0] !== 2) ||
-      (key.value[0] === 1 && key.value.length !== 17) ||
-      (key.value[0] === 2 && key.value.length !== 49)) {
+    const kind = fields[1];
+    const parentKey = fields[7];
+    if (key?.type !== "bytes" || kind?.type !== "utf8" ||
+      (kind.value === "GRANT" ?
+        key.value[0] !== 2 || key.value.length !== 49 :
+        key.value[0] !== 1 || key.value.length !== 17)) {
       throw new Error("U2 admission key prefix/length mismatch");
+    }
+    if (parentKey?.type === "bytes" &&
+      !((parentKey.value[0] === 1 && parentKey.value.length === 17) ||
+        (parentKey.value[0] === 2 && parentKey.value.length === 49))) {
+      throw new Error("U2 admission parent key prefix/length mismatch");
     }
   }
   return encodeU2Record(fields);
 }
 
-function keyBytes(group: U2StateGroup, fields: readonly Vap1Field[]): Buffer {
+function keyComponents(group: U2StateGroup, fields: readonly Vap1Field[]): Buffer[] {
   const schema = U2_STATE_GROUPS[group];
   if (!schema) throw new Error("U2 unregistered group key");
-  const parts = schema.keyIndices.map((index) => {
+  return schema.keyIndices.map((index) => {
     const field = fields[index];
     if (!field || field.type === "null") throw new Error("U2 nullable sorting key");
-    const raw = encodeU2Record([{ ...field, id: 1 }]).subarray(11);
-    const length = Buffer.alloc(4);
-    length.writeUInt32BE(raw.length);
-    return Buffer.concat([length, raw]);
+    return encodeU2Record([{ ...field, id: 1 }]).subarray(11);
   });
-  return Buffer.concat(parts);
+}
+
+function compareKeys(left: readonly Buffer[], right: readonly Buffer[]): number {
+  if (left.length !== right.length) throw new Error("U2 incompatible state keys");
+  for (let index = 0; index < left.length; index += 1) {
+    const prior = left[index];
+    const current = right[index];
+    if (!prior || !current) throw new Error("U2 missing state sort key");
+    const comparison = Buffer.compare(prior, current);
+    if (comparison !== 0) return comparison;
+  }
+  return 0;
 }
 
 export function encodeU2StateGroup(
@@ -73,11 +89,11 @@ export function encodeU2StateGroup(
   header.writeUInt32BE(rows.length, 3);
   const parts: Buffer[] = [ARRAY_DOMAIN, header];
   let total = ARRAY_DOMAIN.length + header.length;
-  let previous: Buffer | undefined;
+  let previous: readonly Buffer[] | undefined;
   for (const fields of rows) {
     const row = encodeU2StateRow(group, fields);
-    const key = keyBytes(group, fields);
-    if (previous && Buffer.compare(previous, key) >= 0) {
+    const key = keyComponents(group, fields);
+    if (previous && compareKeys(previous, key) >= 0) {
       throw new Error("U2 state rows must be strictly key-sorted");
     }
     previous = key;
