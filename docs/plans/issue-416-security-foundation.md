@@ -2,6 +2,11 @@
 
 Status: Proposed authentication architecture. Audit event reservation authorized.
 
+The later Owner instruction conditionally selects Option A for design only.
+The current detailed proposal and remaining decision gates are in
+[Option A authentication provenance](issue-416-option-a-authentication-provenance.md).
+The comparison below is historical preparation, not a request to reopen A/B.
+
 The Owner brief of 2026-11-13 authorizes diagnostics and compatible fixes.
 Its Gate B requires independent review and explicit Owner approval before a
 material authentication architecture change. This document requests that
@@ -86,7 +91,7 @@ avoiding reusable access bearers in reset SQL. Its proof issuer still needs
 independently authenticated password/refresh/MFA provenance. This remains a
 proposal, with no approval or implementation-readiness claim.
 
-Option B is technically viable if its complete lineage and upstream authority
+Option B remains a candidate for detailed review if its complete lineage and upstream authority
 writers are protected. Replay/retirement state must be inaccessible to ordinary
 runtime writes so older evidence cannot restore consumed or revoked authority.
 It introduces more evidence persistence and key/legacy-session handling. Both
@@ -145,8 +150,8 @@ fresh migration history and upgrade behavior. These prove the reservation only.
 
 ## Owner decision required
 
-Approve Option A's authenticated narrow command boundary and its purpose-bound
-proof direction, or select Option B for full authenticated provenance design.
+Option A's direction has subsequently received conditional Owner design approval.
+Its proof custody and exact writer/lock contracts still require finalization.
 The selected design must explicitly cover upstream authority writers, proof-key
 custody, rotation, legacy sessions, lock compatibility and replay recovery.
 DEC-023/072/078 define existing behavior and DEC-080 requires current authority.

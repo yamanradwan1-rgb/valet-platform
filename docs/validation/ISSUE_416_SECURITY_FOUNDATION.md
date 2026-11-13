@@ -1,5 +1,28 @@
 # Issue #416 security foundation evidence
 
+## Later Option A design-only phase
+
+The Owner subsequently selected Option A's architectural direction and authorized
+design/evidence documentation only. Baseline and feature starting SHA were
+reverified as `bfb4fdccf9d557c371313c9e357faa52e0a71014` and
+`350d88b090c9dbe1f8d7fa29d6390e28afa9ae19`. Issue #416 remained open with zero
+comments. The starting worktree was clean. The earlier commit's Security CI was
+rechecked in this phase; its actual state is reported in the delivery response.
+
+New work consists of source/contract discovery, a proposed Option A protocol,
+writer and privilege inventory, rollout/concurrency analysis, future acceptance
+specification and three independent design reviews. No new database diagnostics,
+auth source change, privilege change or migration was executed in this phase.
+All executed test results below belong to the preceding implementation phase.
+They are not reruns of the proposed authentication architecture.
+
+Current design and unresolved key-custody/writer-lock contracts are recorded in
+[the Option A package](../plans/issue-416-option-a-authentication-provenance.md).
+Its acceptance tests remain NOT RUN. Independent review records have separate
+auth, SQL and operations perspectives and their own explicit evidence limits.
+
+The historical verdict and evidence below are retained as the prior handoff.
+
 Date: 2026-11-13, Asia/Amman.
 
 Verdict: BLOCKED — OWNER SECURITY DECISION REQUIRED.
