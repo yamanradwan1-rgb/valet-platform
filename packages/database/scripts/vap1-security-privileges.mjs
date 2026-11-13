@@ -63,9 +63,9 @@ async function revokeEveryColumnWrite(client, executeFormatted, role, table) {
 
 export async function assertLegacyRuntimeProvisioningAllowed(client) {
   const exists = await client.query(
-    "SELECT pg_catalog.to_regclass('auth_proof_private.security_boundary') AS relation",
+    "SELECT 1 FROM pg_catalog.pg_namespace WHERE nspname='auth_proof_private'",
   );
-  if (exists.rows[0]?.relation === null) return;
+  if (exists.rowCount === 0) return;
   // Hold the SAME boundary row lock until the provisioning transaction COMMIT.
   // Otherwise LEGACY_COMPAT preflight could race a C3 DRAINED transition,
   // regranting old auth SQL authority *after* the operator's REVOKEs.

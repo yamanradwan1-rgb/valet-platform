@@ -104,6 +104,21 @@ CREATE TABLE auth_proof_private.security_boundary (
 INSERT INTO auth_proof_private.security_boundary(singleton)
 VALUES (true);
 
+-- The existing trusted migration login must be able to READ/SHARE-lock the
+-- phase for the legacy provisioner C3 race fence. NO key/receipt/admission
+-- or writable-schema privileges are granted. Role inheritance stays FALSE.
+DO $vap1$
+BEGIN
+  EXECUTE pg_catalog.format(
+    'GRANT USAGE ON SCHEMA auth_proof_private TO %I', session_user
+  );
+  EXECUTE pg_catalog.format(
+    'GRANT SELECT ON TABLE auth_proof_private.security_boundary TO %I',
+    session_user
+  );
+END;
+$vap1$;
+
 -- Frozen U2 wire purpose values, never a case-transformed SQL suffix.
 -- All entries remain DISABLED until an audited narrow writer exists.
 CREATE TABLE auth_proof_private.proof_purposes (
