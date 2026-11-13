@@ -1,5 +1,79 @@
 # Issue #416 security foundation evidence
 
+## Final security-contract closure attempt — 2026-11-13 (documentation only)
+
+**Baseline pre-flight, independently checked:** after `git fetch origin`,
+`origin/main` is `bfb4fdccf9d557c371313c9e357faa52e0a71014` and local +
+remote `feat/issue-416-company-admin-password-reset` were both
+`eb2d0ba4aac496a238fff55bdfa9dbfdd66e1ed3` with a clean feature
+worktree. GitHub Issue #416 is OPEN with zero comments; its approved Section A
+behavior and existing Accepted DEC remain binding. The previously supplied
+Security CI run
+[`43475676843`](https://github.com/yamanradwan1-rgb/valet-platform/actions/runs/43475676843)
+was queried directly: `secrets-gitleaks`, `sast-semgrep`, `sast-codeql`,
+`dependencies-trivy`, `dependencies-osv` and `security-gate` were each
+`completed/success`. Those jobs are **historical**, not a run on this future
+documentation revision and not proof that proposed MAC functions work.
+
+**Source/authority facts:** `AGENTS.md`, `docs/00_SOURCE_OF_TRUTH.md`,
+`docs/06_SECURITY_AND_DATA_RULES.md`, `docs/07_DEFINITION_OF_DONE.md`,
+`docs/08_DECISIONS_LOG.md`, `docs/13_COLLABORATION_WORKFLOW.md` and
+`docs/17_AGENT_CODE_STRUCTURE_RULES.md` govern this documentation task.
+DEC-023 is recorded in the canonical decisions log; focused
+`DEC-024_SHARED_DURABLE_ANTI_ABUSE.md`,
+`DEC-025_PRODUCTION_DATABASE_CONNECTION_HARDENING.md`,
+`DEC-072_NATIVE_STAFF_AUTHENTICATION_ARCHITECTURE.md`,
+`DEC-075_STAFF_PUSH_OPERATIONAL_POLICY.md`,
+`DEC-076_STALE_STAFF_PUSH_REGISTRATION_LIFECYCLE.md`,
+`DEC-078_COMPANY_ADMIN_MFA.md`,
+`DEC-079_MANAGEMENT_AUDIT_SCOPES.md`,
+`DEC-080_COMPANY_ADMIN_AUTHORITY.md`, and
+`DEC-081_STAFF_ROLE_AND_ACCESS_LIFECYCLE.md` each exist and explicitly say
+`Status: Accepted`. No additional project DEC is being marked Accepted.
+
+**Cryptographic source feasibility:** official
+[PostgreSQL 17 pgcrypto documentation](https://www.postgresql.org/docs/17/pgcrypto.html)
+documents `hmac(bytea,bytea,text)` with `sha256` and its optional OpenSSL
+dependency. The repository's committed SQL migrations do **not** install
+`pgcrypto`; the actual production extension, encryption at rest, backups,
+secret injector, complete SQL runtime/public grants, verifiable compare
+primitive and named operators are **EXTERNAL — NOT VERIFIED**. This is an
+option feasibility fact, not a live SQL, secrecy, role or crypto test.
+
+**Scope invariant:** only the Issue #416 Option A design, typed writer/ACL,
+lock/cutover, final independent-review, Owner approval and this validation
+documentation may be updated. Actual Staff Login/Refresh/MFA, SQL grants,
+auth migrations, reset API/UI and production accounts stay untouched. The
+original Audit Reservation Migration **112** and its historical test results
+remain unchanged. New protocol, PostgreSQL 17 two-connection races, live
+secret/backup/logging and proof issuer tests are **NOT RUN**. The previous
+review history below must retain its original pinned SHA and conclusions.
+
+**New source-derived final-closure inventory (documentation proposal):**
+U1 HMAC-SHA-256 selected with private SQL verifier and **EXTERNAL — NOT
+VERIFIED** encrypted at-rest/backup/operator injection; S1 canonical
+18-field `VAP1` TLV with transaction backend/full XID and no raw bearer in
+SQL; U2 **35** inventoried A/M/P/R/X families, including independently
+identified hash-based Shift Force End **X01** and existing limiter-state
+discount authority; strict typed purpose, closed payload/state TLV numeric
+IDs, microsecond persisted CAS, seven-day NULL hours and matching
+admission `FOR SHARE`/operator `FOR UPDATE`; locks 01–17 with **21**
+deterministic future two-connection cases (fifteen core plus six
+ADMIT/HOLD), controlled older-backup restore and historic provisioner
+retirement. This is a **design specification, not executable SQL or tested
+behavior**. Current source `provision-runtime-role.mjs` retains weak
+direct grants; the new proposal must not be read as a change already made.
+
+**New independent review phase:** W6/W7/W8 source-only preflights identified
+U1↔S1 signed JSON/TLV contradiction, U2 array/time/locked-state ABI gaps,
+SQL L1 ADMIT/HOLD race, transitive old Shift definer, anti-abuse COUNTED→
+IGNORED write and logical backup/secret-content ambiguity. Proposed
+documentation corrections are recorded in the
+[new cycle of the independent-review ledger](../plans/issue-416-option-a-final-independent-review.md).
+Final independent review of the complete pinned revised aggregate is **PENDING**
+until its SHA and reviewer dispositions are recorded. No PostgreSQL 17
+concurrency or signer implementation tests were executed here.
+
 ## Option A Codex recovery and later design reconciliation (2026-11-13)
 
 The later design-only recovery has its own source-verified history and

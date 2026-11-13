@@ -853,7 +853,7 @@ recover the pending reservation without reissuing a token/link. Actual
 `transaction_timeout` where applicable and the smaller lease/operation budget
 must be read from the test connection; a proposed proof TTL cannot extend them.
 
-For all fifteen, after C/R/D/U/T verify no partial credential/factor/reset/push
+For all 21, after C/R/D/U/T verify no partial credential/factor/reset/push
 mutation without corresponding required audit, no raw secret stored in receipt,
 no stale challenge accepted from recycled PID/connection, and key/expiry checks
 after waits. Add two-user cross-action permutation tests, UUID input reversal,

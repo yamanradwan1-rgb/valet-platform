@@ -130,10 +130,14 @@ kind 0x01 = purpose-specific command payload
 kind 0x02 = HMAC proof binding; kind 0x03 = protected-state/version snapshot
 ```
 
-This S1 definition **supersedes** the earlier tentative fixed UTF-8 JSON-array
-sketch still quoted in the separate U1 key-custody document; its shared
-cryptographic custody/rotation gates remain binding proposals. That companion
-must be reconciled by its owner before an implementation baseline is frozen.
+This binary TLV definition is the **single canonical proof encoding** in both
+the S1 protocol and the reconciled
+[U1 key-custody contract](issue-416-option-a-key-custody.md).
+The older tentative fixed UTF-8 JSON-array signing sketch is retired; the
+U1 `VAYLET_AUTH_PROOF_KEYRING_JSON` variable is only a proposed **secret
+injection configuration format**, never proof serialization. Both API and SQL
+implementations must MAC the same canonical binary `proofBytes` and compare
+against S1 conformance vectors before any implementation acceptance.
 
 Wire types: `0x00=NULL` (length zero; allowed only in schema-declared nullable
 positions), `0x01=BOOL` (one byte `00`/`01`), `0x02=U32` (four big-endian bytes),
@@ -151,8 +155,12 @@ for key ID, audience, purpose and actor kind use restricted ASCII identifiers
 with explicit registry values (not user-supplied free text); email uses the
 existing DEC-023 stored normalization *without* a new Unicode mapping. U64
 encoding is integer/`bigint` and never a lossy JavaScript `Number` or rounded
-PostgreSQL float; DB timestamp is integer UTC **milliseconds**, using an exact
-integer conversion from `clock_timestamp()`; full transaction ID is the
+PostgreSQL float; **only proof issue/expiry clock fields** use DB timestamp
+integer UTC **milliseconds**, using an exact integer conversion from
+`clock_timestamp()`. Purpose-specific persisted `TIMESTAMPTZ` state/CAS
+fields MUST retain full source precision and use U2's integer UTC
+**microseconds** encoding; no implicit truncation of stored version
+timestamps is permitted. Full transaction ID is the
 decimal numeric value of PostgreSQL `pg_current_xact_id()` (`xid8`) encoded as
 U64, not a 32-bit `xid`, backend PID, or stringified driver object.
 
@@ -408,7 +416,8 @@ extension installation and independent timing/security acceptance remain OPEN.
 | Invitation activation (`staff-activation.service.ts:45-116`) | Actual raw invitation bearer received from the caller and hashed by app; SQL validates live invitation owner, expiry/consumption/generation after locks. Existing ACTIVE User also requires a genuine real Argon2id match against its current PHC. PENDING User instead must satisfy accepted new-password validation and app Argon2 creation; do not fabricate an existing password ceremony. No session silently issued. |
 | Future reset and operator | `vspr1.` raw one-use bearer is genuinely possessed by redeeming caller and **never sent raw to SQL**; SQL rechecks latest generation/eligible target and atomically consumes/revokes/audits. CA issue uses the exact current Staff bearer, current membership/Organization/sole-company eligibility and *five-minute* sensitive MFA. Controlled provisioner/disable/MFA-recovery are separate independently attested operator ceremonies, not an `operatorRef` string or assumed Staff session. S1 does not implement a reset or approve a new external API. |
 
-**Legacy trust admission is a signer precondition, not a signing exception.**
+**Legacy trust admission is a protected signer AND SQL condition, not a
+signing exception.**
 Under **proposed, not approved L1**, the drained T0 boundary permanently
 revokes every pre-boundary Staff session and refresh lineage; no legacy
 `vsa1.`/`vsr1.` possession, copied session hash, MFA timestamp or apparently
@@ -427,6 +436,35 @@ promote a user. Real password/OTP/recovery possession **cannot** repair an
 untrusted role, company boundary or entitlement. Until Owner decides L1 and
 the operator/import is independently attested, S1 does not authorize a
 historical-session trust shortcut or unconditional global reenrollment.
+
+**Admission revocation/HOLD fence (PROPOSED, mandatory for S1):** a protected
+`auth_proof_private.authority_admissions` registry keyed by
+`(audience, object_kind, object_id)` stores `ADMIT | HOLD | RETIRE`, an
+increment-only `admission_version`, independently attested source/operation
+reference and immutable audit link, with no writable runtime/PUBLIC access.
+This is a proposed future object, not existing DDL. During prepare **and
+execute**, SQL must take `FOR SHARE` on every admission row needed by the
+command's capability **at the same ordered parent-row lock rank**: User at 09,
+Organization/entitlement at 10, member/grants/Location at 11, session at 12
+for post-T0 issuance lineage, factor/current recovery generation at 13 and
+invitation/reset if selected at 14. Every purpose's private kind-03 locked
+state TLV binds the complete required admission object identities, versions
+and dispositions; no missing row means implicit ADMIT, no `HOLD` can sign or
+execute and an independent password/TOTP ceremony does not override HOLD.
+The protected operator mutation `ADMIT→HOLD/RETIRE`, or reviewed re-admission,
+takes the **same parent ranks** and `FOR UPDATE` on admission rows, verifies
+independent operator approval and exact prior version, appends immutable
+security audit and commits before returning success. If operator HOLD commits
+first, a late proof is denied even if the app earlier signed; if a properly
+locked authenticated writer commits first, the operator waits and then HOLD
+becomes effective. A newly implicated earlier-ranked dependency requires
+rollback/re-discovery, not late lock acquisition. Restoration from older
+backup must conservatively HOLD/revoke anything whose latest disposition or
+version cannot be reconciled against an independently monotone checkpoint.
+Acceptance: two-connection ADMIT→HOLD versus login, refresh, MFA, Management,
+operator recovery and reset (both orders, timeout/rollback/disconnect/unknown
+COMMIT); assert no new SS/assurance/member mutation once HOLD is committed.
+No admission race/security behavior is currently executed or verified.
 
 ### Receipts, SQL confidentiality and v9 supersession
 
@@ -541,7 +579,8 @@ remains generically invalid. Same-session pending MFA enrollment retains its acc
 
 The recovered [lock and outcome contract](issue-416-option-a-locks.md) specifies
 proposed ranks 01–17, source-entrypoint/nested-lock evidence, six retry outcomes
-and fifteen future two-connection PostgreSQL races. These are design rules for
+and **21 future two-connection PostgreSQL races** (the original fifteen plus
+six L1 admission/HOLD fence scenarios). These are design rules for
 replacement commands, not proof that current entrypoints are already safe or
 that deployment has no undocumented writers. All real PostgreSQL concurrency,
 timeout, rollback and unknown-COMMIT tests remain NOT RUN.

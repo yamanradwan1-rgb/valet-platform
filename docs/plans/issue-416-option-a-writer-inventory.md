@@ -216,7 +216,7 @@ Implementation must remain **BLOCKED** pending explicit U1/U2/legacy and superse
 
 ## 8. Strict U2 typed purpose contracts — final proposed authoring specification
 
-**PROPOSED, NOT IMPLEMENTED.** Each WRITE suffix X defined below maps to candidate PostgreSQL signatures public.vap1_prepare_X(p_operation_id uuid, p_request public.vap1_X_request_v1) RETURNS public.vap1_challenge_v1 and public.vap1_execute_X(p_proof_bytes bytea, p_mac bytea, p_payload public.vap1_X_payload_v1) RETURNS public.vap1_result_v1. Proof frame bytes and 32-byte MAC are **distinct** parameters under S1. Each request composite contains only purpose-specific discovery selectors; prepare derives subject, actor and scope from persisted rows. Each payload is a distinct CREATE TYPE composite with exactly its row's fields plus mandatory schema_version SMALLINT = 1 and operation_id UUID. No generic JSON authority object, generic UPDATE opcode or externally selectable signer. The exact CREATE TYPE definitions, private command result enum and installed SQL signature list are still **UNIMPLEMENTED engineering gates**, not existing code.
+**PROPOSED, NOT IMPLEMENTED.** Each WRITE suffix X defined below (including independently discovered transitive **X01** in §8.3a) maps to candidate PostgreSQL signatures public.vap1_prepare_X(p_operation_id uuid, p_request public.vap1_X_request_v1) RETURNS public.vap1_challenge_v1 and public.vap1_execute_X(p_proof_bytes bytea, p_mac bytea, p_payload public.vap1_X_payload_v1) RETURNS public.vap1_result_v1. Proof frame bytes and 32-byte MAC are **distinct** parameters under S1. Each request composite contains only purpose-specific discovery selectors; prepare derives subject, actor and scope from persisted rows. Each payload is a distinct CREATE TYPE composite with exactly its row's fields plus mandatory schema_version SMALLINT = 1 and operation_id UUID. No generic JSON authority object, generic UPDATE opcode or externally selectable signer. The exact CREATE TYPE definitions, private command result enum and installed SQL signature list are still **UNIMPLEMENTED engineering gates**, not existing code.
 
 Field notation: u = UUID; i = INTEGER (nonnegative checked); n = BIGINT; b = BOOLEAN; t = bounded/allowlisted TEXT; ts = TIMESTAMPTZ; h = TEXT with full source-versioned purpose-specific SHA-256 verifier prefix and 64 lowercase hex characters; d = BYTEA exactly 32 bytes of a canonical nonsecret digest; ids = sorted/distinct UUID[]; role = public.membership_role; status = public.membership_status. A question mark after a field makes that single field SQL NULL-able; all others are required, never implicit. Typed arrays must have a declared composite row shape, bounded length and deterministic ordering. Unknown fields, empty hashes, wrong digest prefix, duplicates, wrong scope, wrong version and invalid enums deny admission. Raw passwords, bearer tokens, TOTP and recovery codes are never SQL parameters.
 
@@ -227,6 +227,251 @@ SQL prepare holds the exact ranked locks and active key SHARE, but **prepare out
 All protected WRITE purposes include rank 01 operation advisory, rank 15 key SHARE, rank 16 one-use challenge/receipt and rank 17 atomic domain/audit effects, plus each row's domain ranks. Common outcomes: a first execution commits a secret-free immutable operation receipt, protected mutation and required audit atomically; identical operation/fingerprint requires **fresh genuine ceremony and current authorization** and returns safe nonsecret completion; changed fingerprint/purpose/target conflicts with no write; a different operation rechecks current version. Lost COMMIT acknowledgment is UNKNOWN until new-lease receipt+state reconciliation. Never reissue raw login/refresh/invitation/reset credentials, recovery codes or a MAC from a receipt. Explicit exceptions: consumed refresh replay commits family revocation then returns authentication failure; exact-session pending MFA may resume pending seed; onboarding/reset issue identical replay is linkless; consumed reset/recovery bearer is invalid.
 
 Internal error classification proposed (existing public mappings unchanged): AUTH_DENIED for current invalid credentials/actor/tenant/entitlement, STEP_UP_REQUIRED for existing assurance policy, STATE_CONFLICT for still-authorized stale versions or changed operation payload, PROOF_DENIED for wrong MAC/key/challenge/session/full-XID/clock, TRANSIENT after full rollback for 40P01/40001/55P03/57014, UNKNOWN_COMMIT for connection-class or 57P01 loss during COMMIT, and INTEGRITY_OR_CONFIG for unexpected 23505/23503/23514/42501. A named receipt uniqueness conflict may be reconciled only after fresh authorization; 25P02 requires rollback. No blanket POST retries. Onboarding quota reservation occurs before domain locking on a completed separate lease; finalize only after the outcome is confirmed/reconciled, as in §3.
+
+### 8.0a Deterministic numeric field IDs and compound wire encoding (U2/S1 binding)
+
+**Mandatory proposed byte ABI, not executable proof:** S1 defines the only
+outer TLV codec (`VAYLET/VAP1`, frame kinds 01 payload / 02 proof / 03 locked
+state, sorted `field_id:u16be,type:u8,length:u32be,value`). For **every
+purpose-specific payload table row in §8.1–§8.5**, define the frozen v1 field
+ID registry mechanically: `0001=schema_version` as wire U32 exactly `1`,
+`0002=operation_id` as wire UUID, `0003=purpose` as strict allowlisted ASCII
+UTF8, then `0004..(0003+N)` for the row's comma-separated **additional
+fields in their written left-to-right order**. M08/M09 variants use their
+**own** §8.3 variant row as that field registry, rather than the wider
+nullable discriminator union. The variant table's implied
+`actor_membership_id`, `organization_id` and `audit_event_id` are **not
+inferred or omitted**: these are respectively actor/tenant locked-state/proof
+facts plus an ID generated by the SQL protected mutation, not caller-selectable
+payload fields. SQL binds them deterministically to the approved operation and
+private audit receipt before commit, and refuses mismatched supplied values.
+Every non-variant row's declared `audit_event_id` is an explicit payload UUID
+and must match the immutable receipt and inserted derived-actor audit; its
+presence does not let the SQL caller specify attribution. These IDs are part
+of this proposal, not an
+implementation-generated field order; once approved, any insertion/reordering
+requires a **new schema version**, never silent renumbering. SQL composites
+include only the declared typed fields; the codec injects the purpose field
+from the selected exact prepare/execute signature, never client text. Closed
+server-side validation must reject missing, extra, repeated, unsorted,
+wrong-type or wrong-null fields; permitted NULL retains its field ID and the
+wire NULL type with a zero length, while empty string/array/zero are distinct.
+
+Wire conversion is fixed: `u→UUID(16 bytes)`, `i→U32`, `n→U64` (nonnegative
+and exact, using JS `bigint`), `b→BOOL`, `t/h→UTF8` with source-defined
+character restrictions/bounds, `d→SHA256(32 bytes)`, `role/status/registered
+key enums→UTF8` of the **exact stored, allowlisted enum label** (no case
+folding or locale transform). `ts` is a **U64 number of integral microseconds
+since 1970-01-01T00:00:00Z**, 0 through `2^64−1`: PostgreSQL timestamps
+have microsecond precision and cannot be silently rounded to milliseconds
+for compare-and-swap. This differs intentionally from S1's outer
+`issuedAtMs`/`expiresAtMs`, which are DB-authoritative **milliseconds**.
+`time without time zone` is U64 **microseconds since midnight** in
+`[0,86400000000)`, no timezone or UTC conversion; no fractional rounding.
+PostgreSQL `TIMESTAMPTZ '-infinity'`, `'+infinity'`, non-finite/non-range
+values and pre-1970 instants cannot be encoded in this v1 nonnegative U64
+schema: such a legacy row is **HOLD** pending approved repair, never coerced
+to 0 or silently signed. Convert directly from PostgreSQL integer microsecond
+arithmetic with checked range and exact UTC offset, **never** round-trip a
+version/CAS value through JavaScript `Date.getTime()` (millisecond precision).
+`verified_password_digest` and nullable state selectors are canonical raw
+SHA256 bytes only when the source's digest is **defined** as a fixed byte
+commitment; no arbitrary user-selected hash-to-proof conversion is allowed.
+
+Every compound array field uses S1 wire type `BYTES` with a separate,
+length-delimited canonical value (never JSON, SQL array text or `jsonb`):
+
+```text
+arrayBytes = ASCII("VAYLET/VAP1/ARRAY") || 0x00 || 0x0001:u16be
+             || element_kind:u8 || count:u32be
+             || repeated (element_wire_type:u8 || element_length:u32be || elementBytes)
+element_kind: 01 UUID, 02 BOOL, 03 REGISTERED_ENUM_ASCII,
+              04 NULLABLE_LOCAL_TIME_MICROS_U64, 05 RECOVERY_ENTRY_V1,
+              06 LIMITER_RESERVATION_V1
+recoveryEntryBytes = 0x0004:u16be ||
+  (0001,UUID,len16,id) || (0002,U32,len4,slot) ||
+  (0003,UTF8,len11,selector) || (0004,UTF8,len48,mrv1_verifier)
+limiterReservationBytes = 0x0003:u16be ||
+  (0001,UTF8,len=canonicalScopeBytes,registeredScope) ||
+  (0002,UUID,len16,reservationId) ||
+  (0003,SHA256,len32,derivedKeyDigest)
+```
+
+For array kinds 01/02/03/05/06, each element's wire type is S1
+UUID/BOOL/UTF8/BYTES/BYTES respectively, with a fixed or purpose-bounded
+length; NULL is illegal. Kind06 is not a generic reservation bag: the
+array has an exact purpose-specific length, order and allowed scope labels;
+each key digest is the canonical 32-byte decoded digest of the previously
+registered durable limiter key, **not** a raw IP or reset credential and not
+a user-chosen selector. SQL checks each reservation's stored
+`scope/key_hash/operationId/state` on a separate completed pre-domain lease
+and rejects mismatched or already-discounted records. The reservation ID
+never proves staff identity, signer authority or possession of a token.
+For kind 04, each element is either `wire_type=0x00` NULL with exactly zero
+bytes or `wire_type=0x03` U64 with exactly eight big-endian local-time
+microseconds. Midnight=0 is NOT NULL. The outer TLV field remains type
+BYTES and its length equals the complete canonical array frame; no element
+without its wire type, trailing bytes or ambiguous NULL/zero is accepted.
+UUID arrays require **strictly ascending UUID network-order bytes**, distinct
+members, no NULL; Location set semantics must never depend on input order.
+`vap1_recovery_entry_v1[]` contains **exactly ten** records, slots 1–10 in
+ascending order, with independently validated selector/verifier formats and
+unique record IDs. Operating-hours `days:operating_weekday[]`,
+`enabled:boolean[]` (legacy source's `isClosed`: **TRUE means CLOSED**),
+`start_time:time[]`, `end_time:time[]` are four separate canonical arrays,
+each of exactly **seven** elements. Days are MON through SUN in the current
+approved enum order, each once. For CLOSED days both times are element NULL;
+for OPEN days both times are U64 microseconds with start strictly less than
+end. This matches `management_settings_validate_hours` in migration
+`20260916003800_mgt_be_05_company_settings_branding` and `hoursArrays` in
+`management-settings-mutation-repository.ts`; do not swap isClosed semantics.
+Unsupported enum, out-of-order,
+duplicate, short/mismatched arrays and microsecond overflow reject the
+*entire* typed command before signing. Composite arrays of any other kind
+require a new explicitly reviewed element kind/schema; generic nested JSON
+or arbitrary BYTES blobs are not accepted as authority payloads.
+
+The protected **kind-03 state TLV** has a **fixed numeric v1 registry** across
+every purpose. No implementer may invent or dynamically assign state field
+IDs based on database return order:
+
+| Decimal field ID | Name / wire type | Precise semantics |
+| --- | --- | --- |
+| 0001 | `state_schema_version` U32 | Exactly 1 |
+| 0002 | `operation_id` UUID | Same private operation as payload/proof |
+| 0003 | `purpose` UTF8 | Exact approved purpose/variant, not caller text |
+| 0004 | `key_promotion_epoch` U64 | Committed selected ACTIVE key epoch under rank15 SHARE |
+| 0005 | `admissions` BYTES | Complete typed per-object ADMIT/HOLD/RETIRE and versions for current capability |
+| 0006 | `users` BYTES | Exact identity/status/current password-verifier evidence |
+| 0007 | `organizations` BYTES | Exact affected Organization identity/status |
+| 0008 | `entitlements` BYTES | Exact relevant typed commercial eligibility |
+| 0009 | `memberships` BYTES | Actor, target and all-status membership completeness/roles |
+| 0010 | `locations` BYTES | Owned Location status, intake and required config CAS |
+| 0011 | `grants` BYTES | Complete applicable Location grant set and versions |
+| 0012 | `sessions` BYTES | Current exact Staff session, expiry/revocation and assurance |
+| 0013 | `refresh_lineage` BYTES | Exact generation, consumed/revoked/linked successor state |
+| 0014 | `mfa_factors` BYTES | F owner/state/step/generation/seed commitment |
+| 0015 | `recovery_codes` BYTES | Full required C selector/verifier/consumption/generation set |
+| 0016 | `invites_and_reset` BYTES | Exact credential generation/owner/expiry/consumption |
+| 0017 | `push_registrations` BYTES | Exact session/owner/terminal state and token binding |
+| 0018 | `shift_closures` BYTES | X01 Shift/closure current state, and no-Task-lock blocker predicate |
+| 0019 | `limiter_reservations` BYTES | Exact pre-domain purpose-scoped quota reservation state |
+| 0020 | `operator_approval` BYTES | Independently authenticated operator/approval/case reference or empty |
+
+**Every field 0001–0020 is emitted**, with no NULL in the outer field; unused
+groups encode an **empty, tagged, zero-count array** of their one registered
+row kind, never missing/null or an arbitrary blob. Each group uses the exact
+`VAYLET/VAP1/ARRAY` frame defined above, with a group-specific element kind
+`0x10..0x1f` corresponding in numeric order to state fields 0005..0020,
+and a fixed `element_wire_type=BYTES`. All row records are strictly sorted by
+their class-declared non-null key components, with Organization first **only
+where the row actually has one**, then parent/object UUID and generation/slot;
+fields not applicable to an object class must carry the declared `NULL` wire
+type. A row's inner encoding is a fixed-order TLV **record** with schema U16=1
+and the following class-specific source attributes, in written order assigned
+numeric record IDs 0001..N. The row record format is `schema:u16be ||
+field_count:u16be || repeated(field_id:u16be, wire_type:u8,
+length:u32be,value)`. No JSON, arbitrary hash map or row-to-text coercion:
+
+| Group (record kind) | Exact ordered v1 row attributes and wire types; `?` means explicit NULL permitted |
+| --- | --- |
+| 0005 admission | `audience UTF8; object_kind UTF8 allowlist; object_id UUID; disposition UTF8 ADMIT/HOLD/RETIRE; admission_version U64; boundary_epoch U64; accepted_material_digest SHA256; parent_object_id UUID?` |
+| 0006 User | `user_id UUID; normalized_email UTF8; user_status UTF8 enum; current_password_phc_digest SHA256?; password_state_version_digest SHA256` |
+| 0007 Organization | `organization_id UUID; status UTF8 enum; authority_version_digest SHA256` |
+| 0008 entitlement | `organization_id UUID; dashboard_access BOOL; commercial_state_digest SHA256` |
+| 0009 membership | `organization_id UUID; membership_id UUID; user_id UUID; role UTF8 enum; status UTF8 enum; stored_version U64?; role_state_digest SHA256` |
+| 0010 Location | `organization_id UUID; location_id UUID; status UTF8 enum; accepting_intake BOOL; updated_at_micros U64?; configuration_state_digest SHA256` |
+| 0011 grant | `organization_id UUID; membership_id UUID; location_id UUID; grant_state_digest SHA256` |
+| 0012 session | `user_id UUID; session_id UUID; access_hash_digest SHA256; access_expiry_micros U64; absolute_expiry_micros U64; revoked_at_micros U64?; mfa_factor_id UUID?; mfa_at_micros U64?; admin_activity_at_micros U64?` |
+| 0013 refresh | `session_id UUID; credential_id UUID; generation U64; current_verifier_digest SHA256; consumed_at_micros U64?; successor_id UUID?; revoked_at_micros U64?` |
+| 0014 factor | `user_id UUID; factor_id UUID; state UTF8 enum; initiating_session_id UUID?; seed_material_digest SHA256; accepted_step U64?; recovery_generation U64` |
+| 0015 code | `factor_id UUID; code_id UUID; recovery_generation U64; slot U32; selector_digest SHA256; verifier_digest SHA256; consumed_at_micros U64?` |
+| 0016 invite/reset | `owner_user_id UUID; credential_id UUID; credential_kind UTF8 enum; generation U64; verifier_digest SHA256; expires_at_micros U64; consumed_at_micros U64?; issuer_user_id UUID?` |
+| 0017 push | `user_id UUID; session_id UUID; registration_id UUID; state UTF8 enum; token_digest SHA256?; terminal_at_micros U64?` |
+| 0018 shift | `organization_id UUID; shift_id UUID; location_id UUID; membership_id UUID; status UTF8 enum; started_at_micros U64; ended_at_micros U64?; closure_operation_id UUID?; open_task_blocker BOOL` |
+| 0019 limiter | `reservation_id UUID; registered_scope UTF8; derived_key_digest SHA256; reservation_state UTF8 PENDING/COUNTED/IGNORED; bound_operation_id UUID` |
+| 0020 operator | `operator_case_id UUID; approval_digest SHA256; controlled_operation_id UUID; prior_admission_version U64?` |
+
+This is a **logical source-attribute ABI**, not a claim that all named logical
+version/digest fields already exist as columns. Every `*_state_digest`
+is SHA256 over separately encoded `rowPrefixBytes`: the same fixed **record
+class/schema header** with only the preceding fixed typed attributes of
+that row, excluding the digest itself. There is no recursive digest,
+unstated column, unordered JSON, caller-supplied version hash or mutable
+timestamp alone. The current password PHC digest hashes the exact stored
+PHC UTF8 bytes, with explicit NULL for absent PHC, never a client-provided
+digest. Where current source has no stable numeric row version, the migrated
+writer must compute a deterministic SQL-only commitment of the exact accepted
+values and SQL must compare the same bytes after waiting; it must **not invent
+a fictitious `security_version` column**. If one of these class profiles cannot
+be constructed without resolving its actual source type or an external
+commercial writer, that command **fails the implementation gate**, rather
+than accepting a lossy/stale/partial digest. The record/field registry is
+closed here; Node/PG17 codec outputs and per-purpose proof vectors remain
+**NOT RUN**.
+
+The required row **presence** for each signed purpose is source-derived and
+fixed: A01 U+limiter; A02 U+SS+refresh; A03 U+SS+refresh+P terminal targets;
+A04 U+SS+F; A05 U+SS+F+C; A06 U+SS+F; A07 U+SS+F+C; A08 U+SS+F+C;
+A09 U+O+E+M+SS+F; M01–M03 U+O+E+M+G+L+SS+F; M04–M05 U+O+E+M+G+L+SS+F+
+invitation+limiter; M06 U+O+M+invitation; M08/M09/M10 U+O+E+M+L+G+SS+F;
+M11/M12 U+SS+P; R02 U+O+E+M+SS+F+reset+four limiter rows; R03
+U+O+E+M+SS+refresh+reset+P+the applicable redeem limiter rows; X01
+U+O+E+M+G+L+SS+F+Shift. A10/A11/M07/R01 are non-writing reads and never
+admit a proof. M13/P03/P04/P05 are bounded maintenance or nonproduction
+paths with no Staff signer; M14/M15/P01/P02 require independent controlled
+operator evidence in group 0020, with the exact affected entity groups above.
+For **all** signed purposes, group 0005 additionally contains every relevant
+current L1 admission row and exact material version; a relevant `HOLD` or
+missing gate rejects before and after signing. Groups also include related
+inactive/held rows when needed for **negative** cardinality or sole-company
+assertions, but only admitted **positive authority** can issue a proof.
+
+SQL prepare constructs these records solely from complete locked rows and
+records exact group bytes in its private one-transaction challenge. SQL execute
+reconstructs them after waits and compares bytes and admission versions
+before any protected write. A late discovered earlier-rank row forces a
+full rollback/re-discovery. The application must independently match raw
+submitted credential/MFA evidence against the corresponding bounded
+nonsecret version commitments; this state ABI is **not** an authentication
+ceremony and must never become a signer oracle. Full XID, object/generation,
+array empty/null distinctions, SHA256/HMAC, 1µs CAS and HOLD races need
+independent Node/PG17 conformance and negative tests before code is trusted.
+
+**Admission as source-of-trust row (mandatory and future-state):** every
+successful staff/authority/MFA/reset purpose additionally references the
+private L1 admission registry `(audience,object_kind,object_id,disposition,
+admission_version)` for the exact identity/capability dependency chain.
+`ADMIT` must be current on the corresponding User (rank09), O/E (rank10),
+member/Location-grants (rank11), post-T0 session authority (rank12), factor/
+recovery generation (rank13) and, where applicable, controlled invitation/
+reset (rank14). This proposed row is locked `FOR SHARE` **inside the same
+ordered rank as its parent**, in both purpose-specific prepare and execute;
+its disposition/version and object key are appended to the per-purpose kind-03
+state TLV and revalidated after waits. For first-time post-T0 sessions or
+invites not yet persisted, require previously admitted parent identity and
+protected creation; the new object receives a fresh committed provenance/
+admission record atomically with its mutation rather than being grandfathered.
+No registry row means **HOLD**, not admit. Trusted operator ADMIT/HOLD/RETIRE
+must use owner-only typed, audited SQL, acquire the same sorted parent/admission
+rows with `FOR UPDATE`, compare the old admission version and commit an
+incremented version; it never accepts an operatorRef string or SQL actor UUID
+as authority. This guarantees: writer-before-HOLD commits wholly before
+HOLD; HOLD-before-writer makes even a signed proof fail closed. Add race tests
+for login/refresh/MFA/Management/shift/reset and controlled re-admission vs
+HOLD, both lock orders and ambiguous COMMIT. An independent old-backup
+checkpoint failure conservatively HOLDs affected capabilities. Registry,
+DDL, operator ceremony and actual tests remain **NOT IMPLEMENTED/NOT RUN**.
+
+**Cross-implementation acceptance (NOT RUN):** independently encode each
+purpose and variant in Node and PostgreSQL 17; assert *identical bytes*,
+SHA256 digest and HMAC over S1 proof bytes, including full 18-field vector.
+Exercise 0/1/many array elements where allowed, ten-code slot order, null vs
+empty, mismatched lengths, duplicate/reordered UUIDs and weekdays, enum
+spellings, 1-microsecond timestamp differences, zero/local-midnight time,
+invalid UTF8, U64 precision and full-XID high bits. Do not promote this
+documentary ABI to **runtime PASS** before both implementations, verified
+`pgcrypto`, effective ACLs, timing/error review and these vectors pass.
 
 ### 8.1 Closed AUTH schemas A01–A11
 
@@ -297,7 +542,34 @@ M08 and M09 are **closed tagged unions of independent SQL commands**, not a sing
 | M09-location-SLA management_settings_set_location_sla_target(uuid,uuid,uuid,integer,timestamptz) | location_id:u,target_seconds:i,expected_updated_at:ts | Set L SLA target + audit, preserve source range. |
 | M09-clear-location-SLA management_settings_clear_location_sla_target(uuid,uuid,uuid,timestamptz) | location_id:u,expected_updated_at:ts | Clear L SLA target + audit. |
 
-Actual grants for the twelve M09 signatures are in packages/database/scripts/management-settings-runtime-privileges.mjs:1–13, and for M08 in location-lifecycle-runtime-privileges.mjs:1–9. SQL source is migrations 20260916003800_mgt_be_05_company_settings_branding, 20260917004300_mgt_be_10_kpi_analytics, 20260917004000_mgt_be_07_location_management and 20261026010300_issue346_resume_location_intake. **Remaining exact type gate:** new PostgreSQL enums vap1_company_scalar_key_v1, vap1_location_scalar_key_v1 and vap1_branding_key_v1 must be populated from source's complete existing accepted property catalog; source does not yet define these new enum types. Existing text property handling is not a grant to set unlisted scalar keys. For M10, old runtime EXECUTE includes the twelve-argument function shift_presence_set_policy(uuid,uuid,uuid,text,uuid,uuid,text,text,boolean,integer,integer,uuid) in shift-presence-runtime-privileges.mjs:86; the new closed function must preserve typed location/field/expected revision and original permitted policy field catalog, with no raw access-token hash used as proof.
+Actual grants for the twelve M09 signatures are in packages/database/scripts/management-settings-runtime-privileges.mjs:1–13, and for M08 in location-lifecycle-runtime-privileges.mjs:1–9. SQL source is migrations 20260916003800_mgt_be_05_company_settings_branding, 20260917004300_mgt_be_10_kpi_analytics, 20260917004000_mgt_be_07_location_management and 20261026010300_issue346_resume_location_intake. The **source-closed v1 key enums** for the future typed composites are:
+
+- `vap1_company_scalar_key_v1`: `checkInPhotosRequired`, `handoffStandardMethodPolicy`, `trackingEnabled`, `rawGpsRetentionDays`, `valetServiceFee`, `paymentServicePayer`, `paymentMethodsPolicy`, `tipsEnabled`, `validationEnabled`, `releaseRequiresPayment`, `languageDefault`, `ocrAssistEnabled`, `parkingSpotRequired`, `employeeRetrievalRequestedNotificationEnabled`, `guestVehicleReadyNotificationEnabled`. `operatingHours` is **excluded** from scalar keys and uses the seven-day array variant exclusively.
+- `vap1_location_scalar_key_v1`: the same 15 accepted scalar keys, with the existing nullable Location-override/clear semantics, plus `slaTargetSeconds` **only** via the distinct Location SLA setter/clearer; the general scalar variant must refuse it.
+- `vap1_branding_key_v1`: exactly `brandDisplayName` and `brandPrimaryColor`; display name uses the current trimmed 1–120 Unicode-code-point and no-control-character restriction, primary color matches `#[0-9A-F]{6}`. Preserve exact supplied accepted value as source-transformed, with no additional case folding.
+
+The key lists and validation bounds are verified from `packages/contracts/src/management-settings.ts:13–16,70–139` and `management-branding.ts:5–33`; value handling remains a **closed tagged union per key** (boolean vs allowed policy enum vs integer 1..2,147,483,647, typed payment money/payer/methods, EN/AR vs location SLA 30..3600). `value:t` in the abbreviated table denotes the matching typed schema's **canonical** value, not arbitrary text. New SQL enums/composite declarations do not yet exist and must be created in an authorized later migration; the accepted source catalog is now explicit. For M10, old runtime EXECUTE includes the twelve-argument function shift_presence_set_policy(uuid,uuid,uuid,text,uuid,uuid,text,text,boolean,integer,integer,uuid) in shift-presence-runtime-privileges.mjs:86; the new closed function must preserve typed location/field/expected revision and original permitted policy field catalog, with no raw access-token hash used as proof.
+
+### 8.3a X01 additional transitive protected management writer — Staff Shift Force End
+
+**New source-backed finding:** the original A01–A11/M01–M15/P01–P05/R01–R03
+inventory contains 34 families/rows, but **does not separately cover** the
+privileged mutator `public.staff_shift_force_end` as a typed proof command.
+This discovery expands the manifest to **35 entries** including X01; it does
+not alter the accepted Staff Shift domain behavior or launch a new feature.
+
+| ID / candidate suffix | Exact source/old SQL and strictly typed payload | Genuine admission, state fence, mutation, receipt, old grant and acceptance |
+| --- | --- | --- |
+| **X01 staff_shift_force_end** | `apps/api/src/modules/management/staff-shift-force-end.service.ts:21–47` calls `authorizeStaffManagement(..., assurance:'SENSITIVE')`, then `staff-shift-force-end-repository.ts:19–58` invokes `staff_shift_force_end(uuid,uuid,text,uuid,uuid,uuid,text,text,text)` with `context.accessTokenHash` as third parameter. Committed migration `20261002005400_mgt_240f_force_end_shift/migration.sql:88–197` defines old `SECURITY DEFINER` and SQL-managed Shift/audit writes. Proposed `public.vap1_prepare_staff_shift_force_end(uuid,public.vap1_staff_shift_force_end_request_v1)` / `public.vap1_execute_staff_shift_force_end(bytea,bytea,public.vap1_staff_shift_force_end_payload_v1)` with canonical payload **`organization_id:u, actor_membership_id:u, shift_id:u, expected_shift_status:t, expected_shift_updated_at:ts?, shift_location_id:u, shift_assignee_membership_id:u, confirmation:t, reason:t, request_fingerprint:d, audit_event_id:u`**, plus mandatory schema_version and operation_id. Exact confirmation is `FORCE_END_SHIFT`; reason follows existing trim and 1–500 UTF-16 code-unit policy and domain fingerprint derives from canonical `organization/shift/confirmation/reason`, not arbitrary SQL text. | Require **actual current raw `vsa1.` Authorization bearer** resolved in trusted API route, ACTIVE exact session/User, approved CA or LM membership, current sensitive MFA at most 5 min, Organization ACTIVE, dashboard entitlement and LM's full current target Location scope, including relevant L1 ADMIT rows/versions. Lock ordered actor User/session/MFA, O/E/M/Location/grants, then selected Shift X and its closure under the reviewed rank-14 Shift subresource; do **not** lock Task rows: source deliberately checks active assigned/accepted/in-progress Tasks without taking their locks. Revalidate target Shift ID/org/location/member and ACTIVE status + absence of open assigned Tasks *under the reviewed Shift/task concurrency contract*. Atomically set Shift ENDED, insert immutable `shift_force_end_closures` and derived actor `SHIFT_FORCE_ENDED` audit; identical authorized fingerprint returns only safe prior closure, conflicting operation errors, unknown COMMIT uses fresh authenticated receipt+Shift/audit readback. Old runtime/PUBLIC/inherited EXECUTE on `staff_shift_force_end(uuid,uuid,text,uuid,uuid,uuid,text,text,text)` and any overload **must be revoked before C6**, including nested `provisionShiftForceEndPrivileges→provisionStaffOnboardingPrivileges→provisionStaffManagementPrivileges`; a SQL-readable `StaffAuthSession.current_access_token_hash` is not bearer possession. Test SQL-only `(userId,sessionId,storedAccessHash)` denied and genuine CA/LM positive, MFA expiry/revocation, cross-tenant/location, task handoff, same operation/conflict, audit rollback, shift-vs-role/HOLD and Shift/Task races, old provisioner twice and stale old binary denial. **No production SQL, code or test exists for this candidate.** |
+
+X01 has the same S1 `vap1` proof/challenge/receipt and U2 §8.0a wire
+contract as every protected staff-authenticated writer. **Source-specific
+exception:** the current Shift implementation takes Shift X and checks open
+Task without Task locks to avoid the Task-X→Shift-S ordering inversion. The
+proposed X01 must retain that approved no-Task-lock rule or stop and require
+separate concurrency review; it may not introduce a new Shift/Task deadlock
+under an apparently generic VAP1 lock template. If this path cannot migrate,
+the release gate is **BLOCKED**, not silently removed from normal Shift API.
 
 ### 8.4 P01–P05 explicit operational, fixture and external writer statuses
 
@@ -314,10 +586,48 @@ Actual grants for the twelve M09 signatures are in packages/database/scripts/man
 | ID / proposed purpose | Closed typed fields and actual source status | Genuine ceremony, locked eligibility, DML, retry and verification |
 | --- | --- | --- |
 | R01 reset_status | **READ ONLY, no signer/receipt.** Proposed status request (issuer_user_id:u,organization_id:u,target_membership_id:u); response only safe current available/eligible state and version as permitted by Issue, never token/hash. **No current reset endpoint/SQL.** | Current CA active User/ORG_ADMIN M, O ACTIVE, E dashboard entitlement, target ACTIVE U and exactly **one** M globally counting all statuses (not one Location); R01-T1 cross-tenant concealment, pending target, two-company target, revoked issuer, stale F. |
-| R02 reset_issue | Candidate vap1 payload (issuer_user_id:u,issuer_session_id:u,issuer_membership_id:u,organization_id:u,target_user_id:u,target_membership_id:u,expected_target_membership_count:i,expected_generation:i,new_reset_id:u,new_reset_hash:h,expires_in_seconds:i,abuse_reservation_id:u,audit_id:u). Hash prefix/SQL type must be defined before implementation. | Real current vsa1 + CA 5m fresh MFA and E dashboard, target one-company ACTIVE User, 02 email/03 issuer+target+all candidate users/04 factor/07 org/09–14 target M/SS/F/reset. DB fixes expiry to **15 minutes**, generates/validates next generation, app returns new vspr1 bearer once after COMMIT. R02-T1 same op linkless replay, changed payload conflict, quotas 3 target/20 issuer/100 org/30 client, multi-location same-company allowed, unknown COMMIT no new link; no implemented reset DML at baseline. |
-| R03 reset_redeem | Candidate vap1 payload (target_user_id:u,organization_id:u,issuer_user_id:u,issuer_membership_id:u,reset_id:u,reset_hash:h,expected_generation:i,expected_issuer_member_version:i,new_password_hash:t,active_session_ids:ids,active_registration_ids:ids,audit_id:u). No raw vspr1 link/password is a SQL argument. | Genuine submitted vspr1 bearer and new password accepted by app, SQL rechecks exact stored unused latest generation, expiry, CA issuer still currently eligible with E, target still solely one-company; 02/03/07/09–14. SQL discovers and locks **all** target SS and linked active P itself and compares the complete canonical sets to signed lists (a caller cannot omit sessions), then atomically changes U Argon2 hash, consumes reset, revokes all SS/refresh lineage, terminalizes P and appends ANONYMOUS security audit, no new session or MFA reset. R03-T1 link reuse generic invalid, T2 issuer role/entitlement lost, T3 login/refresh/push race, T4 COMMIT unknown reconciles no raw reissue, T5 no change to F/M/G/operations. |
+| R02 reset_issue | Candidate vap1 payload (issuer_user_id:u,issuer_session_id:u,issuer_membership_id:u,organization_id:u,target_user_id:u,target_membership_id:u,expected_target_membership_count:i,expected_generation:i,new_reset_id:u,new_reset_hash:h,expires_in_seconds:i,abuse_reservations:vap1_limiter_reservation_v1[],audit_id:u). **Exactly four** strictly scope-ordered reservations, not one generic UUID; hash `h` has the existing exact prefix `staff-password-reset-sha256:v1:` plus 64 lowercase hex SHA-256 of `UTF8(prefix || submitted vspr1 bearer)`, per `staff-password-reset-credential.ts:3–14`. | Real current vsa1 + CA 5m fresh MFA and E dashboard, target one-company ACTIVE User, 02 email/03 issuer+target+all candidate users/04 factor/07 org/09–14 target M/SS/F/reset. DB fixes expiry to **15 minutes**, generates/validates next generation, app returns new vspr1 bearer once after COMMIT. R02-T1 same op linkless replay, changed payload conflict, quotas 3 target/20 issuer/100 org/30 client, multi-location same-company allowed, unknown COMMIT no new link; no implemented reset DML at baseline. |
+| R03 reset_redeem | Candidate vap1 payload (target_user_id:u,organization_id:u,issuer_user_id:u,issuer_membership_id:u,reset_id:u,reset_hash:h,expected_generation:i,expected_issuer_member_version:i,new_password_hash:t,active_session_ids:ids,active_registration_ids:ids,redeem_reservations:vap1_limiter_reservation_v1[],audit_id:u). **One required pre-parser client-address reservation** and **one additional credential-key reservation only when reset token is canonical**, otherwise explicit NULL/absence in the closed v1 state/receipt; no raw vspr1 link/password/IP is a SQL argument. | Genuine submitted vspr1 bearer and new password accepted by app, SQL rechecks exact stored unused latest generation, expiry, CA issuer still currently eligible with E, target still solely one-company; 02/03/07/09–14. SQL discovers and locks **all** target SS and linked active P itself and compares the complete canonical sets to signed lists (a caller cannot omit sessions), then atomically changes U Argon2 hash, consumes reset, revokes all SS/refresh lineage, terminalizes P and appends ANONYMOUS security audit, no new session or MFA reset. R03-T1 link reuse generic invalid, T2 issuer role/entitlement lost, T3 login/refresh/push race, T4 COMMIT unknown reconciles no raw reissue, T5 no change to F/M/G/operations. |
 
-R02/R03 future 32-byte URL-safe vspr1 bearer generation, precise one-use verifier, dedicated private reset rows, expected generation constraints, limiter and audit reservations remain **to-be-implemented** per issue/Accepted decisions. A user-supplied issuer UUID or DB-stored reset hash must not authorize the signer. Exact stored hash and issuer/target version field types need migration-level review before either candidate function can be called executable.
+The already committed `staff-password-reset-credential.ts:3–14` implements
+the **helper**, not persistence: token is `vspr1.` + unpadded base64url of
+32 CSPRNG bytes (49 characters total); SQL receives only exact lowercase
+hex `SHA256(UTF8("staff-password-reset-sha256:v1:" || token))` prefixed with
+that same ASCII domain. Validate the exact 49-character canonical token
+using `packages/contracts/src/staff-password-reset.ts:9–13`; never accept
+base64url variants or credential-verifier prefix substitution. **Future
+R02/R03 SQL reset rows, generation/CAS, 900-second DB expiry, limiter
+receipts and atomic audit remain unimplemented.** An issuer UUID or stored
+hash cannot become the signer/credential ceremony. The future reset-table
+column types, issuer/target version predicates and SQL integration still
+require migration-level review before any function is executable.
+
+**Exact six source-approved anti-abuse scopes and R02/R03 admission:**
+`apps/api/src/modules/anti-abuse/anti-abuse-key.ts:5–29` defines issue caps
+`v1:staff-password-reset-issue-target-user` (3),
+`v1:staff-password-reset-issue-issuer-user` (20),
+`v1:staff-password-reset-issue-organization` (100),
+`v1:staff-password-reset-issue-client-address` (30), plus redeem caps
+`v1:staff-password-reset-redeem-client-address` (30) and
+`v1:staff-password-reset-redeem-credential` (5); all use **rolling 15
+minutes** and a separate HMAC-scoped key. Every R02 new-generation attempt
+must carry an exact four-element `LIMITER_RESERVATION_V1` canonical array in
+the above source order; SQL rechecks immutable reservation scope/key hash,
+request fingerprint and `PENDING` state. The reserve lease **commits before**
+any domain locks; no connection is acquired under a held domain lock.
+Only a genuinely committed changed link issuance can finalize all four
+`COUNTED`; an authorized same-operation linkless no-op is `IGNORED` without
+redisclosure; unknown COMMIT retains PENDING until exact receipt resolution.
+For anonymous redeem, `client-address` admission is required at trusted
+pre-parser ingress **before** parsing malformed body and counts even denied
+attempts; canonical credential additionally reserves its own budget before
+protected redeem. Invalid/malformed/expired/used bearer returns the approved
+generic response; corresponding public quotas still COUNTED independently
+of protected-transaction rollback. SQL-only caller may at most force quota
+denial, never discount counted attempts or manufacture successful credential
+redemption. The current unrestricted runtime limiter state grants **must** be
+retired by a narrow proof/receipt-bound finalizer during C3 (see §9). This is
+an implementation acceptance contract, not a claim of an existing API route.
 
 ## 9. Complete currently identified ACL and legacy-function migration matrix (PROPOSED)
 
@@ -339,7 +649,7 @@ Current values below are **source-declared provisioner intent**, not measurement
 | P staff_push_registrations; staff-push-runtime-privileges.mjs:1–16/31–94 | Runtime SELECT+INSERT; per-column UPDATE(provider_token,app_version,app_build,locale,state,last_confirmed_at,terminal_at,terminal_reason_class,superseded_by_registration_id,updated_at). token_hash/session_id UPDATE denied, **but INSERT supplies both**. | Remove unproved INSERT and all protected identity/binding updates from ordinary role; M11/M12 should be exact-session authenticated SQL commands. Remaining worker terminalization must be constrained to monotone DB-enforced actions, not free UPDATE(state,provider_token); if current shared runtime principal cannot isolate these safely, replace with narrow maintenance definer and prove it cannot rebind/reactivate. Test insert using guessed SS, state ACTIVE resurrection and token substitution all denied. |
 | Push intents, PD staff_push_deliveries; staff-push-runtime-privileges.mjs | Runtime SELECT+INSERT; P intent UPDATE denied; PD restricted UPDATE state/attempt_count/next_attempt_at/lease_token/lease_expires_at/provider_result_class/provider_reference/provider_accepted_at/terminal_at/updated_at. | Keep only source-required bounded worker claim/finalization/lease and intent creation after verifying actual deployment principal; no staff authorization/factor/entitlement write. Deny arbitrary raw SQL injection outside claimed workers via narrowly typed/limited function as needed. Test worker retry/lease race, P parent state gate, and absence of authority grants. |
 | Standard audit_events / account_security_audit_events; audit-foundation-runtime-privileges.mjs + migration 20261113011200 | Normal runtime append-only audit writer function; migration 112 rejects reserved reset names and CONTROLLED_OPERATOR through generic runtime append. Controlled tools have separated audit path. | Preserve append-only history and reserved-name 42501 guard; new R02/R03 and A/M protected commands append correct derived actor and event atomically. Public/runtime cannot forge password-reset or operator audit by generic append. Test audit failure rolls protected DML back, no extra event on receipt replay; no raw secret fields. |
-| anti_abuse_events; provision-runtime-role.mjs:209–239 | Runtime SELECT; INSERT(scope,key_hash,state,request_class,group_key_hash), UPDATE(state,group_key_hash), cleanup_expired_anti_abuse_events() EXECUTE. | Keep explicitly approved limiter operation capability, but forbid treating a reservation as proof. M04/M05 reservation ahead of locked transaction and COUNTED changed / IGNORED unchanged replay; force pending unknown until receipt reconciliation. Test timeout/unknown + concurrent two-lease exhaustion. |
+| anti_abuse_events; provision-runtime-role.mjs:209–239 | Runtime SELECT; INSERT(scope,key_hash,state,request_class,group_key_hash), UPDATE(state,group_key_hash), cleanup_expired_anti_abuse_events() EXECUTE. **A compromised SQL runtime can turn existing `PENDING`/`COUNTED` rows into `IGNORED` and weaken auth/MFA/Issue #416 quota accounting**, because `anti-abuse.service.ts` counts only `PENDING`/`COUNTED`. This is source-proven capability, not an observed exploit. | Future protected limiter transition must revoke direct runtime `INSERT` and `UPDATE(state,group_key_hash)` for authentication/management/reset scopes and permit only narrow, purpose-bound reserve/count/finalize SQL commands. Every discount to `IGNORED` must be justified by an immutable, reauthorized operation receipt, SQL-derived no-effect outcome or equally independently authenticated ceremony; SQL-only knowledge of reservation ID/operation ID cannot authorize discount. Absent such proof, leave reservation `PENDING` until bounded trusted reconciliation or conservatively `COUNTED`, fail closed on limiter outage. Pre-auth malformed/redeem failures remain COUNTED under DEC-024 and Issue #416. Preserve legitimate pre-parser admission and the M04/M05 separate completed reserve lease, with after-domain result reconciliation. Future cleanup must not drop still-countable rows. Test SQL-only `COUNTED→IGNORED`/scope switch/forged reservation negatives, valid unchanged invitation retry IGNORED, changed issuance COUNTED, public redeem failure COUNTED, unknown COMMIT and two-lease exhaustion. Do not assert limiter tamper resistance at the current baseline. |
 | New private key/challenge/receipt/reset rows and future custom types; **NO baseline objects** | No current owner/schema/ACL/DDL, no U1 SQL HMAC verifier provisioning. | Non-runtime NOLOGIN owner with no inherited role, no runtime/PUBLIC SELECT/INSERT/UPDATE/DELETE/USAGE on **private schema** or private helper EXECUTE. Only carefully audited public wrapper functions may access protected tables via SECURITY DEFINER; no runtime table ownership, role SET ability, key row SELECT, ciphertext source, KEY export or grant option. Runtime needs USAGE on the **public command schema** with no CREATE, and EXECUTE only the precise reviewed prepare/execute signatures. Denying USAGE to a schema holding public callable commands would break legitimate calls: separate callable/public versus private storage/helper schemas explicitly. |
 
 The single ordinary runtime principal is installed by provision-runtime-role.mjs: it creates/changes LOGIN NOINHERIT, removes membership edges returned from pg_auth_members, rejects dangerous flags, revokes table privileges across public, restores narrowly selected direct grants and executes provisionMfaPrivileges **after** provisionRuntimeTablePrivileges. The current mfa-runtime-privilege-verification.mjs:89–165 explicitly expects RC INSERT=true, SS/F/C specific INSERT/UPDATE columns, and verifyRuntimeFeaturePrivileges invokes it. This is a **cutover blocker**: changing SQL ACLs alone makes the verifier fail, while leaving the original provisioner allows weak grants to return. Inspect also current role rolinherit flag, membership SET privileges, default ACL and object-owner paths **on the target database**, not only installer code.
@@ -350,7 +660,7 @@ The single ordinary runtime principal is installed by provision-runtime-role.mjs
 | --- | --- | --- |
 | staff_management_set_role(uuid,uuid,uuid,integer,membership_role); staff_management_set_status(uuid,uuid,uuid,integer,membership_status); staff_management_set_location_access(uuid,uuid,uuid,integer,uuid[],boolean). Source staff-management-runtime-privileges.mjs:1–33. | Revoke old runtime/PUBLIC/inherited EXECUTE and deny every overload. Grant exact M01–M03 typed prepare/execute only. Keep private staff_management_* helper EXECUTE denied. | Rewrite verifyStaffManagementPrivileges (lines 35–90): old three false, new exact signatures true with SECURITY DEFINER, owner, safe search_path, PUBLIC and grant-option negatives. Raw SQL actorMembershipId-only calls must fail. |
 | staff_onboarding_create(uuid,uuid,uuid,text,text,text,text,membership_role,uuid[],text); staff_onboarding_resend(uuid,uuid,uuid,uuid,text,text); staff_onboarding_activate(text,text,text). Source staff-onboarding-runtime-privileges.mjs:6–57. | Revoke old three signatures/overloads including PUBLIC/inherited, grant M04/M05/M06 exact proof commands, keep private staff_onboarding_* helpers denied; invitation I SELECT remains, no DML. | Rewrite verifyStaffOnboardingPrivileges: old three false/new true; test genuine invite and ACTIVE Argon2, no link recovery, private helper inaccessible. The nested call to provisionStaffManagementPrivileges must also stop restoring old EXECUTE. |
-| staff_shift_force_end(uuid,uuid,text,uuid,uuid,uuid,text,text,text) and guard_history()/guard_audit(), source shift-force-end-runtime-privileges.mjs. | **Transitive security dependency**: this provisioner calls provisionStaffOnboardingPrivileges (which calls provisionStaffManagementPrivileges). Migrate this nested grant and verification chain at C3. The force-end function itself is an accepted Shift function; scope/ceremony of its eventual replacement must be source-reviewed without inventing a ValetSession transition. | verifyShiftForceEndPrivileges calls verifyStaffOnboardingPrivileges. Test old staff SQL function denied after shift-force-end reprovisioning, and force-end positive/negative authority vs membership reset. If its direct authority remains weaker, mark it a release blocker. |
+| staff_shift_force_end(uuid,uuid,text,uuid,uuid,uuid,text,text,text) and guard_history()/guard_audit(), source shift-force-end-runtime-privileges.mjs. | **MANDATORY newly uncovered X01 protected writer**, described in §8.3a. Revoke old SQL-readable-access-hash authority function and every overload; grant only exact typed X01 prepare/execute, retaining Shift/Task constraints and derived audit. Provisioner recursively calls `provisionStaffOnboardingPrivileges` (which calls `provisionStaffManagementPrivileges`); migrate nested grants and verifiers at C3. | `verifyShiftForceEndPrivileges` must expect old function false/new X01 only true, inspect PUBLIC/inheritance/owner/definer/overloads, call old grant restoration tests twice. Test SQL-only supplied session/hash **denied**, genuine CA/LM 5-minute MFA positive, current Shift/Task and cross-tenant/Location cases, unknown COMMIT, race with Membership/HOLD/revoke. Unmigrated X01 is **release BLOCKER**. |
 | Seven exact management_location_* signatures in §8.3, source location-lifecycle-runtime-privileges.mjs:1–51. | Revoke old seven and every overload; grant corresponding M08-* typed proof-only functions. Internal management_location_lock/authorize_actor/append_audit/has_blockers/guard helpers remain denied. | Rewrite verifyLocationLifecyclePrivileges old false/new true; test no direct Location status/currency/timezone/accepting_intake DML or timestamp-bypass, and settings/location lock order. |
 | Twelve exact management_settings_* / management_branding_* functions in §8.3; source management-settings-runtime-privileges.mjs:1–13. | Revoke old twelve executable overloads; grant each M09-* typed variant individually; do not grant generic text-key/JSON mutation or O.status/E mutation. | Update verifyManagementSettingsPrivileges and associated verifyBasicBrandingPrivileges, including E SELECT-only and no DML. Test every accepted property value and invalid extra/variant field. |
 | shift_presence_set_policy(uuid,uuid,uuid,text,uuid,uuid,text,text,boolean,integer,integer,uuid); shift_presence_lock_management_entitlement(uuid,uuid,text,uuid); shift_presence_expire_revoked_approval(uuid,uuid,uuid,uuid,text,text,text). Source shift-presence-runtime-privileges.mjs:80–95. | M10 policy entry needs genuine current bearer/MFA and transitive settings-org/location/SS/Member factor order; replace weak direct EXECUTE. Entitlement lock and expiry helpers must be separately classified by actual DML (read/lock versus monotone maintenance) **before** retention. | Update shift presence verifier and test policy old signature denied, current Location/entitlement/MFA enforced, accepted expiry/Shift semantics intact. Exact helper retention classification remains a named source-review gate. |

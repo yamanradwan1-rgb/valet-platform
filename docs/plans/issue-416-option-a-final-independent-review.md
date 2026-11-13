@@ -72,3 +72,28 @@ unchanged/replay distinction in the U2 inventory; it does not claim that its
 metadata alone was independently tested. The reviews are **source-design-only**.
 U1/S1/L1/L2 Owner choices, strict U2 proof/ACL closure, real PostgreSQL 17
 concurrency and runtime secret/deployment evidence remain **BLOCKED/NOT RUN**.
+
+## 2026-11-13 — final U1/S1/U2 source-level contract closure (new review cycle)
+
+This is a **new** documentation architecture cycle after `eb2d0ba4`; the
+prior review above remains historically accurate **only for its pinned SHA**.
+Auth/Crypto (W6), SQL/Concurrency (W7) and Operations (W8) have conducted
+independent read-only source preflights. Their **final revised-aggregate
+verdicts are PENDING until explicitly pinned Git SHA and complete final-doc
+re-read**; no preflight finding alone constitutes a final review PASS.
+
+| Preflight finding | Source evidence and impact | Proposed design disposition; runtime evidence |
+| --- | --- | --- |
+| **MAJOR U1/S1 contradictory signed format** | U1 prior JSON `canonicalUtf8Bytes` vs S1 strict binary `VAP1` TLV; mismatch makes independent signer/verifier incompatible. | U1 follow-up replaces signed JSON with the same TLV proof/payload/state frame and DB `bytea` HMAC. Source-only corrected; Node/PG17 conformance **NOT RUN**. |
+| **MAJOR U2 payload/locked-state ABI gaps** | S1 requires explicit field IDs/types and deterministic Node↔PG17; earlier U2 left compound arrays, NULL times, microsecond CAS and state field IDs undefined. Current `management-settings-mutation-repository.ts` uses nullable hours for CLOSED, SQL requires exactly seven days. | U2 specifies field IDs, fixed 20-field typed state groups, canonical bounded arrays/recovery/limiter composites, exact 7-day nullable time format, 1µs CAS, legacy invalid timestamp HOLD, full proof-frame vector requirements. Exact SQL/Node byte equivalence **NOT RUN**, final reader may identify further precision corrections. |
+| **MAJOR L1 ADMIT→HOLD race** | Earlier L1 was only a signer precondition; signed proof could outlive a concurrent protected HOLD if SQL did not check locked admission. | New protected per-object admission registry and `FOR SHARE` prepare+execute locks at matching rank 09–14, controlled operator same-rank `FOR UPDATE`/version CAS and COMMIT barrier, deterministic parent-first/gate-second order, added HOLD-vs-login/MFA/management/reset/Shift PG17 races. DDL and concurrency tests **NOT RUN**. |
+| **MAJOR X01 transitive old Staff Shift Force End SQL authority** | `20261002005400_mgt_240f_force_end_shift/migration.sql:88–197` accepts SQL-readable session `p_access_hash` under callable `SECURITY DEFINER`; `shift-force-end-runtime-privileges.mjs` grants EXECUTE and `staff-shift-force-end-repository.ts` forwards stored hash. | Add required X01 purpose-specific genuine raw bearer + sensitive MFA guarded writer; revoke old overload and nested provisioner restoration; preserve Shift/Task no-Task-lock invariant. SQL-only forging/Shift race tests **NOT RUN**. |
+| **MAJOR anti-abuse SQL-state discount** | `provision-runtime-role.mjs:209–239` currently allows `anti_abuse_events.UPDATE(state,group_key_hash)` while limiter counts only PENDING/COUNTED; compromised SQL can mark rows IGNORED. | U2 requires revoking raw limiter state writes, replacing with purpose-/receipt-bound narrow reserve/finalize transitions and fail-closed pending on unknown COMMIT; test COUNTED→IGNORED denial, mandatory six reset scopes and R02 four reservations. **NOT IMPLEMENTED/NOT RUN**. |
+| **MAJOR U1 backup logical-dump ambiguity** | Raw symmetric verifier `key_bytes` can appear in privileged logical dump data even if resulting artifact is encrypted; former L2 wording incorrectly suggested otherwise. | L2 now requires continuous encryption/no plaintext spool or an explicit excluded-key logical backup plus independent escrow/reimport, with restore/retired-key monotone checkpoint and telemetry canary. Actual production backup mode **EXTERNAL — NOT VERIFIED**. |
+
+The final **security verdict cannot exceed conditional design readiness** if
+all source-resolvable issues are corrected: selected HMAC is symmetric, so
+deployed SQL verifier confidentiality, actual `pgcrypto`, operator roles,
+controlled backup/restore, deployed effective grants and external commercial
+writers are separate **EXTERNAL — NOT VERIFIED** gates. Owner decisions
+S1/U1/L1/L2 remain **PROPOSED/PENDING**. No additional DEC is Accepted.
