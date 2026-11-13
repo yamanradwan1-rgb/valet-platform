@@ -58,6 +58,23 @@ repair failed migrations. An explicit target-attested `migrate resolve` adapter
 requires separate Prime/W2 approval and review before implementation; never
 use the generic Prisma command directly as a recovery workaround.
 
+Only after Prime and W2 review the migration113 owner-role ordering fix and
+explicitly authorize bookkeeping recovery, the separate narrow adapter may be
+used on the **same** attested W9 fixture with the three synthetic URL values:
+
+```powershell
+node packages/database/issue416-private/run-resolve-113.mjs --resolve-113
+```
+
+**Do not run this command during diagnosis.** The adapter requires an exact
+failed 113 ledger signature, a successful 112 entry, no later migration, and
+zero private schema/relations/proof role. It verifies the fixed migration113
+source, holds the W9-exclusive fixture lease, invokes the pinned Prisma CLI
+with only `migrate resolve --rolled-back` for 113, and checks that every prior
+migration row, SQL role and membership remains unchanged. No schema objects
+or historical migrations are dropped/reset. This adapter is not a general
+recovery mechanism and does not re-run the migration automatically.
+
 `--prepare` must PASS **before** creating the container; it denies an existing
 name, volume, or occupied dedicated port. The compose command is the only
 explicitly operator-started container creation. `--inspect` attests Docker
