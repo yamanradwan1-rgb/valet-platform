@@ -31,7 +31,8 @@ const noOperation = () => {};
 
 /** Isolated display fixture. Never construct the production shell/runtime here. */
 export function NativeWhatsAppPrototypeScreen(props: PrototypeProps) {
-  return __DEV__ ? <PrototypeScreen {...props} /> : null;
+  const { ready } = useEmployeeAppearance();
+  return __DEV__ && ready ? <PrototypeScreen {...props} /> : null;
 }
 
 interface PrototypeProps {
@@ -62,6 +63,13 @@ function PrototypeScreen({
   const textAlign = locale === "ar" ? "right" : "left";
   const [state, setState] = useState(initialState);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  // Keep the preview session mounted so its original appearance survives query
+  // changes. Reset only local demo work when a finite preview choice changes.
+  useEffect(() => {
+    if (timer.current !== undefined) clearTimeout(timer.current);
+    timer.current = undefined;
+    setState(initialState);
+  }, [initialState, locale, theme, baseline]);
   useEffect(
     () => () => {
       if (timer.current !== undefined) clearTimeout(timer.current);

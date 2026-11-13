@@ -34,6 +34,8 @@ describe("Issue #310 development fixture entry", () => {
       token: "ignored",
     };
     const view = WhatsAppPrototypeRoute()!;
+    // Query changes must preserve the preview's original appearance ref.
+    expect(view.key).toBeNull();
     expect(view.props).toMatchObject({
       locale: "ar",
       theme: "dark",

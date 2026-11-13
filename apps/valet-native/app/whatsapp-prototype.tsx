@@ -16,7 +16,6 @@ export default function WhatsAppPrototypeRoute() {
     <NativeWhatsAppPrototypeScreen
       baseline={params.baseline === "1"}
       initialState={parseWhatsAppDemoState(params.state)}
-      key={`${params.locale}:${params.theme}:${params.state}:${params.baseline}`}
       locale={params.locale === "ar" ? "ar" : "en"}
       onBack={() => router.back()}
       theme={params.theme === "dark" ? "dark" : "light"}
