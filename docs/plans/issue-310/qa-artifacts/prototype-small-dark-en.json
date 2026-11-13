@@ -1,0 +1,14 @@
+{
+  "file": "prototype-small-dark-en.png",
+  "mode": "prototype",
+  "viewport": "small",
+  "locale": "en",
+  "theme": "dark",
+  "demoState": "default",
+  "serial": "emulator-5580",
+  "sourceBlob": "b7c0e8ad3863cc04e14edaa7940086150c62331e",
+  "wmSize": "Physical size: 1080x2400\r\nOverride size: 640x1136",
+  "wmDensity": "Physical density: 420\r\nOverride density: 320",
+  "sha256": "195c6edf925c00e55880a5a379a8b2a749c93b98f9c663135df89ff7873f5316",
+  "controls": []
+}

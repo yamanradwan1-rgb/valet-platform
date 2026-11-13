@@ -1,0 +1,32 @@
+{
+  "file": "prototype-small-dark-ar-scrolled.png",
+  "locale": "ar",
+  "theme": "dark",
+  "action": "Existing ScrollView swiped upward; new control visible above pinned navigation",
+  "wmSize": "Physical size: 1080x2400\r\nOverride size: 640x1136",
+  "wmDensity": "Physical density: 420\r\nOverride density: 320",
+  "sha256": "63899b8bdee748cd3bb902e9706a40ae0f29cfc7f1115dd9a7d4c7b86abc5802",
+  "controls": [
+    {
+      "index": "7",
+      "text": "",
+      "resource-id": "whatsapp-prototype-button",
+      "class": "android.widget.Button",
+      "package": "com.vaylet.employee",
+      "content-desc": "واتساب · تجريبي · إرسال عبر واتساب",
+      "checkable": "false",
+      "checked": "false",
+      "clickable": "true",
+      "enabled": "true",
+      "focusable": "true",
+      "focused": "false",
+      "scrollable": "false",
+      "long-clickable": "false",
+      "password": "false",
+      "selected": "false",
+      "bounds": "[40,792][600,904]",
+      "drawing-order": "8",
+      "hint": ""
+    }
+  ]
+}

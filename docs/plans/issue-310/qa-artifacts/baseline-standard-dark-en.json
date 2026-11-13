@@ -1,0 +1,14 @@
+{
+  "file": "baseline-standard-dark-en.png",
+  "mode": "baseline",
+  "viewport": "standard",
+  "locale": "en",
+  "theme": "dark",
+  "demoState": "default",
+  "serial": "emulator-5580",
+  "sourceBlob": "e04f82eb5882573430c9df0bfe5190fb74fb6bd9",
+  "wmSize": "Physical size: 1080x2400\r\nOverride size: 780x1688",
+  "wmDensity": "Physical density: 420\r\nOverride density: 320",
+  "sha256": "8150bfad9a94dbc6c02f3bcbbdde16b4759a961b6f22f22a73cfb4a800b3aed9",
+  "controls": []
+}

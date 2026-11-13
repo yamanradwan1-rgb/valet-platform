@@ -1,0 +1,23 @@
+{
+  "file": "variant-standard-light-en-delivered.png",
+  "mode": "variant",
+  "viewport": "standard",
+  "locale": "en",
+  "theme": "light",
+  "demoState": "delivered",
+  "serial": "emulator-5580",
+  "sourceBlob": "b7c0e8ad3863cc04e14edaa7940086150c62331e",
+  "wmSize": "Physical size: 1080x2400\r\nOverride size: 780x1688",
+  "wmDensity": "Physical density: 420\r\nOverride density: 320",
+  "sha256": "618c53fc959adacf18bdef517c538fc9673e8f73f592a9fba5a40d7a63316610",
+  "controls": [
+    {
+      "resource-id": "whatsapp-prototype-button",
+      "text": "",
+      "content-desc": "WhatsApp · Demo · Delivered (webhook)",
+      "bounds": "[40,1223][740,1335]",
+      "enabled": "true",
+      "clickable": "true"
+    }
+  ]
+}

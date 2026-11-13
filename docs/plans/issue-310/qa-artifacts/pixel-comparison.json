@@ -1,0 +1,142 @@
+[
+  {
+    "baseline": "baseline-small-dark-ar.png",
+    "prototype": "prototype-small-dark-ar.png",
+    "size": [
+      640,
+      1136
+    ],
+    "changedOriginalProductPixels": 0,
+    "excludedNewControlBoundsWith2pxEdge": [],
+    "excludedSystemRows": [
+      "0..95",
+      "1088..1135"
+    ]
+  },
+  {
+    "baseline": "baseline-small-dark-en.png",
+    "prototype": "prototype-small-dark-en.png",
+    "size": [
+      640,
+      1136
+    ],
+    "changedOriginalProductPixels": 0,
+    "excludedNewControlBoundsWith2pxEdge": [],
+    "excludedSystemRows": [
+      "0..95",
+      "1088..1135"
+    ]
+  },
+  {
+    "baseline": "baseline-small-light-ar.png",
+    "prototype": "prototype-small-light-ar.png",
+    "size": [
+      640,
+      1136
+    ],
+    "changedOriginalProductPixels": 0,
+    "excludedNewControlBoundsWith2pxEdge": [],
+    "excludedSystemRows": [
+      "0..95",
+      "1088..1135"
+    ]
+  },
+  {
+    "baseline": "baseline-small-light-en.png",
+    "prototype": "prototype-small-light-en.png",
+    "size": [
+      640,
+      1136
+    ],
+    "changedOriginalProductPixels": 0,
+    "excludedNewControlBoundsWith2pxEdge": [],
+    "excludedSystemRows": [
+      "0..95",
+      "1088..1135"
+    ]
+  },
+  {
+    "baseline": "baseline-standard-dark-ar.png",
+    "prototype": "prototype-standard-dark-ar.png",
+    "size": [
+      780,
+      1688
+    ],
+    "changedOriginalProductPixels": 0,
+    "excludedNewControlBoundsWith2pxEdge": [
+      [
+        38,
+        1196,
+        742,
+        1312
+      ]
+    ],
+    "excludedSystemRows": [
+      "0..95",
+      "1640..1687"
+    ]
+  },
+  {
+    "baseline": "baseline-standard-dark-en.png",
+    "prototype": "prototype-standard-dark-en.png",
+    "size": [
+      780,
+      1688
+    ],
+    "changedOriginalProductPixels": 0,
+    "excludedNewControlBoundsWith2pxEdge": [
+      [
+        38,
+        1221,
+        742,
+        1337
+      ]
+    ],
+    "excludedSystemRows": [
+      "0..95",
+      "1640..1687"
+    ]
+  },
+  {
+    "baseline": "baseline-standard-light-ar.png",
+    "prototype": "prototype-standard-light-ar.png",
+    "size": [
+      780,
+      1688
+    ],
+    "changedOriginalProductPixels": 0,
+    "excludedNewControlBoundsWith2pxEdge": [
+      [
+        38,
+        1196,
+        742,
+        1312
+      ]
+    ],
+    "excludedSystemRows": [
+      "0..95",
+      "1640..1687"
+    ]
+  },
+  {
+    "baseline": "baseline-standard-light-en.png",
+    "prototype": "prototype-standard-light-en.png",
+    "size": [
+      780,
+      1688
+    ],
+    "changedOriginalProductPixels": 0,
+    "excludedNewControlBoundsWith2pxEdge": [
+      [
+        38,
+        1221,
+        742,
+        1337
+      ]
+    ],
+    "excludedSystemRows": [
+      "0..95",
+      "1640..1687"
+    ]
+  }
+]

@@ -1,0 +1,32 @@
+{
+  "file": "interaction-small-light-en-queued.png",
+  "locale": "en",
+  "theme": "light",
+  "action": "Tapped default demo button; local loading timer resolved to queued; no backend action",
+  "wmSize": "Physical size: 1080x2400\r\nOverride size: 640x1136",
+  "wmDensity": "Physical density: 420\r\nOverride density: 320",
+  "sha256": "03d9f75f4d487572b0f62197ebbeef5f40e3f851016b3f2ecd56562d76bd0c42",
+  "controls": [
+    {
+      "index": "7",
+      "text": "",
+      "resource-id": "whatsapp-prototype-button",
+      "class": "android.widget.Button",
+      "package": "com.vaylet.employee",
+      "content-desc": "WhatsApp · Demo · Queued by VAYLET",
+      "checkable": "false",
+      "checked": "false",
+      "clickable": "true",
+      "enabled": "true",
+      "focusable": "true",
+      "focused": "false",
+      "scrollable": "false",
+      "long-clickable": "false",
+      "password": "false",
+      "selected": "false",
+      "bounds": "[40,834][600,944]",
+      "drawing-order": "8",
+      "hint": ""
+    }
+  ]
+}

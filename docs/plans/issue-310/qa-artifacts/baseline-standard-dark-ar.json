@@ -1,0 +1,14 @@
+{
+  "file": "baseline-standard-dark-ar.png",
+  "mode": "baseline",
+  "viewport": "standard",
+  "locale": "ar",
+  "theme": "dark",
+  "demoState": "default",
+  "serial": "emulator-5580",
+  "sourceBlob": "e04f82eb5882573430c9df0bfe5190fb74fb6bd9",
+  "wmSize": "Physical size: 1080x2400\r\nOverride size: 780x1688",
+  "wmDensity": "Physical density: 420\r\nOverride density: 320",
+  "sha256": "dfce2f5e0043beffb2003d74262a31f5dbb43cd66b5303251a0776a060bb67fb",
+  "controls": []
+}

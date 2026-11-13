@@ -1,0 +1,1050 @@
+{
+  "light-en": {
+    "type": "Symbol(react.fragment)",
+    "props": {
+      "children": [
+        {
+          "type": "View",
+          "props": {
+            "accessible": true,
+            "accessibilityLabel": "Parking",
+            "style": {
+              "alignItems": "center",
+              "alignSelf": "flex-start",
+              "borderRadius": 999,
+              "flexDirection": "row",
+              "gap": 6,
+              "paddingHorizontal": 10,
+              "paddingVertical": 4,
+              "backgroundColor": "#FFF4E0"
+            },
+            "children": [
+              {
+                "type": "View",
+                "props": {
+                  "accessible": false,
+                  "style": {
+                    "borderRadius": 999,
+                    "height": 6,
+                    "width": 6,
+                    "backgroundColor": "#D89434"
+                  }
+                }
+              },
+              {
+                "type": "Text",
+                "props": {
+                  "accessible": false,
+                  "style": {
+                    "fontFamily": "Plus Jakarta Sans",
+                    "fontSize": 10,
+                    "fontWeight": "700",
+                    "letterSpacing": 0.5,
+                    "color": "#D89434",
+                    "textAlign": "left",
+                    "writingDirection": "ltr"
+                  },
+                  "children": "Parking"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "View",
+          "props": {
+            "accessible": true,
+            "accessibilityLabel": "Toyota Camry, DEMO 310",
+            "style": {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#DDE4EC",
+              "borderRadius": 16,
+              "borderWidth": 1,
+              "gap": 6,
+              "padding": 16
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "style": {
+                    "fontFamily": "Space Grotesk",
+                    "fontSize": 26,
+                    "fontWeight": "700",
+                    "lineHeight": 32.5,
+                    "color": "#07111F",
+                    "textAlign": "left",
+                    "writingDirection": "ltr"
+                  },
+                  "children": "Toyota Camry"
+                }
+              },
+              {
+                "type": "Text",
+                "props": {
+                  "style": {
+                    "fontFamily": "Plus Jakarta Sans",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 20,
+                    "color": "#6F7C91",
+                    "textAlign": "left",
+                    "writingDirection": "ltr"
+                  },
+                  "children": "DEMO 310"
+                }
+              },
+              {
+                "type": "Text",
+                "props": {
+                  "style": {
+                    "fontFamily": "Plus Jakarta Sans",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 20,
+                    "color": "#6F7C91",
+                    "textAlign": "left",
+                    "writingDirection": "ltr"
+                  },
+                  "children": "Black"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "View",
+          "props": {
+            "style": {
+              "alignItems": "center",
+              "backgroundColor": "#EDF4FF",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "gap": 10,
+              "paddingHorizontal": 16,
+              "paddingVertical": 12
+            },
+            "children": [
+              {
+                "type": "View",
+                "props": {
+                  "accessibilityElementsHidden": true,
+                  "style": {
+                    "backgroundColor": "#176BFF",
+                    "borderRadius": 3,
+                    "height": 6,
+                    "width": 6
+                  }
+                }
+              },
+              {
+                "type": "Text",
+                "props": {
+                  "style": {
+                    "fontFamily": "Plus Jakarta Sans",
+                    "fontSize": 12,
+                    "fontWeight": "600",
+                    "lineHeight": 16,
+                    "color": "#176BFF",
+                    "flex": 1,
+                    "textAlign": "left",
+                    "writingDirection": "ltr"
+                  },
+                  "children": "Foreground location tracking may run only while this Parking movement is active, tracking is enabled, and location access is available."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Pressable",
+          "props": {
+            "accessibilityLabel": "Open Parking",
+            "accessibilityRole": "button",
+            "accessibilityState": {
+              "disabled": false,
+              "selected": null
+            },
+            "disabled": false,
+            "hitSlop": {
+              "bottom": 0,
+              "left": 0,
+              "right": 0,
+              "top": 0
+            },
+            "style": {
+              "alignItems": "center",
+              "borderRadius": 16,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+              "paddingVertical": 8,
+              "backgroundColor": "#176BFF",
+              "height": 56
+            },
+            "children": {
+              "type": "View",
+              "props": {
+                "style": {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "flexShrink": 1,
+                  "gap": 6,
+                  "justifyContent": "center"
+                },
+                "children": [
+                  {
+                    "type": "Text",
+                    "props": {
+                      "style": {
+                        "fontFamily": "Plus Jakarta Sans",
+                        "fontSize": 15,
+                        "fontWeight": "600",
+                        "flexShrink": 1,
+                        "textAlign": "center",
+                        "color": "#FFFFFF"
+                      },
+                      "children": "Open Parking"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "type": "Pressable",
+          "props": {
+            "accessibilityLabel": "Guest Access",
+            "accessibilityRole": "button",
+            "style": {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#DDE4EC",
+              "borderRadius": 16,
+              "borderWidth": 1,
+              "gap": 2,
+              "padding": 16
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "style": {
+                    "fontFamily": "Plus Jakarta Sans",
+                    "fontSize": 14,
+                    "fontWeight": "600",
+                    "lineHeight": 20,
+                    "color": "#07111F",
+                    "textAlign": "left",
+                    "writingDirection": "ltr"
+                  },
+                  "children": "Guest Access"
+                }
+              },
+              {
+                "type": "Text",
+                "props": {
+                  "style": {
+                    "fontFamily": "Plus Jakarta Sans",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 16,
+                    "color": "#8C98AA",
+                    "textAlign": "left",
+                    "writingDirection": "ltr"
+                  },
+                  "children": "Share a secure guest link for this vehicle"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "light-ar": {
+    "type": "Symbol(react.fragment)",
+    "props": {
+      "children": [
+        {
+          "type": "View",
+          "props": {
+            "accessible": true,
+            "accessibilityLabel": "الركن",
+            "style": {
+              "alignItems": "center",
+              "alignSelf": "flex-start",
+              "borderRadius": 999,
+              "flexDirection": "row",
+              "gap": 6,
+              "paddingHorizontal": 10,
+              "paddingVertical": 4,
+              "backgroundColor": "#FFF4E0"
+            },
+            "children": [
+              {
+                "type": "View",
+                "props": {
+                  "accessible": false,
+                  "style": {
+                    "borderRadius": 999,
+                    "height": 6,
+                    "width": 6,
+                    "backgroundColor": "#D89434"
+                  }
+                }
+              },
+              {
+                "type": "Text",
+                "props": {
+                  "accessible": false,
+                  "style": {
+                    "fontFamily": "Plus Jakarta Sans",
+                    "fontSize": 10,
+                    "fontWeight": "700",
+                    "letterSpacing": 0.5,
+                    "color": "#D89434",
+                    "textAlign": "right",
+                    "writingDirection": "rtl"
+                  },
+                  "children": "الركن"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "View",
+          "props": {
+            "accessible": true,
+            "accessibilityLabel": "Toyota Camry, DEMO 310",
+            "style": {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#DDE4EC",
+              "borderRadius": 16,
+              "borderWidth": 1,
+              "gap": 6,
+              "padding": 16
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "style": {
+                    "fontFamily": "Space Grotesk",
+                    "fontSize": 26,
+                    "fontWeight": "700",
+                    "lineHeight": 32.5,
+                    "color": "#07111F",
+                    "textAlign": "right",
+                    "writingDirection": "rtl"
+                  },
+                  "children": "Toyota Camry"
+                }
+              },
+              {
+                "type": "Text",
+                "props": {
+                  "style": {
+                    "fontFamily": "Plus Jakarta Sans",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 20,
+                    "color": "#6F7C91",
+                    "textAlign": "left",
+                    "writingDirection": "ltr"
+                  },
+                  "children": "DEMO 310"
+                }
+              },
+              {
+                "type": "Text",
+                "props": {
+                  "style": {
+                    "fontFamily": "Plus Jakarta Sans",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 20,
+                    "color": "#6F7C91",
+                    "textAlign": "right",
+                    "writingDirection": "rtl"
+                  },
+                  "children": "Black"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "View",
+          "props": {
+            "style": {
+              "alignItems": "center",
+              "backgroundColor": "#EDF4FF",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "gap": 10,
+              "paddingHorizontal": 16,
+              "paddingVertical": 12
+            },
+            "children": [
+              {
+                "type": "View",
+                "props": {
+                  "accessibilityElementsHidden": true,
+                  "style": {
+                    "backgroundColor": "#176BFF",
+                    "borderRadius": 3,
+                    "height": 6,
+                    "width": 6
+                  }
+                }
+              },
+              {
+                "type": "Text",
+                "props": {
+                  "style": {
+                    "fontFamily": "Plus Jakarta Sans",
+                    "fontSize": 12,
+                    "fontWeight": "600",
+                    "lineHeight": 16,
+                    "color": "#176BFF",
+                    "flex": 1,
+                    "textAlign": "right",
+                    "writingDirection": "rtl"
+                  },
+                  "children": "قد يعمل تتبّع الموقع في الواجهة الأمامية فقط أثناء حركة الاصطفاف الفعّالة، وعندما يكون التتبّع مفعّلًا وتتوفر صلاحية الموقع."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Pressable",
+          "props": {
+            "accessibilityLabel": "فتح مهمة الصف",
+            "accessibilityRole": "button",
+            "accessibilityState": {
+              "disabled": false,
+              "selected": null
+            },
+            "disabled": false,
+            "hitSlop": {
+              "bottom": 0,
+              "left": 0,
+              "right": 0,
+              "top": 0
+            },
+            "style": {
+              "alignItems": "center",
+              "borderRadius": 16,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+              "paddingVertical": 8,
+              "backgroundColor": "#176BFF",
+              "height": 56
+            },
+            "children": {
+              "type": "View",
+              "props": {
+                "style": {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "flexShrink": 1,
+                  "gap": 6,
+                  "justifyContent": "center"
+                },
+                "children": [
+                  {
+                    "type": "Text",
+                    "props": {
+                      "style": {
+                        "fontFamily": "Plus Jakarta Sans",
+                        "fontSize": 15,
+                        "fontWeight": "600",
+                        "flexShrink": 1,
+                        "textAlign": "center",
+                        "color": "#FFFFFF"
+                      },
+                      "children": "فتح مهمة الصف"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "type": "Pressable",
+          "props": {
+            "accessibilityLabel": "وصول الضيف",
+            "accessibilityRole": "button",
+            "style": {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#DDE4EC",
+              "borderRadius": 16,
+              "borderWidth": 1,
+              "gap": 2,
+              "padding": 16
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "style": {
+                    "fontFamily": "Plus Jakarta Sans",
+                    "fontSize": 14,
+                    "fontWeight": "600",
+                    "lineHeight": 20,
+                    "color": "#07111F",
+                    "textAlign": "right",
+                    "writingDirection": "rtl"
+                  },
+                  "children": "وصول الضيف"
+                }
+              },
+              {
+                "type": "Text",
+                "props": {
+                  "style": {
+                    "fontFamily": "Plus Jakarta Sans",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 16,
+                    "color": "#8C98AA",
+                    "textAlign": "right",
+                    "writingDirection": "rtl"
+                  },
+                  "children": "شارك رابط ضيف آمن لهذه المركبة"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "dark-en": {
+    "type": "Symbol(react.fragment)",
+    "props": {
+      "children": [
+        {
+          "type": "View",
+          "props": {
+            "accessible": true,
+            "accessibilityLabel": "Parking",
+            "style": {
+              "alignItems": "center",
+              "alignSelf": "flex-start",
+              "borderRadius": 999,
+              "flexDirection": "row",
+              "gap": 6,
+              "paddingHorizontal": 10,
+              "paddingVertical": 4,
+              "backgroundColor": "#362B1A"
+            },
+            "children": [
+              {
+                "type": "View",
+                "props": {
+                  "accessible": false,
+                  "style": {
+                    "borderRadius": 999,
+                    "height": 6,
+                    "width": 6,
+                    "backgroundColor": "#F2BC67"
+                  }
+                }
+              },
+              {
+                "type": "Text",
+                "props": {
+                  "accessible": false,
+                  "style": {
+                    "fontFamily": "Plus Jakarta Sans",
+                    "fontSize": 10,
+                    "fontWeight": "700",
+                    "letterSpacing": 0.5,
+                    "color": "#F2BC67",
+                    "textAlign": "left",
+                    "writingDirection": "ltr"
+                  },
+                  "children": "Parking"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "View",
+          "props": {
+            "accessible": true,
+            "accessibilityLabel": "Toyota Camry, DEMO 310",
+            "style": {
+              "backgroundColor": "#111E30",
+              "borderColor": "#586F8D",
+              "borderRadius": 16,
+              "borderWidth": 1,
+              "gap": 6,
+              "padding": 16
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "style": {
+                    "fontFamily": "Space Grotesk",
+                    "fontSize": 26,
+                    "fontWeight": "700",
+                    "lineHeight": 32.5,
+                    "color": "#F3F6FC",
+                    "textAlign": "left",
+                    "writingDirection": "ltr"
+                  },
+                  "children": "Toyota Camry"
+                }
+              },
+              {
+                "type": "Text",
+                "props": {
+                  "style": {
+                    "fontFamily": "Plus Jakarta Sans",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 20,
+                    "color": "#B5C2D6",
+                    "textAlign": "left",
+                    "writingDirection": "ltr"
+                  },
+                  "children": "DEMO 310"
+                }
+              },
+              {
+                "type": "Text",
+                "props": {
+                  "style": {
+                    "fontFamily": "Plus Jakarta Sans",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 20,
+                    "color": "#B5C2D6",
+                    "textAlign": "left",
+                    "writingDirection": "ltr"
+                  },
+                  "children": "Black"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "View",
+          "props": {
+            "style": {
+              "alignItems": "center",
+              "backgroundColor": "#142D52",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "gap": 10,
+              "paddingHorizontal": 16,
+              "paddingVertical": 12
+            },
+            "children": [
+              {
+                "type": "View",
+                "props": {
+                  "accessibilityElementsHidden": true,
+                  "style": {
+                    "backgroundColor": "#176BFF",
+                    "borderRadius": 3,
+                    "height": 6,
+                    "width": 6
+                  }
+                }
+              },
+              {
+                "type": "Text",
+                "props": {
+                  "style": {
+                    "fontFamily": "Plus Jakarta Sans",
+                    "fontSize": 12,
+                    "fontWeight": "600",
+                    "lineHeight": 16,
+                    "color": "#80B0FF",
+                    "flex": 1,
+                    "textAlign": "left",
+                    "writingDirection": "ltr"
+                  },
+                  "children": "Foreground location tracking may run only while this Parking movement is active, tracking is enabled, and location access is available."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Pressable",
+          "props": {
+            "accessibilityLabel": "Open Parking",
+            "accessibilityRole": "button",
+            "accessibilityState": {
+              "disabled": false,
+              "selected": null
+            },
+            "disabled": false,
+            "hitSlop": {
+              "bottom": 0,
+              "left": 0,
+              "right": 0,
+              "top": 0
+            },
+            "style": {
+              "alignItems": "center",
+              "borderRadius": 16,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+              "paddingVertical": 8,
+              "backgroundColor": "#176BFF",
+              "height": 56
+            },
+            "children": {
+              "type": "View",
+              "props": {
+                "style": {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "flexShrink": 1,
+                  "gap": 6,
+                  "justifyContent": "center"
+                },
+                "children": [
+                  {
+                    "type": "Text",
+                    "props": {
+                      "style": {
+                        "fontFamily": "Plus Jakarta Sans",
+                        "fontSize": 15,
+                        "fontWeight": "600",
+                        "flexShrink": 1,
+                        "textAlign": "center",
+                        "color": "#FFFFFF"
+                      },
+                      "children": "Open Parking"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "type": "Pressable",
+          "props": {
+            "accessibilityLabel": "Guest Access",
+            "accessibilityRole": "button",
+            "style": {
+              "backgroundColor": "#111E30",
+              "borderColor": "#586F8D",
+              "borderRadius": 16,
+              "borderWidth": 1,
+              "gap": 2,
+              "padding": 16
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "style": {
+                    "fontFamily": "Plus Jakarta Sans",
+                    "fontSize": 14,
+                    "fontWeight": "600",
+                    "lineHeight": 20,
+                    "color": "#F3F6FC",
+                    "textAlign": "left",
+                    "writingDirection": "ltr"
+                  },
+                  "children": "Guest Access"
+                }
+              },
+              {
+                "type": "Text",
+                "props": {
+                  "style": {
+                    "fontFamily": "Plus Jakarta Sans",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 16,
+                    "color": "#9AAAC1",
+                    "textAlign": "left",
+                    "writingDirection": "ltr"
+                  },
+                  "children": "Share a secure guest link for this vehicle"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "dark-ar": {
+    "type": "Symbol(react.fragment)",
+    "props": {
+      "children": [
+        {
+          "type": "View",
+          "props": {
+            "accessible": true,
+            "accessibilityLabel": "الركن",
+            "style": {
+              "alignItems": "center",
+              "alignSelf": "flex-start",
+              "borderRadius": 999,
+              "flexDirection": "row",
+              "gap": 6,
+              "paddingHorizontal": 10,
+              "paddingVertical": 4,
+              "backgroundColor": "#362B1A"
+            },
+            "children": [
+              {
+                "type": "View",
+                "props": {
+                  "accessible": false,
+                  "style": {
+                    "borderRadius": 999,
+                    "height": 6,
+                    "width": 6,
+                    "backgroundColor": "#F2BC67"
+                  }
+                }
+              },
+              {
+                "type": "Text",
+                "props": {
+                  "accessible": false,
+                  "style": {
+                    "fontFamily": "Plus Jakarta Sans",
+                    "fontSize": 10,
+                    "fontWeight": "700",
+                    "letterSpacing": 0.5,
+                    "color": "#F2BC67",
+                    "textAlign": "right",
+                    "writingDirection": "rtl"
+                  },
+                  "children": "الركن"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "View",
+          "props": {
+            "accessible": true,
+            "accessibilityLabel": "Toyota Camry, DEMO 310",
+            "style": {
+              "backgroundColor": "#111E30",
+              "borderColor": "#586F8D",
+              "borderRadius": 16,
+              "borderWidth": 1,
+              "gap": 6,
+              "padding": 16
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "style": {
+                    "fontFamily": "Space Grotesk",
+                    "fontSize": 26,
+                    "fontWeight": "700",
+                    "lineHeight": 32.5,
+                    "color": "#F3F6FC",
+                    "textAlign": "right",
+                    "writingDirection": "rtl"
+                  },
+                  "children": "Toyota Camry"
+                }
+              },
+              {
+                "type": "Text",
+                "props": {
+                  "style": {
+                    "fontFamily": "Plus Jakarta Sans",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 20,
+                    "color": "#B5C2D6",
+                    "textAlign": "left",
+                    "writingDirection": "ltr"
+                  },
+                  "children": "DEMO 310"
+                }
+              },
+              {
+                "type": "Text",
+                "props": {
+                  "style": {
+                    "fontFamily": "Plus Jakarta Sans",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 20,
+                    "color": "#B5C2D6",
+                    "textAlign": "right",
+                    "writingDirection": "rtl"
+                  },
+                  "children": "Black"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "View",
+          "props": {
+            "style": {
+              "alignItems": "center",
+              "backgroundColor": "#142D52",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "gap": 10,
+              "paddingHorizontal": 16,
+              "paddingVertical": 12
+            },
+            "children": [
+              {
+                "type": "View",
+                "props": {
+                  "accessibilityElementsHidden": true,
+                  "style": {
+                    "backgroundColor": "#176BFF",
+                    "borderRadius": 3,
+                    "height": 6,
+                    "width": 6
+                  }
+                }
+              },
+              {
+                "type": "Text",
+                "props": {
+                  "style": {
+                    "fontFamily": "Plus Jakarta Sans",
+                    "fontSize": 12,
+                    "fontWeight": "600",
+                    "lineHeight": 16,
+                    "color": "#80B0FF",
+                    "flex": 1,
+                    "textAlign": "right",
+                    "writingDirection": "rtl"
+                  },
+                  "children": "قد يعمل تتبّع الموقع في الواجهة الأمامية فقط أثناء حركة الاصطفاف الفعّالة، وعندما يكون التتبّع مفعّلًا وتتوفر صلاحية الموقع."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Pressable",
+          "props": {
+            "accessibilityLabel": "فتح مهمة الصف",
+            "accessibilityRole": "button",
+            "accessibilityState": {
+              "disabled": false,
+              "selected": null
+            },
+            "disabled": false,
+            "hitSlop": {
+              "bottom": 0,
+              "left": 0,
+              "right": 0,
+              "top": 0
+            },
+            "style": {
+              "alignItems": "center",
+              "borderRadius": 16,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+              "paddingVertical": 8,
+              "backgroundColor": "#176BFF",
+              "height": 56
+            },
+            "children": {
+              "type": "View",
+              "props": {
+                "style": {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "flexShrink": 1,
+                  "gap": 6,
+                  "justifyContent": "center"
+                },
+                "children": [
+                  {
+                    "type": "Text",
+                    "props": {
+                      "style": {
+                        "fontFamily": "Plus Jakarta Sans",
+                        "fontSize": 15,
+                        "fontWeight": "600",
+                        "flexShrink": 1,
+                        "textAlign": "center",
+                        "color": "#FFFFFF"
+                      },
+                      "children": "فتح مهمة الصف"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "type": "Pressable",
+          "props": {
+            "accessibilityLabel": "وصول الضيف",
+            "accessibilityRole": "button",
+            "style": {
+              "backgroundColor": "#111E30",
+              "borderColor": "#586F8D",
+              "borderRadius": 16,
+              "borderWidth": 1,
+              "gap": 2,
+              "padding": 16
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "style": {
+                    "fontFamily": "Plus Jakarta Sans",
+                    "fontSize": 14,
+                    "fontWeight": "600",
+                    "lineHeight": 20,
+                    "color": "#F3F6FC",
+                    "textAlign": "right",
+                    "writingDirection": "rtl"
+                  },
+                  "children": "وصول الضيف"
+                }
+              },
+              {
+                "type": "Text",
+                "props": {
+                  "style": {
+                    "fontFamily": "Plus Jakarta Sans",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 16,
+                    "color": "#9AAAC1",
+                    "textAlign": "right",
+                    "writingDirection": "rtl"
+                  },
+                  "children": "شارك رابط ضيف آمن لهذه المركبة"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

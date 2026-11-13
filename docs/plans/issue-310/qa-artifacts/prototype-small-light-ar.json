@@ -1,0 +1,14 @@
+{
+  "file": "prototype-small-light-ar.png",
+  "mode": "prototype",
+  "viewport": "small",
+  "locale": "ar",
+  "theme": "light",
+  "demoState": "default",
+  "serial": "emulator-5580",
+  "sourceBlob": "b7c0e8ad3863cc04e14edaa7940086150c62331e",
+  "wmSize": "Physical size: 1080x2400\r\nOverride size: 640x1136",
+  "wmDensity": "Physical density: 420\r\nOverride density: 320",
+  "sha256": "0a2f1c83b5d47af23c704701513c399a6f5d7d742c259bba38bb5c52204dd79a",
+  "controls": []
+}

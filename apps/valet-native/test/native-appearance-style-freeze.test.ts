@@ -15,15 +15,28 @@ describe("pushed #226 appearance geometry/color baseline", () => {
       string,
       unknown
     >;
-    expect(Object.keys(sheets).sort()).toEqual(Object.keys(baseline).sort());
+    // Issue #310 explicitly permits this one new fixture control. The original
+    // baseline is unchanged; every original style remains compared below.
+    const addedControl =
+      "prototypes/whatsapp/native-whatsapp-prototype-button.tsx:whatsAppPrototypeStyles";
+    expect(
+      Object.keys(sheets)
+        .filter((name) => name !== addedControl)
+        .sort(),
+    ).toEqual(Object.keys(baseline).sort());
     for (const [name, sheet] of Object.entries(sheets)) {
       const themed = sheet as { light?: unknown; dark?: unknown };
       const light = themed.light ?? sheet;
-      const normalized = name === "shift/native-shift-diagnostics-card.tsx:styles"
-        ? Object.fromEntries(Object.entries(light as Record<string, unknown>)
-            .filter(([key]) => key !== "pinned" && key !== "sectionTitle"))
-        : light;
-      expect(normalized, name).toEqual(baseline[name]);
+      const normalized =
+        name === "shift/native-shift-diagnostics-card.tsx:styles"
+          ? Object.fromEntries(
+              Object.entries(light as Record<string, unknown>).filter(
+                ([key]) => key !== "pinned" && key !== "sectionTitle",
+              ),
+            )
+          : light;
+      if (name !== addedControl)
+        expect(normalized, name).toEqual(baseline[name]);
       if (themed.dark)
         expect(geometry(themed.dark), name).toEqual(geometry(light));
     }

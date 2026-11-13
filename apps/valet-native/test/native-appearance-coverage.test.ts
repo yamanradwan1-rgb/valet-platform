@@ -8,6 +8,8 @@ const fixedColors = new Set([
   "appearance/employee-palette.ts", // Only semantic source of theme colors.
   "employee-ui/employee-tokens.ts", // Immutable historical design constants.
   "guest-access/native-guest-access-qr.tsx", // QR black/white quiet zone.
+  // Issue #310 Owner scope: only the isolated new WhatsApp control palette.
+  "prototypes/whatsapp/native-whatsapp-prototype-palette.ts",
 ]);
 const literalTokenConsumers = new Set([
   "check-in/native-plate-roi-viewport.tsx", // White camera ROI + navy shadow.

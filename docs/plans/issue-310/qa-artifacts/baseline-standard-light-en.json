@@ -1,0 +1,14 @@
+{
+  "file": "baseline-standard-light-en.png",
+  "mode": "baseline",
+  "viewport": "standard",
+  "locale": "en",
+  "theme": "light",
+  "demoState": "default",
+  "serial": "emulator-5580",
+  "sourceBlob": "e04f82eb5882573430c9df0bfe5190fb74fb6bd9",
+  "wmSize": "Physical size: 1080x2400\r\nOverride size: 780x1688",
+  "wmDensity": "Physical density: 420\r\nOverride density: 320",
+  "sha256": "bb332f270b7f176c5586c0abb4c4b36dad1e36bd6e91a8b4e28de9bfa8a6c471",
+  "controls": []
+}

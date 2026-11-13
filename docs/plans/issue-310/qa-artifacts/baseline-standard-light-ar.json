@@ -1,0 +1,14 @@
+{
+  "file": "baseline-standard-light-ar.png",
+  "mode": "baseline",
+  "viewport": "standard",
+  "locale": "ar",
+  "theme": "light",
+  "demoState": "default",
+  "serial": "emulator-5580",
+  "sourceBlob": "e04f82eb5882573430c9df0bfe5190fb74fb6bd9",
+  "wmSize": "Physical size: 1080x2400\r\nOverride size: 780x1688",
+  "wmDensity": "Physical density: 420\r\nOverride density: 320",
+  "sha256": "26f49425980e1b1c14fe7a41bcb5503e80708a5646bee21074d0f5a09b647453",
+  "controls": []
+}

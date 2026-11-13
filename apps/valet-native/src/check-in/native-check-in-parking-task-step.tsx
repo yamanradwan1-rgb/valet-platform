@@ -2,6 +2,7 @@ import { createEmployeeStyles } from "../appearance/employee-themed-styles";
 import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { Pressable, Text, View } from "react-native";
 import type { EmployeeCheckInSnapshot } from "@valet/employee-client";
+import type { ReactNode } from "react";
 
 import type { NativeCheckInCopy } from "./native-check-in-copy";
 import {
@@ -32,6 +33,7 @@ export function NativeCheckInParkingTaskStep({
   snapshot,
   starting,
   textAlign,
+  whatsAppPrototype,
 }: {
   readonly copy: NativeCheckInCopy;
   readonly error: boolean;
@@ -41,6 +43,8 @@ export function NativeCheckInParkingTaskStep({
   readonly snapshot: EmployeeCheckInSnapshot;
   readonly starting: boolean;
   readonly textAlign: NativeTextAlign;
+  /** Only an isolated development fixture supplies this presentation slot. */
+  readonly whatsAppPrototype?: ReactNode;
 }) {
   const styles = useEmployeeStyles(nativeCheckInParkingTaskStylesTheme);
 
@@ -100,6 +104,9 @@ export function NativeCheckInParkingTaskStep({
           </Text>
         </Pressable>
       ) : null}
+      {whatsAppPrototype && sessionId && onOpenGuestAccess && __DEV__
+        ? whatsAppPrototype
+        : null}
     </>
   );
 }

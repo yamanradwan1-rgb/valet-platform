@@ -1,0 +1,23 @@
+{
+  "file": "variant-standard-light-en-queued.png",
+  "mode": "variant",
+  "viewport": "standard",
+  "locale": "en",
+  "theme": "light",
+  "demoState": "queued",
+  "serial": "emulator-5580",
+  "sourceBlob": "b7c0e8ad3863cc04e14edaa7940086150c62331e",
+  "wmSize": "Physical size: 1080x2400\r\nOverride size: 780x1688",
+  "wmDensity": "Physical density: 420\r\nOverride density: 320",
+  "sha256": "05e937da089ec3b168daa296df25fd2eb2943166798319b01a80b09a9626de4d",
+  "controls": [
+    {
+      "resource-id": "whatsapp-prototype-button",
+      "text": "",
+      "content-desc": "WhatsApp · Demo · Queued by VAYLET",
+      "bounds": "[40,1223][740,1335]",
+      "enabled": "true",
+      "clickable": "true"
+    }
+  ]
+}
