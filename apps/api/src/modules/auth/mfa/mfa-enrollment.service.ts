@@ -10,6 +10,7 @@ import {
   STAFF_SESSION_CONTEXT_RESOLVER,
   type StaffSessionContextResolver,
 } from "../staff-session-context";
+import { requireRequestBearerPossession } from "../staff-auth-vap1-bearer";
 import { MfaAntiAbuse } from "./mfa-anti-abuse";
 import {
   MfaEnrollmentNotAvailableError,
@@ -57,6 +58,7 @@ export class MfaEnrollmentService {
 
   async begin(authorization: string | undefined): Promise<MfaProvisioningData> {
     const context = await this.sessions.resolve(authorization);
+    requireRequestBearerPossession(authorization, context);
     return inPostgresTransaction(this.pool, async (transaction) => {
       const session = await lockAndRecheckMfaSession(transaction, context);
       await lockMfaUser(transaction, session.user_id);
@@ -97,6 +99,7 @@ export class MfaEnrollmentService {
     input: { readonly code: string; readonly factorId: string },
   ): Promise<MfaEnrollmentConfirmation> {
     const context = await this.sessions.resolve(authorization);
+    requireRequestBearerPossession(authorization, context);
     const reservation = await this.antiAbuse.reserveTotp(context.userId);
     try {
       return await inPostgresTransaction(this.pool, async (transaction) => {

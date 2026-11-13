@@ -7,6 +7,7 @@ import {
   STAFF_SESSION_CONTEXT_RESOLVER,
   type StaffSessionContextResolver,
 } from "../staff-session-context";
+import { requireRequestBearerPossession } from "../staff-auth-vap1-bearer";
 import { MfaAntiAbuse } from "./mfa-anti-abuse";
 import { MfaVerificationFailedError } from "./mfa-errors";
 import { lockCurrentFactor } from "./mfa-factor-repository";
@@ -43,6 +44,7 @@ export class MfaStepUpService {
     code: string,
   ): Promise<{ readonly state: "ASSURED" }> {
     const context = await this.sessions.resolve(authorization);
+    requireRequestBearerPossession(authorization, context);
     const reservation = await this.antiAbuse.reserveTotp(context.userId);
     try {
       return await inPostgresTransaction(this.pool, async (transaction) => {

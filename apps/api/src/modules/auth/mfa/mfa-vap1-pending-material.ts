@@ -18,11 +18,24 @@ export interface PendingMfaMaterial {
   readonly envelopeDigest: Buffer;
 }
 
+const canonicalUuid = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/;
+const canonicalEnvelope =
+  /^mte1\.[A-Za-z0-9_-]{16}\.[A-Za-z0-9_-]{43}\.[A-Za-z0-9_-]{22}$/;
+
 export function preparePendingMfaMaterial(
   secret: string,
   binding: TotpSecretBinding,
 ): PendingMfaMaterial {
+  if (
+    !canonicalUuid.test(binding.userId) ||
+    !canonicalUuid.test(binding.factorId)
+  ) {
+    throw new MfaSecurityUnavailableError();
+  }
   const protectedSecret = protectTotpSecret(secret, binding);
+  if (!canonicalEnvelope.test(protectedSecret)) {
+    throw new MfaSecurityUnavailableError();
+  }
   const decrypted = unprotectTotpSecret(protectedSecret, binding);
   const originalBytes = Buffer.from(secret, "utf8");
   const decryptedBytes = Buffer.from(decrypted, "utf8");

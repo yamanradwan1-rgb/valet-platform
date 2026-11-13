@@ -74,6 +74,18 @@ describe("A04-create/A07 VAP1 candidate encrypted seed material", () => {
     }
   });
 
+  it("requires canonical persisted User and factor UUID text before creating ciphertext", () => {
+    const secret = generateTotpSecret();
+    for (const changed of [
+      { ...binding, userId: "ABCDEFAB-0000-4000-8000-000000000001" },
+      { ...binding, factorId: "not-a-factor-uuid" },
+    ]) {
+      expect(() => preparePendingMfaMaterial(secret, changed)).toThrow(
+        MfaSecurityUnavailableError,
+      );
+    }
+  });
+
   it("fails closed without the original MFA encryption root", () => {
     delete process.env.MFA_TOTP_ENCRYPTION_KEY_B64URL;
     expect(() =>
