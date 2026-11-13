@@ -102,6 +102,83 @@ HOLD cannot be bypassed by enrollment or a possession check. Preserve membership
 and grant counts across all statuses; do not manufacture sole-company reset
 eligibility by hiding HOLD or inactive rows.
 
+### Concurrent admission fencing — proposed, NOT IMPLEMENTED
+
+The **T0 baseline is immutable provenance evidence**, not a permanently trusted
+snapshot or a cached allow flag. Its signed/reviewed manifest and import digest
+cannot be rewritten. Live permission instead depends on a separate private,
+versioned **current admission** record for each protected object and dependency:
+`(audience/boundary, object class, stable object ID, object version/generation,
+disposition ADMIT|HOLD|RETIRE, admission version, approved case/receipt reference)`.
+The private record is protected from ordinary runtime DML and has a unique
+object identity; every state change appends a separate immutable security
+audit/receipt. T0 initializes all legacy rows, including explicit HOLD/RETIRE;
+an absent row, changed object version, missing required dependency, inconsistent
+generation or older boundary is **HOLD**, not implicit ADMIT. Post-T0 newly
+created protected objects receive admission only as part of an authenticated
+purpose-specific writer's atomic creation/audit; an ordinary SQL INSERT cannot
+manufacture a trusted object. When a protected writer legitimately changes an
+admitted object's authority-relevant version, it must atomically advance its
+private admission binding or deliberately HOLD it; the old ADMIT cannot match a
+newly changed hash, grant, entitlement, factor or code generation.
+
+**SQL locking obligation:** each allowed purpose-specific prepare obtains the
+existing U2 ordered advisory/domain fences, then locks **every relevant private
+admission row alongside its protected object at that object's rank**:
+`FOR SHARE` for an unchanged dependency, but `FOR UPDATE` **from the start** if the
+writer changes that object/admission version; never upgrade S to X late.
+User/hash = rank 09 after user-security rank 03;
+Organization/subscription = rank 10 after required org ranks 05/07;
+memberships/Locations/grants = rank 11; Staff sessions/refresh = rank 12;
+factor/code generation = rank 13; invitation/reset/push = rank 14 when its
+authority is consulted. Complete candidate scopes (including all-status
+memberships and last-admin candidates) must be discovered before this lock
+prefix. In each rank, pair domain and admission rows in one fixed object-key
+and mode order used by **both** operator and authenticated commands; sort and
+deduplicate per the U2 contract. A newly discovered earlier-rank dependency
+requires rollback and fresh discovery, **never** a late lock
+upgrade or rank reversal. The same corresponding rank and deterministic
+object-key order are mandatory for an operator changing an admission record.
+No separate late-acquired admission lock class may bypass the U2 rank graph;
+exact SQL schema, row pairing, lock modes and negative SQL-access proofs remain
+owned by S1/U2, not asserted implemented here.
+
+**Double-check across proof:** prepare requires `ADMIT` for every capability-
+required object, checks exact immutable object version/generation and live
+admission version, and binds the versioned dependency set to its one-transaction
+challenge. The selected `FOR SHARE`/`FOR UPDATE` admission locks remain held on
+the **same backend** through signed execute and COMMIT. Execute must independently re-read and
+recheck each disposition/version, current business predicate, case-sensitive
+tenant/role/Location scope and current admission boundary **under those locks**
+immediately before protected effects (including the separate post-wait time
+check). A valid MAC/signed proof, active session, fresh TOTP or earlier prepare
+is **not** authority if any required record is HOLD/RETIRE or has changed.
+Neither cached decisions nor request/body-supplied admission IDs are evidence.
+On disagreement, rollback with a non-disclosing failure and no business/audit
+side effect. Only accepted replay reconciliation may return pre-existing safe
+nonsecret receipt facts after current authorization/admission checks. Protected
+read paths without a signed mutation challenge (e.g. Management reads) must
+recheck current admission state and scope rather than stale caches; a HOLD
+committed before a **new** read begins denies it. In-flight read/response
+cancellation is best effort under existing contracts, not a last-byte promise.
+
+**Linearization guarantee (to prove in PG17):** an operator `HOLD`/`RETIRE`
+takes `FOR UPDATE` on the same admission row at the same rank, after acquiring
+all needed earlier domain locks. If a protected command locked `FOR SHARE`
+first, the operator waits for that command to COMMIT/ROLLBACK **before HOLD
+can COMMIT**; that earlier completed effect is not undone retroactively. If
+HOLD commits first, prepare/execute under a later lock sees HOLD and rejects,
+even with a genuinely signed proof issued earlier. No protected effect may
+commit **after a confirmed HOLD COMMIT** based on the prior ADMIT. An uncertain
+operator COMMIT must be reconciled from the private current state/receipt; it
+cannot be treated as an aborted HOLD. A User/credential HOLD also invalidates
+already-issued dependent authentication/session/assurance/push authority in
+the same protected operator transaction (or preserves a fail-closed account
+fence until the full revocation is proven); an Organization/role HOLD stops
+the dependent Management capability on every subsequent guard, without
+rewriting physical-custody history. An entitlement-only HOLD remains strictly
+Management-scoped under DEC-088.
+
 **Scope and noninterference:** A #416 target must still have exactly one global
 OrganizationMembership across **all statuses**, which is in the issuing Admin's
 Company; many Location grants within that same Company are valid. Legacy
@@ -199,6 +276,71 @@ operational control and residual impersonation exposure must be explicit in L1.
 No actual operator, independent contact source, case system or deployment
 capability is attested here.
 
+### Post-T0 ADMIT / HOLD / RETIRE operator mutation protocol — PROPOSED
+
+1. A privileged, **individually attributable** VAYLET operator presents an
+   independently verified recovery/authority case with immutable operation ID,
+   purpose, affected exact objects/versions/generations, Company/tenant scope,
+   evidence and required approval identities. The operator's current authorization
+   must be verified by an isolated controlled trust boundary; a CLI `operatorRef`,
+   peer Company Admin, stale case, database-visible hash or signer invocation
+   cannot authorize a transition. Ordinary API/runtime SQL has no `UPDATE` on
+   private admission and no callable generic admission-upsert/approve function.
+2. `HOLD` may replace `ADMIT` for current evidence loss, revocation or emergency
+   containment; `RETIRE` is **terminal for that identity and generation** and
+   cannot transition back to `ADMIT`. `HOLD -> ADMIT` requires a **new** approved
+   independently verified case and exact unchanged or newly repaired object
+   version; never reuse the old approval from T0. `HOLD -> RETIRE` uses verified
+   controlled retirement. Reenrollment/reissuance after RETIRE gets a **new**
+   factor/code/credential identity or generation and a fresh independently
+   authorized/proof-protected admission, not resurrection of the retired row.
+3. The operator command takes the same U2 rank-01 operation fence and required
+   domain advisory locks, then obtains exact object/domain rows and each paired
+   admission row `FOR UPDATE` at their respective ranks. Hold/retire targeting
+   a User also locks its complete session/refresh/assurance/push descendants in
+   rank order and revokes them atomically before releasing the account fence.
+   Role/Location/Organization/entitlement HOLD locks all implicated authority
+   rows so competing membership and management mutations cannot commit stale
+   privileges; never take an earlier-rank lock after acquiring an admission
+   row. Any newly discovered descendant requires rollback/re-discovery.
+4. Under those locks, compare expected business object version, admission
+   version, current Company ownership and protected case digest; revalidate
+   independent approver/operator authority. Perform a compare-and-swap
+   disposition/version change and relevant revocation, one immutable private
+   operation receipt and correct append-only account/Organization audit in a
+   **single transaction**. Ordinary business/operational event history cannot
+   be rewritten. Duplicate same-ID/same-fingerprint after current authorization
+   returns only safe prior completion; changed fingerprint conflicts. Audit
+   failure rolls back state and revocations. Unknown COMMIT stays pending until
+   fresh privileged receipt/current-state reconciliation, not a blind retry.
+5. Before attempting any **restrictive** `ADMIT -> HOLD/RETIRE` SQL mutation,
+   durably write a versioned **deny intent** to the independently protected
+   outside-backup monotone authority ledger. The pending intent itself must
+   block the affected admission/capability after restore, even if the SQL
+   transaction later rolls back or its COMMIT result is lost. After a confirmed
+   database COMMIT, finalize the ledger with the new admission version and
+   receipt; if either acknowledgement is missing, leave the deny intent active
+   and the capability HOLD pending independent reconciliation. A later
+   `HOLD -> ADMIT` requires a **new** approved case, matching latest ledger
+   generation and an independently durable allow checkpoint: a restored older
+   database must never recover the earlier ADMIT as usable. If a live DB cannot
+   enforce a pending external deny immediately, pause **and drain** affected
+   ingress/protected commands before writing the intent. An unavailable or
+   uncorrelatable ledger is fail closed, **not** permission to commit then hope
+   the ledger catches up. The exact cross-boundary interlock, read/fence
+   integration, SQL signatures and recovery protocol remain S1/U2 design and
+   real infrastructure acceptance work; this describes a required invariant,
+   not an implemented distributed transaction.
+
+Operational case closure must state whether the User/password, ACTIVE factor,
+recovery generation, full all-status memberships, Organization ownership and
+typed entitlement are **each** ADMIT separately; approving one does not lift
+HOLD on any other. Recovery from no phone/no code never confers Company Admin
+MFA assurance by itself. A temporary HOLD is an explicit authorization denial,
+not `User.DISABLED`, a membership deletion, a key return or a physical-custody
+completion; existing safe field/Guest capabilities must retain DEC-088's
+non-commercial safety boundary.
+
 ## L2 proposed drained cutover contract
 
 Authentication downtime affects active field staff too; select a no-active-shift
@@ -232,7 +374,7 @@ collector, independent verifier, target environment/release and disposition
 | Former privileged runner / security owner | Identify **every** historical `MIGRATION_DATABASE_URL`, deployment/CI/manual job, role/secret owner, rotation method, credential consumers, rollback path and revoke/disable confirmation; retain identity-safe proof that old credentials can no longer authenticate. | Unfenced old privileged runner or secret blocks boundary activation and reopening. |
 | New N/R build and operation owner | Signed/reviewed source SHA and immutable build digest for both versions, ABI/schema/U1 key-epoch/admission/receipt compatibility, startup deny rules, scoped new privileged provisioner identity and sealed allowlisted jobs. | A pre-proof binary, mismatched N/R or unready replica is never permitted to serve. |
 | Crypto / observability owner (U1) | Actual signer and SQL verifier custody/injection path, API replica parity, key rotation/retirement authorization, encrypted-at-rest and backup protection, restored secrets, effective private ACLs and synthetic driver/PG/proxy/log/error/cancel canary results. | Missing key provenance, log evidence or retired-key consistency closes protected service; no weak SQL fallback. |
-| Backup/DR owner | Real encrypted backup identity, checksum, snapshot timestamp/LSN if available, schema/roles/grants, WAL/replication availability if **observed**, independent monotone authority ledger or selected HOLD fallback, isolated restore result and observed RPO/RTO. | No verified restore or stale-credential reconciliation means no C0 and no post-restore C6. |
+| Backup/DR owner | Real **consistently captured, encrypted physical PostgreSQL backup** identity/checksum, required WAL/consistency metadata, inclusion of private verifier key material and private admission/receipt rows, recovery-encryption ownership, separate signer/MFA key escrow, independent monotone authority ledger or HOLD fallback, isolated restore and observed RPO/RTO. | No verifiable continuous encryption/custody, restore, admission/key-retirement reconciliation or external ledger means no C0 and no post-restore C6. |
 | Operational Company contact / incident owner | Verified contact route, outage notice, active Shift/Task/vehicle-custody inventory, manual/offline **authorized** continuity procedure, acceptable downtime/data-loss limits, rollback/fix-forward approvals and reachable escalation owners. | If safe custody continuity is infeasible, postpone; never assume Guest routes or paper-ticket recovery. |
 
 Measure the rehearsal's **RTO** from loss of the required service until the
@@ -277,9 +419,9 @@ owner. If source cannot establish a consistent replay boundary, mark RPO
    wrong audience, key epoch or partial admission. A historical pre-proof
    binary is never R, even when the reset flag is OFF. Stage both before C0;
    record rollback traffic switch and exact admissible data contract.
-4. Restore a real encrypted backup into independently attested **isolated**
-   infrastructure with synthetic or authorized sanitized data; apply real
-   ordered migrations and
+4. Restore a real **encrypted physical** PostgreSQL backup into independently
+   attested **isolated** infrastructure with synthetic or authorized sanitized
+   data; apply real ordered migrations and
    updated provisioner; exercise both N and R against final ACL/schema. Re-run
    provisioner twice, verify no weak DML/old EXECUTE/PUBLIC/inherited path
    returns; stale provisioner and stale binary must fail closed before traffic.
@@ -305,22 +447,48 @@ owner. If source cannot establish a consistent replay boundary, mark RPO
    conflict tests, unknown COMMIT and log canaries. All tests here are NOT RUN.
 5. Inventory database version/extensions/topology, effective ownership/grants,
    full migrations including 112 and actual backups/WAL/replication facilities.
-   Take an encrypted full recoverable database backup plus roles/grants,
-   function definitions, deployment/configuration manifests and admission
-   evidence. Record snapshot/LSN if available, consistency boundary, integrity
-   digest, restore target/test, measured RPO/RTO and operator/access controls.
+   **Selected proposed backup chain:** create a consistent **full physical
+   PostgreSQL backup**, including all required WAL for recovery and private
+   SQL verifier `key_bytes`/key-state, challenge, receipt, admission and audit
+   data. Encrypt the physical backup **at capture before any bytes leave the
+   trusted backup host/boundary**, transport it over authenticated encrypted
+   links, store it encrypted with controlled retention/access, and keep its
+   required decryption/wrapping credentials under independent escrow and
+   operator separation. An encrypted physical backup *does contain the usable
+   symmetric HMAC verifier material inside its decrypted PostgreSQL pages*;
+   the security guarantee is **continuous encrypted custody**, not an
+   impossible assertion that this key is absent from a full backup. Never
+   stage an unencrypted physical image, `pg_dump`, intermediary file, archive,
+   spool, WAL copy, debug artifact, or restore export outside the attested
+   private decryption boundary. Back up role/grant definitions and configuration
+   metadata without exposing login secrets, and separately preserve immutable
+   operator/release evidence. Record backup identity, consistency timestamp/LSN,
+   WAL range, digest, restoration target, escrow holders, tested secret access,
+   measured RPO/RTO and independent verifier sign-off. An unverified capture
+   transport or encryption boundary means **HOLD**, not permission to fall back
+   to an unencrypted logical dump. No provider or physical-backup capability is
+   claimed to exist in this repository.
    Restore an **older** snapshot in isolated infrastructure and demonstrate
    post-snapshot MFA code consumption, accepted TOTP steps, session revocation,
-   role/entitlement change, retired key and superseded invitation/reset links
-   are reconciled from a trustworthy outside-backup monotone source **or**
+   role/entitlement/admission HOLD, retired key and superseded invitation/reset
+   links are reconciled from a trustworthy outside-backup monotone source **or**
    conservatively held/revoked before admitting traffic. Do not assume PITR,
    replicas or vendor snapshots exist. If they do not, arrange an
    offline consistent backup and approve its longer downtime.
-6. Separately back up U1 verifier encrypted material/key registry and recovery
-   wrapping secrets under approved independent custody; include current MFA
-   keys needed to preserve admitted factors. Never place plaintext keys in DB
-   dumps, artifact manifests, terminal arguments or repository. Verify recovery
-   can restore key material without giving runtime migration authority.
+6. Separately escrow the **API signer** copy of the U1 symmetric root, backup
+   decryption/wrapping authority and the existing MFA encryption/recovery keys
+   needed to preserve admitted factors. The physical DB backup already includes
+   the SQL verifier root's usable bytes under encryption; independent escrow
+   must be checked against the restored audience/key ID/epoch without returning
+   plaintext to ordinary runtime SQL, log output or debug interfaces. In the
+   isolated restore, decrypt only inside an approved controlled environment,
+   apply externally retained key-retirement and admission-deny checkpoints
+   **before any API/worker readiness**, and deny restored old/stale keys and
+   credentials. Exercise canaries for successful recovery, failure, cancel,
+   error/logging, temporary files and crash dumps; prove no unencrypted secret
+   artifact escapes the restored host/verified custody boundary. If a key is
+   retired or independently escrowed identity cannot match, remain HOLD and
+   provision a new approved key/epoch under U1 rather than unretiring a backup.
 7. Provision U1 keys into actual protected app/SQL verifier delivery boundaries
    without printing values; validate identity/audience/key agreement using
    synthetic proof canary. Seal final N/R/migration/provisioner artifacts and
@@ -334,8 +502,8 @@ owner. If source cannot establish a consistent replay boundary, mark RPO
 | C0 pause | **Entry:** authorized window, L1/L2/U1/S1 sign-off, U2 and observed N/R/restore evidence complete. Close auth-sensitive admission at every API/direct ingress; pause protected management/onboarding/activation/push registration and auth-writing jobs/tools, not only login. Stop old processes and all automatic restart paths; restrict non-release privileged work. **Exit evidence:** independent inventory reconciliation, ingress-deny probe, named hold/abort operator and timestamp. |
 | C1 drain | Wait for every old request/transaction/pool to finish within existing deadlines; inspect authoritative PostgreSQL sessions, prepared transactions, long-running requests and unexpected writers. Only an authorized operator may terminate overdue approved clients, then reconcile unknown outcomes on a new lease. A timeout or failed ROLLBACK never proves COMMIT failed. **Exit evidence:** zero old writers/transactions and independently verified final consistent checkpoint; unexpected client = HOLD. |
 | C2 additive | Apply reviewed **forward-only** U1 key/challenge/receipt/admission/typed-command schema, respecting ordered dependencies and retaining migration 112. Stage N and R without readiness or protected traffic; never mix old and new serving versions. **Exit evidence:** exact applied migration/schema hash, private grants, pending boundary state and no public admission; unknown migration COMMIT = HOLD and reconcile. |
-| C3 boundary | Under complete drain, reconcile/import L1 manifest against exact state, permanently revoke every legacy Staff session/refresh ancestry, disable bound push and clear provider tokens, retire legacy PENDING MFA, install typed authenticated writers, remove old sensitive DML/`EXECUTE` including PUBLIC/inherited/overloaded paths and update final provisioner. **Before activation** rotate/revoke all historic migration/admin secrets, terminate/fence old runner sessions and disable old runner identities/configuration/restarts; permit a newly scoped privileged identity only for approved N/R jobs. Atomically activate one durable admission/grant/key/proof boundary after full counts and receipts match. **Exit evidence:** durable boundary version, manifest digest, terminalization counts, role/function ACL snapshot and credential-fence record; partial/unknown state = HOLD. |
-| C4 readiness | Verify **every** N/R replica's DEC-025 TLS, single-runtime-pool least privilege, installed schema/provisioner/ACL/command signatures, complete admission, active signer/verifier key ID/epoch, retirement ledger and deny-old-binary startup. On isolated C3/C4 rehearsal **before any C6**, prove old credential+old provisioner denial; after release rotation, verify revoked old credential authentication failure without executing old code on reopened production. Run approved N/R provisioner twice with the new privileged identity and prove old DML/`EXECUTE`/PUBLIC/inherited privileges remain denied. Independently check deployed effective `pg_proc` overloads and caller role graph, plus ACL drift fail-closed readiness. **Exit evidence:** signed per-replica parity and privilege matrix; any mismatch = HOLD. |
+| C3 boundary | Under complete drain, reconcile/import the **immutable** T0 L1 manifest and initialize one private versioned current-admission row for **every** authority-bearing object/dependency, including explicit HOLD/RETIRE; missing rows remain untrusted. Permanently revoke every legacy Staff session/refresh ancestry, disable bound push and clear provider tokens, retire legacy PENDING MFA, install typed authenticated writers **with same-rank current-admission locks and prepare/execute rechecks**, remove old sensitive DML/`EXECUTE` including PUBLIC/inherited/overloaded paths and update final provisioner. **Before activation** rotate/revoke all historic migration/admin secrets, terminate/fence old runner sessions and disable old runner identities/configuration/restarts; permit a newly scoped privileged identity only for approved N/R jobs. Atomically activate one durable admission/grant/key/proof boundary after full counts/versions and outside-backup security checkpoint reconcile. **Exit evidence:** durable boundary version, manifest digest, admission disposition/version counts, terminalization receipts, ACL snapshot and credential-fence record; partial/unknown state = HOLD. |
+| C4 readiness | Verify **every** N/R replica's DEC-025 TLS, single-runtime-pool least privilege, installed schema/provisioner/ACL/command signatures, complete admission, current-admission read/lock/version checks at all U2 entrypoints, active signer/verifier key ID/epoch, independent deny/retirement ledger and deny-old-binary startup. On isolated C3/C4 rehearsal **before any C6**, prove old credential+old provisioner denial; after release rotation, verify revoked old credential authentication failure without executing old code on reopened production. Run approved N/R provisioner twice with the new privileged identity and prove old DML/`EXECUTE`/PUBLIC/inherited privileges remain denied. Independently check deployed effective `pg_proc` overloads, private admission ACLs and caller role graph; prove a signed proof cannot outlive a committed HOLD, with ACL/admission drift fencing readiness. **Exit evidence:** signed per-replica parity and privilege/admission-race matrix; any mismatch = HOLD. |
 | C5 validate | Under paused or strictly controlled synthetic test admission, exercise genuine password/TOTP/recovery, Web/native login/refresh/logout, active admitted manager sensitive MFA, legacy access/refresh denial, HOLD denial, legacy PENDING restart, consumed refresh replay-family revocation, new push registration and delayed old registration denial, controlled operator case and old SQL-writer denial. Compare private receipts, audit, quotas and state under commit/rollback/unknown-COMMIT paths; inspect synthetic markers through app/driver/PG/proxy/trace/error/cancel sinks. **Exit evidence:** per-test result and independent sign-off with zero unexplained secret exposure or security-state mismatch; never impersonate a production User. |
 | C6 reopen | Release commander and independent verifier compare C0–C5 evidence against approved L1/L2 scope, RPO/RTO objectives, operational continuity and abort criteria. Allow **small admitted traffic only to N**, observe authentication/MFA, field-safe reconciliation and ACL/key drift; expand only after defined actual health thresholds. Resume each authorized worker/job after version/role check, keep historical privileged runners and old processes permanently fenced. Record actual outage duration, unresolved HOLD cases and sign-in/pending-enrollment notices. **Exit evidence:** signed reopen checklist and monitored current boundary; failed gate = maintain secure outage or compatible R/fix-forward. |
 
@@ -428,7 +596,8 @@ the external monotone checkpoint cannot track only key retirement. It must
 either durably reconcile post-snapshot consumed MFA recovery codes, accepted
 TOTP steps/generations, revoked User/Staff sessions and refresh lineage,
 terminal push registrations, invitation/reset generations, receipt identities,
-membership/entitlement authority and retired signing-key IDs **or** fail closed
+membership/entitlement authority, **current admission HOLD/RETIRE and versions,
+pending external deny intents**, and retired signing-key IDs **or** fail closed
 for each unprovable object. Prove ledger provenance, completeness, independent
 backup/restore availability, monotone version order and a cutoff covering
 every irreversible action after the restored snapshot. A local restored audit
@@ -447,8 +616,12 @@ authorization. Preserve immutable operational/audit history and reconcile
 unavoidable physical-custody/payment changes with separately authorized domain
 commands, recording actual RPO loss; do not manufacture events to fill a gap.
 Rehearse an **older backup** with post-snapshot consumed code, accepted TOTP,
-revoked session, changed role and superseded reset generation, then verify both
-ledger-complete and ledger-missing/fail-closed outcomes. RPO/RTO targets,
+revoked session, changed role, **committed User/factor/entitlement HOLD and
+externally pending deny intent**, and superseded reset generation, then verify
+both ledger-complete and ledger-missing/fail-closed outcomes. A backup containing
+an old `ADMIT` must remain denied if the outside-backup ledger holds a later
+HOLD/RETIRE, even when the old proof key and DB rows were correctly decrypted.
+RPO/RTO targets,
 measured results and mediated recovery capacity require Owner/operator
 acceptance; no such ledger or restore test is established by the repository.
 
@@ -473,6 +646,15 @@ environment attestations must be verified before implementation/reopen. If the
 Owner declines either L1 or L2, record the declined option and affected
 capabilities as HOLD instead of inferring consent from silence.
 
+L1 acceptance must also explicitly cover the **post-T0 change model**:
+immutable T0 evidence but mutable versioned private admission; immediate
+SQL-enforced and rank-serialized HOLD/RETIRE on new protected decisions,
+independently verified operator-controlled restoration of ADMIT, and a durable
+outside-backup deny checkpoint. These are material release/restore proof
+obligations, not a claim that a working `HOLD` verifier or cross-boundary ledger
+already exists. If its safe lock/ledger interlock cannot be built and tested,
+L1 admission remains blocked and affected capability stays closed.
+
 No acceptance is asserted for L1/L2. External operational evidence is a release
 gate, not an additional architecture-selection exercise. Once these material
 choices and U1/U2 are approved, implementing the exact protected admission and
@@ -482,6 +664,37 @@ activate an operator bypass or the deferred reset API/UI.
 ## Acceptance evidence to collect later
 
 All runtime/deployment tests below are NOT RUN in this design task.
+
+### Required admission versus protected-command concurrency matrix — NOT RUN
+
+Each row is a **real two-connection PostgreSQL 17 test**, not a source-only
+assertion. For both orderings, test A COMMIT, A ROLLBACK, A disconnect before
+COMMIT and A COMMIT with acknowledgement lost. Observe the **actual** blocking
+row/advisory lock with `pg_locks`/`pg_blocking_pids` rather than sleep-based
+timing. Force prepare to sign an otherwise valid purpose-bound proof, delay
+execute against the operator's competing admission mutation, and verify the
+receipt/audit/secret outputs and business state. Command-first may COMMIT only
+**before** HOLD commits; operator-first HOLD must deny both prepare and a
+resumed execute with stale proof. An old proof cannot migrate to a new backend.
+
+| Admission object / competing command | Must prove at each ordering and terminal outcome |
+| --- | --- |
+| User identity, `password_hash` version and User status versus login, global disable and #416 reset | User admission S for read-only authority or X preselected for a changing writer, versus operator X under rank 03/09; no session or reset issuer after confirmed identity/hash HOLD, even after genuine Argon2 verification or MAC. Earlier successful new session is revoked/fenced by subsequently committed User HOLD. `DISABLED` stays disabled; credential repair requires case-based new version. |
+| Organization identity/ownership, all-status memberships, roles, last-admin candidates and Location grants versus CA/LM management, role transfer and #416 issue/status/redeem | Same rank 05/07 then 10/11 admission/domain ordering for all discovered impacted tenants/Locations; HOLD on target or issuer scopes blocks relevant authority and cannot hide other-Organization memberships to satisfy sole-company target. Last-usable-Admin and multi-location LM constraints remain current. |
+| Typed OrganizationSubscription/entitlement versus management read/write and active field/Guest custody completion | Rank 10 subscription admission HOLD blocks only dependent Management capability under DEC-088; never imports the commercial HOLD into field/Guest transition, which still uses its own real User/session/role admission requirements. Company identity HOLD remains a separate security gate. |
+| ACTIVE/PENDING TOTP factor and accepted step versus MFA begin/confirm/step-up and management-sensitive command | Factor rank 13 admission transition serializes with prepared genuine TOTP and session rank 12; after HOLD, no new/retained assurance from the old factor or signed proof. Old PENDING tied to retired session cannot resume; fresh post-T0 exact-session enrollment still works through an authenticated writer. |
+| Recovery-code selector/generation and consumed slot versus self-recovery and code reissue | Factor/code admission and generation lock jointly; confirmed HOLD/RETIRE denies even a valid raw code and previously signed proof. No consumed code or old generation becomes usable, no second raw-code disclosure on retry or unknown COMMIT. |
+| Staff session/refresh lineage and push registration versus refresh/logout/register/confirm/worker send | Session rank 12 and registration rank 14 admission fence; identity HOLD globally revokes dependent session/refresh/push, retains replay-family revocation and clears terminal provider token. Delayed registration/confirmation cannot rebind old session; acknowledge already-sent push limits. |
+| Invitation/reset generation versus activation, #416 issue/redeem and changed membership | Rank 14 invitation/reset admission and rank 02/03/07/09–11 actor/target scope lock; replaced/HOLD generation cannot be redeemed even if the bearer or proof was originally genuine; no secret redisclosure or bypass of current target eligibility. |
+| Controlled case ADMIT/HOLD/RETIRE itself, concurrent second operator and stale SQL caller | Two authorized operators racing expected-admission-version compare-and-swap: exactly one selected state/audit/receipt result; replay is safe, mismatched case conflicts. Current operator authority required for each retry, no runtime DML/`PUBLIC`/old definer bypass, no `RETIRE -> ADMIT` resurrection. Emergency HOLD wins before a subsequent authentication effect; failed audit rolls back and uncertainty stays fenced. |
+| Older snapshot with post-snapshot ADMIT-to-HOLD, RETIRE or uncommitted/unknown deny intent | Restore an **encrypted physical** backup whose private admission record still says ADMIT, restore keys only in isolated custody, replay the independent monotone ledger and keep it denied. Simulate absent/corrupt/out-of-order ledger, retired root, pending deny intent, changed hash/factor/role and missing receipt; do not open traffic until newer state is proven or conservative HOLD/revoke/recovery is applied. |
+
+Also test absent admission rows, duplicate/changed IDs, incomplete all-status
+membership discovery, sorted key reversals, rank-ordered S/X contention and
+old-secret/key mismatch. The verifier must demonstrate no lock inversion with
+the exact U2 rank-01..17 graph, no unbounded wait, no admission-derived
+SQL-only signer oracle and no protected write after confirmed HOLD. A document
+or SQL mock is not this acceptance evidence.
 
 1. Existing-data fixture covers admitted/uncertain User/hash, each role and full
    grant set, active/pending/retired factors, each recovery generation and
