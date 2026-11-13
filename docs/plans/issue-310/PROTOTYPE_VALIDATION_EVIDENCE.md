@@ -9,7 +9,8 @@ Work date: 2026-11-13–14 (Asia/Amman). **Design approval: PENDING OWNER.**
 - Worktree: `D:\kndoom\valet-platform\tmp\issue-310-last-mile-worktree`.
 - Original source/remote: `de338f4da187297aacd0fc7005ece9b6f041fe61`.
 - Plan-only commit: `eeaa522717efd37e3041b7b1e208bddc6394d65f`, normally pushed and independently confirmed with `git ls-remote` before prototype work.
-- Prototype immutable source commit: `2dfbe21e8232b428e566d923e66461278926761d`. All final source checks and the 242-file/1706-test run used this exact source; subsequent delivery evidence updates change documentation only.
+- Initial prototype source/capture commit: `2dfbe21e8232b428e566d923e66461278926761d`, with a 242-file/1706-test PASS.
+- Final prototype source after independent review: `322df3df545dbd8065a3ca2f96adabd9fbabe1be`. The review fix preserves the original appearance across query changes and adds lifecycle regression coverage. The final rerun is recorded below; later delivery updates change documentation only.
 - No PR, merge, production endpoint/schema/credential change, deployment, Meta call or messaging activation is part of this delivery.
 
 ## Exact scope
@@ -96,7 +97,7 @@ Final source validation is recorded before push. No incomplete gate is a PASS. F
 
 | Final command/check | Result |
 |---|---|
-| `pnpm exec vitest run test --maxWorkers=2 --no-file-parallelism` (Native directory) | PASS, **242 files / 1706 tests**, 324.82s, final source |
+| `pnpm exec vitest run test --maxWorkers=2 --no-file-parallelism` (Native directory), initial pushed source | PASS, **242 files / 1706 tests**, 324.82s |
 | `pnpm --filter @valet/valet-native typecheck` | PASS |
 | `pnpm --filter @valet/valet-native lint` | PASS, zero warnings |
 | `pnpm architecture:check` | PASS; existing grandfathered warnings only |
@@ -105,9 +106,27 @@ Final source validation is recorded before push. No incomplete gate is a PASS. F
 | SHA-256 validation of all 27 PNGs against adjacent JSON | PASS |
 | Eight original/candidate RGB comparisons | PASS, each 0 changed original-product pixels with recorded exclusions |
 | Source scope and physical line-count inspection | PASS; exact three existing files touched, new code/test maximum 193 lines |
-| Local Markdown link resolution | PASS, 141 links |
+| Local Markdown link resolution / manifest completeness | PASS, 142 links and all 75 changed files exactly inventoried |
 
 Raw local command logs remain in ignored task scratch (`tmp/issue310-prototype-runtime/`); they contain actual local tool output, not a remote CI record. Source remained fixed during the final runs; subsequent delivery-identity/review updates change documentation only.
+
+## Independent review and correction
+
+The required independent read-only VAYLET Code Review ran **after** remote confirmation of `efa06dd208dc487fbb7a9a2ce6f6cdd0c7a7a352`, comparing original `de338f4d` to that pushed head. It found no BLOCKER/MAJOR scope, business-security, privacy, database or architecture defect. The reviewer independently reran the original 14 focused tests, all 27 image hashes and all eight pixel comparisons, and inspected the 242-file/1706-test log.
+
+One MINOR defect was identified: the query-derived React key remounted the fixture on variant changes, allowing its original-theme ref to capture the previous preview theme instead of the pre-preview preference. This contradicted the promised restoration behavior. Final source `322df3d` removes that key, retains one preview-session identity, waits until the existing appearance owner is restored, and resets/cancels only local demonstration work when finite preview choices change. No shared appearance implementation, UI styles or business behavior changed.
+
+Regression tests were observed RED before this fix (route remount, readiness and stale demo work), then **16/16 focused tests PASS**. The new lifecycle regression exercises the actual fixture component hooks through the repository-style mock harness and the real `NativeAppearanceOwner`, including persisted preference after variant/theme changes and exit; it is not a physical device lifecycle measurement. The original 27 captures predate this lifecycle-only correction. Their target component blob, styling and presentation remain unchanged; they must not be represented as a fresh post-fix device capture.
+
+The first fix used synchronous state reset inside an effect; ESLint correctly rejected it, along with one unused test parameter. It was replaced with a guarded render-phase adjustment when the finite preview choice changes, keeping timer cancellation in the effect. No lint rule was disabled. The then-running full rerun was stopped after that lint failure rather than claimed as a pass. The corrected source passed scoped lint and all 16 focused tests before its final full rerun.
+
+The next default-timeout rerun encountered the existing render-matrix test's 5s limit (5092ms) under shared-host load and was stopped. Final validation uses a **15s command-line test timeout**, retaining all assertions, all files and existing checked-in test timeouts/configuration. This changes only the local test invocation, not repository or product behavior. Corrected-source full Native lint, typecheck and architecture checks passed; no rules or architecture baselines were weakened.
+
+The independent follow-up inspected `efa06dd2..322df3d`, confirmed the MINOR resolved with no additional actionable findings, and independently reran **4 files / 16 tests PASS**. The final remote confirmation remains a separate delivery check.
+
+**Final corrected-source full run:** `pnpm exec vitest run test --maxWorkers=2 --no-file-parallelism --testTimeout=15000` from the Native directory: **PASS, 243 files / 1708 tests, 218.09s**, exit 0, source `322df3df545dbd8065a3ca2f96adabd9fbabe1be`. Raw output: ignored `tmp/issue310-prototype-runtime/delivery-final-native-vitest.log`. Final full Native lint/typecheck, architecture, scoped formatting and `git diff --check` also passed. Only this documentation/file-inventory update follows that tested source. Normal fast-forward push and independent remote confirmation are recorded in the final delivery report; no source rework, force-push, PR, merge, deployment or messaging activation follows.
+
+The independent initial skill verdict was `BLOCK MERGE`: fix the minor fixture issue and retain the broader unfulfilled Owner/CI/production gates. That is distinct from completion of this authorized prototype delivery. No merge is requested or authorized. Post-fix pushed review disposition is recorded after the follow-up review.
 
 Self-review: the real source diff adds seven lines to the actual Parking Task component and removes none. Shared UI/theme/locale/navigation/workflow/Guest Access source, dependency files, backend/contracts/schema/migrations and production activation controls have no task diff. The two existing test edits allow exactly the new palette path and stylesheet identity while retaining every original baseline comparison. New authored code/test files remain below 300 physical lines. No existing baseline snapshot was rewritten; the new issue-specific baseline was captured from original source. No protected business mutation was introduced, so authorization-before-mutation, persistence/idempotency/audit writer and database gates are unchanged rather than newly qualified.
 

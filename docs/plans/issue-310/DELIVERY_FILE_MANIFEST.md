@@ -5,6 +5,7 @@ Every task-changed file relative to original `de338f4da187297aacd0fc7005ece9b6f0
 | File | Reason |
 |---|---|
 | [apps/valet-native/app/whatsapp-prototype.tsx](../../../apps/valet-native/app/whatsapp-prototype.tsx) | Development-only finite fixture route; release returns null. |
+| [apps/valet-native/test/issue-310-whatsapp-lifecycle.test.tsx](../../../apps/valet-native/test/issue-310-whatsapp-lifecycle.test.tsx) | Independent-review regression: appearance readiness, persistent original theme across query changes/exit, and cancellation of stale demo timers. |
 | [apps/valet-native/src/check-in/native-check-in-parking-task-step.tsx](../../../apps/valet-native/src/check-in/native-check-in-parking-task-step.tsx) | Optional development-only slot after original Guest Access; seven additions, no removals. |
 | [apps/valet-native/src/prototypes/whatsapp/native-whatsapp-prototype-button.tsx](../../../apps/valet-native/src/prototypes/whatsapp/native-whatsapp-prototype-button.tsx) | Isolated fixture presentation: button. No backend/client action. |
 | [apps/valet-native/src/prototypes/whatsapp/native-whatsapp-prototype-fixture.ts](../../../apps/valet-native/src/prototypes/whatsapp/native-whatsapp-prototype-fixture.ts) | Isolated fixture presentation: fixture. No backend/client action. |
