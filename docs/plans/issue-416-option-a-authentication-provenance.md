@@ -345,15 +345,56 @@ actor/scope/policy maps and generic `auth_command_challenge(text,uuid)` are
 forbidden even when they appear schema-validated. U2 owns exact callable
 signatures, transitive writers and old-function/overload denial.
 
-MAC comparison must reject non-32-byte input with uniform generic failure,
-then compare **all 32 bytes without early exit** in a reviewed fixed-length
-bytewise XOR/OR accumulator (or independently verified native constant-time
-primitive); ordinary PostgreSQL `bytea =`, `text =` or a prefix comparison is
-not claimed constant-time. Ensure errors/paths do not expose whether MAC,
-actor, membership, challenge, key or clock check failed. PL/pgSQL and database
-execution timing are **not proven constant-time** merely by the loop: require
-independent implementation/side-channel review and timing tests. A DB owner
-with key access can compute MACs; SQL-only runtime cannot.
+**Proposed verifier MAC-comparison primitive (S1 engineering choice):** after
+computing the expected 32-byte `pgcrypto.hmac(...)`, use a *private*, audited
+PL/pgSQL fixed-iteration XOR/OR accumulator, **not** PostgreSQL `bytea =`,
+`text =`, prefix matching or a later unspecified comparison library. The
+following is **implementation pseudocode for the private verifier**, not an
+installed SQL function, executable migration or proof of constant-time
+execution. Both operands are `bytea`; `supplied` is the untrusted MAC and
+`expected` is the privately computed MAC:
+
+```plpgsql
+-- Private verifier-local logic; DO NOT expose as a runtime-callable function.
+IF expected IS NULL OR supplied IS NULL
+   OR pg_catalog.octet_length(expected) <> 32
+   OR pg_catalog.octet_length(supplied) <> 32 THEN
+  RETURN FALSE; -- only public-format/null/length rejection, before byte work
+END IF;
+diff := 0; -- integer (32-bit), nonnull, local to the verifier
+FOR i IN 0..31 LOOP
+  diff := diff | (
+    pg_catalog.get_byte(expected, i) # pg_catalog.get_byte(supplied, i)
+  );
+END LOOP;
+RETURN diff = 0; -- sole comparison outcome; no byte-dependent early exit
+```
+
+PostgreSQL 17 specifies `get_byte(bytea, integer)` and integer bitwise XOR
+`#` / OR `|` (see official [binary-string functions](https://www.postgresql.org/docs/17/functions-binarystring.html)
+and [integer operators](https://www.postgresql.org/docs/17/functions-math.html)).
+With valid 32-byte operands the pseudocode evaluates **all 32 positions**
+regardless of which byte differs; a mismatch in the first, middle or last
+byte cannot change the *specified iteration count*. Length/type rejection
+may take a different path before the loop; malformed MACs receive the same
+non-disclosing external error and no diagnostic differentiation.
+
+**Crucial limit:** fixed work at the source level does **not** guarantee
+constant-time at PostgreSQL executor, PL/pgSQL interpreter, memory/cache,
+driver, network or hardware level. The PostgreSQL `bytea =` operator has no
+verified constant-time security contract, and neither does this PL/pgSQL
+routine without measurement/review. Before release, independently inspect
+actual SQL definitions, function/search-path/role ACLs and all error paths;
+verify 32 iterations under valid MAC inputs, 0/first/middle/last/all-byte
+differences, 0/31/32/33-byte and NULL inputs, and compare timing under
+controlled repeated PG17 tests without claiming formal side-channel proof.
+Uniform external errors must not disclose whether MAC, actor, membership,
+challenge, key or clock predicates failed. The comparator remains entirely
+inside the approved `SECURITY DEFINER` verifier with **no** direct runtime,
+PUBLIC or inherited-role EXECUTE access. A privileged DB/key holder can
+compute MACs; the SQL-only runtime cannot. U1 must reconcile its older
+"compare primitive TBD" with this specific **proposed** choice; U1 custody,
+extension installation and independent timing/security acceptance remain OPEN.
 
 ### Per-ceremony non-oracle signer guards (source-grounded)
 
