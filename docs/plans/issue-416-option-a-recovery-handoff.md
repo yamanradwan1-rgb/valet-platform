@@ -13,10 +13,10 @@ authentication, reset, migration, runtime-grant, deployment or PR work.
 | Legacy original | `2323544bc41be2b99bc2f79dd25910e6ad5f30a7`, `docs/416-legacy-closure`, `D:/v416ops` |
 | Lock original | `29cfadcb9b64d4fb96787379765c16ededef84d8`, `docs/416-lock-closure`, `D:/v416locks` |
 | Commit dependency | Both original commits have the same parent, previous feature HEAD `62d0a3d3`; both add one distinct Markdown file, no source or migration |
-| Recovered legacy integration | `06cc29e0` (`git cherry-pick -x`); original cutover file bytes identical after integration |
-| Recovered lock integration | `940cc907` (`git cherry-pick -x`); original locks file bytes identical after integration |
-| U1 original / integrated | `7ff44a115a15a75c77f838ff343aadd0948b77e3` / `1682c5ab`; only `docs/plans/issue-416-option-a-key-custody.md`, source-backed 237-line contract, original bytes retained |
-| U2 original / integrated | `e78638bb90fa2a83cea586124951ec0ef734844d` / `327b2f04`; only `docs/plans/issue-416-option-a-writer-inventory.md`, source-backed command/writer/SQL inventory; integration changed three Codex-local lock document path mentions to repo-relative paths for portability |
+| Recovered legacy integration | `06cc29e0` (`git cherry-pick -x`); original cutover file bytes identical at replay checkpoint; later source-reviewed release/DR corrections are separately committed |
+| Recovered lock integration | `940cc907` (`git cherry-pick -x`); original locks file bytes identical at replay checkpoint; later source-reviewed ordering/activation/anti-abuse corrections are separately committed |
+| U1 original / integrated | `7ff44a115a15a75c77f838ff343aadd0948b77e3` / `1682c5ab`; only `docs/plans/issue-416-option-a-key-custody.md` at replay; later activation-fencing clarification tracked separately |
+| U2 original / integrated | `e78638bb90fa2a83cea586124951ec0ef734844d` / `327b2f04`; only `docs/plans/issue-416-option-a-writer-inventory.md` at replay; later three path portability changes and reviewer corrections tracked separately |
 | Other pre-existing draft | `D:/v416writers` contains an untracked `issue-416-option-a-writer-sql-index.md`; leave that separate worktree/draft unchanged and treat as evidence only after inspection |
 | Unrelated local state | Root `main` contains two unrelated untracked runbooks; preserve unchanged |
 
@@ -30,7 +30,13 @@ now integrated as documentation. Their conclusions are
 [Auth](issue-416-option-a-review-auth.md),
 [SQL](issue-416-option-a-review-sql.md) and
 [Ops](issue-416-option-a-review-ops.md) reviews are historical reviews of an
-earlier draft. A new review must cite the final revised aggregate commit.
+earlier draft. Three independent readers reviewed pinned commit
+`944ae18c0c232551a909306a39fcd852a8747ace`; the separate
+[independent final review/disposition ledger](issue-416-option-a-final-independent-review.md)
+records each BLOCKER/MAJOR/MINOR, actual evidence, corrective documentation and
+remaining unexecuted gates. The final correction commit is tracked in Git and
+requires a read-only delta re-review; review of the earlier SHA is not
+automatically evidence for later code or deployment.
 
 ## Scope and security invariant
 
@@ -121,13 +127,14 @@ naming/file splits are engineering decisions, not additional Owner votes.
 | Boundary | Current evidence |
 | --- | --- |
 | Original commits and base | PASS — Git object existence, common parent, file-only diffs verified |
-| Cherry-pick preservation | PASS — no diff of either original file against integrated tree |
+| Cherry-pick preservation | PASS — original files were byte-identical at replay checkpoints `06cc29e0`/`940cc907` to source commits; later deliberate reviewer corrections are visible in subsequent history |
 | U1/U2 docs integration | PASS — reviewed worker changes, each single intended file, local commits integrated with original provenance, no runtime effect |
 | Documentation consistency | Source/document inspection; static planning review and final independent disposition recorded separately |
 | New proof, MFA and SQL provenance | **NOT RUN** — no authentication or database execution authorized |
 | Production secret/deployment custody | **BLOCKED** — operator/runtime environment not attested |
 | PostgreSQL 17 lock and cutover tests | **NOT RUN** — future executable acceptance only |
-| New independent final reviews | **PENDING** — historical draft reviews are not aggregate approval |
+| Independent Auth/SQL/Ops design reviews | PASS (source-only reviews completed at pinned `944ae18c`); all three identify OPEN implementation/Owner/deployment blockers; see independent review ledger and subsequent delta review |
+| Source-documented protocol corrections | PASS (documentation-only) — typed prepare, promotion interlock, onboarding anti-abuse two-lease ownership, 15th race specification, provisioner credential fencing, older-backup monotone/HOLD; runtime proof still NOT RUN |
 | Reset API/UI and production rollout | **NOT RUN / NOT AUTHORIZED** |
 
 Do not label the design implementation-ready based on prose, previously

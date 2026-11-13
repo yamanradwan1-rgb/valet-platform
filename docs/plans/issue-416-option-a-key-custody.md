@@ -172,6 +172,18 @@ proof TTL on rotation, and never reinterpret a retired ID as active.
    `ACTIVE_SIGNING`, and the former active version becomes `VERIFY_ONLY`.
    New signing must stop under the old ID. Mixed replicas and verification
    gaps fail closed; staging success alone is not proof every replica switched.
+   **PROPOSED activation interlock:** after attesting all authorized signer
+   replicas, the privileged operator locks old/new key records exclusively in
+   deterministic key-ID order and atomically commits the active key ID and
+   immutable promotion epoch. New prepare calls select only the committed
+   `ACTIVE_SIGNING` ID under their rank-15 SHARE lock and bind that epoch to the
+   transaction challenge. Existing old-key prepares hold SHARE through their
+   command COMMIT, so promotion waits; no stale replica may mint a new old-key
+   challenge after promotion. A replica unaware of the new key ID/epoch fails
+   closed. `VERIFY_ONLY` cannot admit new prepares and any old-key execution
+   requires the exact pre-promotion transaction challenge and valid expiry.
+   Test promotion vs prepare/sign/execute, delayed/stale replica, rollback and
+   lost promotion COMMIT; this is a proposed invariant, not executed proof.
 3. **Drain and retire:** stop old-key signing before starting the old-key
    verification-only window. Keep verification available for **at least the
    enforced proof lifetime plus the explicitly permitted clock skew and

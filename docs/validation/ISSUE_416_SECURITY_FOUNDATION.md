@@ -15,8 +15,10 @@ The recovered [cutover](../plans/issue-416-option-a-cutover.md),
 [locks](../plans/issue-416-option-a-locks.md), and new
 [key-custody specification](../plans/issue-416-option-a-key-custody.md)
 extend the [central Option A proposal](../plans/issue-416-option-a-authentication-provenance.md).
-Exact latest integration/review SHA and U2 source writer inventory are recorded
-in the updated handoff once integrated. No authentication code, DB privileges,
+The initial integrated reviewer target was
+`944ae18c0c232551a909306a39fcd852a8747ace`; subsequent corrections and
+their final SHAs are recorded by Git and the delivery handoff. The U2 source
+inventory is integrated. No authentication code, DB privileges,
 migration or reset UI/API has been modified by this design-only recovery.
 
 The older evidence below is intentionally **historical**. Earlier PostgreSQL

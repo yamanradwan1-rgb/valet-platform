@@ -23,7 +23,7 @@ The following are VERIFIED SOURCE FACTS, not deployment attestations:
 | `apps/api/tools/mfa-recovery/{input,execution,persistence}.ts` | CLI accepts an operator reference and operation UUID; migration connection/TLS is its trusted execution boundary. It retires a current PENDING/ACTIVE factor and appends account-security audit; it does not verify a human's identity from the operator-reference string. |
 | `apps/api/tools/staff-provisioning/provisioning-persistence.ts` | Controlled create-only provisioning inserts User/member/grants and safe operator audit. It is not an existing-user password-repair or arbitrary authority-attestation command. |
 | `apps/api/tools/security-disable/persistence.ts` | Controlled global disable serializes User security, revokes sessions and disables active push bindings; it does not complete physical custody. |
-| `apps/api/src/common/database/postgres-transaction.ts` | A COMMIT error yields UNAVAILABLE and destroys the connection. Subsequent ROLLBACK is not proof that COMMIT failed. |
+| `apps/api/src/common/database/postgres-transaction.ts` | A COMMIT/connection error records UNAVAILABLE in the outcome tracker, destroys the unusable lease and rethrows the original exception; the helper does not directly return an UNAVAILABLE result. Subsequent ROLLBACK is not proof that COMMIT failed. |
 | `docs/plans/issue-416-option-a-review-{auth,sql,ops}.md` | Earlier reviews flag legacy-factor/authority provenance, proof-key custody and compatible rollback as unresolved; those are not reviews of this completed proposal. |
 
 LOCKED DECISIONS: DEC-023/024/025, focused Accepted DEC-072/075/076/078/079/080/081
@@ -174,6 +174,16 @@ new-session reconciliation without changing accepted command identities.
    updated provisioner; exercise both N and R against final ACL/schema. Re-run
    provisioner twice, verify no weak DML/old EXECUTE/PUBLIC/inherited path
    returns; stale provisioner and stale binary must fail closed before traffic.
+   Revoke/rotate the historical migration/admin credential and fence its
+   runner identity/configuration before C3; an old runner that still owns a
+   privileged live credential can restore weak grants after the ACL snapshot.
+   Test the **old** provisioner using its previous credential after C6: it must
+   fail authentication/authorization. Test approved N/R plus the **new**
+   separated privileged identity twice, proving restrictive grants persist.
+   Seal executable artifacts, startup versions and operator job allowlist;
+   continuous role/grant drift detection must remove unsafe replicas from
+   readiness and halt protected traffic. This is a proposed operator gate,
+   not proof that an old external job exists or a credential was rotated.
    Rehearse N -> R -> N, key overlap/retirement, admitted/HOLD account cases,
    actual password/TOTP/refresh, push invalidation, tenant/entitlement negatives,
    conflict tests, unknown COMMIT and log canaries. All tests here are NOT RUN.
@@ -203,8 +213,8 @@ new-session reconciliation without changing accepted command identities.
 | C0 pause | Close authentication-sensitive admission at every API/direct ingress; pause protected management/onboarding/activation/push registration and auth-writing jobs/tools, not only login. Stop old processes and automatic restarts. Restrict non-release migration/operator activity. Record actual inventory reconciliation and ingress denial. |
 | C1 drain | Wait for every old request/transaction/pool to finish within current deadlines; inspect authoritative DB sessions/transactions, including prepared transactions and unexpected writers. Unexpected clients block progress. Explicitly cancel/terminate only approved app clients if necessary and reconcile uncertain operations; never assume a timeout rolled back COMMIT. Verify no old writer remains and take final consistent recovery checkpoint. |
 | C2 additive | Apply reviewed forward-only additive key/challenge/receipt/admission/command schema with controlled migration identity, ordered dependencies and 112 retained. No public traffic yet. Stage N processes without protected readiness/traffic; no mixed serving during this phase. |
-| C3 boundary | Reconcile/import L1 manifest, permanently invalidate legacy Staff sessions/refresh ancestry and push endpoints, retire pending factors, install authenticated writers, close every old signature/direct sensitive grant, update and run final provisioner. Activate one durable boundary version only after all complete. Capture aggregate counts/ACL snapshot. Failure means remain paused, not partial reopening. |
-| C4 readiness | Every N replica verifies DEC-025 TLS/least privilege, schema/migration/ACL/provisioner version, audience, active signing and verifier key match, retirement state, required private helpers inaccessible, admission boundary and receipt command version. Missing/retired/mismatched key or stale binary is unready. Validate actual effective grants, not only role labels. |
+| C3 boundary | Reconcile/import L1 manifest, permanently invalidate legacy Staff sessions/refresh ancestry and push endpoints, retire pending factors, install authenticated writers, close every old signature/direct sensitive grant, update and run final provisioner. **Revoke/rotate historic migration/admin credentials and disable old privileged runner identities before boundary activation**; apply a new scoped release-owner credential only to N/R provisioners. Activate one durable boundary version only after all complete. Capture aggregate counts/ACL snapshot. Failure means remain paused, not partial reopening. |
+| C4 readiness | Every N replica verifies DEC-025 TLS/least privilege, schema/migration/ACL/provisioner version, audience, active signing and verifier key match, retirement state, required private helpers inaccessible, admission boundary and receipt command version. Test old credential+old provisioner denial and twice-run N/R grant stability; independently monitor ACL drift from unknown privileged clients and revoke readiness on drift. Missing/retired/mismatched key or stale binary is unready. Validate actual effective grants, not only role labels. |
 | C5 validate | Run bounded synthetic real-ceremony canaries through approved API: login/MFA/refresh/logout, admitted manager sensitive command dry fixture, legacy access/refresh denial, HOLD denial, pending reenrollment, consumed replay revocation, push rebind, old writer denial and no secret sinks. Reconcile state/audit after each; no production user impersonation or exploit. |
 | C6 reopen | Independent verifier signs checklist; route small admitted traffic only to ready N artifacts, observe then release full traffic. Stale replicas/jobs/tools stay stopped. Resume each writer only after version verification. Record actual outage duration and communicate sign-in/pending-enrollment consequences. |
 
@@ -274,6 +284,24 @@ only on its exact original session; reset issuance retry must not redisclose a
 link; recovery-code reissue must not redisclose a prior list. Reconciliation
 returns only allowed nonsecret result. An infrastructure outage is not evidence
 that a secret-issuing command did not commit.
+
+**Older-backup authority checkpoint (PROPOSED, required for C4 after restore):**
+the external monotone checkpoint cannot track only key retirement. It must
+either durably reconcile post-snapshot consumed MFA recovery codes, accepted
+TOTP steps/generations, revoked User/Staff sessions and refresh lineage,
+terminal push registrations, invitation/reset generations, receipt identities,
+membership/entitlement authority and retired signing-key IDs **or** fail closed
+for each unprovable object. If an independently complete monotone ledger cannot
+be demonstrated, revoke all affected restored sessions/refresh, clear push
+registrations and hold uncertain MFA factors/codes/invitations/reset links and
+privileged memberships until verified recovery/re-enrollment and a fresh
+commercial/organization baseline. Neither a restored password login nor a
+retained SQL audit row proves post-snapshot authority. Preserve immutable
+operational/audit history and account for unavoidable RPO data loss separately;
+rehearse an **older backup** with post-snapshot consumed code, accepted TOTP,
+revoked session, changed role and superseded reset generation. RPO/RTO and
+mediated recovery capacity are Owner/operator decisions; no such ledger or
+restore test is established by the repository.
 
 ## Minimal Owner decision package
 

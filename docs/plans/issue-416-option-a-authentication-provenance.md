@@ -131,7 +131,7 @@ command EXECUTE, with no private key/receipt/verifier helper access.
 
 | Proposed function family | Caller and effects |
 | --- | --- |
-| auth_command_challenge(text,uuid) returns jsonb | runtime, purpose/operation-bound current-transaction challenge |
+| purpose-specific `auth_*_prepare(typed arguments)` returning a bounded challenge | runtime invokes only an explicitly authorized, narrowly typed prepare for the chosen purpose/operation; binds discovered actor, exact target/Organization, immutable payload fingerprint, relevant versions/generations, backend PID and full transaction ID **after** acquiring prescribed locks; exact SQL signatures remain U2 review items |
 | auth_login_commit(jsonb,jsonb) returns jsonb | proof plus strict payload, create session/first refresh and login timestamp |
 | auth_refresh_rotate(jsonb,jsonb) returns jsonb | consume/rotate lineage or commit accepted replay revocation |
 | auth_session_revoke(jsonb,jsonb) returns jsonb | monotone session and push terminalization |
@@ -142,6 +142,16 @@ command EXECUTE, with no private key/receipt/verifier helper access.
 | future reset status/issue/redeem | private verification plus Issue416 exact authorized effects |
 
 Slash names describe separate proposed functions. They are not executable SQL.
+There is **no** generic `auth_command_challenge(text,uuid)` endpoint that can
+accept a caller-supplied actor or produce an unscoped challenge. Each prepare
+must canonicalize an allowlisted purpose-specific payload, derive current
+actor/target/scope and generation from protected persistence, lock/recheck
+those facts and bind the immutable digest into its private one-use challenge.
+The application may sign only after genuinely verifying that purpose's raw
+credential/ceremony and comparing observed credential/factor versions to the
+locked challenge facts. A runtime-supplied JSON authority claim, GUC or
+SQL-only prepare result must never become signer authority. Negative tests must
+swap purpose, target, session, generation, payload, backend and transaction.
 Remove direct session/refresh/factor/code INSERT/UPDATE only once all legitimate
 consumers migrate. Review retained cleanup rights for monotonicity. Password writes
 remain denied. Preserve operational reads, limiter and approved push behavior.
@@ -222,7 +232,7 @@ remains generically invalid. Same-session pending MFA enrollment retains its acc
 
 The recovered [lock and outcome contract](issue-416-option-a-locks.md) specifies
 proposed ranks 01–17, source-entrypoint/nested-lock evidence, six retry outcomes
-and fourteen future two-connection PostgreSQL races. These are design rules for
+and fifteen future two-connection PostgreSQL races. These are design rules for
 replacement commands, not proof that current entrypoints are already safe or
 that deployment has no undocumented writers. All real PostgreSQL concurrency,
 timeout, rollback and unknown-COMMIT tests remain NOT RUN.
@@ -315,7 +325,9 @@ The decision ledger preserves Accepted credential, MFA, tenant and pool contract
 
 ### Existing implementation patterns
 
-Application Argon2/TOTP verification precedes transaction-owned persisted rechecks;
+Application Argon2 verification precedes the Login transaction; TOTP and
+recovery-code verification occur **inside** locked MFA transactions. Both
+must bind the genuinely verified input to current protected persistence;
 scoped SQL definers and runtime provisioning already exist. The proposed MAC
 boundary adds new custody and cannot inherit approval from those conventions.
 

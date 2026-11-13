@@ -149,6 +149,27 @@ side effect. Its session advisory/factor fences need regression tests, not a
 silent isolation change. Never use session-level advisory locks on pooled writer
 connections. Never acquire another pool connection while holding domain locks.
 
+**Mandatory onboarding anti-abuse relocation (M04/M05):** current
+`staff-onboarding.service.ts:create/resend` obtains email/User-security and
+management locks **before** `reserveFreshOperation`, whose
+`antiAbuse.reserve()` opens a separate pool transaction. The replacement must
+make any durable quota reservation in a short, independent transaction **before**
+acquiring the domain/operation lock prefix, after bounded read-only discovery;
+commit it and bind its private reservation identity to the exact purpose,
+issuer/Organization, target and operation. Acquire no second pool lease while
+holding domain locks. Revalidate all previously discovered facts under the
+command's ordered locks. Denial or a lost pre-reservation response cannot mint
+authority or bypass quotas. On confirmed domain success, finalize the durable
+reservation after the domain transaction releases its lease; on confirmed
+rollback, finalize the policy-appropriate ignored/failure outcome. On unknown
+COMMIT, leave a bounded recoverable pending reservation and reconcile the
+private operation receipt on a new lease before finalization; never assume
+`IGNORED` from a transport exception or consume a new generation blindly.
+Separate quota durability from business/audit atomicity; preserve the existing
+accepted reservation counting/abuse policy. Negative tests must force
+two-lease pool starvation/contention, failed finalization, rollback and lost
+COMMIT while asserting no nested connection acquisition under domain locks.
+
 The internal `prepare` phase is purpose-specific and can lock but cannot mutate
 protected authority. Runtime can deny service through lock requests; it cannot
 obtain proof issuance from prepare. Only genuine app credential verification
@@ -179,7 +200,7 @@ operations, and must never confer authority.
 | 14 | invitations/reset rows X sorted (userUUID,generation,UUID); registrations X sorted UUID; deliveries X sorted UUID only if actually mutated |
 | 15 | private selected proof-key record S; key selection is fixed in prepare and cannot change after this point |
 | 16 | private transaction challenge X; then private receipt row X/INSERT under rank-01 operation fence |
-| 17 | anti-abuse finalization row(s), then atomic domain/audit writes in previously locked order; append-only audit insertion and receipt finalization |
+| 17 | atomic domain/audit writes in previously locked order; append-only audit insertion and private receipt finalization. Any independently durable anti-abuse reservation was acquired before rank 01 and is finalized only after the domain lease is released and its outcome is known or reconciled |
 
 Discovery may read immutable IDs before these locks, including candidate Admins.
 After locks, re-read relationship and generations. If a new implicated earlier
@@ -195,6 +216,25 @@ execute-first holds S through COMMIT, so retirement waits and then commits.
 **Retirement commit** is the linearization barrier: no new successful execution
 under that key can commit after it. Emergency tooling must not return success
 before this commit; timeout means retirement unconfirmed, not effective.
+
+**Separate activation/promotion barrier (PROPOSED):** staging a new key is not
+activation. A trusted operator first verifies every authorized API replica has
+the new signing material/key ID and that the private SQL verifier can select
+it; no command may sign merely because it sees a locally staged key. Promotion
+must lock the old and new key records in deterministic ID order using exclusive
+row locks, serializing against every command's rank-15 key SHARE lock, then
+commit exactly one `ACTIVE_SIGNING` ID/audience and an immutable promotion
+epoch. A prepare selects only that committed ACTIVE key **under its SHARE lock**
+and binds its key ID/epoch to the one-transaction challenge and app signer.
+No new challenge may be minted for `VERIFY_ONLY` or `RETIRED`; an old-key
+challenge must have originated before promotion and remain within its exact
+backend/transaction and validated expiry. Since command SHARE is held through
+COMMIT, promotion waits for already prepared old-key commands; a stale API
+replica after promotion fails key-ID/epoch matching rather than signing under
+the old key. Optional verification overlap cannot authorize fresh prepares.
+Define and test concurrent promotion/prepare/sign/execute, a replica that misses
+activation, rollback/unknown promotion COMMIT, clock skew, key lock waits and
+multi-key order. The protocol and deployment synchronization remain unproven.
 
 Prepare issues a cryptographically random challenge only after ranks 01–15.
 Bind it to backend PID AND full transaction ID, purpose, operation, fingerprint,
@@ -247,7 +287,7 @@ and direct column grants listed by the writer/privilege manifest together.
 | LM management authorization | same necessary ranks;11 all active grants;12/13 only when accepted sensitive operation needs MFA | complete persisted active Location coverage; ordinary LM reads do not gain a new MFA requirement |
 | role/status/grant mutation | CA/LM ranks above;07 org;11 actor+target+Admin candidates in sorted order;13 Admin factors S | expected-version/no-op/last-Admin/hand-over predicates preserved; mutation+audit commit; no late admin-factor helper |
 | Organization lifecycle / entitlement operator | 03 affected actor where relevant;05,06,07 for affected scope;09,10 X;11 needed membership/grants | trusted operator authorization, not a new public API; commit blocks later authority recheck; external production writer inventory release gate |
-| onboarding create/resend | 02 email;03 actor/target;04 actor;07 org;09,10,11,12 actor,13 actor factor,14 invitations | protected invitation generation+audit commit; no repeat activation link; remove nested email/security locks from new helper |
+| onboarding create/resend | durable purpose-bound anti-abuse reserve before domain locks on an independent completed lease; then 02 email;03 actor/target;04 actor;07 org;09,10,11,12 actor,13 actor factor,14 invitations | protected invitation generation+audit commit; no repeat activation link; remove nested email/security locks from new helper; finalize quota only after committed/rolled-back/unknown receipt is authoritatively reconciled |
 | activation | 02 email;03 invite owner;07 org;09 owner;10 org/subscription as required;11 member;14 invite | genuine invite plus actual password ceremony for already-active User; commit activation; repeat reauth then durable completion, no new session implicit |
 | push reconcile/confirm/disable | 03 owner(s) discovered;08 logical keys;09 owner(s);12 current session;14 registrations | source current-owner ordering preserved; commit cannot bind revoked session; new implicated owner means restart; worker terminal invalidation only never acquires earlier ranks |
 | controlled provisioning | 02 email;03 operator/target if applicable;07 org;09,10,11 plus fresh rows | actual controlled operator trust, creates approved roles only; no uncoordinated direct provisioning under live traffic |
@@ -320,8 +360,9 @@ acquisition. No assertion here is an executed result.
 | 12 key retirement / proof execute | A key15 X, B waits S after all domain locks. C B rejects retired key with no protected write; R,D active key may execute if proof still valid; U query protected key state through trusted operational boundary. Reverse B-first S forces retirement to wait until B commit/rollback; record no successful old-key execution commit after confirmed retirement commit. |
 | 13 duplicate proof / conflicting proof | Same purpose/op rank01; B separately test identical fingerprint, changed fingerprint, and copied exact tx proof on different backend. C identical safe receipt, changed conflict, copied binding rejected; R,D fresh valid B first-executes, copied proof still rejects; U fresh proof reconciliation only. Test same op different purpose cannot borrow receipt, and challenge reused in same tx cannot duplicate effect. |
 | 14 unknown COMMIT / receipt reconcile | A holds op01 through COMMIT; B new-lease authenticated reconcile same identity waits op01. C/U committed receipt reports only safe completion; R,D absence permits explicit first execution using fresh proof. While A is unresolved B must time out transiently, not return absent. Exercise server COMMIT success with lost ack and precommit termination independently. |
+| 15 onboarding quota reservation / protected create-resend | A holds outer domain ranks for create/resend while B attempts durable anti-abuse admission. New design **must not** request a second pool lease until A releases its domain lease; reserve ahead of A's locks on a short completed lease and bind to the typed operation. C finalize confirmed consumed reservation; R,D finalize policy-appropriate noncommit; U retain pending then new-lease reconcile domain receipt before finalizing. Exercise 2-connection pool exhaustion, parallel same-target reservation, postcommit finalization failure and quota exhaustion without signer-proof bypass. |
 
-For all fourteen, after C/R/D/U verify no partial credential/factor/reset/push
+For all fifteen, after C/R/D/U verify no partial credential/factor/reset/push
 mutation without corresponding required audit, no raw secret stored in receipt,
 no stale challenge accepted from recycled PID/connection, and key/expiry checks
 after waits. Add two-user cross-action permutation tests, UUID input reversal,
