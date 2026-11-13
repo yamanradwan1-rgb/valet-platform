@@ -1,7 +1,9 @@
 # Issue #416 Option A legacy trust, cutover and recovery
 
 Status: PROPOSED DESIGN; Owner decisions L1/L2 below are not Accepted.
-Source baseline: `62d0a3d3f97a4186d2dd85642212efc7b4f35d42`.
+Source inspection began at `62d0a3d3f97a4186d2dd85642212efc7b4f35d42`;
+this final documentation refinement is based on the separate `eb2d0ba4` review
+baseline. Neither SHA is a live deployment attestation.
 Design-only inspection on 2026-11-13. No live environment was contacted, no
 secret read, and no runtime, privilege, migration or operational data changed.
 The main provenance document and U1/U2 supporting specifications define the
@@ -46,6 +48,14 @@ identity records, backup encryption, restore capability, operators, downtime
 capacity and key distribution. Record evidence before cutover; do not fabricate
 KMS/Vault, managed replicas or a deployment platform.
 
+**Authority boundary:** L1/L2 below are proposed Owner choices. U1 proof-key
+custody, S1's replacement of Issue #416 v9's internal SQL bearer/grant mechanism
+and U2's typed authenticated writers remain separate unapproved security gates.
+The Owner-approved public reset semantics (Company Admin trust, current issuer
+authority, 15-minute single-use link, anti-abuse and full target-session/push
+revocation) are unchanged. This document cannot authorize a SQL-only operator
+override, a Company Admin MFA reset bypass, or a deployment.
+
 ## L1 proposed trust policy: explicit baseline, selective recovery
 
 Recommendation: a controlled, per-object administrative admission baseline at
@@ -55,23 +65,33 @@ No row becomes trusted merely because it predates T0, has an audit event, or a
 user can log in. No universal forced active-factor reenrollment is proposed.
 
 Before scheduling T0, a named authorized VAYLET deployment/security operator
-prepares a protected admission manifest. The Owner verifies the Company's legal
-contact/authorized roster through a previously established independent contact
-channel, not a contact newly obtained from the database under review. Company
-authority confirms named User/email, memberships/roles and full Location grants;
-VAYLET commercial authority confirms Organization and typed entitlements. The
-operator matches exact database IDs and object versions to that evidence.
-No password, seed, code, verifier, token or proof enters the public manifest.
+prepares a protected admission manifest for **every** existing authority-bearing
+object, including inactive/pending memberships and old consumed credential/code
+generations. VAYLET verifies the Company's legal contact and authorized roster
+through a previously established **independent** Company contact channel, not
+contact details read from the database under admission. The verified Company
+authority confirms named User/email and the full set of memberships, role/status
+and Location grants. VAYLET independently confirms the Organization/Location
+ownership boundary and its commercial operator confirms typed entitlements;
+tenant administrators cannot attest their own subscriptions. The operator
+matches exact IDs, status, generation and version/digest against both the
+independent evidence and a complete drained database snapshot. A missing
+external attestation is an explicit HOLD, never implicit acceptance. No
+password, seed, code, verifier, token or proof enters the public manifest.
 
-The manifest records release/audience, object class/id, expected version or
-digest, disposition ADMIT/HOLD/RETIRE, evidence reference, approver identity,
-operator identity and timestamp. Its full sensitive content belongs in the
-controlled deployment evidence boundary; the repository stores only a safe
-digest/reference and aggregate counts. An operator-controlled additive import
-records the manifest digest and per-object admission state behind protected
-ACLs; ordinary SQL cannot change admissions. Exact implementation schema is
-mechanical under the approved policy, not a runtime-role write or a generic
-JSON policy store. Existing history remains unchanged.
+The manifest records release/audience, Company/Organization boundary, object
+class/id, expected state/version or digest, disposition ADMIT/HOLD/RETIRE,
+source-of-trust reference, verified approver and operator identity, timestamp,
+and recovery case where needed. It includes object-class total counts, missing
+and unresolved counts, and a safe manifest digest. Each ADMIT is an explicit
+new administrative baseline decision, **never** a claim that past credential
+ceremonies were genuine. Its full sensitive content belongs in the controlled
+deployment evidence boundary; the repository stores only a safe digest/reference
+and aggregate counts. An operator-controlled additive import records the digest
+and per-object admission state behind protected ACLs; ordinary runtime SQL
+cannot change admissions or approve itself. Exact implementation schema and
+concurrency rules remain U2 implementation work, not a runtime-role write or a
+generic JSON policy store. Existing business/security history stays unchanged.
 
 Admission is a dependency graph: session -> User -> membership/role/grants ->
 Organization -> relevant entitlement; MFA assurance additionally -> admitted
@@ -82,6 +102,18 @@ HOLD cannot be bypassed by enrollment or a possession check. Preserve membership
 and grant counts across all statuses; do not manufacture sole-company reset
 eligibility by hiding HOLD or inactive rows.
 
+**Scope and noninterference:** A #416 target must still have exactly one global
+OrganizationMembership across **all statuses**, which is in the issuing Admin's
+Company; many Location grants within that same Company are valid. Legacy
+multi-Organization anomalies remain visible and deny reset eligibility; no
+admission decision silently deletes or hides another Company's membership.
+An `ORG_ADMIN` baseline never supplies field Task/Shift/vehicle authority.
+Identity/role/Organization uncertainty blocks dependent privileged commands;
+commercial entitlement uncertainty blocks only the affected Management scope
+under DEC-088, not field actions or minimal Guest custody completion. HOLD is
+a protected authorization state, not an automatic `User.DISABLED`, membership
+deactivation, key handoff, or operational session transition.
+
 At T0 the operator reconciles every manifest entry against locked/drained
 current state. Changed/missing objects become HOLD until reviewed; never apply
 a stale approval to a new hash/role/factor. Admission import, session/push
@@ -89,20 +121,25 @@ retirement and boundary activation must be one reviewed drained migration
 contract with a durable checkpoint. If too large for one transaction, stage
 private admissions while traffic remains paused, then atomically activate the
 new boundary only after complete reconciliation; partial batches are never
-publicly usable. Snapshot counts and digest prove completeness, not identity.
+publicly usable. Reconcile any newly discovered row, changed generation or
+unlisted external writer as HOLD and abort activation until the manifest is
+complete. Snapshot counts and digest prove completeness, not identity. Record
+pre/post counts by class, terminalization receipts and the precise boundary
+version; an uncertain COMMIT requires a fresh privileged read of durable
+checkpoint and state before any retry or traffic reopening.
 
 | Object | Proposed treatment and retained trust source | Missing/uncertain evidence |
 | --- | --- | --- |
-| StaffAuthSession and its MFA/activity times | Revoke every pre-boundary Staff session at T0; retain rows as history. New sessions require genuine password authentication against admitted User. No copied assurance/time. | No legacy session is grandfathered, regardless of apparent MFA freshness. |
-| StaffRefreshCredential, including consumed lineage | Retain historical verifiers/consumption; parent legacy session permanently rejects all generations. Do not clear consumption, remap to new session or issue replacement refresh from a database hash. | User signs in anew; lost response follows purpose-specific login/refresh recovery, never hash-only issuance. |
-| Active push bindings | Disable active registrations attached to retired sessions and clear provider token under accepted session invalidation rules. Keep truthful history/reason. | New authenticated session must register/confirm; do not relabel provider invalidity or silently transfer endpoints. |
-| ACTIVE TOTP factor | ADMIT exact factor/User, protected envelope, replay counter and recovery generation only after explicit baseline factor acceptance by independently verified account owner plus operator record. Existing authenticator retained; first new-session assurance requires fresh genuine TOTP. | HOLD factor, not automatically RETIRE. TOTP possession alone is insufficient admission evidence. Use controlled verification/recovery below. |
-| PENDING TOTP factor | Its accepted seed retry is tied to original exact session. Because T0 revokes that session, explicitly RETIRE pending enrollment as part of L1; no seed disclosure to a new session. Preserve history. | After admitted identity and authority, begin fresh enrollment and confirm new TOTP. No recovery codes existed for an unconfirmed pending factor. |
-| Recovery-code set | ADMIT only the exact accepted active factor's current generation/selector/verifiers; retain consumed flags. Baseline account-owner confirmation covers issuance lineage; no raw-code collection. Old generations stay unusable. | HOLD set even if factor is admitted. Owner with genuine TOTP can explicitly reissue codes through current accepted flow; no-code owner uses mediated recovery if TOTP unavailable. |
-| User/email/password/status | ADMIT identity from independent roster/provisioning evidence; retain hash only under explicit baseline risk acceptance, never call hash matching origin proof. Keep PENDING/DISABLED status. | HOLD authentication issuance until verified repair; current create-only provisioning cannot repair an existing identity. Purpose-specific mediated repair is required, no direct ad hoc SQL password edit. |
-| OrganizationMembership role/status and Location grants | Company-authorized roster and exact full grant set establish baseline. Revalidate last-usable-admin and existing lifecycle rules on later writes. Admission does not grant field authority to ORG_ADMIN. | HOLD relevant capability; do not demote, delete membership, alter counts or revoke other organizations merely for missing evidence. |
-| Organization identity/status and Location ownership/status | VAYLET contractual operator/customer records plus independently confirmed company boundary; retain authoritative ownership, not a client-supplied tenant UUID. | HOLD new protected admission for affected organization pending controlled reconciliation. Keep physical records; no fabricated completion or commercial suspension workaround. |
-| OrganizationSubscription/typed entitlements | VAYLET commercial records and authorized platform operator attest exact booleans/status, independent of opaque plan label. | Management HOLD; field and minimal Guest completion remain independent per DEC-088. Tenant admin cannot attest/write entitlements. |
+| StaffAuthSession and its MFA/activity times | Revoke **all** pre-boundary Staff sessions at T0 (Web/native, fresh/expired) by protected global session lineage; preserve rows/audit and invalidate old access authorization and assurance. New Staff sessions require genuine password authentication against admitted User/hash. No copied MFA activity/time. | No legacy session is grandfathered; verify zero active older sessions before boundary activation. A stale raw access bearer or DB-visible hash never grants a new session. |
+| StaffRefreshCredential, including consumed lineage | Preserve generations, consumed flags and parent association; every credential under a retired legacy session permanently fails. Do not reset `consumed_at`, remap lineage or issue a replacement from a SQL-visible verifier. | New login is required. Preserve consumed-refresh **replay-family revocation** and unknown-COMMIT recovery; a lost response does not make a consumed token reusable. |
+| Active push bindings | Terminalize ACTIVE registrations for retired sessions, clear provider token and preserve precise reason/history without falsely claiming provider invalidation. Stop or reconcile pending sends/confirmations and stale queued worker attempts under DEC-075/076. | Fresh authenticated Staff session must register/confirm again. No old session may rebind/confirm an ACTIVE endpoint after C3; do not infer immediate recall of a notification already sent. |
+| ACTIVE TOTP factor | ADMIT the exact factor/User association, protected seed envelope, accepted-step counter and recovery generation only following independent confirmation by the verified account owner and a recorded operator baseline. Retain the authenticator; require a **fresh** TOTP step on a new admitted session. | HOLD factor and its dependent assurance until verified; merely entering a currently valid TOTP or matching a database audit row cannot establish initial enrollment provenance. If rejected, retire only through approved controlled recovery. |
+| PENDING TOTP factor | Explicitly RETIRE every legacy PENDING enrollment tied to a revoked T0 session; preserve audit and prohibit reuse of its protected seed across sessions. | Re-enter the existing begin/confirm flow on a new admitted session. Ordinary same-session pending seed retry remains unchanged for **post-T0** enrollments; no codes were issued for an unconfirmed pending factor. |
+| Recovery-code set | ADMIT only the current selector/verifier set **for an independently admitted ACTIVE factor and exact generation**. Retain `consumed_at`, historical generations and single-use fences; never inspect or request raw codes for baseline verification. | HOLD the set independently when issuance lineage is uncertain even if factor was admitted. Genuine fresh TOTP may authorize normal explicit code reissue; without trusted TOTP/code, use mediated recovery. No post-COMMIT redisclosure of codes. |
+| User/email/password/status | Verify global identity/email against independently sourced roster/provisioning facts; freeze exact hash version and status. ADMIT an unchanged legacy hash only with explicit Owner-approved bounded risk acceptance; password matching proves possession, not creator provenance. Preserve PENDING/DISABLED. | HOLD new authentication and sensitive authority until independent repair/admission; do not turn pending/disabled ACTIVE through import. Current provisioning is create-only; no ad hoc SQL password edit and no use of future #416 employee reset as an operator bootstrap. |
+| OrganizationMembership role/status and Location grants | Verified Company contact attests complete **all-status** membership/role and full Location grant set; retain membership version, Organization ownership and exact Location statuses, rechecking last-usable-admin and LM coverage for later writes. | HOLD affected privileged capabilities on uncertain role/grant; do not demote/delete memberships, alter last-admin counts or conceal additional Organization memberships to manufacture sole-company reset eligibility. |
+| Organization identity/status and Location ownership/status | VAYLET contractual/customer evidence plus independent Company verification establishes exact Organization and Location ownership and status. | HOLD protected authority for uncertain Company/Location scope. Keep truthful Shift/Task/ValetSession and physical-custody history; do not use commercial suspension or invented field completion as repair. |
+| OrganizationSubscription/typed entitlements | VAYLET commercial system records plus individually authorized platform operator attest status and **typed** entitlement booleans independently of opaque plan labels. | Management-only HOLD for affected commercial capabilities, subject to DEC-088; never block existing field/Guest custody completion. Tenant Admin cannot self-attest or update E. |
 | Controlled operator identity | Existing DEC-025 protected migration/deployment boundary plus individually attributable access and separately retained verification record. CLI operatorRef labels audit; it grants nothing. | No bootstrap/recovery runs until real operator is assigned and access verified. No public signing endpoint or tenant-admin substitute. |
 
 Admission records are current trust decisions, not assertions that historical
@@ -115,9 +152,15 @@ trust for an object, selective re-establishment is mandatory for that object.
 All following are PROPOSED DESIGN; no existing endpoint is claimed to implement
 admission. Use the final U2 lock graph, exact target versions and protected
 operator boundary. Every successful operator operation has immutable operation
-identity, request digest, safe result and atomic account-security audit with
-CONTROLLED_OPERATOR attribution. A receipt is not identity evidence. Replays
-reprove current operator authority and return only safe completion facts.
+identity, exact subject/scope/version, purpose, request digest, safe result and
+atomic account-security audit with CONTROLLED_OPERATOR attribution. The
+supporting independent verification case must predate the protected mutation
+and identify the actual human operator plus approver. A text `operatorRef`,
+password verifier, database row or receipt is not identity evidence. Replays
+reprove **current** controlled-operator authorization, match the exact immutable
+request fingerprint and return only safe completion facts; changed scope,
+subject or identity conflicts. Unknown COMMIT is reconciled on a new approved
+lease before recovery or secret issuance.
 
 | Starting situation | Exact permitted next steps | Stop/recovery behavior |
 | --- | --- | --- |
@@ -130,13 +173,31 @@ reprove current operator authority and return only safe completion facts.
 | Password unavailable or User identity/hash provenance rejected | Mediated verified recovery case must authorize explicit credential replacement, session revocation and audit through a new protected operator command specified in U2; owner chooses new password through a controlled non-logging channel. | Neither current MFA recovery CLI nor create-only staff provisioning implements password repair. No reset feature/API is enabled by this document; remain HOLD until repair capability is implemented and reviewed. |
 | Membership/Organization/entitlement uncertain | Resolve exact discrepancy against independent authority; operator admits unchanged row or approved purpose-specific correction with immutable case evidence; recheck dependent objects. | No factor reset, password change or successful MFA grants missing company/commercial authority. Escalate business dispute; retain history. |
 
+**No-phone/no-code case must be usable without promoting uncertain MFA:** the
+case worker first verifies the named person's identity and Company connection
+through an independently established contact/channel and a separately verified
+Company authority, then records the exact User, Organization, affected factor/
+recovery generation, reason, protected reference and expected versions. A
+separately authorized VAYLET operator and (recommended) second approver check
+this evidence. Only a newly implemented purpose-specific controlled command
+may retire the old factor/codes, revoke affected assurance and sessions/push,
+append its atomic account-security audit and permit fresh genuinely verified
+password login and enrollment. If User/password provenance is also HOLD, the
+same case must authorize a separately specified credential-repair ceremony;
+retiring MFA alone is insufficient. An uncertain role/Organization/entitlement
+remains HOLD even after factor recovery. Expiry, replay, operator revocation,
+failed audit and ambiguous COMMIT must fail closed. There is no existing
+general-purpose bypass or support reset endpoint under this proposal.
+
 The external verification case records verified identity, source, verifier,
 time, target, scope, reason and approval; it never records recovery secrets.
 Minimum recommendation is Owner-authorized VAYLET operator verification with a
 second named approver for no-code recovery/authority correction. This adds no
 new authentication provider. If staffing cannot support two people, Owner may
 approve one individually attributable operator with post-review; that weaker
-operational control must be explicit in L1. No specific operator is attested here.
+operational control and residual impersonation exposure must be explicit in L1.
+No actual operator, independent contact source, case system or deployment
+capability is attested here.
 
 ## L2 proposed drained cutover contract
 
@@ -148,13 +209,54 @@ are verified; otherwise disclose the broader outage. Offline actions may queue
 but cannot commit protected commands using revoked Staff credentials; rehearse
 new-session reconciliation without changing accepted command identities.
 
+**Approval boundary:** the Owner may select L2's **conditional** outage and
+rollback policy now; that selection is not a deployment authorization. Each
+actual release must separately document a concrete approved window and pass
+the independent evidence below **before C0**. Neither this document nor
+the repository proves that any API host, ingress, worker, replica, database
+credential, backup, KMS, WAL archive or secret store exists in production.
+All entries below start **EXTERNAL — NOT VERIFIED** until the named operator
+provides evidence from the actual environment. A blank field, untestable
+assumption or unapproved RPO/RTO keeps C0 closed.
+
+### External operator inventory and decision record (required, not filled)
+
+For each row retain a private evidence reference, observed timestamp, named
+collector, independent verifier, target environment/release and disposition
+`VERIFIED` or `HOLD`. Store no live secret or customer PII in this repository.
+
+| Inventory / owner to identify | Required evidence from actual environment | Failure disposition |
+| --- | --- | --- |
+| Deployment topology / release commander | Every live/staged API replica and worker, scheduler, native/Web ingress, direct DB client, autoscaler/standby, process owner, restart source, startup command, artifact digest/SHA and traffic switch mechanism; cross-check running processes **and** PostgreSQL client identities against the list. | Unknown ingress, process or restart mechanism blocks C0/C1 and any claim of full drain. |
+| PostgreSQL / migration owner | Server/version/extensions, DB topology, live owner/runtime/admin role attributes and inherited memberships, `pg_proc` overloads, `PUBLIC`/runtime/role grants, default privileges, provisioner provenance, migration range including 112, prepared transactions, open sessions/locks and actual admin login identities. | Unexpected elevated caller or SQL writer blocks C3; do not rely on repository privilege definitions as effective grants. |
+| Former privileged runner / security owner | Identify **every** historical `MIGRATION_DATABASE_URL`, deployment/CI/manual job, role/secret owner, rotation method, credential consumers, rollback path and revoke/disable confirmation; retain identity-safe proof that old credentials can no longer authenticate. | Unfenced old privileged runner or secret blocks boundary activation and reopening. |
+| New N/R build and operation owner | Signed/reviewed source SHA and immutable build digest for both versions, ABI/schema/U1 key-epoch/admission/receipt compatibility, startup deny rules, scoped new privileged provisioner identity and sealed allowlisted jobs. | A pre-proof binary, mismatched N/R or unready replica is never permitted to serve. |
+| Crypto / observability owner (U1) | Actual signer and SQL verifier custody/injection path, API replica parity, key rotation/retirement authorization, encrypted-at-rest and backup protection, restored secrets, effective private ACLs and synthetic driver/PG/proxy/log/error/cancel canary results. | Missing key provenance, log evidence or retired-key consistency closes protected service; no weak SQL fallback. |
+| Backup/DR owner | Real encrypted backup identity, checksum, snapshot timestamp/LSN if available, schema/roles/grants, WAL/replication availability if **observed**, independent monotone authority ledger or selected HOLD fallback, isolated restore result and observed RPO/RTO. | No verified restore or stale-credential reconciliation means no C0 and no post-restore C6. |
+| Operational Company contact / incident owner | Verified contact route, outage notice, active Shift/Task/vehicle-custody inventory, manual/offline **authorized** continuity procedure, acceptable downtime/data-loss limits, rollback/fix-forward approvals and reachable escalation owners. | If safe custody continuity is infeasible, postpone; never assume Guest routes or paper-ticket recovery. |
+
+Measure the rehearsal's **RTO** from loss of the required service until the
+same fully authorized, independently verified N/R service resumes; report
+observed elapsed time, scope and checks, separately from planned downtime.
+Measure **RPO** as the latest restorable consistent commit/LSN or other proven
+reconciliation boundary relative to the incident/cutover event; report the
+actual lost interval and affected business/security objects, not a guessed
+zero-loss guarantee. Record backup age, restore start/end, validation duration,
+nonrecoverable operations, Owner-accepted limits and the reconciliation case
+owner. If source cannot establish a consistent replay boundary, mark RPO
+**UNKNOWN**, fail closed and obtain an explicit constrained recovery decision.
+
 ### Before the window: evidence packet and staged rollback
 
-1. Assign release commander, deployment/DB operator, independent verifier,
-   recovery contact, incident owner and Company operational contact. Record
-   approval L1/L2 and U1 custody approval, authorized outage window, explicit
-   abort criteria and safe offline/manual custody continuity plan. No invented
-   paper-ticket fallback or implicit custody state repair.
+1. Assign individually identifiable release commander, deployment/DB operator,
+   independent verifier, recovery contact, incident owner, commercial baseline
+   approver, security key custodian and verified Company operational contact.
+   Capture their access authority, backups and escalation substitutes in the
+   private release record. Record explicit L1/L2/U1/S1 decisions, U2 closure,
+   separately authorized outage window, acceptable RPO/RTO **targets** and
+   independently measured rehearsal outcomes against those targets,
+   freeze/abort/reopen signatories and safe offline/manual custody continuity
+   plan. No invented paper-ticket fallback or implicit custody state repair.
 2. Inventory every actual API replica/process, host/container/service, startup
    command, artifact digest/Git SHA, dependency lock, schema/ACL/proof version,
    audience/keyId (no keys), worker/scheduler, pool identity and operator tool.
@@ -162,28 +264,38 @@ new-session reconciliation without changing accepted command identities.
    cron/manual scripts, direct SQL integrations, deployment hooks and direct
    ingress paths. Record native/Web supported contract versions separately.
    Locate these from actual deployment manager/process and DB connection
-   evidence; repository filenames do not populate the inventory.
+   evidence; reconcile the full set against the inventory table above and
+   require independently checked signatures/digests. Repository filenames do
+   not populate the inventory. An unknown writer or consumer is a HOLD.
 3. Stage two immutable proof-capable artifacts: N (release) and R (rollback).
    Build R from the reviewed proof-capable N foundation with reset disabled or
    prior compatible business changes selected; retain identical protected
    writer/proof/ACL/admission/receipt contract. Record source SHA, build digest,
-   migration range, secret/key requirements and signed/reviewed compatibility
-   matrix. A historical pre-proof binary is never R.
-4. Restore a real encrypted backup into attested isolated infrastructure with
-   synthetic or authorized sanitized data; apply real ordered migrations and
+   migration range, secret/key requirements, Staff Web/native transport and
+   signed/reviewed compatibility matrix. Both must reject an old authority
+   boundary and refuse to start against missing/older schema, weakened grants,
+   wrong audience, key epoch or partial admission. A historical pre-proof
+   binary is never R, even when the reset flag is OFF. Stage both before C0;
+   record rollback traffic switch and exact admissible data contract.
+4. Restore a real encrypted backup into independently attested **isolated**
+   infrastructure with synthetic or authorized sanitized data; apply real
+   ordered migrations and
    updated provisioner; exercise both N and R against final ACL/schema. Re-run
    provisioner twice, verify no weak DML/old EXECUTE/PUBLIC/inherited path
    returns; stale provisioner and stale binary must fail closed before traffic.
    Revoke/rotate the historical migration/admin credential and fence its
-   runner identity/configuration before C3; an old runner that still owns a
-   privileged live credential can restore weak grants after the ACL snapshot.
+   runner identity/configuration **before** C3 in the rehearsed sequence; an
+   old runner that still owns a privileged live credential can restore weak
+   grants after the ACL snapshot. Rotate/revoke old identities in the actual
+   authorized release as a C3 precondition, including remaining active sessions
+   or configuration copies; do not silently reuse the old grant-capable role.
    In an isolated C3/C4 rehearsal **before C6 reopens any traffic**, test the
    **old** provisioner using its previous revoked credential: it must fail
    authentication/authorization. Never execute a historically privileged
    provisioner against reopened production. After C6, monitor effective ACL
    drift with safe reads and revoke protected readiness on any regression.
-   Test approved N/R plus the **new**
-   separated privileged identity twice, proving restrictive grants persist.
+   Test approved N/R plus the **new** separated privileged identity twice,
+   proving restrictive grants persist and legitimate narrow commands work.
    Seal executable artifacts, startup versions and operator job allowlist;
    continuous role/grant drift detection must remove unsafe replicas from
    readiness and halt protected traffic. This is a proposed operator gate,
@@ -196,8 +308,13 @@ new-session reconciliation without changing accepted command identities.
    Take an encrypted full recoverable database backup plus roles/grants,
    function definitions, deployment/configuration manifests and admission
    evidence. Record snapshot/LSN if available, consistency boundary, integrity
-   digest, restore target/test, RPO/RTO and operator/access controls. Do not
-   assume PITR, replicas or vendor snapshots exist. If they do not, arrange an
+   digest, restore target/test, measured RPO/RTO and operator/access controls.
+   Restore an **older** snapshot in isolated infrastructure and demonstrate
+   post-snapshot MFA code consumption, accepted TOTP steps, session revocation,
+   role/entitlement change, retired key and superseded invitation/reset links
+   are reconciled from a trustworthy outside-backup monotone source **or**
+   conservatively held/revoked before admitting traffic. Do not assume PITR,
+   replicas or vendor snapshots exist. If they do not, arrange an
    offline consistent backup and approve its longer downtime.
 6. Separately back up U1 verifier encrypted material/key registry and recovery
    wrapping secrets under approved independent custody; include current MFA
@@ -214,20 +331,26 @@ new-session reconciliation without changing accepted command identities.
 
 | Checkpoint | Required action and proof before advancing |
 | --- | --- |
-| C0 pause | Close authentication-sensitive admission at every API/direct ingress; pause protected management/onboarding/activation/push registration and auth-writing jobs/tools, not only login. Stop old processes and automatic restarts. Restrict non-release migration/operator activity. Record actual inventory reconciliation and ingress denial. |
-| C1 drain | Wait for every old request/transaction/pool to finish within current deadlines; inspect authoritative DB sessions/transactions, including prepared transactions and unexpected writers. Unexpected clients block progress. Explicitly cancel/terminate only approved app clients if necessary and reconcile uncertain operations; never assume a timeout rolled back COMMIT. Verify no old writer remains and take final consistent recovery checkpoint. |
-| C2 additive | Apply reviewed forward-only additive key/challenge/receipt/admission/command schema with controlled migration identity, ordered dependencies and 112 retained. No public traffic yet. Stage N processes without protected readiness/traffic; no mixed serving during this phase. |
-| C3 boundary | Reconcile/import L1 manifest, permanently invalidate legacy Staff sessions/refresh ancestry and push endpoints, retire pending factors, install authenticated writers, close every old signature/direct sensitive grant, update and run final provisioner. **Revoke/rotate historic migration/admin credentials and disable old privileged runner identities before boundary activation**; apply a new scoped release-owner credential only to N/R provisioners. Activate one durable boundary version only after all complete. Capture aggregate counts/ACL snapshot. Failure means remain paused, not partial reopening. |
-| C4 readiness | Every N replica verifies DEC-025 TLS/least privilege, schema/migration/ACL/provisioner version, audience, active signing and verifier key match, retirement state, required private helpers inaccessible, admission boundary and receipt command version. Test old credential+old provisioner denial and twice-run N/R grant stability; independently monitor ACL drift from unknown privileged clients and revoke readiness on drift. Missing/retired/mismatched key or stale binary is unready. Validate actual effective grants, not only role labels. |
-| C5 validate | Run bounded synthetic real-ceremony canaries through approved API: login/MFA/refresh/logout, admitted manager sensitive command dry fixture, legacy access/refresh denial, HOLD denial, pending reenrollment, consumed replay revocation, push rebind, old writer denial and no secret sinks. Reconcile state/audit after each; no production user impersonation or exploit. |
-| C6 reopen | Independent verifier signs checklist; route small admitted traffic only to ready N artifacts, observe then release full traffic. Stale replicas/jobs/tools stay stopped. Resume each writer only after version verification. Record actual outage duration and communicate sign-in/pending-enrollment consequences. |
+| C0 pause | **Entry:** authorized window, L1/L2/U1/S1 sign-off, U2 and observed N/R/restore evidence complete. Close auth-sensitive admission at every API/direct ingress; pause protected management/onboarding/activation/push registration and auth-writing jobs/tools, not only login. Stop old processes and all automatic restart paths; restrict non-release privileged work. **Exit evidence:** independent inventory reconciliation, ingress-deny probe, named hold/abort operator and timestamp. |
+| C1 drain | Wait for every old request/transaction/pool to finish within existing deadlines; inspect authoritative PostgreSQL sessions, prepared transactions, long-running requests and unexpected writers. Only an authorized operator may terminate overdue approved clients, then reconcile unknown outcomes on a new lease. A timeout or failed ROLLBACK never proves COMMIT failed. **Exit evidence:** zero old writers/transactions and independently verified final consistent checkpoint; unexpected client = HOLD. |
+| C2 additive | Apply reviewed **forward-only** U1 key/challenge/receipt/admission/typed-command schema, respecting ordered dependencies and retaining migration 112. Stage N and R without readiness or protected traffic; never mix old and new serving versions. **Exit evidence:** exact applied migration/schema hash, private grants, pending boundary state and no public admission; unknown migration COMMIT = HOLD and reconcile. |
+| C3 boundary | Under complete drain, reconcile/import L1 manifest against exact state, permanently revoke every legacy Staff session/refresh ancestry, disable bound push and clear provider tokens, retire legacy PENDING MFA, install typed authenticated writers, remove old sensitive DML/`EXECUTE` including PUBLIC/inherited/overloaded paths and update final provisioner. **Before activation** rotate/revoke all historic migration/admin secrets, terminate/fence old runner sessions and disable old runner identities/configuration/restarts; permit a newly scoped privileged identity only for approved N/R jobs. Atomically activate one durable admission/grant/key/proof boundary after full counts and receipts match. **Exit evidence:** durable boundary version, manifest digest, terminalization counts, role/function ACL snapshot and credential-fence record; partial/unknown state = HOLD. |
+| C4 readiness | Verify **every** N/R replica's DEC-025 TLS, single-runtime-pool least privilege, installed schema/provisioner/ACL/command signatures, complete admission, active signer/verifier key ID/epoch, retirement ledger and deny-old-binary startup. On isolated C3/C4 rehearsal **before any C6**, prove old credential+old provisioner denial; after release rotation, verify revoked old credential authentication failure without executing old code on reopened production. Run approved N/R provisioner twice with the new privileged identity and prove old DML/`EXECUTE`/PUBLIC/inherited privileges remain denied. Independently check deployed effective `pg_proc` overloads and caller role graph, plus ACL drift fail-closed readiness. **Exit evidence:** signed per-replica parity and privilege matrix; any mismatch = HOLD. |
+| C5 validate | Under paused or strictly controlled synthetic test admission, exercise genuine password/TOTP/recovery, Web/native login/refresh/logout, active admitted manager sensitive MFA, legacy access/refresh denial, HOLD denial, legacy PENDING restart, consumed refresh replay-family revocation, new push registration and delayed old registration denial, controlled operator case and old SQL-writer denial. Compare private receipts, audit, quotas and state under commit/rollback/unknown-COMMIT paths; inspect synthetic markers through app/driver/PG/proxy/trace/error/cancel sinks. **Exit evidence:** per-test result and independent sign-off with zero unexplained secret exposure or security-state mismatch; never impersonate a production User. |
+| C6 reopen | Release commander and independent verifier compare C0–C5 evidence against approved L1/L2 scope, RPO/RTO objectives, operational continuity and abort criteria. Allow **small admitted traffic only to N**, observe authentication/MFA, field-safe reconciliation and ACL/key drift; expand only after defined actual health thresholds. Resume each authorized worker/job after version/role check, keep historical privileged runners and old processes permanently fenced. Record actual outage duration, unresolved HOLD cases and sign-in/pending-enrollment notices. **Exit evidence:** signed reopen checklist and monitored current boundary; failed gate = maintain secure outage or compatible R/fix-forward. |
 
 Abort at any missing inventory, backup/restore proof, custody mismatch, unreconciled
 authority, unexpected writer, ACL drift, secret canary disclosure or failed
 N/R compatibility test. Before C3, return to old service only if no trust/grant
-boundary changed and operator verifies full rollback of additive staging.
-After C3, use R or approved secure outage/fix-forward. Partial unknown migration
-commit is reconciled from durable checkpoints before any retry/reopen.
+boundary changed and operator verifies full rollback of additive staging and
+no partial admission. After C3, use **only** proof-capable compatible R or an
+explicitly approved secure outage/fix-forward; old pre-proof binaries and
+historic migration credentials remain denied. Partial unknown migration
+COMMIT requires private durable checkpoint reconciliation on a fresh authorized
+connection before any retry/reopen. A release-commander decision alone cannot
+override a failed independent verifier, missing U1 key or uncertain legacy
+authority. The trusted verifier records a nonsecret abort reason and next
+permitted checkpoint; do not claim any live C0–C6 checkpoint was executed.
 
 ### Post-cutover observation
 
@@ -252,6 +375,15 @@ proof lifetime plus allowed clock skew and bounded in-flight completion;
 30 seconds alone is insufficient without the U1 expiry/skew contract. Proof TTL
 does not extend transaction/statement/lock budgets. No raw secret probe is needed.
 
+**Activation is a committed barrier, not a replica-local flag:** after
+independent replica/key-ID attestation, the approved operator locks old/new
+key records in deterministic order and atomically records one `ACTIVE_SIGNING`
+key and its promotion epoch. Typed prepare may select only this committed key
+under its transaction-held rank-15 SHARE lock; `VERIFY_ONLY` may verify only
+an already-issued, still-valid same-transaction challenge, never mint a new
+one. A stale replica fails readiness. Exercise promotion/prepare/execute and
+unknown promotion COMMIT on real PostgreSQL before accepting this proposal.
+
 Retirement must serialize against final command admission using the U2 key lock:
 commands that acquired acceptance first may commit; retirement waits for those
 bounded transactions, then its COMMIT is the barrier after which old-key commands
@@ -261,7 +393,9 @@ Do not promise instantaneous last-byte/previously committed revocation. Replicas
 with stale signing state fail authoritative DB validation/readiness and never
 fall back to retired key or weak writer. Retired IDs remain retired through
 rollback and restore; the deployment incident retirement ledger is reapplied
-before restored service is admitted.
+before restored service is admitted. If retirement COMMIT acknowledgement is
+lost, record **UNCONFIRMED**, stop old-key signing and independently reconcile
+the protected key state; neither expiration nor a log line proves retirement.
 
 | Failure | Safe response and recovery |
 | --- | --- |
@@ -295,17 +429,28 @@ either durably reconcile post-snapshot consumed MFA recovery codes, accepted
 TOTP steps/generations, revoked User/Staff sessions and refresh lineage,
 terminal push registrations, invitation/reset generations, receipt identities,
 membership/entitlement authority and retired signing-key IDs **or** fail closed
-for each unprovable object. If an independently complete monotone ledger cannot
-be demonstrated, revoke all affected restored sessions/refresh, clear push
-registrations and hold uncertain MFA factors/codes/invitations/reset links and
-privileged memberships until verified recovery/re-enrollment and a fresh
-commercial/organization baseline. Neither a restored password login nor a
-retained SQL audit row proves post-snapshot authority. Preserve immutable
-operational/audit history and account for unavoidable RPO data loss separately;
-rehearse an **older backup** with post-snapshot consumed code, accepted TOTP,
-revoked session, changed role and superseded reset generation. RPO/RTO and
-mediated recovery capacity are Owner/operator decisions; no such ledger or
-restore test is established by the repository.
+for each unprovable object. Prove ledger provenance, completeness, independent
+backup/restore availability, monotone version order and a cutoff covering
+every irreversible action after the restored snapshot. A local restored audit
+row is **not** an independent post-snapshot checkpoint. If that evidence is
+incomplete, revoke affected restored sessions/refresh, terminalize and clear
+provider tokens for affected push registrations, HOLD uncertain MFA factors,
+code generations, invitations/reset links and protected privileged memberships
+until independently verified recovery/re-enrollment. Reconfirm Organization
+identity/ownership and typed commercial entitlements from separate authority;
+an entitlement-only HOLD cannot disable necessary field/Guest custody completion
+under DEC-088. Never restore an earlier last-accepted TOTP step or old recovery
+generation as currently usable, resurrect consumed refresh family, reissue
+an old link or reactivate a retired proof key. A restored password login,
+database audit or User ACTIVE value alone cannot establish post-snapshot
+authorization. Preserve immutable operational/audit history and reconcile
+unavoidable physical-custody/payment changes with separately authorized domain
+commands, recording actual RPO loss; do not manufacture events to fill a gap.
+Rehearse an **older backup** with post-snapshot consumed code, accepted TOTP,
+revoked session, changed role and superseded reset generation, then verify both
+ledger-complete and ledger-missing/fail-closed outcomes. RPO/RTO targets,
+measured results and mediated recovery capacity require Owner/operator
+acceptance; no such ledger or restore test is established by the repository.
 
 ## Minimal Owner decision package
 
@@ -315,8 +460,18 @@ private schema mechanics and lock analysis do not need another Owner vote.
 
 | Decision | Evidence, feasible alternatives and recommended answer | Guarantee, cost, decline consequence and gate |
 | --- | --- | --- |
-| L1 legacy admission and mediated recovery | Existing SQL-writable sessions/factors and operator-authority facts lack prospective proof origin; accepted contracts do not decide a new trust baseline. Approve explicit independent per-object administrative baseline, all legacy Staff session retirement, pending-factor restart, retained admitted active factors/codes and selective HOLD/recovery. Alternative: independently rebuild every authority/factor (high disruption); or declare the entire snapshot trusted with explicit weaker historical assurance (simpler, not provenance proof). Recommend selective baseline plus two-person approval for no-code recovery/authority correction. | Future protected origin begins at T0 with explicit bounded baseline risk; no mass compromise assumption. Costs roster/commercial verification, controlled case staffing, new admissions/operator command implementation and user sign-in/pending restart. Decline: no grandfathering, affected state stays HOLD and cutover cannot grant reset authority. Implementation gate: legacy import/issuer admission and mediated bootstrap. |
-| L2 outage and irreversible boundary | Existing branch has no proof-capable rollback artifact and repository does not establish production topology/restore operations. Approve drained auth-sensitive downtime, permanent legacy credential/key retirement, forward-only restrictive privilege boundary and tested R requirement. Alternative: approve secure outage/fix-forward if no R can be built; or postpone release. Recommend stage/test R before scheduling, choose no-active-shift window, retain fix-forward incident fallback. | Prevents old writers/mixed serving from laundering authority. Costs outage, forced sign-in/push registration, backups/restores, two immutable builds and rehearsals. Duration/RPO/RTO must be attested and accepted for actual environment, not guessed. Decline: no safe cutover/reopen; remain design-only. Implementation gate: release automation and irreversible cutover activation. |
+| L1 legacy admission and mediated recovery | **Recommended Owner choice:** authorize an independently evidenced **per-object** ADMIT/HOLD/RETIRE baseline at drained T0 for exact User/email/hash/status, Organization/Location, all-status memberships/full grants, typed entitlements, admitted ACTIVE MFA/recovery generation and controlled operator identity; revoke every legacy SS/RC and bound push, retire legacy pending enrollment, keep current authenticator only after independent owner confirmation, and require mediated independently verified no-phone/no-code/credential repair. Prefer two named VAYLET approvers for sensitive recovery; a single accountable operator with mandatory independent post-review is a distinct weaker choice needing explicit acceptance. Alternative: rebuild all authority/factors (high disruption); unqualified snapshot trust is **not recommended** because it cannot establish prior credential origin. | Establishes bounded new prospective trust without falsely certifying historical state; consumes independent Company/commercial verification and recovery staffing. HOLD cannot grant reset or MFA issuer authority. Reject/defer L1: keep affected capabilities HOLD and cutover bootstrap blocked; do not auto-disable operations or reinterpret historic data. |
+| L2 outage and irreversible boundary | **Recommended Owner choice:** approve a specific drained auth-sensitive downtime window only after naming actual operators, evidence-complete topology, authenticated-writer/ACL closure, tested immutable proof-capable **N and R**, historical privileged-credential/runner revocation before boundary activation, older-backup security-monotone reconciliation or conservative HOLD, key promotion/retirement and encrypted restore rehearsal. Authorize post-C3 rollback **only** to proof-aware R; if R cannot be built, require a separately and explicitly approved secure-outage/fix-forward alternative, or postpone. Approve no-active-shift timing or an independently validated field-custody continuity protocol. | Existing sessions stop; employees reauthenticate and legacy pending MFA restarts; migration/grant rollback is intentionally unavailable. Actual rehearsal must measure outage/RPO/RTO, key and MFA-secret recovery and restart/worker behavior against approved targets. Decline/defer L2 or fail any gate: **no C0–C6 execution or reopening**, stay design-only/secure outage as applicable. |
+
+**Exact Owner response needed (proposed, not signed):** decide L1's selective
+baseline and independent recovery operator policy, and L2's drained downtime,
+mandatory compatible R or separately approved fix-forward-only contingency,
+plus acceptable RPO/RTO/operational-continuity limits. Approval of a plan is
+not release or credential-recovery authority; the Owner must separately accept
+U1 key custody and S1 internal SQL contract supersession, while U2 and live
+environment attestations must be verified before implementation/reopen. If the
+Owner declines either L1 or L2, record the declined option and affected
+capabilities as HOLD instead of inferring consent from silence.
 
 No acceptance is asserted for L1/L2. External operational evidence is a release
 gate, not an additional architecture-selection exercise. Once these material
@@ -351,6 +506,17 @@ All runtime/deployment tests below are NOT RUN in this design task.
    traverse app, PG parameters/query/error, driver, tracing, proxy, extensions,
    audit, crash and backup/export sinks with synthetic markers only. No secret
    observability attestation is inferred from application redaction source.
+7. Compare the real deployment process/role/runner inventory with DB sessions;
+   prove old migration credential and provisioner denial **only during isolated
+   pre-C6 rehearsal**, prove revoked credential authentication denial at live
+   C4 without executing old code, and prove two approved N/R provisioner runs
+   preserve restrictive roles. A late privileged regrant must fence readiness.
+8. Restore an older backup with known post-snapshot TOTP/code/refresh/push,
+   role, reset-link and proof-key terminal events; prove a complete outside-backup
+   monotone reconciliation or conservative HOLD/revocation for each missing
+   event. Record independently measured recovery duration, latest recovered
+   consistent boundary, actual RPO/RTO, accepted loss and operational custody
+   reconciliation. Never infer recovery success from a successful DB startup.
 
 Final independent auth, SQL and operations reviewers must review the combined
 final package and identify finding severity/evidence/correction/acceptance proof.
@@ -405,7 +571,7 @@ writers, stage N/R and rehearse, then execute only separately authorized C0-C6.
 
 ### Test matrix
 
-The six acceptance rows above specify future real-boundary evidence. None ran.
+The eight acceptance rows above specify future real-boundary evidence. None ran.
 
 ### Files expected to change
 
