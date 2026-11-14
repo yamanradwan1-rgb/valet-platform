@@ -7,6 +7,7 @@ summary, after verifying the same head/base inputs and committed head sources.
 
 import argparse
 from collections import defaultdict
+from contextlib import contextmanager
 import hashlib
 import json
 import os
@@ -21,6 +22,33 @@ import codeql_gate as gate
 
 MAX_SOURCE_BYTES = 8 * 1024 * 1024
 SAFE_RULE_ID = re.compile(r"js/[a-z][a-z0-9-]{0,95}\Z", re.ASCII)
+SAFE_CATEGORIES = frozenset({
+    "SOURCE_ROOT", "SARIF_INPUT", "SUMMARY_READBACK", "SUMMARY_MISMATCH",
+    "SARIF_ROWS", "SARIF_ROW_COUNT", "SARIF_RULE_ID", "SARIF_REGION",
+    "SOURCE_PIN", "SOURCE_LINE_RANGE", "DELTA_COUNT", "OUTPUT_WRITE",
+    "UNCLASSIFIED",
+})
+
+
+class TelemetryIncomplete(gate.InvalidScan):
+    """Static diagnostic only; never carry SARIF values or exception text."""
+
+    def __init__(self, category: str):
+        if category not in SAFE_CATEGORIES:
+            raise ValueError("invalid telemetry diagnostic category")
+        self.category = category
+        super().__init__(category)
+
+
+@contextmanager
+def _diagnose(category: str):
+    try:
+        yield
+    except TelemetryIncomplete:
+        raise
+    except (gate.InvalidScan, OSError, ValueError, RuntimeError, UnicodeError,
+            TypeError, KeyError, IndexError):
+        raise TelemetryIncomplete(category) from None
 
 
 def _git(root: Path, *args: str) -> bytes:
@@ -66,7 +94,7 @@ def _source_pin(root: Path, relative: str, line: int, cache: dict) -> str:
         line_count = len(committed.splitlines())
         cache[relative] = (digest, line_count)
     if line > line_count:
-        raise gate.InvalidScan("CodeQL primary line exceeds committed source")
+        raise TelemetryIncomplete("SOURCE_LINE_RANGE")
     return digest
 
 
@@ -76,18 +104,18 @@ def _rows(path: Path, scan: gate.Scan) -> list[dict]:
                       parse_constant=gate._reject_non_json_constant)
     results = data["runs"][0]["results"]
     if len(results) != len(scan.alerts):
-        raise gate.InvalidScan("CodeQL telemetry findings differ from gate")
+        raise TelemetryIncomplete("SARIF_ROW_COUNT")
     rows = []
     for result, (identity, severity) in zip(results, scan.alerts):
         rule_id, relative, primary_hash, message_hash = identity
         if not SAFE_RULE_ID.fullmatch(rule_id):
-            raise gate.InvalidScan("unsafe CodeQL rule identifier")
+            raise TelemetryIncomplete("SARIF_RULE_ID")
         region = result["locations"][0]["physicalLocation"].get("region")
         if not isinstance(region, dict) or type(region.get("startLine")) is not int:
-            raise gate.InvalidScan("missing CodeQL primary startLine")
+            raise TelemetryIncomplete("SARIF_REGION")
         line = region["startLine"]
         if not 0 < line <= 2147483647:
-            raise gate.InvalidScan("invalid CodeQL primary startLine")
+            raise TelemetryIncomplete("SARIF_REGION")
         rows.append({"key": identity, "severity": severity, "line": line,
                      "ruleId": rule_id, "path": relative,
                      "primaryLocationLineHashSha256": hashlib.sha256(
@@ -123,24 +151,30 @@ def _delta(head: list[dict], base: list[dict], root: Path,
                             "messageSha256": row["messageSha256"],
                             "sourceBlobSha256": pin})
     if len(details) != expected["blocked"]:
-        raise gate.InvalidScan("CodeQL telemetry count differs from gate")
+        raise TelemetryIncomplete("DELTA_COUNT")
     return sorted(details, key=lambda row: (
         row["path"], row["startLine"], row["ruleId"], row["severity"],
         row["primaryLocationLineHashSha256"], row["messageSha256"]))
 
 
 def augment(head_path: Path, base_path: Path, out: Path, root: Path) -> dict:
-    if head_path.resolve() == base_path.resolve():
-        raise gate.InvalidScan("CodeQL head and baseline must use separate files")
-    if Path(os.fsdecode(_git(root, "rev-parse", "--show-toplevel").strip())).resolve() != root:
-        raise gate.InvalidScan("CodeQL source root is not the Git checkout")
-    head_scan, base_scan = gate.load_scan(head_path), gate.load_scan(base_path)
-    summary = gate.compare(head_scan, base_scan)
-    persisted = json.loads(out.read_bytes(), object_pairs_hook=gate._object_no_duplicates,
-                           parse_constant=gate._reject_non_json_constant)
+    with _diagnose("SOURCE_ROOT"):
+        if head_path.resolve() == base_path.resolve():
+            raise gate.InvalidScan("CodeQL head and baseline must use separate files")
+        if Path(os.fsdecode(_git(root, "rev-parse", "--show-toplevel").strip())).resolve() != root:
+            raise gate.InvalidScan("CodeQL source root is not the Git checkout")
+    with _diagnose("SARIF_INPUT"):
+        head_scan, base_scan = gate.load_scan(head_path), gate.load_scan(base_path)
+        summary = gate.compare(head_scan, base_scan)
+    with _diagnose("SUMMARY_READBACK"):
+        persisted = json.loads(out.read_bytes(), object_pairs_hook=gate._object_no_duplicates,
+                               parse_constant=gate._reject_non_json_constant)
     if persisted != summary:
-        raise gate.InvalidScan("CodeQL sanitized summary differs from gate")
-    details = _delta(_rows(head_path, head_scan), _rows(base_path, base_scan), root, summary)
+        raise TelemetryIncomplete("SUMMARY_MISMATCH")
+    with _diagnose("SARIF_ROWS"):
+        head_rows, base_rows = _rows(head_path, head_scan), _rows(base_path, base_scan)
+    with _diagnose("SOURCE_PIN"):
+        details = _delta(head_rows, base_rows, root, summary)
     return {**summary, "newHighCriticalDelta": details}
 
 
@@ -153,23 +187,28 @@ def main() -> int:
     args = parser.parse_args()
     try:
         out = Path(args.out)
-        result = augment(Path(args.head), Path(args.base), out,
-                         Path(args.source_root).resolve(strict=True))
+        with _diagnose("SOURCE_ROOT"):
+            root = Path(args.source_root).resolve(strict=True)
+        result = augment(Path(args.head), Path(args.base), out, root)
         # Atomic update: a failure never leaves a partial or unverified artifact.
         tmp = None
         try:
-            with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8",
-                                             dir=out.parent, delete=False) as file:
-                tmp = Path(file.name)
-                file.write(json.dumps(result, sort_keys=True) + "\n")
-            os.replace(tmp, out)
+            with _diagnose("OUTPUT_WRITE"):
+                with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8",
+                                                 dir=out.parent, delete=False) as file:
+                    tmp = Path(file.name)
+                    file.write(json.dumps(result, sort_keys=True) + "\n")
+                os.replace(tmp, out)
         finally:
             if tmp is not None:
                 tmp.unlink(missing_ok=True)
         print(f"CodeQL sanitized telemetry: {len(result['newHighCriticalDelta'])} source-pinned alerts")
         return 0
-    except (gate.InvalidScan, OSError, ValueError, RuntimeError, UnicodeError):
-        print("CodeQL sanitized telemetry INCOMPLETE (fail closed)", file=sys.stderr)
+    except (gate.InvalidScan, OSError, ValueError, RuntimeError, UnicodeError,
+            TypeError, KeyError, IndexError) as error:
+        category = error.category if isinstance(error, TelemetryIncomplete) else "UNCLASSIFIED"
+        print(f"CodeQL sanitized telemetry INCOMPLETE (fail closed): CATEGORY={category}",
+              file=sys.stderr)
         return 2
 
 

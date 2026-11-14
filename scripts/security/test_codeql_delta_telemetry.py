@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 import codeql_delta_telemetry as telemetry
 import codeql_gate as gate
@@ -109,6 +110,14 @@ class CodeQLDeltaTelemetryTests(unittest.TestCase):
         self.assertEqual(downgraded["blocked"], 0)
         self.assertEqual(downgraded["newHighCriticalDelta"], [])
 
+    def test_59_head_48_existing_11_new_high_matches_real_gate_counts(self):
+        existing = [finding(hash_value=f"old-{i}") for i in range(48)]
+        additions = [finding(hash_value=f"new-{i}") for i in range(11)]
+        result = self.augmented(report(*(existing + additions)), report(*existing))
+        self.assertEqual((result["total"], result["existing"], result["new"],
+                          result["blocked"], len(result["newHighCriticalDelta"])),
+                         (59, 48, 11, 11, 11))
+
     def test_medium_addition_and_existing_high_produce_empty_delta(self):
         old, new = finding(), finding(hash_value="medium-new")
         result = self.augmented(report(old, new, score="4.5"), report(old, score="4.5"))
@@ -145,6 +154,64 @@ class CodeQLDeltaTelemetryTests(unittest.TestCase):
         invalid_head["runs"][0]["results"][0]["locations"][0][
             "physicalLocation"]["region"]["startLine"] = 121
         self.rejected(invalid_head, report())
+
+    def assert_diagnostic(self, category):
+        self.assertIn(category, telemetry.SAFE_CATEGORIES)
+        original = self.out.read_bytes()
+        process = self.cli()
+        self.assertEqual(process.returncode, 2)
+        self.assertEqual(process.stdout, "")
+        self.assertEqual(process.stderr.strip(),
+                         "CodeQL sanitized telemetry INCOMPLETE (fail closed): "
+                         f"CATEGORY={category}")
+        self.assertEqual(self.out.read_bytes(), original)
+        self.assertNotIn(SECRET, process.stderr)
+
+    def test_old_result_without_region_is_gate_valid_but_telemetry_incomplete(self):
+        existing = finding()
+        head = report(existing, finding(hash_value="new-high"))
+        base = report(existing)
+        del base["runs"][0]["results"][0]["locations"][0][
+            "physicalLocation"]["region"]
+        self.save_pair(head, base)
+        # The CodeQL gate counts alerts by identity, which does not use region.
+        self.assertEqual(json.loads(self.out.read_text())["blocked"], 1)
+        self.assert_diagnostic("SARIF_REGION")
+
+    def test_unsafe_rule_id_yields_only_fixed_category(self):
+        unsafe = "js/private-" + SECRET
+        self.save_pair(report(finding(rule=unsafe), query=unsafe), report(query=unsafe))
+        self.assert_diagnostic("SARIF_RULE_ID")
+
+    def test_source_and_summary_failures_have_fixed_diagnostics(self):
+        self.save_pair(report(finding(message=SECRET)), report())
+        self.source.write_text("modified source\n", encoding="utf-8")
+        self.assert_diagnostic("SOURCE_PIN")
+        self.source.write_bytes(self.source_bytes)
+
+        head = report(finding())
+        head["runs"][0]["results"][0]["locations"][0][
+            "physicalLocation"]["region"]["startLine"] = 121
+        self.save_pair(head, report())
+        self.assert_diagnostic("SOURCE_LINE_RANGE")
+
+        self.save_pair(report(finding()), report(), summary={
+            "scanner": "codeql", "total": 1, "existing": 1, "new": 0, "blocked": 0})
+        self.assert_diagnostic("SUMMARY_MISMATCH")
+
+        self.save_pair(report(finding()), report())
+        self.head_path.write_text("not JSON " + SECRET, encoding="utf-8")
+        self.assert_diagnostic("SARIF_INPUT")
+
+    def test_delta_mismatch_category_cannot_be_influenced_by_alert_data(self):
+        row = {"key": (RULE, "apps/api/src/route.ts", "raw", "hash"),
+               "severity": "HIGH", "line": 100, "ruleId": RULE,
+               "path": "apps/api/src/route.ts",
+               "primaryLocationLineHashSha256": "digest", "messageSha256": "hash"}
+        with patch.object(telemetry, "_source_pin", return_value="0" * 64):
+            with self.assertRaises(telemetry.TelemetryIncomplete) as failure:
+                telemetry._delta([row], [], self.root, {"blocked": 0})
+        self.assertEqual(failure.exception.category, "DELTA_COUNT")
 
     def test_incomparable_versions_and_invalid_severity_fail_closed(self):
         self.rejected(report(finding(), version="2.27.4"),
@@ -188,6 +255,9 @@ class CodeQLDeltaTelemetryTests(unittest.TestCase):
                                   "--out", str(self.out)],
                                  capture_output=True, text=True, check=False)
         self.assertEqual(process.returncode, 2)
+        self.assertEqual(process.stderr.strip(),
+                         "CodeQL sanitized telemetry INCOMPLETE (fail closed): "
+                         "CATEGORY=SOURCE_ROOT")
 
 
 if __name__ == "__main__":
