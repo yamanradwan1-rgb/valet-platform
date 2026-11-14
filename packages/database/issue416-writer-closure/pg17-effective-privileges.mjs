@@ -31,6 +31,7 @@ export async function inspectEffectivePg17Privileges(client, role) {
   const effective = await one(
     client,
     "SELECT " +
+      "pg_catalog.has_table_privilege($1,'public.anti_abuse_events','SELECT') AS table_sel, " +
       "pg_catalog.has_column_privilege($1,'public.anti_abuse_events','state','UPDATE') AS state_upd, " +
       "pg_catalog.has_column_privilege($1,'public.anti_abuse_events','group_key_hash','UPDATE') AS group_upd, " +
       "pg_catalog.has_column_privilege($1,'public.anti_abuse_events','scope','INSERT') AS scope_ins, " +
@@ -100,9 +101,39 @@ export async function inspectEffectivePg17Privileges(client, role) {
     effective,
     publicAcl,
     ordinary,
-    legacyStaffAuthLimiterCompatible:
-      effective.state_ins && effective.state_upd,
-    legacyGuestClassifiedLimiterCompatible:
-      effective.group_ins && effective.class_ins && effective.group_upd,
+    // Presence of effective SQL rights is NOT proof of mounted API/Guest
+    // functionality, caller identity, or a trusted purpose-bound writer.
+    // Staff reserve/count/finalize and Guest classified reserve/read/group
+    // binding each require their exact SQL privilege footprint.
+    legacyStaffAuthSqlAclPresent: [
+      effective.table_sel,
+      effective.scope_ins,
+      effective.key_ins,
+      effective.state_ins,
+      effective.state_upd,
+    ].every((right) => right === true),
+    legacyGuestClassifiedSqlAclPresent: [
+      effective.table_sel,
+      effective.scope_ins,
+      effective.key_ins,
+      effective.state_ins,
+      effective.class_ins,
+      effective.group_ins,
+      effective.group_upd,
+      effective.state_upd,
+    ].every((right) => right === true),
+    legacyRuntimeReadinessSqlAclPresent: [
+      effective.table_sel,
+      effective.scope_ins,
+      effective.key_ins,
+      effective.state_ins,
+      effective.class_ins,
+      effective.group_ins,
+      effective.state_upd,
+      effective.group_upd,
+      effective.cleanup_execute,
+    ].every((right) => right === true),
+    mountedFunctionalityVerified: false,
+    trustedWriterVerified: false,
   };
 }

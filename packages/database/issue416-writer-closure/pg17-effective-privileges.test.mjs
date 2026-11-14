@@ -6,7 +6,7 @@ import {
   releaseExclusiveOwnedLease,
 } from "./pg17-exclusive-lease.mjs";
 
-function fixture({ legacy = true, missing = false } = {}) {
+function fixture({ legacy = true, missing = false, privileges = {} } = {}) {
   const seen = [];
   const client = {
     async query(sql, args = []) {
@@ -45,6 +45,7 @@ function fixture({ legacy = true, missing = false } = {}) {
           rowCount: 1,
           rows: [
             {
+              table_sel: legacy,
               state_upd: legacy,
               group_upd: legacy,
               scope_ins: legacy,
@@ -55,6 +56,7 @@ function fixture({ legacy = true, missing = false } = {}) {
               del: false,
               trunc: false,
               cleanup_execute: legacy,
+              ...privileges,
             },
           ],
         };
@@ -86,8 +88,11 @@ test("real SQL observer distinguishes legacy Staff Auth/Guest from denied DRAINE
       state.client,
       "issue416_w26_c3run_20261114",
     );
-    assert.equal(report.legacyStaffAuthLimiterCompatible, legacy);
-    assert.equal(report.legacyGuestClassifiedLimiterCompatible, legacy);
+    assert.equal(report.legacyStaffAuthSqlAclPresent, legacy);
+    assert.equal(report.legacyGuestClassifiedSqlAclPresent, legacy);
+    assert.equal(report.legacyRuntimeReadinessSqlAclPresent, legacy);
+    assert.equal(report.mountedFunctionalityVerified, false);
+    assert.equal(report.trustedWriterVerified, false);
     assert.equal(report.effective.state_upd, legacy);
     assert.equal(report.effective.group_upd, legacy);
     assert.equal(report.publicAcl.table_writes, 0);
@@ -102,6 +107,71 @@ test("real SQL observer distinguishes legacy Staff Auth/Guest from denied DRAINE
       ),
     );
   }
+});
+
+test("adversarial partial grants cannot pass Staff Auth or Guest SQL requirements", async () => {
+  const staffRequired = [
+    "table_sel",
+    "scope_ins",
+    "key_ins",
+    "state_ins",
+    "state_upd",
+  ];
+  const guestRequired = [
+    "table_sel",
+    "scope_ins",
+    "key_ins",
+    "state_ins",
+    "class_ins",
+    "group_ins",
+    "group_upd",
+    "state_upd",
+  ];
+  const readinessRequired = [
+    ...new Set([...staffRequired, ...guestRequired, "cleanup_execute"]),
+  ];
+  for (const missingPrivilege of readinessRequired) {
+    const { client } = fixture({ privileges: { [missingPrivilege]: false } });
+    const report = await inspectEffectivePg17Privileges(
+      client,
+      "partial_runtime",
+    );
+    assert.equal(
+      report.legacyStaffAuthSqlAclPresent,
+      !staffRequired.includes(missingPrivilege),
+      "Staff Auth false positive when " + missingPrivilege + " denied",
+    );
+    assert.equal(
+      report.legacyGuestClassifiedSqlAclPresent,
+      !guestRequired.includes(missingPrivilege),
+      "Guest false positive when " + missingPrivilege + " denied",
+    );
+    assert.equal(report.legacyRuntimeReadinessSqlAclPresent, false);
+    assert.equal(report.mountedFunctionalityVerified, false);
+    assert.equal(report.trustedWriterVerified, false);
+  }
+});
+
+test("the previously reproduced partial-grant pattern is rejected", async () => {
+  const { client } = fixture({
+    privileges: {
+      table_sel: false,
+      scope_ins: false,
+      key_ins: false,
+    },
+  });
+  const report = await inspectEffectivePg17Privileges(
+    client,
+    "partial_runtime",
+  );
+  assert.equal(report.effective.state_ins, true);
+  assert.equal(report.effective.state_upd, true);
+  assert.equal(report.effective.group_ins, true);
+  assert.equal(report.effective.class_ins, true);
+  assert.equal(report.effective.group_upd, true);
+  assert.equal(report.legacyStaffAuthSqlAclPresent, false);
+  assert.equal(report.legacyGuestClassifiedSqlAclPresent, false);
+  assert.equal(report.legacyRuntimeReadinessSqlAclPresent, false);
 });
 
 test("NULL catalog privilege cannot be misrepresented as safe", async () => {

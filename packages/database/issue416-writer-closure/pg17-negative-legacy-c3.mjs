@@ -48,8 +48,9 @@ export async function verifyNegativeLegacyC3(config, inspected, clientFactory) {
     }
     const before = await inspectEffectivePg17Privileges(client, config.role);
     if (
-      !before.legacyStaffAuthLimiterCompatible ||
-      !before.legacyGuestClassifiedLimiterCompatible
+      !before.legacyStaffAuthSqlAclPresent ||
+      !before.legacyGuestClassifiedSqlAclPresent ||
+      !before.legacyRuntimeReadinessSqlAclPresent
     ) {
       throw new Error("W26_NEGATIVE_C3_LEGACY_ALREADY_BROKEN");
     }
@@ -88,8 +89,11 @@ export async function verifyNegativeLegacyC3(config, inspected, clientFactory) {
       rollbackObserved: true,
       noGrantModification: true,
       sourceWritersClosed: false,
-      staffAuthLegacyStillCompatible: after.legacyStaffAuthLimiterCompatible,
-      guestLegacyStillCompatible: after.legacyGuestClassifiedLimiterCompatible,
+      staffAuthLegacySqlAclStillPresent: after.legacyStaffAuthSqlAclPresent,
+      guestLegacySqlAclStillPresent: after.legacyGuestClassifiedSqlAclPresent,
+      runtimeReadinessSqlAclStillPresent:
+        after.legacyRuntimeReadinessSqlAclPresent,
+      mountedFunctionalityVerified: false,
     };
   } finally {
     if (lease) await releaseExclusiveOwnedLease(client).catch(() => undefined);
