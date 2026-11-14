@@ -2,6 +2,29 @@
 
 Status: **DORMANT; no trusted signer or runtime authorization capability**.
 
+## Worker-18 U1 offline input-format preparation (not trusted key custody)
+
+`vap1-keyring-offline-format.ts` validates a strict candidate JSON envelope
+with one or two unique `keyId` entries and distinct encoded root values, one independently supplied deployment
+audience, and exact canonical 32-byte unpadded base64url roots. The offline
+validator accepts only a single unambiguous `JSON.stringify` serialization
+and rejects duplicate JSON object keys, reordered/unknown fields, mixed
+audiences, duplicate/invalid IDs and malformed root material. It returns
+`void`; decoded bytes are zeroed after length/canonicality checks. All
+failure messages are independent of key contents.
+
+**This is only a format guard, not a live U1 implementation or readiness
+signal.** The validator does not load `process.env`, read any deployment
+secret, return a usable key, compute HMAC, issue a proof, provide a signer
+callback or access SQL. Test fixtures are public nonsecret filler bytes.
+Canonical JSON is a conservative offline input check in this isolated
+module, **not an asserted operationally approved injection serialization**.
+The deployment owner still must attest live injection, encrypted storage and
+backups, a separately privileged/private PostgreSQL verifier, approved
+pgcrypto and role ACL, promotion/retirement barriers and real key recovery.
+No consumer is registered: even a syntactically valid 256-bit candidate
+cannot unlock `denyUntilVap1StaffLoginAdmission`.
+
 ## Worker-18 W23 security correction: remove injected-query credential oracle
 
 The earlier dormant A01 preflight accepted externally supplied `lookupPool`
