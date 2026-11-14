@@ -86,13 +86,35 @@ export function assertPinnedMigrationBytes(name, bytes) {
   if (createHash("sha256").update(source).digest("hex") === expected) {
     return true;
   }
-  // Canonical Git blobs are LF; Windows core.autocrlf checks out CRLF.
-  // Accept ONLY pinned CRLF bytes restored from a pure-LF checkout.
-  // Reject mixed endings, lone CR and any other SQL-byte differences.
+  // Git checkouts can be all LF or all CRLF. Accept ONLY the two exact
+  // line-ending representations of the same pinned SQL bytes, never mixed
+  // endings, lone CR, a third checksum, or arbitrary SQL-content changes.
   if (source.includes(13)) {
-    throw new Error("ISSUE416_RACE_SOURCE_MIGRATION_CHECKSUM_CHANGED");
+    const canonicalLf = [];
+    for (let i = 0; i < source.length; i += 1) {
+      if (source[i] === 13) {
+        if (source[i + 1] !== 10) {
+          throw new Error("ISSUE416_RACE_SOURCE_MIGRATION_CHECKSUM_CHANGED");
+        }
+        continue;
+      }
+      if (source[i] === 10 && source[i - 1] !== 13) {
+        throw new Error("ISSUE416_RACE_SOURCE_MIGRATION_CHECKSUM_CHANGED");
+      }
+      canonicalLf.push(source[i]);
+    }
+    if (
+      createHash("sha256").update(Buffer.from(canonicalLf)).digest("hex") !==
+      expected
+    ) {
+      throw new Error("ISSUE416_RACE_SOURCE_MIGRATION_CHECKSUM_CHANGED");
+    }
+    return true;
   }
-  const lfCount = source.reduce((count, byte) => count + (byte === 10 ? 1 : 0), 0);
+  const lfCount = source.reduce(
+    (count, byte) => count + (byte === 10 ? 1 : 0),
+    0,
+  );
   if (lfCount === 0) {
     throw new Error("ISSUE416_RACE_SOURCE_MIGRATION_CHECKSUM_CHANGED");
   }
