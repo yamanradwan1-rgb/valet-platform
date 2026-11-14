@@ -53,8 +53,14 @@ describe("append-only migration source history", () => {
       "20261113011700_issue416_vap1_key_boundary_guard",
       "20261113012000_issue416_vap1_atomic_reset_quota",
       "20261113012400_issue416_vap1_atomic_reset_quota_functions",
+      "20261113012500_issue416_redeem_scope_contract",
+      "20261113012600_issue416_private_reset_credentials",
+      "20261113012700_issue416_reset_credential_receipt_binding",
+      "20261113012800_issue416_reset_private_reservation_abi",
+      "20261113012900_issue416_a01_limiter_fingerprint",
+      "20261113013000_issue416_reset_commit_integrity",
     ]);
-    expect(expectedCurrentMigrationDirectories).toHaveLength(119);
+    expect(expectedCurrentMigrationDirectories).toHaveLength(125);
     const migrationRoot = fileURLToPath(
       new URL("../prisma/migrations/", import.meta.url),
     );
