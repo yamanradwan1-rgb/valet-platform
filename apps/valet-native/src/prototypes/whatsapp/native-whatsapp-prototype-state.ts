@@ -23,26 +23,26 @@ export function parseWhatsAppDemoState(value: unknown): WhatsAppDemoState {
 
 const labels = {
   en: {
-    default: "Demo · Send via WhatsApp",
-    pressed: "Demo · Send via WhatsApp",
-    loading: "Demo · Requesting…",
-    queued: "Demo · Queued by VAYLET",
-    accepted: "Demo · Meta accepted",
-    failed: "Demo · Failed",
-    unknown: "Demo · Outcome unknown",
-    delivered: "Demo · Delivered (webhook)",
-    disabled: "Demo · Unavailable",
+    default: "Send via WhatsApp",
+    pressed: "Send via WhatsApp",
+    loading: "Sending…",
+    queued: "Queued by VAYLET",
+    accepted: "Meta accepted",
+    failed: "Failed",
+    unknown: "Outcome unknown",
+    delivered: "Delivered",
+    disabled: "Unavailable",
   },
   ar: {
-    default: "تجريبي · إرسال عبر واتساب",
-    pressed: "تجريبي · إرسال عبر واتساب",
-    loading: "تجريبي · جارٍ الطلب…",
-    queued: "تجريبي · في قائمة VAYLET",
-    accepted: "تجريبي · قبلت Meta الطلب",
-    failed: "تجريبي · تعذّر الإرسال",
-    unknown: "تجريبي · النتيجة غير معروفة",
-    delivered: "تجريبي · تم التسليم (ويب هوك)",
-    disabled: "تجريبي · غير متاح",
+    default: "إرسال عبر واتساب",
+    pressed: "إرسال عبر واتساب",
+    loading: "جاري الإرسال…",
+    queued: "في قائمة إرسال VAYLET",
+    accepted: "قبلت Meta الطلب",
+    failed: "تعذّر الإرسال",
+    unknown: "نتيجة الإرسال غير معروفة",
+    delivered: "تم التسليم",
+    disabled: "الإرسال غير متاح",
   },
 } satisfies Record<FoundationLocale, Record<WhatsAppDemoState, string>>;
 
@@ -54,13 +54,17 @@ export function getWhatsAppDemoCopy(
     label: labels[locale][state],
     accessibilityLabel: `${locale === "ar" ? "واتساب" : "WhatsApp"} · ${labels[locale][state]}`,
     hint:
-      state === "loading" || state === "disabled"
+      state === "delivered"
         ? locale === "ar"
-          ? "عرض تصميم فقط. لا يتم إرسال أي رسالة. التحكم غير متاح حالياً."
-          : "Design demonstration only. No message is sent. Control currently unavailable."
-        : locale === "ar"
-          ? "عرض تصميم فقط. لا يتم إرسال أي رسالة. اضغط لاستعراض الحالة التالية."
-          : "Design demonstration only. No message is sent. Tap to preview the next state.",
+          ? "عرض تصميم فقط. لا يتم إرسال أي رسالة. التسليم المعروض محاكاة وليس دليلاً من مزود الخدمة."
+          : "Design demonstration only. No message is sent. Displayed delivery is simulated, not provider evidence."
+        : state === "loading" || state === "disabled"
+          ? locale === "ar"
+            ? "عرض تصميم فقط. لا يتم إرسال أي رسالة. التحكم غير متاح حالياً."
+            : "Design demonstration only. No message is sent. Control currently unavailable."
+          : locale === "ar"
+            ? "عرض تصميم فقط. لا يتم إرسال أي رسالة. اضغط لاستعراض الحالة التالية."
+            : "Design demonstration only. No message is sent. Tap to preview the next state.",
   };
 }
 

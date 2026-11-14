@@ -16,7 +16,7 @@ const { appearanceNodes, resolveAppearanceTree } =
 
 describe("Issue #310 fixture-only WhatsApp control", () => {
   it.each(["en", "ar"] as const)(
-    "identifies every %s state as a demonstration",
+    "uses Owner-approved visible %s copy with simulation truthfulness in the hint",
     (locale) => {
       for (const state of whatsAppDemoStates) {
         const onAdvance = vi.fn();
@@ -40,12 +40,24 @@ describe("Issue #310 fixture-only WhatsApp control", () => {
         expect(String(button.props.accessibilityLabel)).toContain(
           locale === "ar" ? "واتساب" : "WhatsApp",
         );
-        expect(String(button.props.accessibilityLabel)).toContain(
-          locale === "ar" ? "تجريبي" : "Demo",
+        const label = getWhatsAppDemoCopy(locale, state).label;
+        expect(label).not.toMatch(/Demo|تجريبي|^[\s·]+/);
+        const visibleText = nodes.filter((n) => n.type === "Text");
+        expect(visibleText).toHaveLength(1);
+        expect(visibleText[0]!.props.children).toContain(label);
+        expect(String(button.props.accessibilityHint)).toMatch(
+          locale === "ar" ? /لا يتم إرسال أي رسالة/ : /No message is sent/,
         );
         expect(button.props.accessibilityLiveRegion).toBe("polite");
         const blocked = state === "loading" || state === "disabled";
         expect(button.props.disabled).toBe(blocked);
+        expect(button.props.accessibilityState).toEqual({
+          busy: state === "loading",
+          disabled: blocked,
+        });
+        expect(nodes.some((n) => n.type === "ActivityIndicator")).toBe(
+          state === "loading",
+        );
         (button.props.onPress as () => void)();
         (button.props.onPress as () => void)();
         expect(onAdvance).toHaveBeenCalledTimes(blocked ? 0 : 2);
@@ -59,9 +71,43 @@ describe("Issue #310 fixture-only WhatsApp control", () => {
       expect(getWhatsAppDemoCopy(locale, "accepted").label).not.toBe(
         getWhatsAppDemoCopy(locale, "delivered").label,
       );
-      expect(getWhatsAppDemoCopy(locale, "delivered").label).toMatch(
-        /webhook|ويب هوك/,
+      expect(getWhatsAppDemoCopy(locale, "delivered").hint).toMatch(
+        locale === "ar" ? /محاكاة/ : /simulated/,
       );
+    }
+  });
+
+  it("matches every selected English/Arabic state label exactly", () => {
+    const expected = {
+      en: [
+        "Send via WhatsApp",
+        "Send via WhatsApp",
+        "Sending…",
+        "Queued by VAYLET",
+        "Meta accepted",
+        "Failed",
+        "Outcome unknown",
+        "Delivered",
+        "Unavailable",
+      ],
+      ar: [
+        "إرسال عبر واتساب",
+        "إرسال عبر واتساب",
+        "جاري الإرسال…",
+        "في قائمة إرسال VAYLET",
+        "قبلت Meta الطلب",
+        "تعذّر الإرسال",
+        "نتيجة الإرسال غير معروفة",
+        "تم التسليم",
+        "الإرسال غير متاح",
+      ],
+    };
+    for (const locale of ["en", "ar"] as const) {
+      expect(
+        whatsAppDemoStates.map(
+          (state) => getWhatsAppDemoCopy(locale, state).label,
+        ),
+      ).toEqual(expected[locale]);
     }
   });
 

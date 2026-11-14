@@ -67,6 +67,8 @@ vi.mock("../src/prototypes/whatsapp/native-whatsapp-prototype-button", () => ({
 }));
 const { NativeWhatsAppPrototypeScreen } =
   await import("../src/prototypes/whatsapp/native-whatsapp-prototype-screen");
+const { getWhatsAppDemoCopy } =
+  await import("../src/prototypes/whatsapp/native-whatsapp-prototype-state");
 
 type Props = Parameters<typeof NativeWhatsAppPrototypeScreen>[0];
 type Element = ReactElement<Record<string, unknown>>;
@@ -131,7 +133,11 @@ describe("Issue #310 preview session lifecycle", () => {
     const parking = elements(tree).find((node) => node.type === "ParkingTask")!;
     const button = parking.props.whatsAppPrototype as Element;
     (button.props.onAdvance as () => void)();
+    (button.props.onAdvance as () => void)();
     expect(hooks.states[0]).toBe("loading");
+    expect(vi.getTimerCount()).toBe(1);
+    expect(getWhatsAppDemoCopy("en", "loading").label).toBe("Sending…");
+    expect(getWhatsAppDemoCopy("ar", "loading").label).toBe("جاري الإرسال…");
     render({ initialState: "accepted" });
     expect(hooks.states[0]).toBe("accepted");
     await vi.advanceTimersByTimeAsync(1000);
@@ -145,5 +151,40 @@ describe("Issue #310 preview session lifecycle", () => {
     await hooks.owner.settled();
     expect(hooks.owner.current().mode).toBe("light");
     expect(JSON.parse(write.mock.calls.at(-1)![0]).theme).toBe("light");
+  });
+
+  it("uses the same control for immediate Sending then local Queued and clears timers on exit", async () => {
+    vi.stubGlobal("__DEV__", true);
+    vi.useFakeTimers();
+    hooks.owner = new NativeAppearanceOwner({
+      read: async () => null,
+      write: vi.fn(),
+    });
+    await hooks.owner.restore();
+    const control = () => {
+      const parking = elements(render()).find(
+        (node) => node.type === "ParkingTask",
+      )!;
+      return parking.props.whatsAppPrototype as Element;
+    };
+    const original = control();
+    (original.props.onAdvance as () => void)();
+    const sending = control();
+    expect(sending.type).toBe(original.type);
+    expect(sending.props.state).toBe("loading");
+    await vi.advanceTimersByTimeAsync(900);
+    expect(control().props.state).toBe("queued");
+    expect(vi.getTimerCount()).toBe(0);
+    render({ initialState: "pressed" });
+    const parking = elements(render({ initialState: "pressed" })).find(
+      (node) => node.type === "ParkingTask",
+    )!;
+    (
+      (parking.props.whatsAppPrototype as Element).props.onAdvance as () => void
+    )();
+    hooks.effects.forEach((effect) => effect.cleanup?.());
+    expect(vi.getTimerCount()).toBe(0);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(hooks.states[0]).toBe("loading");
   });
 });
