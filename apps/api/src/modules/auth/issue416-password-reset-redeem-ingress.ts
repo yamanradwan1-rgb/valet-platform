@@ -10,6 +10,7 @@ import {
 
 const countedRequests = new WeakMap<object, string>();
 const countingRequests = new WeakSet<object>();
+const attemptedRequests = new WeakSet<object>();
 const ADDRESS_ATTEMPTS_PER_15_MINUTES =
   STAFF_PASSWORD_RESET_ANTI_ABUSE.redeemClientAddress.limit;
 
@@ -26,9 +27,16 @@ export class Issue416PasswordResetIngress {
   ) {}
 
   async countBeforeBodyParser(request: ApiRequest): Promise<void> {
-    if (countedRequests.has(request) || countingRequests.has(request)) {
+    if (
+      attemptedRequests.has(request) ||
+      countedRequests.has(request) ||
+      countingRequests.has(request)
+    ) {
       throw new Issue416ResetUnavailableError();
     }
+    // Even a failed or ambiguous count cannot be attempted again on this
+    // request: a retry may duplicate a committed quota event.
+    attemptedRequests.add(request);
     countingRequests.add(request);
     try {
       await this.countOnce(request);

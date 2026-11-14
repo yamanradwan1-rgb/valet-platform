@@ -32,6 +32,7 @@ import {
   type ProtectedResetCaller,
 } from "./issue416-password-reset-boundary";
 import { issue416PasswordResetLink } from "./issue416-password-reset-link";
+import { requireIssue416VerifiedSqlAuthority } from "../auth/issue416-password-reset-sql-readiness";
 
 @Injectable()
 export class Issue416PasswordResetService {
@@ -76,6 +77,7 @@ export class Issue416PasswordResetService {
     organizationId: string,
     membershipId: string,
   ): Promise<StaffPasswordResetStatusResponse> {
+    requireIssue416VerifiedSqlAuthority("STATUS");
     if (this.boundary === undefined) throw new Issue416ResetUnavailableError();
     const caller = await this.caller(
       authorization,
@@ -95,6 +97,7 @@ export class Issue416PasswordResetService {
     command: StaffPasswordResetIssueRequest,
     request: ApiRequest,
   ): Promise<StaffPasswordResetIssueResponse> {
+    requireIssue416VerifiedSqlAuthority("ISSUE");
     if (this.boundary === undefined) throw new Issue416ResetUnavailableError();
     const token = generateStaffPasswordResetToken();
     const resetLink = issue416PasswordResetLink(token);

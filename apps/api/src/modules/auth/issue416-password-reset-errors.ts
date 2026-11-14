@@ -9,10 +9,14 @@ export class Issue416ResetUnavailableError extends Error {
 
 export class Issue416ResetRateLimitedError extends Error {
   readonly code = "STAFF_PASSWORD_RESET_RATE_LIMITED";
+  readonly retryAfter: number;
 
-  constructor(readonly retryAfter: number) {
+  constructor(retryAfter: number) {
     super("Too many requests. Try again later.");
     this.name = "Issue416ResetRateLimitedError";
+    this.retryAfter = Number.isFinite(retryAfter)
+      ? Math.max(1, Math.min(900, Math.ceil(retryAfter)))
+      : 900;
   }
 }
 

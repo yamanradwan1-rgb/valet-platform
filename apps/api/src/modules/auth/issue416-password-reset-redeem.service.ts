@@ -27,6 +27,7 @@ import {
   ISSUE416_REDEEM_TRUSTED_BOUNDARY,
   type Issue416RedeemTrustedBoundary,
 } from "./issue416-password-reset-redeem-boundary";
+import { requireIssue416VerifiedSqlAuthority } from "./issue416-password-reset-sql-readiness";
 
 const CREDENTIAL_ATTEMPTS_PER_15_MINUTES =
   STAFF_PASSWORD_RESET_ANTI_ABUSE.redeemCredential.limit;
@@ -81,6 +82,7 @@ export class Issue416PasswordResetRedeemService {
       }
     }
     const command = parseAuthBody(staffPasswordResetRedeemRequestSchema, body);
+    requireIssue416VerifiedSqlAuthority("REDEEM");
     if (this.boundary === undefined) throw new Issue416ResetUnavailableError();
     const newPasswordHash = await hashStaffPassword(command.newPassword);
     const committed = await this.boundary.redeem({

@@ -23,6 +23,22 @@ const token = generateStaffPasswordResetToken();
 const validBody = { resetToken: token, newPassword: "Strong-Password-2026!" };
 
 describe("Issue416 pre-parser public address budget", () => {
+  it("does not repeat a reservation after an unknown quota COMMIT", async () => {
+    const { antiAbuse, ingress } = setup();
+    const request = { headers: {} };
+    antiAbuse.count.mockRejectedValueOnce(new Error("reply lost after COMMIT"));
+    await expect(ingress.countBeforeBodyParser(request)).rejects.toMatchObject({
+      code: "STAFF_PASSWORD_RESET_UNAVAILABLE",
+    });
+    await expect(ingress.countBeforeBodyParser(request)).rejects.toMatchObject({
+      code: "STAFF_PASSWORD_RESET_UNAVAILABLE",
+    });
+    expect(antiAbuse.count).toHaveBeenCalledTimes(1);
+    expect(() => ingress.takeCountedAddress(request)).toThrow(
+      "Service temporarily unavailable.",
+    );
+  });
+
   it("durably counts an attempt before a malformed body is parsed", async () => {
     const { antiAbuse, ingress } = setup();
     const request = { headers: {} };
@@ -51,12 +67,19 @@ describe("Issue416 pre-parser public address budget", () => {
       code: "STAFF_PASSWORD_RESET_RATE_LIMITED",
       retryAfter: 128,
     });
-    await ingress.countBeforeBodyParser(request);
     await expect(ingress.countBeforeBodyParser(request)).rejects.toMatchObject({
       code: "STAFF_PASSWORD_RESET_UNAVAILABLE",
     });
+    // A denied or ambiguous first count cannot be retried on that HTTP request.
+    const secondRequest = { headers: {} };
+    await ingress.countBeforeBodyParser(secondRequest);
+    await expect(
+      ingress.countBeforeBodyParser(secondRequest),
+    ).rejects.toMatchObject({
+      code: "STAFF_PASSWORD_RESET_UNAVAILABLE",
+    });
     expect(antiAbuse.count).toHaveBeenCalledTimes(2);
-    ingress.takeCountedAddress(request);
+    ingress.takeCountedAddress(secondRequest);
     addresses.resolve.mockImplementationOnce(() => {
       throw new Error("not trusted");
     });
