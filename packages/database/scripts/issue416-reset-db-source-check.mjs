@@ -12,6 +12,8 @@ const migrations = [
   "20261113012800_issue416_reset_private_reservation_abi",
   "20261113012900_issue416_a01_limiter_fingerprint",
   "20261113013000_issue416_reset_commit_integrity",
+  "20261113013100_issue416_reset_quota_receipt_finalization",
+  "20261113013200_issue416_redeem_exact_identity_evidence",
 ];
 
 function migration(name) {
