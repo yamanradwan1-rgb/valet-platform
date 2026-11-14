@@ -1,194 +1,161 @@
-import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { generate } from "otplib";
+import { describe, expect, it, vi } from "vitest";
 
-import type {
-  PostgresPool,
-  PostgresTransaction,
-} from "../src/common/database/postgres";
+import { hashSubmittedStaffRefresh } from "../src/modules/auth/staff-auth-vap1-refresh";
+import { staffCredentialHash } from "../src/modules/auth/staff-auth-credential";
+import { verifySubmittedStaffLoginPassword } from "../src/modules/auth/staff-auth-vap1-login-ceremony";
 import { hashStaffPassword } from "../src/modules/auth/staff-password-hashing";
+import { Argon2StaffPasswordVerifier } from "../src/modules/auth/staff-password-verification";
+import {
+  generateTotpSecret,
+  verifyTotpCode,
+} from "../src/modules/auth/mfa/mfa-totp";
 import {
   denyUntilVap1StaffLoginAdmission,
   Vap1StaffLoginAdmissionUnavailable,
 } from "../src/modules/auth/vap1/vap1-staff-login-preflight";
 
 const USER_ID = "00000000-0000-4000-8000-000000000001";
-const PASSWORD = "Correct genuine passphrase #416";
-const EMAIL = "employee@example.invalid";
-
-let actualArgon2Phc: string;
-beforeAll(async () => {
-  actualArgon2Phc = await hashStaffPassword(PASSWORD);
-});
-
-function mockDatabase(
-  options: {
-    readonly lookupHash?: string | null;
-    readonly lookupStatus?: "ACTIVE" | "PENDING" | "DISABLED";
-    readonly lockedHash?: string | null;
-    readonly lockedStatus?: "ACTIVE" | "PENDING" | "DISABLED";
-    readonly missingUser?: boolean;
-    readonly failLookup?: boolean;
-  } = {},
-) {
-  const lookupQuery = vi.fn(async (sql: string, args?: unknown[]) => {
-    if (
-      sql !== "SELECT id, password_hash, status FROM users WHERE email = $1" ||
-      args?.[0] !== EMAIL
-    ) {
-      throw new Error("Unexpected lookup query");
-    }
-    if (options.failLookup) throw new Error("database failure: secret context");
-    return {
-      rows: options.missingUser
-        ? []
-        : [
-            {
-              id: USER_ID,
-              status: options.lookupStatus ?? "ACTIVE",
-              password_hash:
-                options.lookupHash === undefined
-                  ? actualArgon2Phc
-                  : options.lookupHash,
-            },
-          ],
-    };
-  });
-  const lockedQuery = vi.fn(async (sql: string, args?: unknown[]) => {
-    if (sql.includes("pg_advisory_xact_lock")) return { rows: [] };
-    if (sql.includes("FOR UPDATE")) {
-      if (args?.[0] !== USER_ID) throw new Error("Unexpected locked User");
-      return {
-        rows: [
-          {
-            status: options.lockedStatus ?? "ACTIVE",
-            password_hash:
-              options.lockedHash === undefined
-                ? actualArgon2Phc
-                : options.lockedHash,
-          },
-        ],
-      };
-    }
-    throw new Error("preflight attempted an unauthorized SQL command");
-  });
-  const lookupPool = { query: lookupQuery } as unknown as Pick<
-    PostgresPool,
-    "query"
-  >;
-  const transaction = { query: lockedQuery } as unknown as PostgresTransaction;
-  return { lookupPool, transaction, lookupQuery, lockedQuery };
-}
-
-function request(
-  db: ReturnType<typeof mockDatabase>,
-  overrides: Record<string, unknown> = {},
-) {
-  return {
-    lookupPool: db.lookupPool,
-    transaction: db.transaction,
-    email: EMAIL,
-    submittedPassword: PASSWORD,
-    operationId: randomUUID(),
-    audience: "test-audience",
-    ...overrides,
-  };
-}
-
-async function denied(
-  input: Parameters<typeof denyUntilVap1StaffLoginAdmission>[0],
-) {
-  await expect(denyUntilVap1StaffLoginAdmission(input)).rejects.toEqual(
-    new Vap1StaffLoginAdmissionUnavailable(),
+const RAW_PASSWORD = "Real password for source-only test 416";
+const RAW_REFRESH = `vsr1.${Buffer.alloc(32, 0x6e).toString("base64url")}`;
+const blocked = () =>
+  expect(denyUntilVap1StaffLoginAdmission).toThrow(
+    Vap1StaffLoginAdmissionUnavailable,
   );
-}
 
-describe("Issue416 authentic A01 preflight stays dormant without protected writer", () => {
-  it("verifies real submitted Argon2 password and exact locked User PHC, yet never issues authority", async () => {
-    const db = mockDatabase();
-    await denied(request(db));
-    expect(db.lookupQuery).toHaveBeenCalledExactlyOnceWith(
-      "SELECT id, password_hash, status FROM users WHERE email = $1",
-      [EMAIL],
-    );
-    expect(db.lockedQuery).toHaveBeenCalledTimes(2);
-    expect(db.lockedQuery.mock.calls[0]?.[0]).toContain(
-      "pg_advisory_xact_lock",
-    );
-    expect(db.lockedQuery.mock.calls[1]).toEqual([
-      "SELECT password_hash, status FROM users WHERE id = $1 FOR UPDATE",
-      [USER_ID],
-    ]);
-    // Raw password never becomes a SQL argument or a recorded authority claim.
-    expect(JSON.stringify(db.lookupQuery.mock.calls)).not.toContain(PASSWORD);
-    expect(JSON.stringify(db.lockedQuery.mock.calls)).not.toContain(PASSWORD);
-  });
-
-  it("rejects a forged PHC/UserID/context without the original submitted password", async () => {
-    const db = mockDatabase();
-    await denied(
-      request(db, {
-        submittedPassword: undefined,
-        userId: USER_ID,
-        passwordHash: actualArgon2Phc,
-        passwordVerified: true,
-        sessionId: randomUUID(),
-        isAdmin: true,
+describe("Issue416 W23: deny-only VAP1 signer cannot reveal the password via query hooks", () => {
+  it("rejects valid and invalid real Argon2 ceremonies without handing callbacks to the issuer", async () => {
+    const phc = await hashStaffPassword(RAW_PASSWORD);
+    const verifier = new Argon2StaffPasswordVerifier();
+    const user = { id: USER_ID, status: "ACTIVE" as const, password_hash: phc };
+    expect(
+      await verifySubmittedStaffLoginPassword({
+        user,
+        submittedPassword: RAW_PASSWORD,
+        verifier,
       }),
+    ).toBe(phc);
+    await expect(
+      verifySubmittedStaffLoginPassword({
+        user,
+        submittedPassword: "wrong",
+        verifier,
+      }),
+    ).rejects.toThrow();
+    // Neither successful verification nor a trusted-looking PHC is an issuer.
+    blocked();
+    blocked();
+  });
+
+  it("refuses valid raw refresh possession and stored hashes alike", () => {
+    expect(hashSubmittedStaffRefresh(RAW_REFRESH)).toBe(
+      staffCredentialHash("refresh", RAW_REFRESH),
     );
-    expect(db.lockedQuery).not.toHaveBeenCalled();
+    expect(
+      hashSubmittedStaffRefresh(staffCredentialHash("refresh", RAW_REFRESH)),
+    ).toBeUndefined();
+    blocked();
   });
 
-  it("rejects a wrong submitted password, even with a genuine stored PHC", async () => {
-    const db = mockDatabase();
-    await denied(request(db, { submittedPassword: "wrong password" }));
-    expect(db.lockedQuery).not.toHaveBeenCalled();
+  it("does not turn valid submitted TOTP into VAP1 issuer authority", async () => {
+    const now = new Date("2026-11-13T12:00:15.000Z");
+    const secret = generateTotpSecret();
+    const code = await generate({
+      algorithm: "sha1",
+      digits: 6,
+      epoch: Math.floor(now.getTime() / 30_000) * 30,
+      period: 30,
+      secret,
+      strategy: "totp",
+    });
+    expect(await verifyTotpCode({ code, now, secret })).toBeDefined();
+    blocked();
   });
 
-  it("rejects a password rotation raced between Argon2 and locked User check", async () => {
-    const db = mockDatabase({ lockedHash: "different current Argon2 PHC" });
-    await denied(request(db));
-    expect(db.lockedQuery).toHaveBeenCalledTimes(2);
-  });
-
-  it("refuses a disabled User even when the password matches", async () => {
-    const db = mockDatabase({ lookupStatus: "DISABLED" });
-    await denied(request(db));
-    expect(db.lockedQuery).not.toHaveBeenCalled();
-  });
-
-  it("refuses an invalid account/operation/audience before any SQL", async () => {
-    for (const override of [
-      { operationId: "not-a-uuid" },
-      { audience: "tenant\nforged" },
-      { audience: "tenant\n" },
-      { operationId: `${randomUUID()}\n` },
-      { email: undefined },
+  it("does not call an injected SQL lookup, transaction or fake signer when invoked dynamically", () => {
+    const lookup = vi.fn(() => {
+      throw Error("attacker observed a credential lookup");
+    });
+    const transaction = vi.fn(() => {
+      throw Error("attacker observed a password-dependent lock");
+    });
+    const signer = vi.fn(() => Buffer.alloc(32));
+    const attackerInput = {
+      lookupPool: { query: lookup },
+      transaction: { query: transaction },
+      signedProof: signer,
+      audience: "test-audience",
+      operationId: USER_ID,
+      submittedPassword: RAW_PASSWORD,
+      userId: USER_ID,
+      passwordVerified: true,
+      verifiedPhc: "attacker-controlled stored hash",
+      actor: "STAFF",
+      sessionId: USER_ID,
+    };
+    // At runtime JavaScript callers can supply extra arguments despite TS.
+    const invoke = denyUntilVap1StaffLoginAdmission as (
+      ...args: unknown[]
+    ) => never;
+    for (const attempt of [
+      attackerInput,
+      { ...attackerInput, submittedPassword: "wrong" },
+      { ...attackerInput, submittedPassword: undefined },
+      { ...attackerInput, passwordVerified: false },
+      undefined,
     ]) {
-      const db = mockDatabase();
-      await denied(request(db, override));
-      expect(db.lookupQuery).not.toHaveBeenCalled();
-      expect(db.lockedQuery).not.toHaveBeenCalled();
+      expect(() => invoke(attempt)).toThrow(Vap1StaffLoginAdmissionUnavailable);
     }
+    expect(lookup).not.toHaveBeenCalled();
+    expect(transaction).not.toHaveBeenCalled();
+    expect(signer).not.toHaveBeenCalled();
   });
 
-  it("makes missing User and infrastructure failures indistinguishable to callers", async () => {
-    for (const options of [{ missingUser: true }, { failLookup: true }]) {
-      const db = mockDatabase(options);
-      await denied(request(db));
-      expect(db.lockedQuery).not.toHaveBeenCalled();
+  it("exports no constructor, query-hook capability or flexible signer by source contract", () => {
+    const source = readFileSync(
+      resolve(
+        process.cwd(),
+        "src/modules/auth/vap1/vap1-staff-login-preflight.ts",
+      ),
+      "utf8",
+    );
+    expect(denyUntilVap1StaffLoginAdmission.length).toBe(0);
+    expect(source).toMatch(
+      /export function denyUntilVap1StaffLoginAdmission\(\): never/,
+    );
+    expect(source).not.toMatch(
+      /\binput\s*:\s*\{|\blookupPool\s*:|\btransaction\s*:\s*PostgresTransaction/,
+    );
+    expect(source).not.toMatch(
+      /\b(?:await|pool|transaction|client)\.query\s*\(/,
+    );
+    expect(source).not.toMatch(
+      /\b(?:createHmac|sign|loadKey|readKey|process\.env)\s*\(/,
+    );
+  });
+
+  it("has no credential-dependent calls on any possible public entry path", () => {
+    const lookup = vi.fn();
+    const transaction = vi.fn();
+    const invoke = denyUntilVap1StaffLoginAdmission as (
+      ...args: unknown[]
+    ) => never;
+    for (const payload of [
+      { lookupPool: { query: lookup }, transaction: { query: transaction } },
+      { submittedPassword: RAW_PASSWORD },
+      { submittedPassword: "wrong" },
+      { password_hash: "PHC", isAuthenticated: true },
+      { totpValid: true, recoveryValid: true, refreshValid: true },
+      { signedBytes: Buffer.alloc(32), keyId: "k1" },
+    ]) {
+      expect(() => invoke(payload)).toThrowError(
+        "VAP1 Staff Login authority is unavailable.",
+      );
     }
-  });
-
-  it("rejects a locked User disabled after a successful real password comparison", async () => {
-    const db = mockDatabase({ lockedStatus: "DISABLED" });
-    await denied(request(db));
-    expect(db.lockedQuery).toHaveBeenCalledTimes(2);
-  });
-
-  it("rejects even a valid submitted password if the trusted database returns no PHC", async () => {
-    const db = mockDatabase({ lookupHash: null });
-    await denied(request(db));
-    expect(db.lockedQuery).not.toHaveBeenCalled();
+    expect(lookup).toHaveBeenCalledTimes(0);
+    expect(transaction).toHaveBeenCalledTimes(0);
   });
 });

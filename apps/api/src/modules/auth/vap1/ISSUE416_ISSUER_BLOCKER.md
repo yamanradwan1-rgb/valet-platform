@@ -2,33 +2,43 @@
 
 Status: **DORMANT; no trusted signer or runtime authorization capability**.
 
-## Worker-18 follow-up: genuine Argon2 preflight, deny-only
+## Worker-18 W23 security correction: remove injected-query credential oracle
 
-`vap1-staff-login-preflight.ts` now provides an **unregistered, deny-only**
-`STAFF_LOGIN_COMMIT` preparation boundary. It obtains the User from a
-parameterized email lookup, calls the concrete production Argon2id verifier
-with the **raw submitted password** (not an injected verifier, ID, PHC digest
-or boolean), then uses the existing rank-01 User-security advisory lock and
-`SELECT ... FOR UPDATE` to reject a changed PHC or User status. It performs
-no session insert, no refresh mutation, no signing, no MAC, no proof issuance,
-no lookup of a signing key and no API or Nest registration. It deliberately
-throws the same nonsecret unavailable error even if a real password passes.
+The earlier dormant A01 preflight accepted externally supplied `lookupPool`
+and `transaction` query methods. It called the transaction's rank-01 lock
+only **after** Argon2 matched a supplied password. Although it always threw
+the same error, query-hook owners could count SQL requests and infer password
+validity; untrusted hooks could also invent User/PHC and locked results.
+**That version was not safe to treat as an issuer or a reusable preflight.**
 
-The operation UUID and audience are validated as request metadata, **not**
-trusted deployment-audience or transaction attestation. A controlled input or
-fake transaction object is not an authenticated signing capability. The
-preflight must remain unreachable from the production login path until the
-verified A01 pre-domain binding, independent ADMIT, trusted U1 app-key
-injection/private PG verifier, backend/full-XID challenge and atomic typed
-writer all exist and are independently tested. Never replace this failure
-with a successful witness return or a generic `sign(payload)` callback.
+`vap1-staff-login-preflight.ts` now exports only an input-free, I/O-free
+**unconditional denial**. It cannot receive a pool, transaction, password,
+PHC, User ID, signed payload, keyring, callback or claimed session. Even an
+untyped JavaScript caller providing these extras observes **zero** callbacks
+for valid and invalid credentials. It is not registered on login/MFA/refresh
+routes and has no database access or signing functionality. Existing genuine
+Argon2id, raw refresh, TOTP and recovery verifier functions remain inside
+their normal trusted authentication paths; their return values or SQL-visible
+state do **not** create VAP1 signing authority.
 
-Normal `api-non-postgres` unit tests use a real generated Argon2id PHC
-while mocking only the SQL result/lock. They test genuine/wrong credentials,
-PHC/status changes during the lock gap, forged User ID/PHC/context flags,
-untrusted operation/audience syntax, and indistinguishable unavailable
-failures. These tests do **not** prove a real PG lock, attested U1 key custody,
-SQL verification or future protected Staff Login execution.
+Standard `api-non-postgres` adversarial regressions compare real Argon2id
+success and failure, true raw refresh and TOTP validation, and attempts to
+pass forged identities, password-match flags, PHCs, fake keys, fake SQL
+transactions and spy callbacks into the denied boundary. A direct source
+assertion prohibits reintroducing query-hook arguments or generic signer
+calls. No production secret environment input is used.
+
+**Proof dependency closure needed before any replacement:** only the
+authenticated request owner may acquire its own leased PostgreSQL connection;
+verified raw ceremony must be rechecked against locked current protected
+User/session/factor and selective L1 ADMIT, not caller-injected SQL callbacks.
+The live U1 deployment keyring must be independently attested and match
+the private SQL verifier's committed key epoch and audience. Only the
+purpose-specific DB-issued challenge on the same backend/full XID, exact
+typed A01 payload/state, bounded signed proof, receipt and atomic writer may
+authorize a mutation. A01 pre-domain limiter must bind to the same operation
+without a SQL-runtime discount oracle. None of these prerequisites is
+attested complete in this isolated worker; activation is **DENIED**.
 
 Scope: worker-18 source inspection on `01047555518df4504219d4f6aa76c99e44541907`,
 not a PostgreSQL or deployment attestation. This record implements no new
