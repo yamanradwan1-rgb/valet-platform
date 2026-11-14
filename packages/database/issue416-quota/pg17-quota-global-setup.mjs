@@ -1,8 +1,10 @@
-import { assertPg17QuotaRelease } from "./pg17-quota-release.mjs";
-import w9GlobalSetup from "../issue416-private/global-setup.mjs";
+import {
+  assertPg17QuotaRelease, assertQuotaLeaseOwned,
+} from "./pg17-quota-release.mjs";
 
-// Invoked only by the explicit quota PG17 Vitest project; NEVER auto-migrate.
+// Explicitly blocked: there is no independent W9 lease-owner attestation for
+// the quota project. Never create a lease or attempt Docker/PG preflight.
 export default async function quotaSetup() {
-  assertPg17QuotaRelease(); // Before even W9's Docker/SQL preflight.
-  return w9GlobalSetup(); // Existing W9 attestation + exclusive lease.
+  assertPg17QuotaRelease();
+  assertQuotaLeaseOwned(); // Always fail-closed, including with release flag.
 }

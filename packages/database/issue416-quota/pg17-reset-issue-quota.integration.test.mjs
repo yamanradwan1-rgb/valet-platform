@@ -5,7 +5,9 @@ import { describe, expect, it } from "vitest";
 
 import { preflightIssue416Target } from "../issue416-private/target-preflight.mjs";
 import { attestQuotaSchema } from "./pg17-quota-fixture.mjs";
-import { assertPg17QuotaRelease } from "./pg17-quota-release.mjs";
+import {
+  assertPg17QuotaRelease, assertQuotaLeaseOwned, assertQuotaUrlRole,
+} from "./pg17-quota-release.mjs";
 
 const require = createRequire(new URL("../package.json", import.meta.url));
 const { Client } = require("pg");
@@ -13,9 +15,11 @@ const scopes = ["target", "issuer", "organization", "client"];
 const caps = [3, 20, 100, 30];
 
 async function attestedClient(urlKey) {
+  assertQuotaUrlRole(urlKey);
   assertPg17QuotaRelease();
-  // W9's global setup already holds the isolated exclusive lease.
-  // Recheck real Docker + SQL target identity before every connection.
+  assertQuotaLeaseOwned(); // No standalone connector, even with release flag.
+  // Inactive draft: a textual flag does not prove W9 lease ownership.
+  // Recheck real Docker + SQL target identity only AFTER a future safe redesign.
   await preflightIssue416Target();
   const client = new Client({
     connectionString: process.env[urlKey], connectionTimeoutMillis: 3000,

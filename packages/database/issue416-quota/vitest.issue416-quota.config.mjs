@@ -1,7 +1,7 @@
 import { defineConfig } from "vitest/config";
 
-// Never run while migration113 recovery is blocked. Explicit release gate runs
-// before W9 attestation/lease; all project tests are opt-in and NOT RUN to date.
+// Permanently fail-closed pending W9 independently attested lease ownership.
+// Even a textual Owner release flag cannot connect or run these draft PG tests.
 export default defineConfig({
   test: {
     projects: [{

@@ -22,18 +22,18 @@ describe("R02/R03 source-only PG17 harness safety — NO database access", () =>
     })); // Pure flag test; does not certify actual Owner authorization.
   });
 
-  it("requires gate before W9 attestation/lease and again before DB connections", () => {
+  it("withholds every PG connector until independent W9 lease ownership", () => {
     const setup = source("./pg17-quota-global-setup.mjs");
     const fixture = source("./pg17-quota-fixture.mjs");
     const config = source("./vitest.issue416-quota.config.mjs");
     assert.ok(setup.indexOf("assertPg17QuotaRelease();") <
-      setup.indexOf("return w9GlobalSetup()"));
-    assert.ok(fixture.indexOf("assertPg17QuotaRelease();") <
-      fixture.indexOf("await preflightIssue416Target()"));
+      setup.indexOf("assertQuotaLeaseOwned()"));
+    assert.doesNotMatch(setup, /w9GlobalSetup/);
+    assert.match(fixture, /assertQuotaUrlRole\(urlKey\)/);
+    assert.match(fixture, /assertQuotaLeaseOwned\(\)/);
     assert.match(config, /pg17-quota-global-setup\.mjs/);
-    assert.match(fixture, /attestQuotaSchema\(client\)/);
-    assert.match(fixture, /"ROLLBACK"/);
-    assert.doesNotMatch(fixture, /"COMMIT"|DROP TABLE|CREATE DATABASE|prisma migrate/i);
+    assert.doesNotMatch(fixture, /new Client\(|return await action\(client\)/);
+    assert.doesNotMatch(fixture, /["']COMMIT["']|DROP TABLE|CREATE DATABASE|prisma migrate/i);
   });
 
   it("preserves the six independent source caps and red R03 SQL gap", () => {

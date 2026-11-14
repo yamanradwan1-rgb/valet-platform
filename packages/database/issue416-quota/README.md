@@ -79,32 +79,42 @@ concurrency acceptance matrix and its source-supported activation blockers.
 It is a **specification**, not executable SQL or permission to connect to PG17.
 
 `node --test packages/database/issue416-quota/*.unit.test.mjs` performs source,
-hash-component, boundary and physical-line-count checks. The opt-in isolated
-PG17 suite uses the W9 harness and can run **only** after the forward-only
-lexical order W2 113–119 (plus any 11950/11955 before 120) → W12 120 →
-W2 121–123 → W12 124 is successfully migrated under W9's triple URL,
-container identity and exclusive lease
-attestations. The guarded PG17 fixture previously failed migration113 (P3018);
-all PG17 quota tests are **NOT RUN** pending W2/Prime safe recovery. No
-production DB, PR, push, merge or cutover is authorized by this change.
+hash-component, boundary and physical-line-count checks. The intended
+forward-only order is W2 113–119 (plus any 11950/11955 before 120) → W12 120
+→ W2 121–123 → W12 124. The guarded W9 fixture previously failed
+migration113 (P3018); **all PG17 quota tests remain NOT RUN**. No production DB,
+PR, push, merge or cutover is authorized by this change.
 
-### Retained PG17 acceptance harness — strictly NOT RUN
+### Retained PG17 acceptance test sources — NO SAFE PG17 RELEASE
 
-The opt-in Vitest configuration now routes through
-pg17-quota-global-setup.mjs: an explicit Owner recovery-release flag must
-pass **before** W9's identity attestation or exclusive-lease acquisition.
-Every connection also checks release and W9's exact synthetic PG17 identity;
-migrator connections read _prisma_migrations to reject missing, failed or
-incomplete 113/118/119/120/121/122/123/124 prerequisites. This gate does
-not itself attest Owner approval or repair the existing migration113 failure.
-Never set its release flag while P3018/recovery authorization remains blocked.
+W13 independent review of the earlier source-only harness identified three
+issues: exported connection helper accepted arbitrary environment URL keys;
+a generic transaction callback could COMMIT or run DDL before finally
+ROLLBACK; and no exported connector independently proved ownership of W9's
+exclusive lease. **All three routes now fail closed**. URL roles are strictly
+MIGRATION_DATABASE_URL and DATABASE_URL, checked before release and preflight.
+The generic callback never runs. The independent W9 lease owner cannot be
+proven from merely observing an existing lease directory.
 
-The rollback-only acceptance files are:
+Therefore pg17-quota-global-setup.mjs **always refuses** with
+R02_PG17_LEASE_OWNER_NOT_ATTESTED even if the textual release flag is set.
+It does not start W9, create a lease, call Docker, or connect to PostgreSQL.
+All W12 PG connection and SQL helper entrypoints refuse for the same reason.
+The previous migration-history and SQL test bodies remain **inactive draft
+fixtures**, not runnable acceptance tests. The release flag is not proof of
+Owner approval or a bypass. Never set it while migration113 recovery remains
+blocked. Future enablement requires an independently reviewed W9 per-connection
+lease-owner capability and a narrowly allowlisted SQL transaction interface
+that cannot COMMIT, terminate transactions or run DDL, plus re-review of every
+fixture. Merely adding finally ROLLBACK is insufficient.
+
+The inactive, non-runnable acceptance drafts are:
 
 - pg17-reset-issue-quota.integration.test.mjs: four atomic issuance scopes,
   same-operation replay, cap denial at 3/20/100/30, deferred integrity and ACL.
-- pg17-r02-concurrency.integration.test.mjs: two W9-attested connections,
-  advisory lock waiting/timeouts on same key and same operation; both rollback.
+- pg17-r02-concurrency.integration.test.mjs: proposed two W9-attested connections,
+  advisory lock waiting/timeouts on same key and same operation; both intended
+  to roll back under a future controlled transaction design.
 - pg17-r02-abi-acl.integration.test.mjs: direct private grant negatives,
   legacy public limiter write-grant negatives, old public limiter FK versus
   private UUIDs, and distinct R03 scope catalog requirements (expected to
@@ -112,9 +122,11 @@ The rollback-only acceptance files are:
 - pg17-r02-receipt.integration.test.mjs: fake evidence denial, missing receipt
   stays PENDING, exact replay and changed-fingerprint conflict.
 
-The source-only pg17-quota-harness.unit.test.mjs verifies the release
-gate, six source caps, known R03 catalog mismatch and coverage wiring, without
-loading PostgreSQL or Docker. The rollback-only tests cannot simulate actual
+Source-only pg17-quota-harness.unit.test.mjs and
+pg17-quota-isolation.unit.test.mjs verify strict URL roles, a permanently
+withheld lease owner, disabled generic callback, six source caps, R03 SQL
+mismatch and coverage wiring, without loading PostgreSQL or Docker.
+The inactive draft fixtures cannot simulate actual
 cross-lease **committed** unknown-COMMIT, authenticated reset generation, real
 two-transaction cap-boundary COMMIT, 900s expiry or production role grants;
 those cases are explicitly skipped/documented, not falsely counted as PASS.

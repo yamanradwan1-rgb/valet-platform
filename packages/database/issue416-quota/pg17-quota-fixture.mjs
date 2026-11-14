@@ -1,11 +1,8 @@
 import { createHash, createHmac, randomUUID } from "node:crypto";
-import { createRequire } from "node:module";
 
-import { preflightIssue416Target } from "../issue416-private/target-preflight.mjs";
-import { assertPg17QuotaRelease } from "./pg17-quota-release.mjs";
-
-const require = createRequire(new URL("../package.json", import.meta.url));
-const { Client } = require("pg");
+import {
+  assertPg17QuotaRelease, assertQuotaLeaseOwned, assertQuotaUrlRole,
+} from "./pg17-quota-release.mjs";
 
 export const AUDIENCE = "issue416-w9";
 export const ISSUE_SCOPES = Object.freeze([
@@ -47,6 +44,7 @@ export function fingerprint(value) {
 }
 
 export async function attestQuotaSchema(client) {
+  assertQuotaLeaseOwned();
   const { rows } = await client.query(
     "SELECT migration_name, finished_at, rolled_back_at " +
     "FROM public._prisma_migrations WHERE migration_name LIKE '2026111301%'",
@@ -64,35 +62,21 @@ export async function attestQuotaSchema(client) {
 }
 
 export async function attestedQuotaClient(urlKey = "MIGRATION_DATABASE_URL") {
+  assertQuotaUrlRole(urlKey);
   assertPg17QuotaRelease();
-  await preflightIssue416Target(); // W9 fixture identity before DB connection.
-  const client = new Client({
-    connectionString: process.env[urlKey], connectionTimeoutMillis: 3000,
-  });
-  await client.connect();
-  try {
-    if (urlKey === "MIGRATION_DATABASE_URL") await attestQuotaSchema(client);
-    return client;
-  } catch (error) {
-    await client.end();
-    throw error;
-  }
+  assertQuotaLeaseOwned(); // No unrestricted client until W9 ownership proof.
 }
 
-// Every fixture transaction is rolled back even when a test throws.
-export async function withQuotaRollback(action) {
-  const client = await attestedQuotaClient();
-  try {
-    await client.query("BEGIN");
-    await client.query("SET ROLE vap1_proof_owner");
-    return await action(client);
-  } finally {
-    await client.query("ROLLBACK").catch(() => {});
-    await client.end().catch(() => {});
-  }
+// A generic callback receiving pg.Client can COMMIT or perform DDL. Finally
+// ROLLBACK cannot reverse an earlier COMMIT. Until a narrow allowlisted SQL
+// command interface and owned W9 lease exist, NO writable callback executes.
+export async function withQuotaRollback(_action) {
+  assertPg17QuotaRelease();
+  assertQuotaLeaseOwned();
 }
 
 export async function reserveQuota(client, request) {
+  assertQuotaLeaseOwned(); // Withhold all direct SQL helpers, not just clients.
   const { rows } = await client.query(
     "SELECT bundle_state, reservation_ids FROM " +
     "auth_proof_private.reserve_reset_issue_quota(" +
@@ -105,6 +89,7 @@ export async function reserveQuota(client, request) {
 }
 
 export async function expectSavepointRejection(client, action, expectedCode) {
+  assertQuotaLeaseOwned();
   await client.query("SAVEPOINT quota_negative");
   try {
     await action();
