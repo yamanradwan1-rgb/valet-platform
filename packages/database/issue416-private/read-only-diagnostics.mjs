@@ -54,6 +54,17 @@ export const DIAGNOSTIC_QUERIES = Object.freeze({
     JOIN pg_catalog.pg_roles member ON member.oid = m.member
     WHERE target.rolname = $1::name OR member.rolname = $1::name
     ORDER BY target.rolname, member.rolname`,
+  // Snapshot the full default-ACL catalog, including GLOBAL defaults: a
+  // missing proof owner must not be mistaken for a complete ACL inventory.
+  defaultAcls: `
+    SELECT role.rolname AS owner,
+           n.nspname AS schema,
+           d.defaclobjtype AS object_type,
+           d.defaclacl::text AS default_acl
+    FROM pg_catalog.pg_default_acl AS d
+    JOIN pg_catalog.pg_roles AS role ON role.oid = d.defaclrole
+    LEFT JOIN pg_catalog.pg_namespace AS n ON n.oid = d.defaclnamespace
+    ORDER BY role.rolname, n.nspname NULLS FIRST, d.defaclobjtype`,
 });
 
 export function sanitizeDiagnosticLogs(value) {
@@ -96,7 +107,7 @@ export async function inspectFailedMigration(env = process.env) {
       TARGET.roles.DATABASE_URL[0]];
     const result = {};
     for (const [name, sql] of Object.entries(DIAGNOSTIC_QUERIES)) {
-      const values = name === "migrations" || name === "relations" ? [] :
+      const values = ["migrations", "relations", "defaultAcls"].includes(name) ? [] :
         name === "memberships" ? ["vap1_proof_owner"] :
         name === "roles" ? params : params;
       const rows = describeRows(await client.query(sql, values));
