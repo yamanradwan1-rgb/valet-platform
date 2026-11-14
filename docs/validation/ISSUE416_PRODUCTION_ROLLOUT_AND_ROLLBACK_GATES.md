@@ -10,7 +10,7 @@
 | VAP1 proof | Genuine credentials, purpose-limited signer, 18-field and U2 20-field HMAC Node/PG parity, same transaction/XID and replay negatives | NOT RUN |
 | SQL ACL | Private NOLOGIN custody, effective runtime/PUBLIC/inherited denials, no ordinary SQL key read, old overloads and provisioner twice | NOT RUN |
 | 35 U2 records | Each actual executable writer protected or safely retired, legacy paths maintained until coordinated cutover | NOT VERIFIED |
-| A01 and R02/R03 | Real binder+finalizer, committed immutable receipt, all six 15-minute quotas including pre-parser malformed attempts, unknown COMMIT recovery | **BLOCKED** — SQL133–134 private counted-only source reviewed but unconditional insert DENY; R03 API no longer trusts mutable public counter yet rejects with 503 without binder |
+| A01 and R02/R03 | Real binder+finalizer, committed immutable receipt, all six 15-minute quotas including pre-parser malformed attempts, unknown COMMIT recovery | **BLOCKED** — SQL133–134 private source still denies unbound INSERT; unapplied SQL135 excludes two legacy public R03 scopes but old Staff/Guest grants persist; R03 API 503 without binder or six real quota COMMITs |
 | Race matrix | All 21 approved independent-PG-connection races, both lock orderings, deadlocks, rollback and reconciliation | NOT RUN |
 | L1/L2 | Full all-status T0 parent/tenant roster, two independently authorized Ed25519 operators, monotone external checkpoint, old credential revocation, N→R→N rehearsal | NOT VERIFIED |
 | Reset backend | Three frozen routes, CA/target tenant eligibility, five-minute exact-session MFA, 15-minute DB clock, CAS/replay, one disclosure and atomic session/refresh/push revocation | NOT RUN |

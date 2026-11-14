@@ -26,10 +26,16 @@ Status (2026-11-14): **SOURCE DEFECT CONFIRMED; EFFECTIVE POST-MIGRATION ACL / R
 | Gate | State | What was actually established |
 | --- | --- | --- |
 | Existing source privilege and count mismatch | **FAIL / P0** | Read actual provisioner, AntiAbuseService, readiness and scope migration sources. No live database query. |
-| Private 133+ R03 source development | **IN PROGRESS** | Owned by COS worker-17 in separate worktree; not automatically an applied migration or accepted private SQL writer. |
+| Private 133–135 R03 source development | **SOURCE-ONLY / NOT APPLIED** | Private 133–134 deny unbound INSERT. New forward-only 135 denies only public R03 reset-redeem scopes using a table CHECK; it does not revoke legacy grants or enable the private binder, and is untested on PG17. |
 | SQL-only role deny after cutover | **NOT VERIFIED** | Neither effective PG17 ACL nor two-time provisioner test executed. |
 | Trusted early HTTP ingress + canonical verifier admission | **BLOCKED** | Test-only mounted HTTP is not an authenticated private-ledger binder and production pre-parser remains unmounted. |
 | Actual 30/5 concurrency, independent commit and business rollback | **NOT RUN** | No post-migration isolated PG17 proof. |
 | Migration113 original W9 recovery | **DENIED** | Initial Docker Engine failure was followed by recovery of the engine. Exact original W9 container ID, image, retained volume and labels matched on read-only inspect, but container remained **EXITED** with no published port; current PostgreSQL migration-history/ACL cannot be re-attested. No restart or SQL. |
 
 This P0 closure is prerequisite to replacing the unconditional SQL-unavailable gate or registering either of the two Staff password-reset controller classes (three planned routes). **No current local PASS permits production activation.**
+
+## Additive source-only containment — Migration 135 (2026-11-14)
+
+The new `20261113013500_issue416_r03_public_legacy_scope_deny` forward-only source refuses an existing public row with either reset-redeem scope and adds a validated `CHECK` forbidding those two scopes in `public.anti_abuse_events`. It leaves the old Staff Auth/Guest scopes and shared runtime grants untouched. Ordinary runtime SQL updates cannot evade the new CHECK *once actually applied*, but this is not proof that any target was migrated. W25 independently approved the SQL source **dormant only**; the paired 19-source migration pins and LF/CRLF Prisma ledger portability are separately subject to full exact-HEAD review. Installation requires an ACCESS EXCLUSIVE lock with a 5-second lock wait limit and 15-second per-statement timeout, so operational lock/blocking effects remain unverified. Original W9 Migration113 recovery remains DENIED.
+
+This does **not** close the wider existing SQL-only mutable public anti-abuse risk for other legacy scopes, and it does not supply trusted R03 IP, canonical `vspr1.` HMAC custody, protected private 30/5 COMMITs or an enabled redemption endpoint. No PostgreSQL/production privileges were changed.
