@@ -34,6 +34,32 @@ export const issue435AppendedMigrationDirectories = [
   "20261106011100_issue435_guest_push_registration_status",
 ] as const;
 
+export const issue416AppendedMigrationDirectories = [
+  "20261113011200_issue416_reserved_security_audit",
+  // Dormant Option A security sources are still part of the immutable Git
+  // migration inventory. Their presence does NOT imply Prisma ever applied
+  // them to W9, QA, or production.
+  "20261113011300_issue416_vap1_private_foundation",
+  "20261113011400_issue416_vap1_private_codec",
+  "20261113011500_issue416_vap1_private_lifecycle",
+  "20261113011600_issue416_vap1_audit_gate",
+  "20261113011700_issue416_vap1_key_boundary_guard",
+  "20261113012000_issue416_vap1_atomic_reset_quota",
+  "20261113012400_issue416_vap1_atomic_reset_quota_functions",
+  "20261113012500_issue416_redeem_scope_contract",
+  "20261113012600_issue416_private_reset_credentials",
+  "20261113012700_issue416_reset_credential_receipt_binding",
+  "20261113012800_issue416_reset_private_reservation_abi",
+  "20261113012900_issue416_a01_limiter_fingerprint",
+  "20261113013000_issue416_reset_commit_integrity",
+  "20261113013100_issue416_reset_quota_receipt_finalization",
+  "20261113013200_issue416_redeem_exact_identity_evidence",
+  "20261113013300_issue416_r03_private_attempt_ledger",
+  "20261113013400_issue416_r03_private_attempt_guards",
+  "20261113013500_issue416_r03_public_legacy_scope_deny",
+  "20261113013600_issue416_vap1_state_codec",
+] as const;
+
 export const expectedCurrentMigrationDirectories = [
   ...expectedMigrationDirectories,
   ...issue300AppendedMigrationDirectories,
@@ -41,4 +67,5 @@ export const expectedCurrentMigrationDirectories = [
   ...subsequentAppendedMigrationDirectories,
   ...issue429AppendedMigrationDirectories,
   ...issue435AppendedMigrationDirectories,
+  ...issue416AppendedMigrationDirectories,
 ] as const;

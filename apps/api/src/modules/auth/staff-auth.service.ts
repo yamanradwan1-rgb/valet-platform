@@ -16,10 +16,6 @@ import { randomUUID } from "node:crypto";
 
 import { Inject, Injectable } from "@nestjs/common";
 import { inPostgresTransaction as inTransaction } from "../../common/database/postgres-transaction";
-import {
-  isAcceptedStaffPasswordHash,
-  STAFF_AUTH_DUMMY_PASSWORD_HASH,
-} from "./staff-password-verification";
 export {
   Argon2StaffPasswordVerifier,
   isAcceptedStaffPasswordHash,
@@ -34,9 +30,10 @@ import {
 } from "../anti-abuse/anti-abuse.service";
 import {
   generateStaffCredential,
-  refreshTokenPattern,
   staffCredentialHash,
 } from "./staff-auth-credential";
+import { hashSubmittedStaffRefresh } from "./staff-auth-vap1-refresh";
+import { verifySubmittedStaffLoginPassword } from "./staff-auth-vap1-login-ceremony";
 import { logoutStaffSession } from "./staff-auth-logout";
 import { staffAuthTokenResult } from "./staff-auth-token-result";
 import {
@@ -66,27 +63,14 @@ export class StaffAuthService {
       [email],
     );
     const user = lookup.rows[0];
-    const supported =
-      user !== undefined &&
-      user.password_hash !== null &&
-      isAcceptedStaffPasswordHash(user.password_hash);
-    const hashToVerify =
-      supported && user.password_hash !== null
-        ? user.password_hash
-        : STAFF_AUTH_DUMMY_PASSWORD_HASH;
-    const passwordMatches = await this.passwordVerifier.verify(
-      hashToVerify,
-      password,
-    );
-    if (
-      user === undefined ||
-      user.password_hash === null ||
-      !supported ||
-      !passwordMatches ||
-      user.status !== "ACTIVE"
-    ) {
-      throw new StaffAuthenticationError();
-    }
+    const hashToVerify = await verifySubmittedStaffLoginPassword({
+      user,
+      submittedPassword: password,
+      verifier: this.passwordVerifier,
+    });
+    // The User row may have changed while Argon2 ran; lock/recheck the
+    // exact verified PHC in the transaction below before any mutation.
+    if (user === undefined) throw new StaffAuthenticationError();
 
     const accessToken = generateStaffCredential("vsa1.");
     const refreshToken = generateStaffCredential("vsr1.");
@@ -177,13 +161,11 @@ export class StaffAuthService {
   }
 
   async refresh(refreshToken: string): Promise<StaffAuthTokens> {
-    if (!refreshTokenPattern.test(refreshToken)) {
-      throw new StaffAuthenticationError();
-    }
+    const refreshHash = hashSubmittedStaffRefresh(refreshToken);
+    if (refreshHash === undefined) throw new StaffAuthenticationError();
     const accessToken = generateStaffCredential("vsa1.");
     const replacementRefreshToken = generateStaffCredential("vsr1.");
     const replacementId = randomUUID();
-    const refreshHash = staffCredentialHash("refresh", refreshToken);
     const result = await inTransaction(this.pool, async (transaction) => {
       if (
         !(await lockStaffRefreshUserSecurityBoundary(transaction, refreshHash))

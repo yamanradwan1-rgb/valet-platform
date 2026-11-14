@@ -1,0 +1,133 @@
+import { createHash } from "node:crypto";
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath, URL } from "node:url";
+
+// Exact raw SQL bytes for the current proposed Issue416 source set. Prisma stores SHA-256
+// migration.sql checksums; a syntactically valid arbitrary 64-hex checksum is
+// NOT evidence that the installed migration matches this source.
+export const PINNED_MIGRATION_SHA256 = Object.freeze({
+  "20261113011200_issue416_reserved_security_audit":
+    "4a5071b4f8d2fc6d2e5679a63f82353aee3876e17c9908b05da62d4504ca7df8",
+  "20261113011300_issue416_vap1_private_foundation":
+    "55faf42491358f9273aff6b99b5c6a13d921c64a7ecc61f030c4703fdb5f8090",
+  "20261113011400_issue416_vap1_private_codec":
+    "0cc8949c0fbf5a6d116a7a1a207a17c909e067716966286424b7f44b9c9f3e9d",
+  "20261113011500_issue416_vap1_private_lifecycle":
+    "fcdd5a4efc89bf590cc1a5d4c489ddd266bef9de31dc8923c433c294a4fe5b1b",
+  "20261113011600_issue416_vap1_audit_gate":
+    "793e6ef0a2be4e853e945d6f464f728700e10173af215f11ee8be7ba603c0845",
+  "20261113011700_issue416_vap1_key_boundary_guard":
+    "9a14e899843236737977f6c271fdc38b31e601cbf678ffa12f840e8d9d322083",
+  "20261113012000_issue416_vap1_atomic_reset_quota":
+    "3dca00f3e3d5190939b67a6571a8d8f4ada7a3bc900678fac1b6d1e7335902dd",
+  "20261113012400_issue416_vap1_atomic_reset_quota_functions":
+    "f3769bfbf24c92397ee682102ab7cf67b54e170c4bbbf02fcff6516f966df36d",
+  "20261113012500_issue416_redeem_scope_contract":
+    "022678685830db8d0f7a8a11ca7bee2da570b282ed518d5240963eaa42dd867e",
+  "20261113012600_issue416_private_reset_credentials":
+    "768ae27e48709ecd6ae08489a186892cb6420bde86b8cf3e89e2ffecf707f8f0",
+  "20261113012700_issue416_reset_credential_receipt_binding":
+    "8a1a3ecede877fb14c510999b07165b3ca58557ab701cabb54e96eaa245fbfa0",
+  "20261113012800_issue416_reset_private_reservation_abi":
+    "1798a9e1e9b98e524e0b699c64a6353830a2c6fbdb0304bb372505ba6e125d72",
+  "20261113012900_issue416_a01_limiter_fingerprint":
+    "d601ebba6df9542c0c8f17b0bf8afa47dadd257211db4a034af3db1e52c19e0b",
+  "20261113013000_issue416_reset_commit_integrity":
+    "cfe4b0a6fa6f1e4489ad351ffd10077d7b3229f2acc6d84fad708a9451e5e3c9",
+  "20261113013100_issue416_reset_quota_receipt_finalization":
+    "c6b4f6df2a8d419ebaad4d0b88b6c0af66757ce8837281964627e6983c774736",
+  "20261113013200_issue416_redeem_exact_identity_evidence":
+    "eaa3fa0d6255b2c15ac65beb76e5068fdbbc2e15acd0bc92c6bea73ae068baf4",
+  "20261113013300_issue416_r03_private_attempt_ledger":
+    "23a379264d6e9081195cebda56b391e45fb0560def0c58afcbcac32bc172b6e2",
+  "20261113013400_issue416_r03_private_attempt_guards":
+    "225918035f87abebcef1b144f9a7ef61b97f021511d266b559df181af2e9df2e",
+  "20261113013500_issue416_r03_public_legacy_scope_deny":
+    "7ff71645e45667584f625d6846fe8e6978fadd9888b7d31d196a1be35ab5d7f8",
+  "20261113013600_issue416_vap1_state_codec":
+    "98d2d34d5e33d2dea983aaa7fb61651ea22288dc18133d421e6b10f9baefc802",
+});
+
+export const REQUIRED_MIGRATIONS = Object.freeze(
+  Object.keys(PINNED_MIGRATION_SHA256),
+);
+export const ORIGINAL_SOURCE_MIGRATIONS = Object.freeze(
+  REQUIRED_MIGRATIONS.slice(0, 14),
+);
+const sourceRoot = fileURLToPath(
+  new URL("../prisma/migrations/", import.meta.url),
+);
+
+export function assertPinnedMigrationBytes(name, bytes) {
+  if (!Object.hasOwn(PINNED_MIGRATION_SHA256, name)) {
+    throw new Error("ISSUE416_RACE_SOURCE_MIGRATION_NOT_REVIEWED");
+  }
+  const source = Buffer.isBuffer(bytes) ? bytes : Buffer.from(bytes);
+  const expected = PINNED_MIGRATION_SHA256[name];
+  if (createHash("sha256").update(source).digest("hex") === expected) {
+    return true;
+  }
+  // Canonical Git blobs are LF; Windows core.autocrlf checks out CRLF.
+  // Accept ONLY pinned CRLF bytes restored from a pure-LF checkout.
+  // Reject mixed endings, lone CR and any other SQL-byte differences.
+  if (source.includes(13)) {
+    throw new Error("ISSUE416_RACE_SOURCE_MIGRATION_CHECKSUM_CHANGED");
+  }
+  const lfCount = source.reduce((count, byte) => count + (byte === 10 ? 1 : 0), 0);
+  if (lfCount === 0) {
+    throw new Error("ISSUE416_RACE_SOURCE_MIGRATION_CHECKSUM_CHANGED");
+  }
+  const restored = Buffer.alloc(source.length + lfCount);
+  for (let i = 0, offset = 0; i < source.length; i += 1) {
+    if (source[i] === 10) restored[offset++] = 13;
+    restored[offset++] = source[i];
+  }
+  if (createHash("sha256").update(restored).digest("hex") !== expected) {
+    throw new Error("ISSUE416_RACE_SOURCE_MIGRATION_CHECKSUM_CHANGED");
+  }
+  return true;
+}
+/** Two exact Prisma SHA-256 variants of the SAME pinned migration SQL.
+ * Prisma stores the migration.sql checkout bytes: CRLF on Windows, LF on Linux.
+ * Never accept a third checksum or an unpinned source.
+ */
+export function approvedMigrationChecksums(name) {
+  const bytes = readFileSync(join(sourceRoot, name, "migration.sql"));
+  assertPinnedMigrationBytes(name, bytes);
+  const canonicalLf = [];
+  for (let i = 0; i < bytes.length; i += 1) {
+    if (bytes[i] === 13 && bytes[i + 1] === 10) continue;
+    canonicalLf.push(bytes[i]);
+  }
+  return Object.freeze([
+    PINNED_MIGRATION_SHA256[name],
+    createHash("sha256").update(Buffer.from(canonicalLf)).digest("hex"),
+  ]);
+}
+export function assertReviewedMigrationSet(names) {
+  if (!Array.isArray(names) || names.some((name) => typeof name !== "string")) {
+    throw new Error("ISSUE416_RACE_SOURCE_MIGRATION_SET_CHANGED");
+  }
+  const actual = [...names].sort();
+  const completeOriginal = JSON.stringify(
+    [...ORIGINAL_SOURCE_MIGRATIONS].sort(),
+  );
+  const completePrime = JSON.stringify([...REQUIRED_MIGRATIONS].sort());
+  if (![completeOriginal, completePrime].includes(JSON.stringify(actual))) {
+    throw new Error("ISSUE416_RACE_SOURCE_MIGRATION_SET_CHANGED");
+  }
+  return Object.freeze(actual);
+}
+
+export function verifyPinnedMigrationSources() {
+  const names = assertReviewedMigrationSet(
+    readdirSync(sourceRoot).filter((name) => /^\d{14}_issue416_/.test(name)),
+  );
+  for (const name of names) {
+    const bytes = readFileSync(join(sourceRoot, name, "migration.sql"));
+    assertPinnedMigrationBytes(name, bytes);
+  }
+  // A local source identity, not evidence of deployed rows or DB permissions.
+  return names;
+}

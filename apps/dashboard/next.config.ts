@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import path from "node:path";
+import { staffPublicResetContentSecurityPolicy } from "./src/features/administration/staff/staff-public-reset-document";
 
 import {
   STAFF_API_REWRITE_SOURCE,
@@ -23,6 +24,15 @@ const nextConfig: NextConfig = {
         { key: "X-Content-Type-Options", value: "nosniff" },
         { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
         { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=(self)" },
+      ],
+    }, {
+      // The standalone reset page strips its fragment before any subresource
+      // loads. Keep the route's strict CSP/no-referrer when global headers match.
+      source: "/staff/reset-password",
+      headers: [
+        { key: "Content-Security-Policy", value: staffPublicResetContentSecurityPolicy },
+        { key: "Referrer-Policy", value: "no-referrer" },
+        { key: "Cache-Control", value: "no-store, max-age=0" },
       ],
     }];
   },

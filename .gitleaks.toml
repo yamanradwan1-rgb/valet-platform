@@ -22,3 +22,40 @@ targetRules = ["generic-api-key"]
 paths = ['''^apps/api/test/management-alert-timing-audit-projection\.test\.ts$''']
 regexTarget = "match"
 regexes = ['''^changedKeys: "alt01GraceSeconds"$''']
+
+[[allowlists]]
+description = "Issue416 MFA test-plan prose is not an API credential"
+condition = "AND"
+targetRules = ["generic-api-key"]
+paths = ['''^(?:docs/plans/issue-416-option-a-writer-inventory\.md|docs/validation/ISSUE_416_IMPLEMENTATION_EXECUTION\.md)$''']
+regexTarget = "match"
+regexes = ['''^key, duplicate/unknown[ `]$''']
+
+[[allowlists]]
+description = "Issue416 execution ledger prints a publicly verified Git ref, not an API credential"
+condition = "AND"
+targetRules = ["generic-api-key"]
+paths = ['''^docs/validation/ISSUE_416_IMPLEMENTATION_EXECUTION\.md$''']
+regexTarget = "match"
+# Pin the complete, exact non-secret matched text from the redacted scan.
+# Never allow other hashes, files, rule types or arbitrary value-bearing lines.
+regexes = ['''^issue-416-company-admin-password-reset = 9b873610f00d5d520c9553d4a5185b9598e0fdb5`$''']
+
+[[allowlists]]
+description = "Two exact structural offline keyring test lines without a literal secret"
+condition = "AND"
+targetRules = ["generic-api-key"]
+paths = ['''^apps/api/test/issue416-vap1-keyring-offline-format\.test\.ts$''']
+regexTarget = "line"
+regexes = [
+  '''^\s*\{ audience: AUDIENCE, keyId: one\.keyId, keyB64url: one\.keyB64url \},$''',
+  '''^\s*\[one, \{ \.\.\.two, keyB64url: one\.keyB64url \}\],$''',
+]
+
+[[allowlists]]
+description = "Historical W27 disposable fixture-only synthetic password; current Compose requires explicit external input"
+condition = "AND"
+targetRules = ["generic-api-key"]
+paths = ['''^packages/database/issue416-w27-fixture/compose\.yaml$''']
+regexTarget = "line"
+regexes = ['''^\s*POSTGRES_PASSWORD: fixture_w27_owner_synthetic$''']

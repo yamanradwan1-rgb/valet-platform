@@ -7,13 +7,14 @@ import {
   expectedCurrentMigrationDirectories,
   issue429AppendedMigrationDirectories,
   issue435AppendedMigrationDirectories,
+  issue416AppendedMigrationDirectories,
   issue304AppendedMigrationDirectories,
   subsequentAppendedMigrationDirectories,
 } from "./issue304-migration-source-appendix.js";
 import { expectedMigrationDirectories } from "./migration-manifest.js";
 
 describe("append-only migration source history", () => {
-  it("preserves migrations 1..109 and appends Issue429 110 and Issue435 111 in exact order", () => {
+  it("preserves migrations 1..111 and enumerates dormant Issue416 sources", () => {
     expect(expectedMigrationDirectories).toHaveLength(93);
     expect(issue300AppendedMigrationDirectories).toEqual([
       "20261018009400_issue_300_u05_birth_xid",
@@ -43,7 +44,29 @@ describe("append-only migration source history", () => {
     expect(issue435AppendedMigrationDirectories).toEqual([
       "20261106011100_issue435_guest_push_registration_status",
     ]);
-    expect(expectedCurrentMigrationDirectories).toHaveLength(111);
+    expect(issue416AppendedMigrationDirectories).toEqual([
+      "20261113011200_issue416_reserved_security_audit",
+      "20261113011300_issue416_vap1_private_foundation",
+      "20261113011400_issue416_vap1_private_codec",
+      "20261113011500_issue416_vap1_private_lifecycle",
+      "20261113011600_issue416_vap1_audit_gate",
+      "20261113011700_issue416_vap1_key_boundary_guard",
+      "20261113012000_issue416_vap1_atomic_reset_quota",
+      "20261113012400_issue416_vap1_atomic_reset_quota_functions",
+      "20261113012500_issue416_redeem_scope_contract",
+      "20261113012600_issue416_private_reset_credentials",
+      "20261113012700_issue416_reset_credential_receipt_binding",
+      "20261113012800_issue416_reset_private_reservation_abi",
+      "20261113012900_issue416_a01_limiter_fingerprint",
+      "20261113013000_issue416_reset_commit_integrity",
+      "20261113013100_issue416_reset_quota_receipt_finalization",
+      "20261113013200_issue416_redeem_exact_identity_evidence",
+      "20261113013300_issue416_r03_private_attempt_ledger",
+      "20261113013400_issue416_r03_private_attempt_guards",
+      "20261113013500_issue416_r03_public_legacy_scope_deny",
+      "20261113013600_issue416_vap1_state_codec",
+    ]);
+    expect(expectedCurrentMigrationDirectories).toHaveLength(131);
     const migrationRoot = fileURLToPath(
       new URL("../prisma/migrations/", import.meta.url),
     );

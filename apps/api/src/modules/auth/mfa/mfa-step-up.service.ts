@@ -7,6 +7,7 @@ import {
   STAFF_SESSION_CONTEXT_RESOLVER,
   type StaffSessionContextResolver,
 } from "../staff-session-context";
+import { requireRequestBearerPossession } from "../staff-auth-vap1-bearer";
 import { MfaAntiAbuse } from "./mfa-anti-abuse";
 import { MfaVerificationFailedError } from "./mfa-errors";
 import { lockCurrentFactor } from "./mfa-factor-repository";
@@ -16,18 +17,7 @@ import {
   lockMfaUser,
   requireManagementMfaEligibility,
 } from "./mfa-session-repository";
-import { unprotectTotpSecret, verifyTotpCode } from "./mfa-totp";
-
-function lastAcceptedStep(
-  value: string | number | bigint | null,
-): number | undefined {
-  if (value === null) return undefined;
-  const converted = Number(value);
-  if (!Number.isSafeInteger(converted) || converted < 0) {
-    throw new Error("MFA replay state is invalid.");
-  }
-  return converted;
-}
+import { verifyLockedMfaStepUp } from "./mfa-vap1-ceremony-checks";
 
 @Injectable()
 export class MfaStepUpService {
@@ -43,6 +33,7 @@ export class MfaStepUpService {
     code: string,
   ): Promise<{ readonly state: "ASSURED" }> {
     const context = await this.sessions.resolve(authorization);
+    requireRequestBearerPossession(authorization, context);
     const reservation = await this.antiAbuse.reserveTotp(context.userId);
     try {
       return await inPostgresTransaction(this.pool, async (transaction) => {
@@ -51,22 +42,7 @@ export class MfaStepUpService {
         await requireManagementMfaEligibility(transaction, session.user_id);
         const factor = await lockCurrentFactor(transaction, session.user_id);
         if (factor?.state !== "ACTIVE") throw new MfaVerificationFailedError();
-        const secret = unprotectTotpSecret(factor.protected_secret, {
-          factorId: factor.id,
-          userId: factor.user_id,
-        });
-        const acceptedStep = await verifyTotpCode({
-          code,
-          ...(lastAcceptedStep(factor.last_accepted_step) === undefined
-            ? {}
-            : {
-                lastAcceptedStep: lastAcceptedStep(
-                  factor.last_accepted_step,
-                ) as number,
-              }),
-          now: session.now,
-          secret,
-        });
+        const acceptedStep = await verifyLockedMfaStepUp(code, session, factor);
         if (acceptedStep === undefined) throw new MfaVerificationFailedError();
         const updated = await transaction.query(
           `UPDATE user_mfa_totp_factors

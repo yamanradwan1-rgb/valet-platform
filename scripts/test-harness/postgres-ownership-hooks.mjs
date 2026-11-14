@@ -1,3 +1,12 @@
+import { createHash } from "node:crypto";
+
+// This historical migration conditionally creates one fixed CLUSTER-scoped
+// NOLOGIN owner. It is not a per-test-owned role. The isolated CI service must
+// provision it before parallel scratch-database migrations.
+const PINNED_VAP1_113_LF_SHA256 =
+  "4978f3388b650211a6d588af0c67dcd46a0e31cc2bbecda2589338b44aafffba";
+const PINNED_VAP1_ROLE = { kind: "role", name: "vap1_proof_owner" };
+
 const ownershipInstallSymbol = Symbol.for(
   "vaylet.test.postgres.ownership-runtime.installed",
 );
@@ -24,6 +33,9 @@ function patchQuery(prototype, appendEvent, connectionLimit) {
     const created = text === undefined ? [] : createdResources(text);
     const dropped = text === undefined ? [] : droppedResources(text);
     const action = originalQuery.bind(this);
+    if (isPinnedSharedRoleMigration(text, created)) {
+      return executePinnedSharedRoleMigration(action, args);
+    }
     if (created.length > 0) {
       return executeOwnedCreate({
         action,
@@ -39,6 +51,45 @@ function patchQuery(prototype, appendEvent, connectionLimit) {
       }
     });
   };
+}
+
+function isPinnedSharedRoleMigration(text, created) {
+  if (
+    text === undefined ||
+    created.length !== 1 ||
+    created[0].kind !== PINNED_VAP1_ROLE.kind ||
+    created[0].name !== PINNED_VAP1_ROLE.name
+  )
+    return false;
+  return (
+    createHash("sha256").update(text.replace(/\r\n/g, "\n")).digest("hex") ===
+    PINNED_VAP1_113_LF_SHA256
+  );
+}
+
+function executePinnedSharedRoleMigration(action, args) {
+  const callbackIndex = args.findIndex((value) => typeof value === "function");
+  const callback = callbackIndex < 0 ? undefined : args[callbackIndex];
+  const queryArgs =
+    callbackIndex < 0
+      ? args
+      : args.filter((_, index) => index !== callbackIndex);
+  const operation = (async () => {
+    if (!(await resourceExists(action, PINNED_VAP1_ROLE))) {
+      throw new Error(
+        "Pinned Issue416 migration113 requires a pre-attested shared CI proof owner; refusing unowned global role CREATE.",
+      );
+    }
+    // The exact pinned SQL checks NOLOGIN/NOINHERIT and membership safety
+    // before creating any private schema object.
+    return action(...queryArgs);
+  })();
+  if (callback === undefined) return operation;
+  operation.then(
+    (result) => callback(null, result),
+    (error) => callback(error),
+  );
+  return undefined;
 }
 
 function executeOwnedCreate({
