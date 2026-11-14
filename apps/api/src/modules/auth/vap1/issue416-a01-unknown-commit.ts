@@ -1,14 +1,10 @@
 import type { PostgresPool } from "../../../common/database/postgres";
 import type { LoginSessionRow } from "../staff-auth-types";
 
-interface A01ReceiptRow extends LoginSessionRow {
-  readonly operation_id: string;
-  readonly user_id: string;
-  readonly refresh_id: string;
-  readonly limiter_reservation_id: string;
-  readonly current_access_token_hash: string;
-  readonly refresh_token_hash: string;
-  readonly receipt_outcome: string;
+interface A01ReceiptRow {
+  readonly receipt_status: "COMMITTED" | "UNKNOWN";
+  readonly access_expires_at: Date | null;
+  readonly absolute_expires_at: Date | null;
 }
 
 interface A01ReceiptIdentity {
@@ -38,30 +34,33 @@ export async function reconcileA01UnknownCommit(
   try {
     const result = await pool.query<A01ReceiptRow>(
       `SELECT * FROM auth_proof_private.a01_read_commit_receipt(
-         $1::text,$2::uuid,$3::uuid,$4::uuid,$5::uuid,$6::uuid
+         $1::text,$2::uuid,$3::uuid,$4::uuid,$5::uuid,$6::uuid,
+         $7::text,$8::text
        )`,
       [
         identity.audience, identity.operationId, identity.userId,
         identity.sessionId, identity.refreshId, identity.limiterReservationId,
+        identity.accessHash, identity.refreshHash,
       ],
     );
     if (result.rows.length !== 1) return undefined;
     const row = result.rows[0];
     if (
       !row ||
-      row.receipt_outcome !== "COMPLETED" ||
-      row.operation_id !== identity.operationId ||
-      row.user_id !== identity.userId ||
-      row.id !== identity.sessionId ||
-      row.refresh_id !== identity.refreshId ||
-      row.limiter_reservation_id !== identity.limiterReservationId ||
-      row.current_access_token_hash !== identity.accessHash ||
-      row.refresh_token_hash !== identity.refreshHash ||
+      row.receipt_status !== "COMMITTED" ||
       !(row.access_expires_at instanceof Date) ||
       !(row.absolute_expires_at instanceof Date) ||
-      !Number.isInteger(row.refresh_cookie_max_age_seconds)
+      row.access_expires_at.getTime() <= Date.now() ||
+      row.absolute_expires_at.getTime() <= Date.now()
     ) return undefined;
-    return row;
+    return {
+      id: identity.sessionId,
+      access_expires_at: row.access_expires_at,
+      absolute_expires_at: row.absolute_expires_at,
+      refresh_cookie_max_age_seconds: Math.max(
+        0, Math.floor((row.absolute_expires_at.getTime() - Date.now()) / 1000),
+      ),
+    };
   } catch {
     return undefined;
   }

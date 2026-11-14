@@ -8,10 +8,12 @@ import {
   type TransactionOutcome,
 } from "../../../common/database/postgres-transaction-outcome";
 import { RUNTIME_POSTGRES_POOL } from "../../../common/database/runtime-database.module";
+import type { ApiRequest } from "../../../common/http/api-request";
 import {
   AntiAbuseUnavailableError,
   type AntiAbusePendingReservation,
 } from "../../anti-abuse/anti-abuse.service";
+import { AntiAbuseKeyDeriver } from "../../anti-abuse/anti-abuse-key";
 import {
   generateStaffCredential,
   staffCredentialHash,
@@ -31,6 +33,9 @@ import { assertA01CeremonyFrameCoherence } from "./vap1-a01-ceremony-binding";
 import { validateVap1OfflineKeyringFormat } from "./vap1-keyring-offline-format";
 import { decodeVap1Proof } from "./vap1-proof";
 import { reconcileA01UnknownCommit } from "./issue416-a01-unknown-commit";
+import { Issue416A01RequestFingerprint } from "./issue416-a01-request-fingerprint";
+import { countUnresolvedA01 } from "./issue416-a01-count-unresolved";
+import { assertA01TrustedLimiter } from "./issue416-a01-limiter-authority";
 
 interface A01PreparedRow {
   readonly challenge_id: string;
@@ -43,9 +48,11 @@ interface A01PreparedRow {
   readonly full_xid: string;
 }
 
-interface A01CommittedRow extends LoginSessionRow {
-  readonly operation_id: string;
-  readonly receipt_challenge_id: string;
+interface A01CommittedRow {
+  readonly committed_session_id: string;
+  readonly access_expires_at: Date;
+  readonly absolute_expires_at: Date;
+  readonly receipt_operation_id: string;
 }
 
 interface KeyringEntry {
@@ -61,11 +68,7 @@ function exactPositiveSqlInteger(value: unknown): bigint {
   return BigInt(value);
 }
 
-/**
- * A01 only: the selected root is loaded after an independently checked
- * PostgreSQL prepare, used once for this exact proof and zeroed immediately.
- * No sign(bytes), key-returning API, or caller-provided key/purpose exists.
- */
+/** Internal A01-only MAC, after actual password and SQL challenge checks. */
 function macForPreparedA01Proof(
   proofBytes: Buffer,
   selectedKeyId: string,
@@ -84,42 +87,26 @@ function macForPreparedA01Proof(
   }
 }
 
-/**
- * Closed A01 command for a trusted Staff Auth request owner. It owns the pool
- * and password verifier; callers can submit only a raw login request and the
- * ingress-created limiter reservation, never a User, PHC, SQL client, proof,
- * session identity, selected key or transaction descriptor.
- *
- * This class deliberately has no Nest registration or route binding. SQL
- * a01_bind_limiter/prepare/execute/finalize are an integration contract still
- * awaiting W33 private, purpose-fixed PG17 implementation and review. It must
- * not replace the existing Staff Auth login until those independent gates
- * and U1 deployment key custody have passed.
+/** Dormant auth-owned A01 issuer; no Nest route/module registration.
+ * W33 SQL, U1 custody and independent PG17 authorization must be attested
+ * before connecting it to real Staff Auth or removing old writer grants.
  */
 @Injectable()
 export class Issue416A01ProtectedLogin {
   constructor(
     @Inject(RUNTIME_POSTGRES_POOL) private readonly pool: PostgresPool,
+    private readonly fingerprints: Issue416A01RequestFingerprint,
+    private readonly identifierKeys: AntiAbuseKeyDeriver,
   ) {}
 
   async login(
     email: string,
     submittedPassword: string,
     identifierReservation: AntiAbusePendingReservation,
+    request: ApiRequest,
   ): Promise<StaffAuthTokens> {
-    if (
-      typeof email !== "string" ||
-      typeof submittedPassword !== "string" ||
-      !identifierReservation ||
-      identifierReservation.key?.scope !== "v1:staff-login-identifier" ||
-      typeof identifierReservation.id !== "string" ||
-      !/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/.test(
-        identifierReservation.id,
-      ) ||
-      !/^anti-abuse-hmac-sha256:v1:[0-9a-f]{64}$/.test(
-        identifierReservation.key.keyHash,
-      )
-    ) throw new AntiAbuseUnavailableError();
+    if (typeof submittedPassword !== "string") throw new AntiAbuseUnavailableError();
+    assertA01TrustedLimiter(email, identifierReservation, this.identifierKeys);
 
     const audience = process.env.VAYLET_AUTH_PROOF_AUDIENCE;
     if (!audience || !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,95}$/.test(audience)) {
@@ -133,25 +120,33 @@ export class Issue416A01ProtectedLogin {
     const rawRefresh = generateStaffCredential("vsr1.");
     const accessHash = staffCredentialHash("access", rawAccess);
     const refreshHash = staffCredentialHash("refresh", rawRefresh);
+    const requestFingerprint = this.fingerprints.derive(
+      request, email, operationId, identifierReservation.id,
+      identifierReservation.key.keyHash,
+    );
 
     // A durable pre-domain operation binding MUST commit independently before
     // password work. A failed/ambiguous COMMIT is never automatically retried.
     await inPostgresTransaction(this.pool, async (transaction) => {
-      const bound = await transaction.query<{ readonly bound: boolean }>(
-        `SELECT bound FROM auth_proof_private.a01_bind_limiter(
-           $1::text, $2::uuid, $3::uuid, $4::text, $5::text
+      const bound = await transaction.query<{ readonly a01_bind_limiter: string }>(
+        `SELECT auth_proof_private.a01_bind_limiter(
+           $1::text, $2::uuid, $3::uuid, $4::bytea, $5::text
          )`,
         [
           audience,
           operationId,
           identifierReservation.id,
-          identifierReservation.key.scope,
+          requestFingerprint,
           identifierReservation.key.keyHash,
         ],
       );
-      if (bound.rows[0]?.bound !== true) throw new AntiAbuseUnavailableError();
+      if (bound.rows.length !== 1 ||
+          bound.rows[0]?.a01_bind_limiter !== identifierReservation.id) {
+        throw new AntiAbuseUnavailableError();
+      }
     });
 
+    try {
     const lookup = await this.pool.query<UserAuthenticationRow>(
       `SELECT id, password_hash, status FROM users WHERE email = $1`,
       [email],
@@ -166,9 +161,9 @@ export class Issue416A01ProtectedLogin {
     const phcDigest = createHash("sha256").update(verifiedPhc).digest();
 
     let outcome: TransactionOutcome | undefined;
-    let committed: A01CommittedRow | LoginSessionRow;
+    let committed: LoginSessionRow;
     try {
-      committed = await inPostgresTransaction(this.pool, async (transaction) => {
+      const executedSession = await inPostgresTransaction(this.pool, async (transaction) => {
       observeTransactionOutcome(transaction, (result) => {
         outcome = result;
       });
@@ -181,11 +176,11 @@ export class Issue416A01ProtectedLogin {
       const prepared = await transaction.query<A01PreparedRow>(
         `SELECT * FROM auth_proof_private.a01_prepare(
            $1::text,$2::uuid,$3::uuid,$4::bytea,$5::uuid,$6::uuid,
-           $7::text,$8::text,$9::uuid
+           $7::text,$8::text,$9::uuid,$10::bytea
          )`,
         [
           audience, operationId, user.id, phcDigest, sessionId, refreshId,
-          accessHash, refreshHash, identifierReservation.id,
+          accessHash, refreshHash, identifierReservation.id, requestFingerprint,
         ],
       );
       const row = prepared.rows[0];
@@ -241,21 +236,34 @@ export class Issue416A01ProtectedLogin {
       const mac = macForPreparedA01Proof(row.proof_bytes, row.key_id, audience);
       const executed = await transaction.query<A01CommittedRow>(
         `SELECT * FROM auth_proof_private.a01_execute(
-           $1::uuid,$2::bytea,$3::bytea,$4::bytea,$5::bytea
+           $1::uuid,$2::bytea,$3::bytea,$4::text,$5::uuid,$6::uuid,
+           $7::bytea,$8::uuid,$9::uuid,$10::text,$11::text,
+           $12::uuid,$13::bytea
          )`,
         [
-          row.challenge_id, row.proof_bytes, mac,
-          row.payload_bytes, row.state_bytes,
+          row.challenge_id, row.proof_bytes, mac, audience, operationId,
+          user.id, phcDigest, sessionId, refreshId, accessHash,
+          refreshHash, identifierReservation.id, requestFingerprint,
         ],
       );
       const result = executed.rows[0];
       if (
         !result || executed.rows.length !== 1 ||
-        result.id !== sessionId || result.operation_id !== operationId ||
-        result.receipt_challenge_id !== row.challenge_id
+        result.committed_session_id !== sessionId ||
+        result.receipt_operation_id !== operationId ||
+        !(result.access_expires_at instanceof Date) ||
+        !(result.absolute_expires_at instanceof Date)
       ) throw new AntiAbuseUnavailableError();
       return result;
       });
+      committed = {
+        id: executedSession.committed_session_id,
+        access_expires_at: executedSession.access_expires_at,
+        absolute_expires_at: executedSession.absolute_expires_at,
+        refresh_cookie_max_age_seconds: Math.max(0, Math.floor(
+          (executedSession.absolute_expires_at.getTime() - Date.now()) / 1000,
+        )),
+      };
     } catch (error) {
       // The only permitted recovery from an ambiguous domain COMMIT is one
       // authoritative immutable-receipt read. A rollback or missing receipt
@@ -270,18 +278,18 @@ export class Issue416A01ProtectedLogin {
       committed = recovered;
     }
 
-    // Finalization must independently verify the committed immutable
-    // operation receipt and the original reservation. Unknown COMMIT must
-    // keep the pending limiter conservative; this call cannot mint a session.
-    await inPostgresTransaction(this.pool, async (transaction) => {
-      const done = await transaction.query<{ readonly finalized: boolean }>(
-        `SELECT finalized FROM auth_proof_private.a01_finalize_limiter(
-           $1::text, $2::uuid, $3::uuid
-         )`,
-        [audience, operationId, identifierReservation.id],
-      );
-      if (done.rows[0]?.finalized !== true) throw new AntiAbuseUnavailableError();
-    });
+    // W33's signed execute commits the session, audit, immutable receipt and
+    // IGNORED reservation atomically. No post-COMMIT finalizer can lose tokens.
     return staffAuthTokenResult(committed, rawAccess, rawRefresh);
+    } catch (error) {
+      try {
+        await countUnresolvedA01(
+          this.pool, audience, operationId, identifierReservation.id,
+        );
+      } catch {
+        throw new AntiAbuseUnavailableError();
+      }
+      throw error;
+    }
   }
 }
