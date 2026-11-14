@@ -167,5 +167,19 @@ describe("staff password reset contract", () => {
         code: "STAFF_ACTIVATION_FAILED",
       }).success,
     ).toBe(false);
+    for (const code of [
+      "STAFF_AUTHENTICATION_REQUIRED",
+      "STAFF_AUTH_ORIGIN_NOT_ALLOWED",
+      "AUTHORIZATION_DENIED",
+      "MFA_STEP_UP_REQUIRED",
+      "REQUEST_INVALID",
+      "STAFF_PASSWORD_RESET_CONFLICT",
+      "STAFF_PASSWORD_RESET_RATE_LIMITED",
+      "STAFF_PASSWORD_RESET_UNAVAILABLE",
+    ]) {
+      expect(
+        staffPasswordResetErrorSchema.safeParse({ ...failure, code }).success,
+      ).toBe(true);
+    }
   });
 });
