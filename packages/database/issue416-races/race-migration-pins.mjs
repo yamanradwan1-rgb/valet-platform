@@ -47,6 +47,16 @@ export const PINNED_MIGRATION_SHA256 = Object.freeze({
     "7ff71645e45667584f625d6846fe8e6978fadd9888b7d31d196a1be35ab5d7f8",
   "20261113013600_issue416_vap1_state_codec":
     "98d2d34d5e33d2dea983aaa7fb61651ea22288dc18133d421e6b10f9baefc802",
+  "20261113013700_issue416_vap1_login_typed_state":
+    "1aafe48afdb2204227d92d9761e62954c65cafb8074e94829f00f9ca1adddd1c",
+  "20261113013800_issue416_a01_locked_state_sources":
+    "db0abad1a648691b2d6afb3dd79b1f51fc7ae09964d9e3a6b9e5a526f57280c0",
+  "20261113013900_issue416_a01_prepare_and_lease":
+    "3dd87fb3b88439b6b71165db9e39e718053992bcd0cd4be0dd763af6759c87df",
+  "20261113014000_issue416_a01_execute_receipt":
+    "7b9d34dad1da62b03330bee4721326003d47e1d9b0cf3f86c0d58678e4a11e08",
+  "20261113014100_issue416_a01_immutable_receipt_observer":
+    "93ee3c24eca4a78c5b2c6126b744266991ae1dc002983f983b0cf3cafc8327a5",
 });
 
 export const REQUIRED_MIGRATIONS = Object.freeze(

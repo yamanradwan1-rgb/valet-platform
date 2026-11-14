@@ -58,6 +58,11 @@ export const issue416AppendedMigrationDirectories = [
   "20261113013400_issue416_r03_private_attempt_guards",
   "20261113013500_issue416_r03_public_legacy_scope_deny",
   "20261113013600_issue416_vap1_state_codec",
+  "20261113013700_issue416_vap1_login_typed_state",
+  "20261113013800_issue416_a01_locked_state_sources",
+  "20261113013900_issue416_a01_prepare_and_lease",
+  "20261113014000_issue416_a01_execute_receipt",
+  "20261113014100_issue416_a01_immutable_receipt_observer",
 ] as const;
 
 export const expectedCurrentMigrationDirectories = [
