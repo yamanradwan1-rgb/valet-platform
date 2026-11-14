@@ -23,8 +23,7 @@ function checkCheckpoint(current, proof, checkpoint) {
     throw new Error("L1_MONOTONE_CHECKPOINT_REQUIRED");
   }
   if (proof.to !== "ADMIT") {
-    if (checkpoint.disposition !== "HOLD" &&
-        checkpoint.disposition !== "RETIRE") {
+    if (checkpoint.disposition !== proof.to) {
       throw new Error("L1_PENDING_DENY_INTENT_REQUIRED");
     }
   } else if (checkpoint.disposition !== "ADMIT" ||

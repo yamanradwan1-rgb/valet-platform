@@ -54,7 +54,7 @@ export function reconcileOlderBackup(restoredGates, authorityLedger) {
       ledger.version === restored.admissionVersion &&
       restored.disposition === ledger.disposition &&
       restored.boundaryEpoch === authorityLedger.epoch &&
-      !ledger.pendingDeny;
+      ledger.pendingDeny === false;
     results.push(Object.freeze({
       key: restored.key,
       disposition: "HOLD",

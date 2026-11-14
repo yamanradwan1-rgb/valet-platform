@@ -92,6 +92,53 @@ test("two separately signed synthetic case identities admit only exact row", () 
   assert.match(result.publicDigest, /^[a-f0-9]{64}$/);
 });
 
+test("signed pre-boundary sessions refresh and push never gain L1 ADMIT", () => {
+  for (const kind of ["SESSION", "REFRESH", "PUSH_REGISTRATION"]) {
+    const key = admissionKey({ audience: KEY.audience, kind, ids: [USER] });
+    assert.throws(() => buildSelectiveBaseline([
+      { key, materialDigest: DIGEST },
+    ], [fixtureCase({ key })], TRUST, NOW),
+    /L1_LEGACY_AUTHORITY_ADMIT_FORBIDDEN/, kind);
+    const held = buildSelectiveBaseline([
+      { key, materialDigest: DIGEST },
+    ], [], TRUST, NOW);
+    assert.equal(held.rows[0].disposition, "HOLD");
+  }
+});
+
+test("grant admission requires all three exact composite-key parents admitted", () => {
+  const grant = admissionKey({ audience: KEY.audience,
+    kind: "GRANT", ids: [ORG, MEMBER, LOCATION] });
+  const parents = [
+    admissionKey({ audience: KEY.audience, kind: "ORGANIZATION", ids: [ORG] }),
+    admissionKey({ audience: KEY.audience, kind: "MEMBERSHIP", ids: [MEMBER] }),
+    admissionKey({ audience: KEY.audience, kind: "LOCATION", ids: [LOCATION] }),
+  ];
+  const grantCase = fixtureCase({ key: grant, caseId: "synthetic-grant-case-001" });
+  const grantRow = { key: grant, materialDigest: DIGEST };
+  assert.throws(() => buildSelectiveBaseline([grantRow],
+    [grantCase], TRUST, NOW), /L1_UNVERIFIED_GRANT_PARENTS/);
+  const fullInventory = [grantRow, ...parents.map((key) => ({
+    key, materialDigest: DIGEST,
+  }))];
+  assert.throws(() => buildSelectiveBaseline(fullInventory,
+    [grantCase], TRUST, NOW), /L1_UNVERIFIED_GRANT_PARENTS/);
+  const cases = [grantCase, ...parents.map((key, index) => fixtureCase({
+    key, caseId: `synthetic-grant-parent-${index}`,
+  }))];
+  const candidate = buildSelectiveBaseline(fullInventory, cases, TRUST, NOW);
+  assert.equal(candidate.summary.admitted, 4);
+  const wrongParent = admissionKey({ audience: KEY.audience,
+    kind: "LOCATION", ids: [USER] });
+  const wrongCases = [grantCase, ...cases.slice(1, 3), fixtureCase({
+    key: wrongParent, caseId: "synthetic-wrong-location-parent",
+  })];
+  assert.throws(() => buildSelectiveBaseline([
+    grantRow, fullInventory[1], fullInventory[2],
+    { key: wrongParent, materialDigest: DIGEST },
+  ], wrongCases, TRUST, NOW), /L1_UNVERIFIED_GRANT_PARENTS/);
+});
+
 test("unsigned or tampered identity approval is rejected", () => {
   assert.throws(() => verifyRecoveryCase({
     ...fixtureCase(), signatures: [],

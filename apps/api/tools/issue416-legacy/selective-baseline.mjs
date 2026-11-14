@@ -5,6 +5,11 @@ import {
 import { verifyRecoveryCase } from "./verified-recovery-case.mjs";
 
 const SHA256_RE = /^[0-9a-f]{64}$/;
+// T0 retires pre-boundary session lineage and disables old push registrations.
+// An operator case cannot turn those old credentials into fresh authority.
+const LEGACY_NONADMITTABLE = new Set([
+  "SESSION", "REFRESH", "PUSH_REGISTRATION",
+]);
 
 function snapshotRow(row) {
   const id = admissionKeyId(row?.key);
@@ -45,6 +50,9 @@ export function buildSelectiveBaseline(snapshot, signedCases, trustedKeys, nowMs
     if (!row || !sameAdmissionKey(row.key, proof.key)) {
       throw new Error("L1_CASE_OBJECT_ABSENT");
     }
+    if (LEGACY_NONADMITTABLE.has(row.key.kind)) {
+      throw new Error("L1_LEGACY_AUTHORITY_ADMIT_FORBIDDEN");
+    }
     if (approved.has(id)) throw new Error("L1_DUPLICATE_CASE_OBJECT");
     if (proof.from !== "HOLD" || proof.to !== "ADMIT" ||
         proof.expectedAdmissionVersion !== 1 ||
@@ -52,6 +60,24 @@ export function buildSelectiveBaseline(snapshot, signedCases, trustedKeys, nowMs
       throw new Error("L1_CASE_EXPECTED_STATE_CONFLICT");
     }
     approved.set(id, proof);
+  }
+  // A grant's canonical 49-byte identity names three exact parents. Their
+  // presence and separate signed admission are necessary, but not sufficient:
+  // real Membership/Location ownership and complete all-status inventory need
+  // independent SQL-locked and external roster evidence at T0.
+  for (const proof of approved.values()) {
+    if (proof.key.kind !== "GRANT") continue;
+    const { audience, hex } = proof.key;
+    for (const [kind, parentBytes] of [
+      ["ORGANIZATION", hex.slice(2, 34)],
+      ["MEMBERSHIP", hex.slice(34, 66)],
+      ["LOCATION", hex.slice(66, 98)],
+    ]) {
+      const parentId = `${audience}:${kind}:01${parentBytes}`;
+      if (!rows.has(parentId) || !approved.has(parentId)) {
+        throw new Error("L1_UNVERIFIED_GRANT_PARENTS");
+      }
+    }
   }
   const ordered = [...rows.values()].sort((a, b) =>
     compareAdmissionKeys(a.key, b.key));

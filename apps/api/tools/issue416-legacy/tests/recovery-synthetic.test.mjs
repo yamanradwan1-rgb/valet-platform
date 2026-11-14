@@ -60,6 +60,11 @@ test("unverified or mismatched deny intent cannot authorize HOLD", () => {
   assert.throws(() => planControlledTransition({ ...args,
     checkpoint: ledger("HOLD", { attested: false }) }),
   /L1_MONOTONE_CHECKPOINT_REQUIRED/);
+  assert.throws(() => planControlledTransition({ ...args,
+    checkpoint: ledger("RETIRE") }), /L1_PENDING_DENY_INTENT_REQUIRED/);
+  const retiring = { ...args, envelope: caseFor("ADMIT", "RETIRE") };
+  assert.throws(() => planControlledTransition({ ...retiring,
+    checkpoint: ledger("HOLD") }), /L1_PENDING_DENY_INTENT_REQUIRED/);
 });
 
 test("RETIRE is terminal; later ADMIT needs an independent new case", () => {
@@ -131,6 +136,27 @@ test("complete matching synthetic versions still cannot release HOLD", () => {
   assert.equal(restored.mustKeepProtectedTrafficClosed, true);
   assert.equal(restored.status, "ISOLATED_RESTORE_PLAN_NOT_AUTHORIZATION");
   // A caller-provided JSON checkpoint is never a trusted production attestation.
+});
+
+test("missing pending-deny statement cannot qualify an old ADMIT as matched", () => {
+  const restored = [{ key: KEY, disposition: "ADMIT",
+    admissionVersion: 4, boundaryEpoch: 8 }];
+  const base = {
+    independentlyVerified: true, completeThroughBackupBoundary: true,
+    coveredDimensions: Object.fromEntries(
+      REQUIRED_MONOTONE_DIMENSIONS.map((name) => [name, true])),
+    epoch: 8, objects: [{ key: KEY, version: 4,
+      disposition: "ADMIT", epoch: 8 }],
+  };
+  for (const pendingDeny of [undefined, null, "false", 0]) {
+    const record = { ...base.objects[0], pendingDeny };
+    const result = reconcileOlderBackup(restored, {
+      ...base, objects: [record],
+    });
+    assert.equal(result.objects[0].suppliedFixtureVersionMatchOnly, false);
+    assert.equal(result.objects[0].disposition, "HOLD");
+    assert.equal(result.mustKeepProtectedTrafficClosed, true);
+  }
 });
 
 test("inconsistent duplicated monotone ledger objects are rejected", () => {
