@@ -2,6 +2,33 @@
 
 Status: **DORMANT; no trusted signer or runtime authorization capability**.
 
+## Worker-18 A01 genuine-credential ↔ typed-proof consistency (not issuance)
+
+`vap1-a01-ceremony-binding.ts` is an **unregistered** specific-purpose
+consistency check: it verifies the actual submitted raw password using the
+concrete Argon2id verifier (dummy work on missing User), checks the exact
+PHC SHA256 against the U2 typed payload and locked-state digest, recomputes
+the verifiers from **fresh raw** `vsa1.`/`vsr1.` tokens, and cross-checks
+intended operation, new session/refresh IDs, limiter reservation, L1 ADMIT
+state, audience, selected key ID/promotion epoch, backend PID/full XID and
+all S1 anonymous login/subject/payload/state commitments. It does not accept
+a query hook or password-verifier callback, never reads signing keys or SQL,
+never computes an HMAC and returns **no proof, signed result, session, or
+bearer**. All failures use a single nonsecret unavailable error.
+
+This closes **only local frame/credential coherence**, not caller provenance:
+an attacker who supplies a new PHC and its known password can manufacture
+internally consistent fake User/SQL descriptors and pass this check. Those
+descriptors are not authenticated DB leases, committed L1 admission, bound
+A01 quota, active SQL key epoch, real SQL-issued nonce or trustworthy
+backend/full XID. Therefore the zero-argument
+`denyUntilVap1StaffLoginAdmission()` is unchanged, no signer is exported,
+and real login/refresh/MFA routes never call this helper. A positive unit
+test is **not** a VAP1 issuer test or Node↔PostgreSQL HMAC parity evidence.
+W27 must provide approved purpose-specific SQL prepare/execute/grants with
+real PG17 evidence before an Auth owner may safely attach it to a private
+request-owned transaction and a separately attested U1 key custody module.
+
 ## Worker-18 U1 offline input-format preparation (not trusted key custody)
 
 `vap1-keyring-offline-format.ts` validates a strict candidate JSON envelope
