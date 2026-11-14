@@ -4,7 +4,7 @@ import type {
   StaffPasswordResetIssueRequest,
   StaffPasswordResetIssueResponse,
 } from "@valet/contracts";
-import { useCallback, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { FocusDialog } from "../../../components/presentation/focus-dialog";
 import type { DashboardApiClient } from "../../../lib/api/dashboard-api-client";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
@@ -13,9 +13,8 @@ import { administrationScopeKey } from "../administration-scope";
 import { administrationCopy } from "../administration-copy";
 import { styles } from "../administration-ui";
 import { SensitiveMfaDialog } from "../sensitive-mfa-dialog";
-import { useAuthoritativeRead } from "../use-authoritative-read";
 import { useSensitiveMutation } from "../use-sensitive-mutation";
-import { issueStaffPasswordReset, readStaffPasswordResetStatus } from "./staff-password-reset-api";
+import { issueStaffPasswordReset } from "./staff-password-reset-api";
 import { isStaffResetIssueOutcomeAmbiguous } from "./staff-password-reset-ambiguity";
 import { staffPasswordResetCopy } from "./staff-password-reset-copy";
 import { useStaffResetReconciliation } from "./use-staff-reset-reconciliation";
@@ -32,11 +31,15 @@ export function StaffPasswordResetAction(props: ResetActionProps) {
   const scopeKey = administrationScopeKey(dashboard);
   // Remount across tenant/session/member changes so a one-time link cannot
   // remain in the previous component state during a context transition.
-  return <ScopedStaffResetAction {...props} key={`${scopeKey}:${props.organizationId}:${props.membershipId}`} scopeKey={scopeKey} />;
+  return (
+    <ScopedStaffResetAction
+      {...props}
+      key={`${scopeKey}:${props.organizationId}:${props.membershipId}`}
+    />
+  );
 }
 
-function ScopedStaffResetAction(props: ResetActionProps & { readonly scopeKey: string }) {
-  const scopeKey = props.scopeKey;
+function ScopedStaffResetAction(props: ResetActionProps) {
   const { locale } = useDashboardLocale();
   const t = staffPasswordResetCopy[locale];
   const adminCopy = administrationCopy(locale);
@@ -45,25 +48,17 @@ function ScopedStaffResetAction(props: ResetActionProps & { readonly scopeKey: s
   const dialogGeneration = useRef(0);
   const attemptRef = useRef<StaffPasswordResetIssueRequest | null>(null);
   const reconciliation = useStaffResetReconciliation(
-    props.api, props.organizationId, props.membershipId, attemptRef,
+    props.api,
+    props.organizationId,
+    props.membershipId,
+    attemptRef,
   );
-  const [result, setResult] = useState<StaffPasswordResetIssueResponse | null>(null);
+  const status = reconciliation.status;
+  const [result, setResult] = useState<StaffPasswordResetIssueResponse | null>(
+    null,
+  );
   const [uncertain, setUncertain] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
-  const load = useCallback(
-    (signal: AbortSignal) =>
-      readStaffPasswordResetStatus(
-        props.api,
-        props.organizationId,
-        props.membershipId,
-        signal,
-      ),
-    [props.api, props.organizationId, props.membershipId],
-  );
-  const status = useAuthoritativeRead(
-    `${scopeKey}:password-reset:${props.membershipId}`,
-    load,
-  );
   const mutation = useSensitiveMutation(
     `password-reset:${props.organizationId}:${props.membershipId}`,
     () => {
@@ -73,14 +68,12 @@ function ScopedStaffResetAction(props: ResetActionProps & { readonly scopeKey: s
       status.refresh();
     },
   );
-  // A normal status.refresh may complete after direct reconciliation. Never
-  // let its older response replace the verified decision for this operation.
-  const verifiedStatus = reconciliation.state
-    ? reconciliation.state.verifiedStatus : status.data;
-  const statusLoading = reconciliation.state
-    ? reconciliation.state.phase === "checking" : status.loading;
-  const statusError = reconciliation.state
-    ? reconciliation.state.phase === "blocked" : status.error !== null;
+  // A single sequence of normal/direct GETs controls the ONLY authoritative
+  // status: later ineligible/error revokes, older in-flight replies are ignored.
+  const verifiedStatus = status.data;
+  const statusLoading = status.loading;
+  const statusError =
+    !!status.error || reconciliation.state?.phase === "blocked";
 
   function close() {
     dialogGeneration.current++;
@@ -106,7 +99,8 @@ function ScopedStaffResetAction(props: ResetActionProps & { readonly scopeKey: s
       statusLoading ||
       statusError ||
       !verifiedStatus?.eligible
-    ) return;
+    )
+      return;
     setResult(null);
     setCopyFeedback(null);
     setUncertain(false);
@@ -122,7 +116,10 @@ function ScopedStaffResetAction(props: ResetActionProps & { readonly scopeKey: s
       async () => {
         try {
           return await issueStaffPasswordReset(
-            props.api, props.organizationId, props.membershipId, command,
+            props.api,
+            props.organizationId,
+            props.membershipId,
+            command,
           );
         } catch (reason) {
           if (isStaffResetIssueOutcomeAmbiguous(reason)) {
@@ -157,16 +154,22 @@ function ScopedStaffResetAction(props: ResetActionProps & { readonly scopeKey: s
     const generation = dialogGeneration.current;
     try {
       await navigator.clipboard.writeText(result.resetLink);
-      if (openRef.current && generation === dialogGeneration.current) setCopyFeedback(t.copied);
+      if (openRef.current && generation === dialogGeneration.current)
+        setCopyFeedback(t.copied);
     } catch {
-      if (openRef.current && generation === dialogGeneration.current) setCopyFeedback(t.copyFailed);
+      if (openRef.current && generation === dialogGeneration.current)
+        setCopyFeedback(t.copyFailed);
     }
   }
 
   if (status.loading && !status.data && !open) return null;
-  if (!status.data?.eligible && !verifiedStatus?.eligible && !open) {
+  if (!verifiedStatus?.eligible && !open) {
     return status.error ? (
-      <button className={styles.secondary} onClick={status.refresh} type="button">
+      <button
+        className={styles.secondary}
+        onClick={status.refresh}
+        type="button"
+      >
         {t.retry}
       </button>
     ) : null;
@@ -177,8 +180,11 @@ function ScopedStaffResetAction(props: ResetActionProps & { readonly scopeKey: s
       <button
         className={styles.secondary}
         disabled={
-          mutation.busy || props.reconciling ||
-          (!status.data?.eligible && !verifiedStatus?.eligible)
+          mutation.busy ||
+          props.reconciling ||
+          statusLoading ||
+          statusError ||
+          !verifiedStatus?.eligible
         }
         onClick={() => {
           openRef.current = true;
@@ -207,43 +213,52 @@ function ScopedStaffResetAction(props: ResetActionProps & { readonly scopeKey: s
               <>
                 <p role="status">{t.issued}</p>
                 <p className={styles.muted}>
-                  {t.expires}: <bdi dir="ltr">{new Date(result.expiresAt).toLocaleString(locale)}</bdi>
+                  {t.expires}:{" "}
+                  <bdi dir="ltr">
+                    {new Date(result.expiresAt).toLocaleString(locale)}
+                  </bdi>
                 </p>
-                <button className={styles.primary} onClick={() => void copy()} type="button">
+                <button
+                  className={styles.primary}
+                  onClick={() => void copy()}
+                  type="button"
+                >
                   {t.copy}
                 </button>
               </>
             ) : result?.outcome === "LINK_UNAVAILABLE" ? (
               <p role="status">{t.unavailable}</p>
             ) : null}
-            {uncertain ? <p className={styles.error} role="alert">
-              {reconciliation.state?.phase === "checking"
-                ? t.uncertainChecking
-                : reconciliation.state?.phase === "blocked"
-                  ? t.uncertainBlocked
-                  : reconciliation.state?.phase === "same-operation"
-                    ? t.uncertainSame
-                    : t.uncertain}
-            </p> : null}
+            {uncertain ? (
+              <p className={styles.error} role="alert">
+                {reconciliation.state?.phase === "checking"
+                  ? t.uncertainChecking
+                  : reconciliation.state?.phase === "blocked"
+                    ? t.uncertainBlocked
+                    : reconciliation.state?.phase === "same-operation"
+                      ? t.uncertainSame
+                      : t.uncertain}
+              </p>
+            ) : null}
             {mutation.error && !uncertain ? (
               <p className={styles.error} role="alert">
-                {mutation.error === adminCopy.mfaRetry ? adminCopy.mfaRetry : t.failed}
+                {mutation.error === adminCopy.mfaRetry
+                  ? adminCopy.mfaRetry
+                  : t.failed}
               </p>
             ) : null}
             {copyFeedback ? <p role="status">{copyFeedback}</p> : null}
-            {(
-              reconciliation.state?.phase === "blocked" ||
-              (reconciliation.state?.phase === "checking" && !mutation.busy)
-            ) ? (
+            {reconciliation.state?.phase === "blocked" ||
+            (reconciliation.state?.phase === "checking" && !mutation.busy) ? (
               <button
                 className={styles.secondary}
-                onClick={() => { if (attemptRef.current) void reconciliation.reconcile(attemptRef.current); }}
+                onClick={() => {
+                  if (attemptRef.current)
+                    void reconciliation.reconcile(attemptRef.current);
+                  else status.refresh();
+                }}
                 type="button"
               >
-                {t.retry}
-              </button>
-            ) : status.error && !reconciliation.state ? (
-              <button className={styles.secondary} onClick={status.refresh} type="button">
                 {t.retry}
               </button>
             ) : null}
@@ -251,19 +266,28 @@ function ScopedStaffResetAction(props: ResetActionProps & { readonly scopeKey: s
               <button
                 className={styles.primary}
                 disabled={
-                  mutation.busy || statusLoading || statusError ||
-                  !verifiedStatus?.eligible || props.reconciling
+                  mutation.busy ||
+                  statusLoading ||
+                  statusError ||
+                  !verifiedStatus?.eligible ||
+                  props.reconciling
                 }
                 onClick={issue}
                 type="button"
               >
                 {reconciliation.state?.phase === "same-operation"
                   ? t.retryOriginal
-                  : result || uncertain || verifiedStatus?.linkState === "ACTIVE"
-                  ? t.replace
-                  : t.confirm}
+                  : result ||
+                      uncertain ||
+                      verifiedStatus?.linkState === "ACTIVE"
+                    ? t.replace
+                    : t.confirm}
               </button>
-              <button className={styles.secondary} onClick={close} type="button">
+              <button
+                className={styles.secondary}
+                onClick={close}
+                type="button"
+              >
                 {t.close}
               </button>
             </div>

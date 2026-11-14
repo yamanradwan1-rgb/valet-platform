@@ -4,16 +4,24 @@ import type {
   StaffPasswordResetIssueRequest,
   StaffPasswordResetStatusResponse,
 } from "@valet/contracts";
-import { useCallback, useLayoutEffect, useRef, useState, type RefObject } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
 import type { DashboardApiClient } from "../../../lib/api/dashboard-api-client";
 import { readStaffPasswordResetStatus } from "./staff-password-reset-api";
 
-type Phase = "checking" | "blocked" | "same-operation" | "replacement";
+type Phase = "checking" | "blocked" | "same-operation" | "replacement" | null;
 
-interface ReconciliationState {
+interface StatusView {
+  readonly data: StaffPasswordResetStatusResponse | null;
+  readonly error: Error | null;
+  readonly loading: boolean;
   readonly phase: Phase;
-  // Only this successfully reconciled direct GET may authorize another POST.
-  readonly verifiedStatus: StaffPasswordResetStatusResponse | null;
 }
 
 export function useStaffResetReconciliation(
@@ -22,75 +30,160 @@ export function useStaffResetReconciliation(
   membershipId: string,
   attemptRef: RefObject<StaffPasswordResetIssueRequest | null>,
 ) {
-  const [state, setState] = useState<ReconciliationState | null>(null);
-  const revision = useRef(0);
-  const pendingRequest = useRef<AbortController | null>(null);
-  const mounted = useRef(false);
+  // Both ordinary reads and unknown-COMMIT reconciliation use the SAME
+  // revision. No independently cached snapshot is allowed to authorize a POST.
+  const [view, setView] = useState<StatusView>({
+    data: null,
+    error: null,
+    loading: true,
+    phase: null,
+  });
+  const revisionRef = useRef(0);
+  const highestGenerationRef = useRef(-1);
+  const controllerRef = useRef<AbortController | null>(null);
+  const mountedRef = useRef(false);
 
   const invalidate = useCallback(() => {
-    revision.current++;
-    pendingRequest.current?.abort();
-    pendingRequest.current = null;
+    revisionRef.current++;
+    controllerRef.current?.abort();
+    controllerRef.current = null;
   }, []);
 
   useLayoutEffect(() => {
-    mounted.current = true;
+    mountedRef.current = true;
     return () => {
-      mounted.current = false;
+      mountedRef.current = false;
       invalidate();
-      // Membership, tenant or session change must not carry an old operation.
       attemptRef.current = null;
     };
-  }, [api, organizationId, membershipId, attemptRef, invalidate]);
+  }, [attemptRef, invalidate]);
+
+  const readStatus = useCallback(
+    async (command: StaffPasswordResetIssueRequest | null) => {
+      invalidate();
+      const ticket = revisionRef.current;
+      const controller = new AbortController();
+      controllerRef.current = controller;
+      setView((previous) => ({
+        ...previous,
+        error: null,
+        loading: true,
+        phase: command || attemptRef.current ? "checking" : null,
+      }));
+      const isCurrent = () =>
+        mountedRef.current &&
+        !controller.signal.aborted &&
+        revisionRef.current === ticket &&
+        (command === null || attemptRef.current === command);
+      try {
+        const current = await readStaffPasswordResetStatus(
+          api,
+          organizationId,
+          membershipId,
+          controller.signal,
+        );
+        if (!isCurrent()) return;
+        const previousGeneration = highestGenerationRef.current;
+        highestGenerationRef.current = Math.max(
+          previousGeneration,
+          current.latestGeneration,
+        );
+        const active = attemptRef.current;
+        if (
+          !current.eligible ||
+          current.latestGeneration < previousGeneration ||
+          (active && current.latestGeneration < active.expectedGeneration)
+        ) {
+          setView({
+            data: current,
+            error: null,
+            loading: false,
+            phase: "blocked",
+          });
+        } else if (
+          active &&
+          current.latestGeneration > active.expectedGeneration
+        ) {
+          attemptRef.current = null;
+          setView({
+            data: current,
+            error: null,
+            loading: false,
+            phase: "replacement",
+          });
+        } else {
+          setView({
+            data: current,
+            error: null,
+            loading: false,
+            phase: active ? "same-operation" : null,
+          });
+        }
+      } catch (reason) {
+        if (!isCurrent()) return;
+        setView({
+          data: null,
+          error:
+            reason instanceof Error ? reason : new Error("Status read failed"),
+          loading: false,
+          phase: "blocked",
+        });
+      } finally {
+        if (controllerRef.current === controller) controllerRef.current = null;
+      }
+    },
+    [api, organizationId, membershipId, attemptRef, invalidate],
+  );
+
+  const refresh = useCallback(() => {
+    void readStatus(null);
+  }, [readStatus]);
+  const reconcile = useCallback(
+    (command: StaffPasswordResetIssueRequest) => readStatus(command),
+    [readStatus],
+  );
+
+  useEffect(() => {
+    // Initial state is already loading. Schedule the first GET after mount;
+    // subsequent explicit reads increment the same revision synchronously.
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) refresh();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [refresh]);
 
   const reset = useCallback(() => {
     invalidate();
-    setState(null);
+    setView((previous) => ({ ...previous, phase: null }));
   }, [invalidate]);
-
   const pending = useCallback(() => {
-    setState((previous) =>
-      previous?.phase === "checking"
-        ? previous
-        : { phase: "checking", verifiedStatus: null },
-    );
-  }, []);
-
+    invalidate();
+    setView((previous) => ({
+      ...previous,
+      error: null,
+      loading: true,
+      phase: "checking",
+    }));
+  }, [invalidate]);
   const block = useCallback(() => {
     invalidate();
-    setState({ phase: "blocked", verifiedStatus: null });
+    setView((previous) => ({ ...previous, loading: false, phase: "blocked" }));
   }, [invalidate]);
 
-  const reconcile = useCallback(async (command: StaffPasswordResetIssueRequest) => {
-    invalidate();
-    const currentRevision = revision.current;
-    const controller = new AbortController();
-    pendingRequest.current = controller;
-    setState({ phase: "checking", verifiedStatus: null });
-    const isLatest = () =>
-      mounted.current &&
-      !controller.signal.aborted &&
-      revision.current === currentRevision &&
-      attemptRef.current === command;
-    try {
-      const current = await readStaffPasswordResetStatus(
-        api, organizationId, membershipId, controller.signal,
-      );
-      if (!isLatest()) return;
-      if (!current.eligible || current.latestGeneration < command.expectedGeneration) {
-        setState({ phase: "blocked", verifiedStatus: null });
-      } else if (current.latestGeneration > command.expectedGeneration) {
-        attemptRef.current = null;
-        setState({ phase: "replacement", verifiedStatus: current });
-      } else {
-        setState({ phase: "same-operation", verifiedStatus: current });
-      }
-    } catch {
-      if (isLatest()) setState({ phase: "blocked", verifiedStatus: null });
-    } finally {
-      if (pendingRequest.current === controller) pendingRequest.current = null;
-    }
-  }, [api, organizationId, membershipId, attemptRef, invalidate]);
-
-  return { state, reset, pending, block, reconcile } as const;
+  return {
+    state: view.phase === null ? null : { phase: view.phase },
+    status: {
+      data: view.data,
+      error: view.error,
+      loading: view.loading,
+      refresh,
+    },
+    reset,
+    pending,
+    block,
+    reconcile,
+  } as const;
 }

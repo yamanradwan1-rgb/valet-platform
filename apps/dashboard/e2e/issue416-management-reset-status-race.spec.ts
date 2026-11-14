@@ -1,165 +1,249 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page, type Request } from "@playwright/test";
 import { staffDirectoryItem } from "./support/administration-fixtures";
-import { DashboardApiFixture, LOCATION_A, ORG_A } from "./support/dashboard-api-fixture";
+import {
+  DashboardApiFixture,
+  LOCATION_A,
+  ORG_A,
+  type FixtureReply,
+} from "./support/dashboard-api-fixture";
 import { openEmployees, STAFF_BASE } from "./support/issue240d-onboarding";
 
 test.use({ trace: "off" });
-
 const employee = staffDirectoryItem();
 const detailPath = `${STAFF_BASE}/${employee.membershipId}`;
 const statusPath = `${detailPath}/password-resets/status`;
 const issuePath = `${detailPath}/password-resets`;
 const resetLink = `https://staff.example/staff/reset-password#reset=vspr1.${"A".repeat(43)}`;
-
-test("older status.refresh GET finishing after newer reconciliation GET cannot downgrade a reset generation", async ({ page }) => {
-  let generation = 0;
-  let statusReads = 0;
-  const commands: Array<{ operationId: string; expectedGeneration: number }> = [];
-  const fixture = new DashboardApiFixture({
+const detail = {
+  ...employee,
+  locationAccess: {
+    items: [
+      {
+        locationId: LOCATION_A.locationId,
+        name: LOCATION_A.name,
+        status: "ACTIVE",
+      },
+    ],
+    totalCount: 1,
+    truncated: false,
+  },
+  pendingInvitation: null,
+};
+const eligible = (generation: number, allowed = true) => ({
+  eligible: allowed,
+  latestGeneration: generation,
+  linkState: generation ? "ACTIVE" : "NONE",
+  expiresAt: null,
+});
+const failed = (requestId: string) => ({
+  status: 503,
+  body: {
+    code: "STAFF_PASSWORD_RESET_UNAVAILABLE",
+    message: "Synthetic status unavailable",
+    requestId,
+  },
+});
+function fixtureFor(
+  override: (path: string, request: Request) => FixtureReply | undefined,
+) {
+  return new DashboardApiFixture({
     companyOrganizations: [ORG_A],
     companyLocations: { [ORG_A.organizationId]: [LOCATION_A] },
     override: (path, request) => {
-      if (path === STAFF_BASE) return { body: { items: [employee], nextCursor: null } };
-      if (path === detailPath) return { body: {
-        ...employee,
-        locationAccess: {
-          items: [{ locationId: LOCATION_A.locationId, name: LOCATION_A.name, status: "ACTIVE" }],
-          totalCount: 1, truncated: false,
-        },
-        pendingInvitation: null,
-      } };
-      if (path === statusPath) {
-        statusReads++;
-        if (statusReads === 3) {
-          // The first direct reconcile fails. A retry is required to establish authority.
-          return { status: 503, body: {
-            code: "STAFF_PASSWORD_RESET_UNAVAILABLE",
-            message: "Synthetic GET outage", requestId: "status-3",
-          } };
-        }
-        const old = statusReads === 4;
-        return {
-          delayMs: old ? 800 : statusReads === 5 ? 30 : 0,
-          headers: { "x-reset-status-race": old ? "older-normal" : statusReads === 5 ? "newer-direct" : "other" },
-          // A delayed stale read from the normal GET must not supersede
-          // a later successful direct reconciliation for the same operation.
-          body: {
-            eligible: true, latestGeneration: old ? 0 : generation,
-            linkState: old ? "NONE" : generation ? "ACTIVE" : "NONE",
-            expiresAt: null,
-          },
-        };
-      }
-      if (path === issuePath) {
-        const command = request.postDataJSON();
-        commands.push(command);
-        generation++;
-        if (commands.length === 1) {
-          // The server committed generation 1 before returning a 500.
-          return { status: 500, body: {
-            code: "STAFF_PASSWORD_RESET_UNAVAILABLE",
-            message: "Synthetic response lost after commit", requestId: "issue-1",
-          } };
-        }
-        return { status: 201, body: {
-          outcome: "LINK_ISSUED", membershipId: employee.membershipId,
-          generation, expiresAt: "2026-11-14T10:00:00.000Z", resetLink,
-        } };
-      }
-      return undefined;
+      if (path === STAFF_BASE)
+        return { body: { items: [employee], nextCursor: null } };
+      if (path === detailPath) return { body: detail };
+      return override(path, request);
     },
   });
+}
+async function openReset(page: Page, fixture: DashboardApiFixture) {
   await openEmployees(page, fixture);
   await page.getByRole("table").getByRole("button").first().click();
-  const trigger = page.getByRole("dialog").first().getByRole("button", { name: "Reset password" });
+  const trigger = page.getByRole("button", { name: "Reset password" });
   await trigger.click();
-  const modal = page.getByRole("dialog", { name: "Reset employee password" });
-  await modal.getByRole("button", { name: "Generate a password reset link" }).click();
-  await expect(modal.getByText(/Current status could not be verified/)).toBeVisible();
+  return {
+    trigger,
+    modal: page.getByRole("dialog", { name: "Reset employee password" }),
+  };
+}
+
+test("normal GET started before direct reconciliation cannot replay an older generation", async ({
+  page,
+}) => {
+  let reads = 0;
+  const commands: Array<{ operationId: string; expectedGeneration: number }> =
+    [];
+  const fixture = fixtureFor((path, request) => {
+    if (path === statusPath) {
+      reads++;
+      return {
+        delayMs: reads === 4 ? 800 : 0,
+        body: eligible(reads === 5 ? 1 : 0),
+      };
+    }
+    if (path === issuePath) {
+      commands.push(request.postDataJSON());
+      return commands.length === 1
+        ? {
+            status: 500,
+            body: {
+              code: "HTTP_ERROR",
+              message: "Commit unknown",
+              requestId: "issue-1",
+            },
+          }
+        : {
+            status: 201,
+            body: {
+              outcome: "LINK_ISSUED",
+              membershipId: employee.membershipId,
+              generation: 2,
+              expiresAt: "2026-11-14T10:00:00.000Z",
+              resetLink,
+            },
+          };
+    }
+    return undefined;
+  });
+  const { trigger, modal } = await openReset(page, fixture);
+  await modal
+    .getByRole("button", { name: "Generate a password reset link" })
+    .click();
+  await expect(
+    modal.getByRole("button", { name: "Retry original operation" }),
+  ).toBeEnabled();
   expect(commands).toHaveLength(1);
-  expect(statusReads).toBe(3);
-
   await modal.getByRole("button", { name: "Close" }).click();
-  await expect(modal).toHaveCount(0);
-  const olderResponse = page.waitForResponse((response) =>
-    new URL(response.url()).pathname === statusPath &&
-    response.headers()["x-reset-status-race"] === "older-normal");
-  await trigger.click(); // normal status.refresh starts stale GET #4, still pending
+  await trigger.click();
   await expect.poll(() => fixture.count(statusPath)).toBe(4);
-  await modal.getByRole("button", { name: "Refresh status" }).click(); // direct GET #5
-  const replacement = modal.getByRole("button", { name: "Generate a replacement link" });
-  await expect(replacement).toBeEnabled(); // #5 returns generation 1 first
-  expect(statusReads).toBe(5);
-  expect(commands).toHaveLength(1); // never auto repeat POST
-
-  await olderResponse; // stale normal GET #4 returns generation 0 later
-  await page.waitForTimeout(100); // let React consume the delayed response
+  await modal.getByRole("button", { name: "Refresh status" }).click();
+  const replacement = modal.getByRole("button", {
+    name: "Generate a replacement link",
+  });
   await expect(replacement).toBeEnabled();
-  await expect(modal.getByRole("button", { name: "Copy link" })).toHaveCount(0);
+  await page.waitForTimeout(850); // delayed normal GET #4 would now have returned
+  await expect(replacement).toBeEnabled();
+  expect(commands).toHaveLength(1); // absolutely no automatic replay
   await replacement.click();
   await expect(modal.getByRole("button", { name: "Copy link" })).toBeVisible();
-  expect(commands).toHaveLength(2);
-  expect(commands[0]!.expectedGeneration).toBe(0);
   expect(commands[1]!.expectedGeneration).toBe(1);
   expect(commands[1]!.operationId).not.toBe(commands[0]!.operationId);
 });
 
-test("two direct status retries for the same operation: delayed stale success cannot undo the newer failed GET", async ({ page }) => {
-  let statusReads = 0;
-  const commands: Array<{ operationId: string; expectedGeneration: number }> = [];
-  const fixture = new DashboardApiFixture({
-    companyOrganizations: [ORG_A],
-    companyLocations: { [ORG_A.organizationId]: [LOCATION_A] },
-    override: (path, request) => {
-      if (path === STAFF_BASE) return { body: { items: [employee], nextCursor: null } };
-      if (path === detailPath) return { body: {
-        ...employee,
-        locationAccess: {
-          items: [{ locationId: LOCATION_A.locationId, name: LOCATION_A.name, status: "ACTIVE" }],
-          totalCount: 1, truncated: false,
+test("older direct GET cannot undo newer direct GET 503 for identical operation", async ({
+  page,
+}) => {
+  let reads = 0;
+  const commands: unknown[] = [];
+  const fixture = fixtureFor((path, request) => {
+    if (path === statusPath) {
+      reads++;
+      return reads === 3 || reads === 5
+        ? failed(`status-${reads}`)
+        : { delayMs: reads === 4 ? 750 : 0, body: eligible(0) };
+    }
+    if (path === issuePath) {
+      commands.push(request.postDataJSON());
+      return {
+        status: 500,
+        body: {
+          code: "HTTP_ERROR",
+          message: "Unknown COMMIT",
+          requestId: "issue-1",
         },
-        pendingInvitation: null,
-      } };
+      };
+    }
+    return undefined;
+  });
+  const { modal } = await openReset(page, fixture);
+  await modal
+    .getByRole("button", { name: "Generate a password reset link" })
+    .click();
+  await expect(
+    modal.getByText(/Current status could not be verified/),
+  ).toBeVisible();
+  const refresh = modal.getByRole("button", { name: "Refresh status" });
+  await refresh.click();
+  await expect.poll(() => fixture.count(statusPath)).toBe(4);
+  await refresh.click();
+  await expect.poll(() => fixture.count(statusPath)).toBe(5);
+  await expect(
+    modal.getByText(/Current status could not be verified/),
+  ).toBeVisible();
+  await page.waitForTimeout(800); // stale success #4 cannot restore eligibility
+  await expect(
+    modal.getByRole("button", { name: "Generate a replacement link" }),
+  ).toBeDisabled();
+  expect(commands).toHaveLength(1);
+});
+
+for (const newerReply of ["ineligible", "503"] as const) {
+  test(`fresh normal GET after successful reconciliation: ${newerReply} revokes issue authority`, async ({
+    page,
+  }) => {
+    let reads = 0;
+    const commands: Array<{ operationId: string; expectedGeneration: number }> =
+      [];
+    const fixture = fixtureFor((path, request) => {
       if (path === statusPath) {
-        statusReads++;
-        if (statusReads === 3 || statusReads === 5) {
-          return { status: 503, body: {
-            code: "STAFF_PASSWORD_RESET_UNAVAILABLE",
-            message: "Synthetic status unavailable", requestId: `status-${statusReads}`,
-          } };
-        }
-        return {
-          delayMs: statusReads === 4 ? 750 : 0,
-          body: { eligible: true, latestGeneration: 0, linkState: "NONE", expiresAt: null },
-        };
+        reads++;
+        if (reads === 4)
+          return newerReply === "503"
+            ? { ...failed("newer-503"), delayMs: 280 }
+            : { delayMs: 280, body: eligible(1, false) };
+        return { body: eligible(reads <= 2 ? 0 : 1) };
       }
       if (path === issuePath) {
         commands.push(request.postDataJSON());
-        return { status: 500, body: {
-          code: "STAFF_PASSWORD_RESET_UNAVAILABLE",
-          message: "Synthetic unknown commit", requestId: "issue-1",
-        } };
+        return commands.length === 1
+          ? {
+              status: 500,
+              body: {
+                code: "HTTP_ERROR",
+                message: "After COMMIT",
+                requestId: "issue-1",
+              },
+            }
+          : {
+              status: 201,
+              body: {
+                outcome: "LINK_ISSUED",
+                membershipId: employee.membershipId,
+                generation: 2,
+                expiresAt: "2026-11-14T10:00:00.000Z",
+                resetLink,
+              },
+            };
       }
       return undefined;
-    },
+    });
+    const { trigger, modal } = await openReset(page, fixture);
+    await modal
+      .getByRole("button", { name: "Generate a password reset link" })
+      .click();
+    const replacement = modal.getByRole("button", {
+      name: "Generate a replacement link",
+    });
+    await expect(replacement).toBeEnabled(); // direct GET #3 established generation 1
+    await modal.getByRole("button", { name: "Close" }).click();
+    await trigger.click(); // a later normal GET #4 MUST supersede direct GET #3
+    await expect.poll(() => fixture.count(statusPath)).toBe(4);
+    await expect(replacement).toBeDisabled(); // pending GET cannot use stale authority
+    await expect(
+      modal.getByText(/Current status could not be verified/),
+    ).toBeVisible();
+    await expect(replacement).toBeDisabled(); // newer eligible=false or 503 revokes
+    expect(commands).toHaveLength(1); // no automatic POST
+    await modal.getByRole("button", { name: "Refresh status" }).click();
+    await expect.poll(() => fixture.count(statusPath)).toBe(5);
+    await expect(replacement).toBeEnabled(); // only new verified GET can restore
+    expect(commands).toHaveLength(1);
+    await replacement.click();
+    await expect(
+      modal.getByRole("button", { name: "Copy link" }),
+    ).toBeVisible();
+    expect(commands[1]!.expectedGeneration).toBe(1);
+    expect(commands[1]!.operationId).not.toBe(commands[0]!.operationId);
   });
-  await openEmployees(page, fixture);
-  await page.getByRole("table").getByRole("button").first().click();
-  await page.getByRole("button", { name: "Reset password" }).click();
-  const modal = page.getByRole("dialog", { name: "Reset employee password" });
-  await modal.getByRole("button", { name: "Generate a password reset link" }).click();
-  await expect(modal.getByText(/Current status could not be verified/)).toBeVisible();
-  expect(statusReads).toBe(3);
-
-  const refresh = modal.getByRole("button", { name: "Refresh status" });
-  await refresh.click(); // direct GET #4, delayed eligible=true/generation=0
-  await expect.poll(() => fixture.count(statusPath)).toBe(4);
-  await expect(modal.getByText(/Checking the current generation/)).toBeVisible();
-  await refresh.click(); // direct GET #5, fast 503, abort/fence #4
-  await expect.poll(() => fixture.count(statusPath)).toBe(5);
-  await expect(modal.getByText(/Current status could not be verified/)).toBeVisible();
-  await page.waitForTimeout(850); // older #4's fixture delay has elapsed
-  await expect(modal.getByText(/Current status could not be verified/)).toBeVisible();
-  await expect(modal.getByRole("button", { name: "Generate a replacement link" })).toBeDisabled();
-  expect(commands).toHaveLength(1);
-});
+}
