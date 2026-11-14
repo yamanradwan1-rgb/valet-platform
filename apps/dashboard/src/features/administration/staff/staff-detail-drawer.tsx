@@ -19,6 +19,7 @@ import { setStaffRole, setStaffStatus } from "./staff-api";
 import { staffRoleLabel, staffStatusLabel } from "./staff-labels";
 import { StaffLocationAccessPanel } from "./staff-location-access-panel";
 import { StaffPendingInvitePanel } from "./staff-pending-invite-panel";
+import { StaffPasswordResetAction } from "./staff-password-reset-action";
 
 const roles: readonly StaffManagementRole[] = [
   "ORG_ADMIN",
@@ -207,6 +208,16 @@ export function StaffDetailDrawer(props: {
               organizationId={props.organizationId}
               reconciling={props.reconciling}
             />
+            {process.env.NEXT_PUBLIC_ISSUE416_STAFF_PASSWORD_RESET_ENABLED === "1" &&
+            props.authority === "COMPANY_ADMIN" &&
+            props.detail.status === "ACTIVE" ? (
+              <StaffPasswordResetAction
+                api={props.api}
+                membershipId={props.detail.membershipId}
+                organizationId={props.organizationId}
+                reconciling={props.reconciling}
+              />
+            ) : null}
           </>
         )}
         {mutation.error ? (
