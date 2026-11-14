@@ -17,19 +17,49 @@ import {
   verifyPinnedMigrationSources,
 } from "./race-catalog-contract.mjs";
 import { assertRaceRuntimeAuthorized } from "./race-readiness.mjs";
-import { assertPinnedMigrationBytes } from "./race-migration-pins.mjs";
+import {
+  ORIGINAL_SOURCE_MIGRATIONS,
+  assertPinnedMigrationBytes,
+  assertReviewedMigrationSet,
+} from "./race-migration-pins.mjs";
 
 test("migration list matches reviewed source directories, never performs DDL", () => {
   const dir = fileURLToPath(new URL("../prisma/migrations/", import.meta.url));
   const current = readdirSync(dir).filter((item) =>
     /^\d{14}_issue416_/.test(item),
   );
-  assert.deepEqual([...REQUIRED_MIGRATIONS].sort(), current.sort());
-  assert.equal(
-    verifyPinnedMigrationSources(),
-    "SOURCE_SQL_BYTES_MATCH_PINNED_DIGESTS_ONLY",
+  const reviewed = verifyPinnedMigrationSources();
+  assert.deepEqual([...reviewed], current.sort());
+  assert.ok([14, 18].includes(reviewed.length));
+  assert.equal(Object.keys(PINNED_MIGRATION_SHA256).length, 18);
+  assert.equal(REQUIRED_MIGRATIONS.length, 18);
+  assert.equal(ORIGINAL_SOURCE_MIGRATIONS.length, 14);
+  assert.deepEqual(
+    [...assertReviewedMigrationSet(ORIGINAL_SOURCE_MIGRATIONS)],
+    [...ORIGINAL_SOURCE_MIGRATIONS].sort(),
   );
-  assert.equal(Object.keys(PINNED_MIGRATION_SHA256).length, 14);
+  assert.deepEqual(
+    [...assertReviewedMigrationSet(REQUIRED_MIGRATIONS)],
+    [...REQUIRED_MIGRATIONS].sort(),
+  );
+  for (const extra of [1, 2, 3]) {
+    assert.throws(
+      () =>
+        assertReviewedMigrationSet([
+          ...ORIGINAL_SOURCE_MIGRATIONS,
+          ...REQUIRED_MIGRATIONS.slice(14, 14 + extra),
+        ]),
+      /SOURCE_MIGRATION_SET_CHANGED/,
+    );
+  }
+  assert.throws(
+    () =>
+      assertReviewedMigrationSet([
+        ...REQUIRED_MIGRATIONS,
+        "20261113013500_issue416_unknown",
+      ]),
+    /SOURCE_MIGRATION_SET_CHANGED/,
+  );
   assert.throws(
     () => assertPinnedMigrationBytes(REQUIRED_MIGRATIONS[0], "tampered SQL"),
     /SOURCE_MIGRATION_CHECKSUM_CHANGED/,
@@ -54,8 +84,8 @@ test("migration list matches reviewed source directories, never performs DDL", (
   }
 });
 
-test("all migrations must have actual committed rows and no unresolved attempt", () => {
-  const rows = REQUIRED_MIGRATIONS.map((migration_name) => ({
+test("reviewed source migrations require pinned committed ledger rows", () => {
+  const rows = verifyPinnedMigrationSources().map((migration_name) => ({
     migration_name,
     finished_at: "a DB timestamp",
     rolled_back_at: null,

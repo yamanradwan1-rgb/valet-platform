@@ -35,10 +35,21 @@ export const PINNED_MIGRATION_SHA256 = Object.freeze({
     "d601ebba6df9542c0c8f17b0bf8afa47dadd257211db4a034af3db1e52c19e0b",
   "20261113013000_issue416_reset_commit_integrity":
     "cfe4b0a6fa6f1e4489ad351ffd10077d7b3229f2acc6d84fad708a9451e5e3c9",
+  "20261113013100_issue416_reset_quota_receipt_finalization":
+    "c6b4f6df2a8d419ebaad4d0b88b6c0af66757ce8837281964627e6983c774736",
+  "20261113013200_issue416_redeem_exact_identity_evidence":
+    "eaa3fa0d6255b2c15ac65beb76e5068fdbbc2e15acd0bc92c6bea73ae068baf4",
+  "20261113013300_issue416_r03_private_attempt_ledger":
+    "23a379264d6e9081195cebda56b391e45fb0560def0c58afcbcac32bc172b6e2",
+  "20261113013400_issue416_r03_private_attempt_guards":
+    "225918035f87abebcef1b144f9a7ef61b97f021511d266b559df181af2e9df2e",
 });
 
 export const REQUIRED_MIGRATIONS = Object.freeze(
   Object.keys(PINNED_MIGRATION_SHA256),
+);
+export const ORIGINAL_SOURCE_MIGRATIONS = Object.freeze(
+  REQUIRED_MIGRATIONS.slice(0, 14),
 );
 const sourceRoot = fileURLToPath(
   new URL("../prisma/migrations/", import.meta.url),
@@ -55,18 +66,29 @@ export function assertPinnedMigrationBytes(name, bytes) {
   return true;
 }
 
-export function verifyPinnedMigrationSources() {
-  const issue416 = readdirSync(sourceRoot)
-    .filter((name) => /^\d{14}_issue416_/.test(name))
-    .sort();
-  if (
-    JSON.stringify(issue416) !== JSON.stringify([...REQUIRED_MIGRATIONS].sort())
-  ) {
+export function assertReviewedMigrationSet(names) {
+  if (!Array.isArray(names) || names.some((name) => typeof name !== "string")) {
     throw new Error("ISSUE416_RACE_SOURCE_MIGRATION_SET_CHANGED");
   }
-  for (const name of REQUIRED_MIGRATIONS) {
+  const actual = [...names].sort();
+  const completeOriginal = JSON.stringify(
+    [...ORIGINAL_SOURCE_MIGRATIONS].sort(),
+  );
+  const completePrime = JSON.stringify([...REQUIRED_MIGRATIONS].sort());
+  if (![completeOriginal, completePrime].includes(JSON.stringify(actual))) {
+    throw new Error("ISSUE416_RACE_SOURCE_MIGRATION_SET_CHANGED");
+  }
+  return Object.freeze(actual);
+}
+
+export function verifyPinnedMigrationSources() {
+  const names = assertReviewedMigrationSet(
+    readdirSync(sourceRoot).filter((name) => /^\d{14}_issue416_/.test(name)),
+  );
+  for (const name of names) {
     const bytes = readFileSync(join(sourceRoot, name, "migration.sql"));
     assertPinnedMigrationBytes(name, bytes);
   }
-  return "SOURCE_SQL_BYTES_MATCH_PINNED_DIGESTS_ONLY";
+  // A local source identity, not evidence of deployed rows or DB permissions.
+  return names;
 }

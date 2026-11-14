@@ -6,6 +6,10 @@ import {
   REQUIRED_MIGRATIONS,
   verifyPinnedMigrationSources,
 } from "./race-migration-pins.mjs";
+import {
+  isExactW9FirstRollback,
+  isW9SecondAttempt,
+} from "./race-w9-migration-history.mjs";
 
 export {
   PINNED_MIGRATION_SHA256,
@@ -33,7 +37,7 @@ JOIN pg_roles r ON r.rolname = current_user
 WHERE d.datname = current_database()`;
 
 export const PG17_MIGRATION_LEDGER_SQL = `
-SELECT migration_name, checksum, started_at, finished_at,
+SELECT id, migration_name, checksum, started_at, finished_at,
        rolled_back_at, applied_steps_count
 FROM public._prisma_migrations
 ORDER BY started_at, id`;
@@ -110,34 +114,38 @@ WHERE n.nspname = 'auth_proof_private'
 ORDER BY p.oid::regprocedure::text`;
 
 export function validateMigrationLedger(rows) {
-  verifyPinnedMigrationSources();
-  if (
-    !Array.isArray(rows) ||
-    rows.some(
-      (row) =>
-        !row ||
-        (row.finished_at == null && row.rolled_back_at == null) ||
-        (row.finished_at != null && row.rolled_back_at != null),
-    )
-  ) {
+  const required = verifyPinnedMigrationSources();
+  if (!Array.isArray(rows) || rows.some((row) => !row)) {
     throw new Error("ISSUE416_RACE_MIGRATION_LEDGER_UNRESOLVED");
   }
-  if (
-    rows.some(
-      (row) =>
-        /^\d{14}_issue416_/.test(row.migration_name) &&
-        (!Object.hasOwn(PINNED_MIGRATION_SHA256, row.migration_name) ||
-          row.checksum !== PINNED_MIGRATION_SHA256[row.migration_name]),
-    )
-  ) {
-    throw new Error("ISSUE416_RACE_LEDGER_MIGRATION_CHECKSUM_MISMATCH");
+  if (rows.filter(isExactW9FirstRollback).length > 1) {
+    throw new Error("ISSUE416_RACE_W9_FIRST_ROLLBACK_DUPLICATE");
   }
-  for (const name of REQUIRED_MIGRATIONS) {
+  for (const row of rows) {
+    if (isExactW9FirstRollback(row)) continue;
+    if (isW9SecondAttempt(row)) {
+      // A known unfinished W9 migration113 is NOT healed by source pinning.
+      throw new Error("ISSUE416_RACE_W9_SECOND_113_UNFINISHED_DENIED");
+    }
+    if (row.finished_at == null || row.rolled_back_at != null) {
+      // No unrecognized rollback or unfinished record may bypass admission.
+      throw new Error("ISSUE416_RACE_MIGRATION_LEDGER_UNRESOLVED");
+    }
+    if (
+      /^\d{14}_issue416_/.test(row.migration_name) &&
+      (!required.includes(row.migration_name) ||
+        row.checksum !== PINNED_MIGRATION_SHA256[row.migration_name])
+    ) {
+      throw new Error("ISSUE416_RACE_LEDGER_MIGRATION_CHECKSUM_MISMATCH");
+    }
+  }
+  for (const name of required) {
     const successful = rows.filter(
       (row) =>
         row.migration_name === name &&
         row.finished_at != null &&
         row.rolled_back_at == null &&
+        Number.isSafeInteger(row.applied_steps_count) &&
         row.applied_steps_count >= 1 &&
         row.checksum === PINNED_MIGRATION_SHA256[name],
     );

@@ -42,9 +42,14 @@ fixed status/event/phase/outcome/SQLSTATE enums, bounded counts and booleans.
 No arbitrary event strings (including uppercase passwords), UUID-looking or
 bearer-looking text, unknown keys, nested objects or accessor properties can be
 serialized through that checker. The migration ledger validator also checks
-the **exact SHA-256 of the reviewed 14 migration SQL files** against pinned
-source checksums and requires matching ledger hashes; this is a local source
-integrity condition, not evidence of a real committed database migration.
+the **exact SHA-256 of the reviewed migration SQL files** against pinned
+source checksums: all original 14 for this isolated worktree or the complete
+18-file Prime additive revision (131–134). Partial 15–17, unknown names and
+changed bytes are denied. The ledger requires committed current-source hashes,
+but specifically recognizes the original W9 113 rolled-back UUID and its
+historical checksum as a non-successful history row. The independently observed
+second unfinished W9 113 UUID remains **DENIED** even alongside that rollback.
+These source rules do not attest deployment or override the W9 recovery denial.
 Read-only ACL text now includes per-column INSERT/UPDATE, runtime TRUNCATE,
 PUBLIC table/column grants, global and schema default EXECUTE privileges, and
 private function overload EXECUTE (runtime/PUBLIC/owner membership). No source
