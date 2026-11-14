@@ -104,7 +104,7 @@ export async function retireLegacyVap1Grants(
   const flags = role.rows[0];
   if (
     role.rowCount !== 1 ||
-    !flags.rolcanlogin ||
+    flags.rolcanlogin !== (phase.rows[0].phase === "PROTECTED") ||
     flags.rolinherit ||
     flags.rolsuper ||
     flags.rolcreaterole ||
@@ -135,7 +135,9 @@ export async function retireLegacyVap1Grants(
       [functionName],
     );
     if (found.rows[0]?.function_oid === null) {
-      throw new Error(`VAP1 legacy callable overload not inventoried: ${functionName}`);
+      throw new Error(
+        `VAP1 legacy callable overload not inventoried: ${functionName}`,
+      );
     }
     await executeFormatted(client, "REVOKE ALL ON FUNCTION %s FROM %I", [
       functionName,

@@ -18,24 +18,23 @@ export async function verifyVap1PrivateIsolation(client, runtimeRole) {
   );
   const flags = role.rows[0];
   if (
-    !flags?.rolcanlogin ||
+    !flags ||
     flags.rolinherit ||
     flags.rolsuper ||
     flags.rolcreatedb ||
     flags.rolcreaterole ||
     flags.rolreplication ||
     flags.rolbypassrls
-  ) throw new Error("VAP1 unsafe runtime principal.");
+  )
+    throw new Error("VAP1 unsafe runtime principal.");
 
   const owner = await client.query(
     `SELECT rolcanlogin,rolinherit,rolsuper,rolcreatedb,
             rolcreaterole,rolreplication,rolbypassrls
        FROM pg_catalog.pg_roles WHERE rolname='vap1_proof_owner'`,
   );
-  if (
-    owner.rowCount !== 1 ||
-    Object.values(owner.rows[0]).some(Boolean)
-  ) throw new Error("VAP1 proof owner is not a restricted NOLOGIN role.");
+  if (owner.rowCount !== 1 || Object.values(owner.rows[0]).some(Boolean))
+    throw new Error("VAP1 proof owner is not a restricted NOLOGIN role.");
 
   const boundary = await client.query(
     `SELECT phase FROM auth_proof_private.security_boundary WHERE singleton`,
@@ -44,6 +43,11 @@ export async function verifyVap1PrivateIsolation(client, runtimeRole) {
     throw new Error("VAP1 boundary is absent or duplicated.");
   }
   const currentPhase = boundary.rows[0].phase;
+  if (flags.rolcanlogin !== (currentPhase !== "DRAINED")) {
+    throw new Error(
+      "VAP1 runtime role LOGIN state does not match boundary phase.",
+    );
+  }
 
   const roleGrant = await count(
     client,
@@ -53,7 +57,8 @@ export async function verifyVap1PrivateIsolation(client, runtimeRole) {
        WHERE member.rolname=$1`,
     [runtimeRole],
   );
-  if (roleGrant !== 0) throw new Error("VAP1 runtime role has inherited/settable roles.");
+  if (roleGrant !== 0)
+    throw new Error("VAP1 runtime role has inherited/settable roles.");
 
   const privateAccess = await client.query(
     `SELECT
@@ -81,7 +86,8 @@ export async function verifyVap1PrivateIsolation(client, runtimeRole) {
        JOIN pg_catalog.pg_roles r ON r.oid=p.proowner
        WHERE n.nspname='auth_proof_private' AND r.rolname <> 'vap1_proof_owner'`,
   );
-  if (ownerMismatch !== 0) throw new Error("VAP1 private function owner mismatch.");
+  if (ownerMismatch !== 0)
+    throw new Error("VAP1 private function owner mismatch.");
   const relationOwnerMismatch = await count(
     client,
     `SELECT count(*)::integer AS count
@@ -105,7 +111,9 @@ export async function verifyVap1PrivateIsolation(client, runtimeRole) {
     [runtimeRole],
   );
   if (runtimePrivateExecutable !== 0) {
-    throw new Error("VAP1 runtime retains effective private EXECUTE privilege.");
+    throw new Error(
+      "VAP1 runtime retains effective private EXECUTE privilege.",
+    );
   }
   const publicFunctionExecute = await count(
     client,
@@ -145,5 +153,8 @@ export async function verifyVap1PrivateIsolation(client, runtimeRole) {
       }
     }
   }
-  return { phase: currentPhase, checkedLegacyFunctions: vap1LegacyFunctionSignatures.length };
+  return {
+    phase: currentPhase,
+    checkedLegacyFunctions: vap1LegacyFunctionSignatures.length,
+  };
 }
