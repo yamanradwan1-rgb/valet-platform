@@ -1,8 +1,8 @@
 # Issue #310 — WhatsApp Guest Access master implementation plan
 
-Date: 2026-11-13 (Asia/Amman). Planning baseline: `de338f4da187297aacd0fc7005ece9b6f041fe61`.
+Originally planned: 2026-11-13 (Asia/Amman), baseline `de338f4da187297aacd0fc7005ece9b6f041fe61`. **Owner reconciliation: 2026-11-14**, clean local/remote baseline `0a1d40c0518c34ad15e089b3f0dc9afac64a95ef`. Historical observations and evidence below retain their original scope/date.
 
-**Production implementation verdict: DECISION REQUIRED.** This is the complete future execution envelope, including decision gates; it is not an Accepted Decision or permission to execute its production phases. The separately authorized development-only Native prototype may proceed after this document is committed and pushed. Design approval remains PENDING OWNER. No real send, production endpoint, schema change, PR, merge or deployment is authorized in this assignment.
+**Production implementation verdict: DECISION REQUIRED.** This is the complete future execution envelope, including decision gates; it is not an Accepted Decision or permission to execute its production phases. The original plan-first push gate was completed in `eeaa5227`. The current authorization covers this in-place plan/decision reconciliation, isolated prototype refinement, new visual evidence and an append-only Issue update only. Design approval remains PENDING OWNER. No real send, production endpoint, schema change, PR, merge or deployment is authorized in this assignment.
 
 ## Contents
 
@@ -33,9 +33,13 @@ Date: 2026-11-13 (Asia/Amman). Planning baseline: `de338f4da187297aacd0fc7005ece
 
 The employee completes Check-In in the Native app and reaches the existing Parking Task screen. Guest Access stays available exactly as before. A green WhatsApp-logo control immediately below it will, after later approvals, ask VAYLET's backend to send the secure Guest entry link to the persisted Check-In contact. No phone chooser, device WhatsApp intent, client-generated credential or alternate recipient is part of this operation. The guest receives an approved transactional template and opens the Customer HTTPS application through its one-time fragment bootstrap and Guest Browser Session exchange.
 
+**OWNER DIRECTION SELECTED:** manual sending only; never automatic sending at Check-In completion. The actual production number, WABA/Phone Number ID and credentials are deferred provisioning dependencies, not supplied values. Existing phone entry is the complete employee-facing collection step; no additional consent checkbox/modal/screen/step is selected. Current recipient-permission gates and external evidence still apply.
+
 The purpose is deliberate, visible employee control over Guest-link delivery without disrupting fast intake or physical custody. Messaging success does not start Parking, complete Check-In, assign a Task, verify handoff, prove identity or release a vehicle. Those commands keep their existing authority.
 
 ### Repository facts discovered
+
+Current task preflight reverified the existing owned worktree on the required branch, clean, with local/remote `0a1d40c0`. No replacement branch or automatic main integration. The following branch/main observations are **historical November 13 research**, not a claim about the latest main:
 
 - Required existing branch: `feat/issue-310-sandbox-last-mile-authorization`, checked out clean in `tmp/issue-310-last-mile-worktree`. Original HEAD and remote HEAD are `de338f4da187297aacd0fc7005ece9b6f041fe61`.
 - Fetched `origin/main`: `bfb4fdccf9d557c371313c9e357faa52e0a71014`. Merge base: `e8c747f50cead1360ed151582c767a9bec1d1014`. `git rev-list --left-right --count origin/main...HEAD` returned **444 / 8**. These are dated observations, not permanent branch facts.
@@ -62,20 +66,20 @@ Classification is per proposition: **LOCKED** = authoritative requirement; **DER
 |---|---|---|---|---|---|
 | R01 Preserve historical sandbox work and existing branch | LOCKED | Owner brief; Issue #310 | E01/E12; no automatic integration | P00/P02 | SHA ancestry, named-file diff, remote parity |
 | R02 Actual Native Parking Task; only new control below Guest Access | LOCKED | November 13 Issue update | E02; component unchanged from main | P01/P10 | baseline + prototype native capture and frozen-tree comparison |
-| R03 Green recognizable WhatsApp logo; EN/AR, light/dark, touch access | LOCKED | Owner visual contract | E02/E03; no button yet | P01/P10 | Q01/Q02; Owner review |
-| R04 Prototype states are demonstrative and production-isolated | LOCKED | Owner scope | no existing send-control preview | P01 | no provider/auth/client I/O; release-gate negative |
+| R03 Green recognizable WhatsApp logo; EN/AR, light/dark, touch access | LOCKED | Owner visual contract | E02/E03; existing dev-only button is being refined | P01/P10 | Q01/Q02; Owner review |
+| R04 Prototype states are demonstrative and production-isolated | LOCKED | Owner scope | existing local-only preview; visible Demo prefixes now superseded | P01 | no provider/auth/client I/O; release-gate negative |
 | R05 Explicit design approval before functional production code | LOCKED | Issue update | approval pending | P01/P03 | recorded Owner design decision |
 | R06 Backend performs Cloud API send | LOCKED | Owner; historical scope | E08/E09 has sandbox sender only | P08 | restricted sender-only real sandbox proof under separate permission |
 | R07 Only persisted Check-In recipient; no client phone/token | LOCKED | Owner; security docs | E04 uses Customer phone; new command absent | P04/P07 | tampered-input, stale-contact and cross-visit negatives |
-| R08 Phone capture does not constitute WhatsApp opt-in | LOCKED | Issue; DEC-105/C0 | consent tables exist; ordinary Native capture has no sufficient explicit opt-in | P04 | genuine evidence, withdrawal and no-grant denial |
+| R08 Existing phone entry is the sole employee-facing permission workflow; possession alone is not proven permission | LOCKED | Nov 14 D03; DEC-105/C0 gates | intended voluntary provision for Guest link; historical records lack proven notice/evidence | P03/P04 | no extra UI; approved provenance and no-grant/withdrawal denial |
 | R09 Company default → Location override, global gates dominate | LOCKED | AGENTS; C0 | E04/E07 pins two policy revisions | P05/P08 | inherited/null override + concurrent change tests |
-| R10 Central VAYLET production sender is newer direction, not reconciled contract | UNRESOLVED | Owner conflict requirement | WA-D10, E07/E10 company ownership incompatible | P03/P05 | approved replacement DEC + schema/role review |
-| R11 Deliberate manual action exists alongside old automatic design | LOCKED | Issue update | E04 new-Intake-only hook | P03/P06/P07 | approved trigger selection, no automatic/manual duplicate |
-| R12 Whether auto remains configurable and what repeated sends mean | UNRESOLVED | Issue asks resolution | E10 unique visit/purpose; no manual semantics | P03/P06 | first/retry/race/after-success contract tests |
+| R10 Central VAYLET sender; actual production number deferred | LOCKED | Nov 14 D01 OWNER DIRECTION SELECTED | company-owned architecture remains unreconciled; TECHNICAL CONTRACT PENDING | P03/P05/P08 | approved DEC/role/FK/correlation design; separately provision actual assets |
+| R11 Future sending is exclusively employee-triggered after Check-In | LOCKED | Nov 14 D02 | E04 automatic hook is historical and unchanged now | P03/P06/P07 | Check-In without tap produces zero WhatsApp intent/dispatch; safe legacy cutover |
+| R12 No automatic mode, per-tap rotation, automatic second message after success/uncertainty or blind UNKNOWN retry | LOCKED | Nov 14 D02/D05/D07 | integrity exists; exact replay/credential handling TECHNICAL CONTRACT PENDING | P03/P06/P07 | first/double/concurrent/after-success/unknown-commit tests |
 | R13 Secure issue/resolve; no silent rotation or recoverable token vault | LOCKED | DEC-064/105 | E05 cannot recover a hash; E04 initial-only | P03/P06 | generation/consumption/reissue suppression tests |
-| R14 Distinguish request, queued, attempt, Meta accepted, sent/delivered/read, failed, UNKNOWN | LOCKED | Issue; E06/E08/E09 | durable facts exist; staff projection absent | P07/P09/P10 | response lost, callback-first, missing webhook tests |
+| R14 Immediate same-button Sending, then evidence-based queued/Meta accepted/delivered/failed/UNKNOWN | LOCKED | Issue; E06/E08/E09 | durable facts exist; staff projection absent | P07/P09/P10 | response lost, callback-first, missing webhook tests |
 | R15 UNKNOWN must not authorize blind retry | LOCKED | DEC-105/C0 | E08/E10 irreversible dispatch | P06/P08/P09 | hard death after possible acceptance; no second call |
-| R16 Staff tenant/Location authorization precedes protected mutation | LOCKED | AGENTS/security | E05/E11 authorizers; new operation authority undecided | P03/P07 | two principals, revoked membership/access, no writes/audit on denial |
+| R16 Staff tenant/Location authorization precedes protected mutation | LOCKED | AGENTS/security | E05/E11/E17; reuse/reconcile actual Check-In capability, exact target authority still technical | P03/P07 | two principals, revoked membership/access, no writes/audit on denial |
 | R17 Signed original-byte webhook + durable correlation | LOCKED | historical Issue criteria; C0 | E09 implemented; real callback unproven | P09/P11 | real signed callback persisted; invalid/replay/cross-binding negatives |
 | R18 Sender, API, webhook and migration DB identities remain separate | LOCKED | DEC-025/105; E10 | function-only sender/webhook authority | P05/P08/P12 | real PG role denial/provisioning evidence |
 | R19 Exact HTTPS origin and `#guestToken=` confidentiality | LOCKED | DEC-064 | E05/E08; real Guest link unproven | P11 | actual fragment scrub/exchange; safe telemetry inspection |
@@ -84,8 +88,9 @@ Classification is per proposition: **LOCKED** = authoritative requirement; **DER
 | R22 No SMS fallback, marketing, arbitrary messaging or new broker | LOCKED | WA-D11; scope | dedicated INITIAL_GUEST_ACCESS | all | scope review and dependency diff |
 | R23 Real PG17, worker crash, CI, physical Android, Guest browser gates | LOCKED | DoD; historical Issue | historical scoped evidence; exact new source not proven | P11–P14 | Q matrix evidence frozen to candidate SHA |
 | R24 Production stays OFF until separate activation GO | LOCKED | Owner; DEC-105 | fail-closed config + durable control | all/P14 | settings/config/runtime/DB evidence, approval record |
-| R25 Plan-only commit/push before prototype commit/push; no PR | LOCKED | Owner execution order | this document first | P00/P01 | two separate commits and normal fast-forward push |
+| R25 Preserve original plan-first history; current refinement uses same branch, normal push, no PR | LOCKED | Nov 13 sequence completed; Nov 14 scope | historical plan/prototype commits retained | P00/P01 | ancestry, scoped commits, remote parity and clean worktree |
 | R26 Safe status availability after reopen; privacy/rate budgets | UNRESOLVED | Issue feasibility request | no employee status API currently exported | P03/P09/P10 | authoritative reload, scope fences, cost/query-plan evidence |
+| R27 No visible Demo/تجريبي; immediate Sending… / جاري الإرسال… in the same existing green control | LOCKED | Nov 14 D06/D08 and copy table | local-only prototype refined; no production action wiring | P01/P10 | exact EN/AR labels, spinner/busy/double-tap tests and fresh Native captures |
 
 ## C. Exact user journey
 
@@ -95,21 +100,21 @@ Every future addition below depends on §T. Existing steps are not rewritten by 
 |---|---|---|
 | 1 | Employee authenticates, selects current operational Location and opens Check-In | Native production workspace and existing auth/scope owners remain authoritative |
 | 2 | Capture/confirm vehicle and phone | Existing check-in validation; WhatsApp canonical validation is stricter than general Intake (§J) |
-| 3 | Explicit WhatsApp consent obtained | **UNRESOLVED D03** collection ceremony, provenance, scope and withdrawal; do not add a consent checkbox to frozen UI in this task |
-| 4 | Existing Intake transaction creates session | `intake-session-command.ts` invokes initial hook only on fresh eligible creation; current idempotent Intake replay must stay unchanged |
+| 3 | Within that same phone-entry workflow, guest voluntarily provides phone for receiving Guest Access | **OWNER DIRECTION SELECTED D03:** no additional visible step; notice, evidence and compliance suitability remain TECHNICAL CONTRACT PENDING; no historical consent fabricated |
+| 4 | Existing Intake transaction creates session | historically invokes the initial hook on fresh creation; future approved manual-only cutover must remove this trigger without changing Intake/replay behavior |
 | 5 | Complete condition/Check-In and show Parking Task | Existing `continuation` screen, normally `AWAITING_PARKING`; messaging does not advance it |
-| 6 | Determine control visibility/eligibility | **UNRESOLVED D04/D08**; local visibility never grants backend permission |
-| 7 | Employee taps WhatsApp | Future command carries only accepted resource selector/request identity; no recipient, URL, token, role or tenant authority |
+| 6 | Determine control visibility/eligibility | **SELECTED D08:** visible below the conditionally available Guest Access, unavailable/disabled when ineligible; D04 Check-In authority must be proven server-side |
+| 7 | Employee taps WhatsApp | immediately show Sending… / جاري الإرسال… and busy/disabled within the same control; future command carries only approved selector/request identity, no recipient/token/role/tenant authority |
 | 8 | Server authenticates current staff session | Established principal resolver; ambiguous/duplicate Authorization rejected |
 | 9 | Resolve persisted visit, membership, Location and recipient | Prove allowed operation, lifecycle and any chosen Shift/Task policy before issuance; re-check consent and policies |
-| 10 | Resolve credential capability | **UNRESOLVED D02/D05**; hash cannot be converted to existing URL; ordinary manual issue endpoint rotates |
+| 10 | Resolve credential capability | **OWNER DIRECTION SELECTED D02/D05; delayed-credential mechanism TECHNICAL CONTRACT PENDING**; hashes cannot recover a URL and ordinary issue rotates; no per-tap rotation/resend |
 | 11 | Commit Guest authority if permitted, audit and one durable intent/envelope | Atomic authoritative transaction; no Meta network under locks; no success before durable commit |
 | 12 | Worker schedules due delivery | Existing bounded claim/lease; send controls and shared budgets still apply |
 | 13 | Restricted sender resolves exact binding/template/secret, confirms permit, calls Meta once | Production assembly awaits D01/P08; no Native WhatsApp application involved |
 | 14 | Normalize provider reply | `ACCEPTED` with valid bounded `wamid`, definitive negative, or UNKNOWN; no handset inference |
 | 15 | Verify real provider callback | Original bytes, signature, account/attempt/message/recipient correlation, deduplication |
 | 16 | Persist independent delivery facts | Commit before acknowledgment; no custody/Task mutation |
-| 17 | Same button shows safe authoritative feedback | Immediate queued if proven; later provider facts if authorized query exists; copy cannot overclaim |
+| 17 | Same button shows safe authoritative feedback | Sending immediately on tap is local request progress, not delivery; Queued only after durable commit, later provider facts only through authorized reads |
 | 18 | Guest receives template and taps exact HTTPS URL | Correct visit and intact fragment; receipt does not prove bootstrap acceptance |
 | 19 | Customer scrubs fragment and exchanges bootstrap | DEC-064 enrollment, cookie, generation, same/different browser conflict and lost-response recovery |
 | 20 | Failure and recovery | Safe refusal for missing prerequisites; status reconciliation after request timeout; no resend for UNKNOWN/accepted; explicit staff recovery stays separate |
@@ -164,7 +169,8 @@ sequenceDiagram
   participant W as Sender
   participant M as Meta
   participant H as Webhook
-  N->>A: Tap (accepted selector / request identity only)
+  Note over N: Tap immediately shows Sending / busy (not provider evidence)
+  N->>A: Manual tap only (approved selector / request identity)
   A->>D: Authenticate, resolve, authorize, protect proof
   A->>D: Decision-permitted Guest material + intent + audit
   D-->>A: Atomic commit
@@ -184,7 +190,7 @@ sequenceDiagram
 
 ### Binding requirements
 
-AGENTS authority order and the latest Owner brief control this task. DEC-064 locks credential transport, hash-only Guest/Browser Session authority and staff generation changes. DEC-063 locks online authoritative Guest mutations and forbids offline credential replay. DEC-105 permits only one short-lived encrypted **initial new-Intake** transport exception; it is not a general reusable bearer vault. DEC-087's WhatsApp amendment permits only the narrow company settings/own-number exception. C0 freezes historical initial-only trigger, scope, bounds and OFF controls. The November 13 instruction authorizes the new visual placement/prototype and requires reconciliation before functional changes; it supersedes the historical no-Native-button freeze only for that addition.
+AGENTS authority order and the latest Owner brief control this task. DEC-064 locks credential transport, hash-only Guest/Browser Session authority and staff generation changes. DEC-063 locks online authoritative Guest mutations and forbids offline credential replay. DEC-105 permits only one short-lived encrypted **initial new-Intake** transport exception; it is not a general reusable bearer vault. DEC-087's WhatsApp amendment permits only the narrow company settings/own-number exception. C0 freezes historical initial-only trigger, scope, bounds and OFF controls. The November 14 Owner instruction selects product directions D01–D09 and refines only this isolated control. It does not amend focused DECs, authorize production code or satisfy D10–D12. Historical no-Native-button restrictions are superseded only for the single authorized addition.
 
 ### LOCKED decisions
 
@@ -192,11 +198,11 @@ R01–R09, R11, R13–R25 retain the exact authority/classifications in §B. Onl
 
 ### UNRESOLVED decisions
 
-D01–D09 and approvals D10–D12 in §T are not selected implementation contracts. The three principal conflicts follow.
+D01–D09 now have **OWNER DIRECTION SELECTED** product scope; their mechanisms remain **TECHNICAL CONTRACT PENDING** as itemized in §T. D10–D12 are **PENDING OWNER / QUALIFICATION / ACTIVATION**, not granted. Do not reopen selected UX/trigger/permission preferences as undecided alternatives. The principal technical conflicts follow.
 
 ### Conflict 1 — central VAYLET WABA versus company-owned sender
 
-**D01 — UNRESOLVED reconciliation.** The Owner's newer selected direction is one VAYLET-owned central production number/WABA, serving separately governed tenants. WA-D10, DEC-087 amendment, DEC-105 summary/C0, policy binding FKs and provider verification still express company-owned bindings. Do not treat either architecture as already reconciled.
+**D01 — OWNER DIRECTION SELECTED; TECHNICAL CONTRACT PENDING.** Central VAYLET sending is selected; the actual production number/WABA/Phone Number ID and credentials will be selected/provisioned later. No sandbox asset may be promoted. Separately governed tenants retain authorization and Company/Location policies. WA-D10, DEC-087 amendment, DEC-105 summary/C0, policy binding FKs and provider verification still express company-owned bindings. Do not treat either architecture as already reconciled.
 
 Concrete incompatibility: SQL/Prisma have globally unique `(environment, provider, phone_number_id)` on an Organization-owned binding, while policies/intents require `(organization_id, binding_id)` FKs. Creating one binding per company with the same number fails uniqueness; weakening it without changing `outbound_resolve_meta_binding(waba,phone,environment)` makes webhook tenant resolution ambiguous. A callback WABA/phone is no longer tenant identity. Never assign it to the first company or trust a callback-supplied tenant.
 
@@ -210,7 +216,7 @@ The replacement Accepted Decision must define platform sender ownership plus ten
 | Tenant isolation | all command/status/intent rows retain persisted scope; shared WABA never grants cross-company read/write |
 | Secret custody | platform operations owns sender secret alias and rotation; no Dashboard/Native exposure; restricted sender resolves exact tenant entitlement |
 | Worker / quotas | shared number throughput and reputation require global budget + tenant fairness; current binding budget alone does not define tenant allocation |
-| Billing | VAYLET pays provider; tenant allocation/reporting policy unresolved; no inferred commercial charging or new payment subsystem |
+| Billing | central account provider charges and platform/tenant allocation/reporting require approved commercial ownership; no inferred tenant price or new payment subsystem |
 | Audit | distinguish tenant employee request, platform transport identity and external provider fact; immutable linkage with finite safe metadata |
 | Revocation | company opt-out disables its future permits without disabling other tenants; central credential compromise stops all; preserve callback intake for past attempts |
 | Onboarding / compliance | VAYLET business profile, support and consent identity must accurately represent the sender; legal/Meta suitability is external, not established by Owner preference |
@@ -219,19 +225,17 @@ Affected current areas: E07–E10, WhatsApp settings Dashboard transport/copy, `
 
 ### Conflict 2 — automatic versus employee-triggered issuance
 
-**D02 — UNRESOLVED.** The new tap is deliberate; it does not answer whether automatic initial sending remains an option. The old Intake hook emits before the later Parking screen. Automatically sending and later treating every tap as another issuance duplicates the guest message and may rotate access. A new idempotency key per tap cannot solve visit-level duplication.
+**D02 — OWNER DIRECTION SELECTED: MANUAL ONLY; TECHNICAL CONTRACT PENDING.** No automatic WhatsApp sending on Check-In completion. Historical code stays untouched in this task, but P03/P06 must approve safe deactivation/replacement before future integration.
 
-| Alternative | Benefit | Cost / acceptance needed |
-|---|---|---|
-| A: manual-only initial send | clear employee control; one logical trigger | change historical auto product option; new delayed-initial credential scope |
-| B: configurable automatic/manual sharing one visit-purpose intent | preserves old option; double paths converge | decide button meaning for preexisting queued/accepted/expired/UNKNOWN; transaction and consent timing must align |
-| C: initial send plus explicitly separate resend operation | deliberate recovery can exist | broader envelope/rotation/consent/idempotency/audit policy; cannot be hidden behind repeated taps |
+Historical alternatives are retained for traceability, not active options: A manual-only is now selected; B configurable automatic/manual and C implicit resend are **SUPERSEDED / NOT SELECTED**. The old recommendation B is withdrawn. Repeated taps never authorize credential rotation, a second successful/uncertain send or blind UNKNOWN retry (D05).
 
-Recommendation for Owner consideration: B with one initial logical operation and status-only convergence once accepted/uncertain, **if** auto is still desired; otherwise A. No recommendation is accepted by this document. A permissive second send, any reset of attempt budget, rotation on retry, or new initial intent after expiry requires a separate explicit contract. Under current C0/DEC-105, a manual operation on an already-created session is outside the narrow new-Intake issuance envelope.
+Future cutover must inventory `intake-session-command.ts` → `createInitialGuestIssuanceFromEnv` and every old replica/configuration/worker consumer; prove fresh Check-In and Intake replay without a tap create no WhatsApp operation and make zero Meta calls. Do not merely hide the automatic option or disable it on one replica. Passing null to the current optional hook is not a proven disable mechanism: its `??` fallback reads environment configuration. The exact replacement is a future accepted technical contract, not a patch authorized here.
+
+Before enabling manual dispatch, classify old pending/leased/dispatching/accepted/UNKNOWN/suppressed work under OFF controls. Preserve immutable history, suppress/quarantine definitely-unsent automatic work only through approved forward procedures, and reconcile accepted/uncertain work without resend or credential recreation. Old/new code overlap, restart, rollback, backup restore and a delayed legacy hook racing the first tap all require tests. A manual request cannot silently adopt an old envelope or mint a second intent; exact convergence and audit outcomes remain D05/D07. No existing automatic source/control/schema is changed now.
 
 ### Conflict 3 — what “sent” can mean
 
-**DERIVED:** a same-button label can display committed evidence; it cannot make a queue response into receipt. The persisted model separates delivery state `ACCEPTED` from `sentAt/deliveredAt/readAt/failedAt`. **D06 — UNRESOLVED** exact status projection, evidence precedence, freshness and UX copy. A transport rejection and a signed later failure fact must remain distinguishable. Positive and failed facts may coexist; do not overwrite delivery/read with a later failed label or invent an exclusive provider-state enum that loses history.
+**DERIVED:** a same-button label can display committed evidence; it cannot make a queue response into receipt. The persisted model separates delivery state `ACCEPTED` from `sentAt/deliveredAt/readAt/failedAt`. **D06 — OWNER DIRECTION SELECTED** immediate Sending and the state vocabulary; **TECHNICAL CONTRACT PENDING** exact projection, precedence, freshness, query cadence and recovery. A transport rejection and a signed later failure fact must remain distinguishable. Positive and failed facts may coexist; do not overwrite delivery/read with a later failed label or invent an exclusive provider-state enum that loses history.
 
 ### DERIVED conclusions
 
@@ -245,27 +249,38 @@ Recommendation for Owner consideration: B with one initial logical operation and
 
 | Assertion | Classification and reason |
 |---|---|
-| “Any captured phone proves consent” | CONTRADICTED by Issue, C0 and DEC-105 release fences |
+| “Every historical phone record proves recipient permission” | CONTRADICTED by C0/DEC-105; D03 selects future operational intent, not manufactured historical evidence |
 | “HTTP 2xx/queued means guest received the message” | CONTRADICTED by Issue's explicit confirmation semantics |
 | “Retry UNKNOWN by minting a new Guest token” | CONTRADICTED by DEC-105 purge/no-recreation and C0 uncertainty rules |
-| “Managers inherit employee send permission” | CONTRADICTED as an assertion about current Guest issue: actual allowlist is employee/supervisor, not a role hierarchy; new send permission remains D04 |
+| “Managers inherit employee send permission” | CONTRADICTED as an assertion about current Guest issue: actual allowlist is employee/supervisor, not a role hierarchy; future permission derives from actual Check-In capability under D04, not seniority |
 | “Sandbox receipt closes real webhook and Guest browser acceptance” | CONTRADICTED by dated live evidence's explicit boundaries |
 
 ## F. WhatsApp button behavior specification
 
-This section is a future behavioral envelope. Production eligibility, command semantics and final copy wait for D02–D08. Prototype labels always identify **Demo**; they represent no backend response.
+D02/D04/D05/D06/D08 product behavior and the following copy are **OWNER DIRECTION SELECTED**. Production command/query/evidence contracts remain **TECHNICAL CONTRACT PENDING**. The local-only prototype uses production-quality visible labels with no Demo/تجريبي prefix; accessibility hints explain simulation and no real sending.
+
+| State | English | Arabic |
+|---|---|---|
+| default / pressed | Send via WhatsApp | إرسال عبر واتساب |
+| loading | Sending… | جاري الإرسال… |
+| queued | Queued by VAYLET | في قائمة إرسال VAYLET |
+| accepted | Meta accepted | قبلت Meta الطلب |
+| failed | Failed | تعذّر الإرسال |
+| unknown | Outcome unknown | نتيجة الإرسال غير معروفة |
+| delivered | Delivered | تم التسليم |
+| disabled | Unavailable | الإرسال غير متاح |
 
 | Condition / state | Safe permitted meaning | Future behavior still requiring approval |
 |---|---|---|
-| Visible/default | directly below existing Guest Access, same width/content flow | D08: hide vs disabled for ineligible sessions and where status remains visible |
-| Authorized active visit | backend re-proves scope, operation and lifecycle | D04: allowed roles, Shift/current Task/assignee requirements; D05: eligible lifecycle/generation |
+| Visible/default | directly below existing Guest Access, same width/content flow | D08 selected: remain visible with unavailable/disabled state; preserve original conditional Guest Access entry |
+| Authorized active visit | backend re-proves scope, operation and lifecycle | D04: prove actual Check-In capability, relevant Shift obligations if present there and exact target scope; no independent role-name guess; D05 lifecycle/generation contract |
 | Missing/invalid phone | no dispatch; no arbitrary send-time entry | exact actionable copy and whether existing correction flow may be linked without redesign |
-| Missing/withdrawn/expired consent | no dispatch; no fabricated grant | D03: collection or staff referral path; button itself cannot supply consent |
+| Missing/withdrawn/expired consent | no dispatch; no fabricated grant | D03: evidence from the existing one-step operational process only; no extra employee/UI step or tap-implied permission |
 | Offline | cannot request a new remote send; do not queue a token or send command locally | selected offline copy/status staleness presentation |
 | Pressed | ordinary press feedback only; no semantic success | green pressed background, preserved touch area |
-| Loading | request or status lookup in progress, not “sent” | distinguish an uncommitted request timeout from a durable UNKNOWN send |
+| Loading / Sending | immediately after tap: Sending… / جاري الإرسال… with spinner and busy/disabled; request processing, not proof of worker I/O | distinguish request/status unavailability from durable UNKNOWN; no popup/card/toast |
 | Backend queued | a committed eligible intent exists | approved status schema/identity and whether a repeated tap opens/refetches status |
-| Sending | worker attempt may be in flight | do not assert network started merely from DISPATCHING marker |
+| Worker execution | committed attempt may be prepared/in flight | Sending remains request progress; DISPATCHING alone does not prove an external POST |
 | Meta accepted | validated provider acceptance stored | disable any “send again” interpretation; no delivery ticks |
 | Delivered | correlated signed provider delivery fact committed | prospective until live webhook gate passes; never local timer-based |
 | Failed | authoritative refusal/definite failure, safe reason | selected recovery only; “Failed” alone never authorizes replay |
@@ -282,7 +297,8 @@ Accessibility: at least 48dp touch target (proposed control 56dp minimum), reada
 
 | Stage | Authoritative evidence | Truthful employee implication | Current capability |
 |---|---|---|---|
-| Request received | authenticated command invocation/response | Request received; no durable send claim | future command absent |
+| Immediate Sending | local tap/request processing begins | Sending… / جاري الإرسال…; no server/provider/delivery claim | local prototype available; future command absent |
+| Request received | authenticated command invocation/response | request processing continues; no durable send claim | future command absent |
 | Intent committed | scoped intent + delivery committed with allowed credential/audit writes | Queued by VAYLET | existing automatic outbox only |
 | Execution prepared | lease / committed attempt marker | Pending/sending; attempt preparation is not network proof | worker implemented |
 | Meta accepted | valid bounded provider reply + persisted acceptance/correlation, or qualifying positive callback reconciliation | Accepted by WhatsApp provider | sandbox historical acceptance; production not wired |
@@ -320,7 +336,7 @@ Reload can reconstruct status from persisted intent/generation and evidence even
 | Customer entry | browser-only post-mount read, strict validation, successful immediate replaceState scrub before adoption, enrollment/retry-safe exchange and host-only Secure HttpOnly SameSite cookie |
 | Multiple visits/devices | same-visit no-op, explicit different-visit context choice/atomic switch, no target tenant authority inherited from source; second device uses staff reissue |
 
-D05 must define delayed first issuance, consumed/expired credential behavior and intentional resend/reissue. The simplest recommendation is never silently rotate an active/consumed/revoked generation to satisfy a WhatsApp tap. If the Owner wants that behavior, amend the full credential/outbound contract and approve its guest/browser consequences first.
+**D05 OWNER DIRECTION SELECTED:** never rotate/reissue/replace a credential merely due to repeated taps; never invalidate an active Guest browser or send a second message after success/uncertainty. Technical alternatives for delayed first issuance and active/consumed/expired/revoked cases must retain those invariants. If no permitted raw material exists, safe unavailability/status-only handling is a security-preserving candidate; a separately reasoned explicit staff recovery remains outside this button and needs its own approved contract. Hashes/purged ciphertext cannot reconstruct the prior link. DEC-105 must be amended before any delayed-manual envelope is coded.
 
 No raw link in fixtures, screenshots, console, traces, analytics, exceptions, audit, storage, clipboard capture or issue comments. For later real QA inspect the fragment privately without recording its value; record only shape-valid, origin-valid and exact-session result. API must not receive the private transport key; sender must not gain session/credential write authority. Backups are not purged by deleting the live envelope: key retirement/destruction, encrypted backup lifetime and safe restore controls require independent evidence.
 
@@ -328,13 +344,17 @@ No raw link in fixtures, screenshots, console, traces, analytics, exceptions, au
 
 ### Current authority versus new operation
 
+**D04 — OWNER DIRECTION SELECTED:** any authenticated employee with genuine current Check-In capability in the relevant operational scope may request this action; role seniority or button visibility grants nothing. Inspected `check-in-location-authorization.ts::authorizeCheckInLocation` calls `requireActiveCustodyUser`, resolves/locks the Location, checks ACTIVE and `accepting_intake`, then resolves active membership/Organization/Location and explicit LocationAccess through the custody authorizer. Its current implementation permits VALET_EMPLOYEE/VALET_SUPERVISOR; that is evidence of present Check-In behavior, not a newly chosen WhatsApp role allowlist. `intake-session-command.ts` invokes it before first writes and before existing-operation replay.
+
+There is no Shift lookup in this branch's Intake authorizer. OCR separately checks operational Shift eligibility; Parking/dispatch also has separate rules. A Native screen or active Shift alone does not prove Check-In permission. P02/P03/P07 must reuse/reconcile the owning Check-In capability at the integrated source, including relevant Shift requirements if that capability requires them; do not import OCR/Guest role/Shift policy by analogy. Resolve exact target ValetSession ownership and applicable lifecycle, Location closure/accepting-intake semantics and request-actor revocation without weakening authority. The exact ongoing-action transaction/read contract remains pending.
+
 | Principal | Existing Guest issue/revoke | Existing WhatsApp settings / sandbox consent | New send / status authority |
 |---|---|---|---|
 | VALET_EMPLOYEE | allowed with active user/member/org/Location and explicit LocationAccess; no Shift prerequisite in current Guest command | no company-admin permission | D04, do not infer from rendering Parking screen |
 | VALET_SUPERVISOR | same explicit current Guest allowlist | no company-admin permission | D04, no new override implied |
 | LOCATION_MANAGER | not in current Guest issue allowlist | not granted by `authorizeCompanyAdminManagement` | D04, no inheritance from role name |
 | ORG_ADMIN / Company Admin | not in current Guest issue allowlist | explicit management capability + appropriate MFA assurance; target scoped | D04, management ownership is not employee-send authority |
-| Task assignee / active Shift actor | relevant to Parking command, separate model | not provider administration | D04 decides whether required; session legacy assignee is not Task authority |
+| Task assignee / active Shift actor | relevant to Parking command, separate model | not provider administration | only requirements of the reconciled Check-In capability apply; legacy session assignee is not Task authority |
 | Guest / Browser Session | no staff mutation authority | none | no employee-send/status access inferred |
 | Platform operator / service | narrowly controlled onboarding/kill-switch and sender functions | not an invented tenant membership | D01/D07, least-privileged exact capability only |
 
@@ -346,7 +366,7 @@ Never add an active Shift requirement to the old Guest command as incidental har
 |---|---|
 | 1 Authenticate | established StaffPrincipalResolver/StaffSessionContext path as appropriate; current unrevoked bearer/user; no trusted client IDs |
 | 2 Resolve target | load persisted ValetSession and exact Organization/Location/Customer; missing/foreign resource concealed consistently |
-| 3 Prove operation | active membership, org, Location, explicit grant, accepted role/capability and selected Shift/Task/lifecycle; recipient and consent independently authorized |
+| 3 Prove operation | active membership, org, Location, explicit grant, genuine Check-In capability, its relevant Shift requirements and exact target-session/lifecycle authority; recipient and consent independently authorized |
 | 4 Protect proof | transaction-aware current authority and accepted lock/guard order; use comparable Guest/Intake/dispatch primitives after compatibility review; D04/D07 must settle any new check-use mechanism |
 | 5 Mutate | only accepted Guest generation/intent/envelope writes; no remote HTTP; never mutate first and use RETURNING to discover ownership |
 | 6 Append audit | exact approved event/entity/provenance and finite allowlisted values in same transaction; no token, URL, phone, provider payload or free-text evidence copied blindly |
@@ -361,9 +381,15 @@ The dispatch boundary cannot recall a message already handed to Meta. Withdrawal
 
 ## J. Consent and recipient correctness
 
-Current Native customer input stores/captures a phone; the initial eligibility resolver requires a separate current `GRANT` revision/evidence. No inspected ordinary Check-In request has sufficient explicit WhatsApp opt-in. The sandbox consent endpoint is Company Admin/MFA and exact isolated environment/recipient scoped; it is not a production guest-consent ceremony. Do not repurpose its seven-day grant window or operator evidence reference into production policy.
+**D03 — OWNER DIRECTION SELECTED:** the guest voluntarily supplies their phone during the existing Check-In step for receiving the Guest Access link. That is the complete intended employee-facing permission flow. No additional checkbox, consent screen, confirmation modal or employee step is selected or authorized. Do not reopen that UX preference as an undecided alternative.
 
-**D03** must establish who requests consent, exact text and sender identity (central VAYLET/tenant), channel/purpose scope, evidence provenance/time/version, validity/withdrawal, lawful retention and support ownership. Alternatives include separately approved Check-In UI consent, a verifiable prior guest consent flow, or authorized staff attestation under an approved auditable process. None is silently selected, and this assignment cannot add another Check-In visual control. Absence/ambiguity fails closed.
+**TECHNICAL CONTRACT PENDING / EXTERNAL COMPLIANCE DEPENDENCY:** existing `createInitialGuestEligibilityResolver` still requires an independent current revisioned GRANT/evidence. A historical Customer phone field does not prove what was explained or agreed, and the isolated Company Admin/MFA sandbox grant is not a general production collection process. No grant/backfill is created here and no dispatch gate is bypassed.
+
+The [current official WhatsApp policy](https://whatsappbusiness.com/policy/) was rechecked 2026-11-14: supplying a number and permission to receive business communications are separate conditions; businesses choose a lawful collection method and honor withdrawal. The source does not mandate an extra checkbox. It does not certify this proposed operational process or existing records. Suitability of verbal/operational permission, truthful central-sender identity and applicable jurisdictional notices still requires competent provider/legal review.
+
+P03/P04 must approve how the existing one-step operational conversation establishes expected Guest-link communications from the named sender and how genuine evidence is represented: actor/process provenance, event time, notice/process version, recipient/session/purpose scope, withdrawal and retention. These are candidate evidence dimensions, not an invented schema, new attestation button, API, event catalog or claim that every existing record already contains them. Define training/process assurance and an auditable mapping into accepted permission authority without another visible employee step. If evidence cannot satisfy the current grant gate or external requirement, record that precise conflict and block real dispatch; do not silently manufacture evidence or add UI.
+
+Historical records remain unproven unless genuine separate evidence is established. Future records under an approved process must be distinguishable from them; existing phone possession, Company enablement, an employee send tap, or a saved returning-customer record cannot itself create retrospective permission. Withdrawal/correction/stale-recipient and cross-session protection remain mandatory.
 
 Recipient resolution must follow current session → same-Organization Customer FK → canonical persisted phone, then check versioned keyed HMAC consent for that phone/purpose and chosen sender model. General Intake phone normalization accepts a broader E.164-compatible boundary than WhatsApp (`isCanonicalOutboundRecipient` / Meta normalizer require `+` plus nonzero first digit and 8–15 digits). Do not mutate historical phone data merely to make it eligible. Validate canonical current input and return safe unavailable state when not eligible.
 
@@ -385,7 +411,7 @@ The matrix includes first execution, identical retry, concurrent identical execu
 | Double tap / network retry after success | visit/purpose unique intent, not HTTP replay policy | exact convergence or approved conflict; no second generation/audit/remote call; fresh authorization |
 | Two simultaneous taps / two employees | competing authorized commands require serialization | real PG concurrent commit and rollback branches; approved loser result, truthful actor provenance |
 | Same request identity, different material | new key contract not selected | reject/conflict per D07; key binds exact accepted request, not arbitrary recipient |
-| Automatic creation races manual | initial hook runs only fresh Intake transaction | D02 shared logical identity/trigger policy; no two intents; no second rotation |
+| Automatic creation races manual | initial hook runs only fresh Intake transaction | D02 manual-only cutover must fence historical hooks/old replicas and legacy pending work; no hidden automatic dispatch, two intents or rotation |
 | Request disconnect before commit | transaction may roll back | no send if rollback; if ambiguous commit, status reconciliation under accepted identity before retry |
 | Queue commit, worker unavailable | durable PENDING record | later eligible bounded worker claim or expiry, no client enqueue dual write |
 | Worker crashes before permit | lease token + expiry | independent recovery protects healthy worker and safely reclaims eligible unsent work |
@@ -410,7 +436,7 @@ Real failure tests must kill the process after permit commit and after provider 
 
 No endpoint path, HTTP code, schema fields, role allowlist, audit event name or idempotency key for the new operation is frozen by this plan. **D04/D06/D07** must settle them before production code. Existing literal controllers establish a convention, not authority for a newly invented route.
 
-Recommended minimal boundary **proposal**: one transaction-aware application command that resolves/authorizes the selected visit and either creates or converges on the accepted initial logical operation; one read-only application query projects its safe durable evidence. Native/shared client calls thin HTTP wrappers. Automatic issuance, if retained, composes the internal command capability under its own authenticated/authorized transaction rather than calling the project's own HTTP endpoint. Preserve feature ownership: Guest Access alone owns generation/credential authority; messaging owns intent/dispatch/evidence; shared contracts own public validation.
+Recommended minimal boundary **proposal**: one transaction-aware application command that resolves/authorizes the selected visit and either creates or converges on the accepted initial logical operation; one read-only application query projects its safe durable evidence. Native/shared client calls thin HTTP wrappers. Automatic issuance is not retained as a target product mode. Future approved cutover must disable/replace the historical hook and prove no old replica/configuration can dispatch automatically; there is no internal automatic consumer selected. Preserve feature ownership: Guest Access alone owns generation/credential authority; messaging owns intent/dispatch/evidence; shared contracts own public validation.
 
 The downstream sender consumes an exact committed intent and current permit capability, never a staff-provided URL/phone. The Native status consumer receives only approved evidence and freshness for a currently authorized visit, never recoverable credentials. The reusable boundary must explicitly state which transaction protects recipient/permission/policy/generation proof and what invalidates it. A boolean precheck outside the later write transaction is insufficient.
 
@@ -422,12 +448,12 @@ Compatibility acceptance: existing Intake request/response byte shape and idempo
 
 ## M. Database and migration assessment
 
-**Migration requirement is UNRESOLVED.** No migrations or Prisma edits are authorized now. Current persistence supports initial-outbox transport and durable status facts, but not the unreconciled central sender/manual/resend contracts. Do not conclude “no migration required” merely because columns exist.
+**Migration requirement is UNRESOLVED / TECHNICAL CONTRACT PENDING.** No migrations or Prisma edits are authorized now. Current persistence supports initial-outbox transport and durable status facts, but not the unreconciled central sender/manual/resend contracts. Do not conclude “no migration required” merely because columns exist.
 
 | Inspected persistence / SQL | Existing integrity | Decision-dependent gap |
 |---|---|---|
 | OutboundProviderBinding / SQL086 | Organization FK; unique environment/provider/phone; one enabled per org/purpose/environment; verified evidence protected | central platform transport identity vs tenant grant/correlation |
-| OutboundMessagingPolicy / SQL086 | composite tenant binding/Location FKs; separate partial company and Location unique indexes; revisions | approved trigger mode/tenant use of central sender |
+| OutboundMessagingPolicy / SQL086 | composite tenant binding/Location FKs; separate partial company and Location unique indexes; revisions | manual-only trigger enforcement/tenant use of central sender |
 | OutboundMessagingControl | distinct test/production OFF/OFF rows | production control ownership and audited activation still operational |
 | OutboundMessagingPermission + PermissionEvent | tenant+recipient-HMAC+purpose unique; immutable revisioned GRANT/WITHDRAW | sender/purpose/visit consent semantics, capture and retention |
 | OutboundMessageIntent | immutable scope/generation/revisions; unique org+visit+purpose; <=30m | delayed manual first issuance/resend identity and request replay |
@@ -447,7 +473,7 @@ Retention is not permission to delete operational history. Expire/purge secret t
 
 ## N. Meta Cloud API integration
 
-External onboarding is a dependency, not something this plan or prototype performs. The newer central sender direction requires confirming Meta permits the intended business representation/consent arrangement. Owner preference alone is not provider/legal approval.
+**D01:** the actual production number, WABA, Phone Number ID and credentials are deliberately deferred; none is supplied or hardcoded and sandbox assets remain test-only. External onboarding is a dependency, not something this plan or prototype performs. The newer central sender direction requires confirming Meta permits the intended business representation/consent arrangement. Owner preference alone is not provider/legal approval.
 
 | Dependency / task | Required evidence before activation |
 |---|---|
@@ -473,7 +499,7 @@ Actual target: [NativeCheckInParkingTaskStep](../../../apps/valet-native/src/che
 
 Prototype design proposal: full content width; minimum 56dp height matching large employee control, existing 16dp primary corner radius, existing typography/spacing, recognizable bundled vector using already-installed `react-native-svg`, green fill with readable text, EN/AR labels and inherited direction. The precise accessible green shade is a design proposal for Owner review; WhatsApp branding does not justify white text on an untested bright green. Verify contrast mathematically and visually. No new package, shared token edit, banner, toast, modal or decorative panel.
 
-Default, pressed, loading, queued, Meta accepted, failed, UNKNOWN/pending and prospective webhook-confirmed delivered variants live inside the new control. Every demo state includes an unmistakable Demo label, also in accessible name/hint; “delivered” is not a live claim. A deterministic development-only fixture can select states and baseline without changing production behavior. Default tap may advance local demo state only; it must never instantiate business clients, acquire credentials or mutate any session/task. Do not add the demo action to production navigation.
+Default, pressed, loading, queued, Meta accepted, failed, UNKNOWN/pending and prospective webhook-confirmed delivered variants live inside the new control. The November 14 Owner refinement removes every visible Demo/تجريبي prefix and leading separator; labels are in §F. The accessibility hint still explains local design simulation and no message sending; Delivered in the fixture is not authenticated provider evidence. A deterministic development-only fixture can select states and baseline without changing production behavior. Default tap immediately advances local state to Sending with ActivityIndicator and concurrent submissions disabled, then an explicitly local timer illustrates Queued; no timer provides real acceptance/delivery evidence. It may advance local state only; it must never instantiate business clients, acquire credentials or mutate any session/task. Do not add the demo action to production navigation.
 
 Before code, save baseline evidence from original source. Prefer actual Android runtime with same viewport/density/theme/locale/fonts/data/scroll. When unavailable, preserve actual source/tree baseline and honestly label it static evidence, not a native screenshot. Compare EN/AR, light/dark, small/standard/Owner-comparable viewports and large text. Outside the control and unavoidable added content/scroll height, existing elements must have unchanged geometry. Do not move bottom navigation or reduce old spacing to fit the button. The Owner reference screenshot is not available in the supplied attachment; do not invent it.
 
@@ -490,14 +516,14 @@ There are **16 phases / 48 bounded tasks** below (three tasks per phase). P00–
 | **P00 Plan** — current authorization | P00.1 inspect Issue/branch/docs/code; P00.2 author this full decision-dependent plan; P00.3 audit/classify/review then plan-only commit and normal push | requirement matrix, verified paths, planning audit/diff check, remote plan SHA; no code included |
 | **P01 Prototype** — P00 remote confirmed | P01.1 baseline actual Native component and safe fixtures; P01.2 minimal dev-only button/route/state variants; P01.3 tests/parity spec/evidence, self-review, prototype commit/push and independent read-only review | Native typecheck/lint/focused+Check-In/full Native regressions/architecture/line counts; honest visual limits; Owner approval remains pending |
 | **P02 Reconciliation** — separate Owner scope | P02.1 fetch/freeze new main/head and commit map; P02.2 semantic integration design for eight branch commits; P02.3 approved integration execution and conflict review | preserve new main Guest/Native/security fixes and sandbox fences; exact integrated SHA, no unapproved history rewrite |
-| **P03 Decisions** — P00/P02, prototype review | P03.1 reconcile D01 sender/consent identity; P03.2 settle D02–D05 trigger/credentials/authority/recipient; P03.3 settle D06–D09 contracts/status/audit/budgets and update focused DECs + mirrors/docs | explicit Accepted decisions and Owner design approval; no unresolved production-critical semantics; tests specified against accepted outcomes |
-| **P04 Consent/contact authority** — P03 | P04.1 approved capture/provenance and normalization contract; P04.2 withdrawal/contact-change/regrant boundary; P04.3 authorized UI/API only under separately approved carveout | genuine opt-in evidence, stale recipient/third-party/saved-number negatives, phone correction races; no accidental freeze expansion |
+| **P03 Decisions** — P00/P02, prototype review | P03.1 reconcile D01 sender/consent identity; P03.2 encode selected manual-only/Check-In authority/no-rotation directions and settle delayed credential/recipient proof mechanisms; P03.3 formalize selected same-button/visible-disabled/safety/operations directions into D06–D09 contracts/status/audit/budgets and update focused DECs + mirrors/docs | explicit Accepted decisions and Owner design approval; no unresolved production-critical semantics; tests specified against accepted outcomes |
+| **P04 Consent/contact authority** — P03 | P04.1 approved capture/provenance and normalization contract; P04.2 withdrawal/contact-change/regrant boundary; P04.3 approved non-extra-step evidence mapping/process and backend boundary only under later implementation scope | genuine permission evidence compatible with the one-step intent, historical-record separation, stale recipient/withdrawal/correction races; no added consent UI |
 | **P05 Persistence/roles** — P03/P04, migration owner | P05.1 update schema doc and exact central/manual integrity design; P05.2 new forward migration(s)/typed models/functions/grants; P05.3 fresh+populated upgrade/least-privilege/rollback-compatibility proof | real PG17 migrations and restrictive roles, old attempts preserve truth; no automatic backfill/send activation |
-| **P06 Guest material/outbox** — P03/P05 | P06.1 accepted delayed-first/resolve/reissue capability in Guest authority; P06.2 atomic one-logical-operation intent/envelope/audit; P06.3 replay/concurrent/uncertain-commit convergence | new vs existing/consumed/revoked/expired generation tests; no hidden rotation/vault; unchanged Intake fast path and manual Guest behavior |
+| **P06 Guest material/outbox** — P03/P05 | P06.1 accepted delayed-first/resolve/reissue capability in Guest authority; P06.2 atomic one-logical-operation intent/envelope/audit; P06.3 fence/deactivate historical automatic hook/legacy work and prove manual replay/concurrent/unknown-commit convergence | new vs existing/consumed/revoked/expired generation tests; no hidden rotation/vault/automatic dispatch; unchanged Intake fast path and manual Guest behavior |
 | **P07 Staff command/shared client** — P03/P04/P06 | P07.1 approved shared schemas/errors/exports; P07.2 thin authenticated transport + explicit application command; P07.3 portable client with timeout/cancel/identity/Location fences | two-principal denial before first write, exact replay semantics, no recipient/token input, custody/Task unchanged |
 | **P08 Production sender/Meta** — P03/P05/P06, external account | P08.1 exact central resolver/secret alias/approved template assembly; P08.2 preserve current permit/confirm/uncertainty/rate boundaries; P08.3 OFF-mode readiness/rotation/kill-switch verification | static and mock provider tests plus real restricted-role startup/failure proof; no live calls until later test-specific approval |
 | **P09 Status/webhook** — P03/P05/P07/P08 | P09.1 approved safe query and projection precedence/freshness; P09.2 central correlation and original-byte callback boundary; P09.3 replay/out-of-order/callback-first/read-cost tests | no secrets/account IDs/phone, exact scope on every read, durable commit-before-ack, no resend from query |
-| **P10 Native real integration** — Owner design, P07/P09 | P10.1 only approved control production wiring; P10.2 bounded foreground refresh/relaunch/offline/scope fencing; P10.3 EN/AR/theme/accessibility/visual regression review | unchanged old Guest/Open Parking/navigation/tracking; no app-side WhatsApp share; honest queued/accepted/unknown copy |
+| **P10 Native real integration** — Owner design, P07/P09 | P10.1 only approved control production wiring; P10.2 bounded foreground refresh/relaunch/offline/scope fencing; P10.3 EN/AR/theme/accessibility/visual regression review | unchanged old Guest/Open Parking/navigation/tracking; no app-side WhatsApp share; immediate same-button Sending, truthful queued/accepted/unknown copy and visible-disabled prerequisites |
 | **P11 Integrated qualification** — P04–P10 | P11.1 isolated PG17 concurrency/crash/role suite; P11.2 separately authorized one-recipient real sandbox + signed callback; P11.3 physical Android → WhatsApp → HTTPS fragment/browser acceptance and security review | exact SHA, zero unintended duplicates, actual signed status and correct Guest session; no inference from root reachability or mocks |
 | **P12 Operations** — P05/P08/P09 | P12.1 deployment/secret/IAM/runbook and dashboards; P12.2 real crash/outage/backup-restore/rotation exercises; P12.3 alert/cost/privacy/support training | readiness health/log/DB evidence, no secret captures; restore never re-enables sending or requeues uncertain old attempts |
 | **P13 Release candidate** — P11/P12 | P13.1 freeze source/dependency/migration/asset identity; P13.2 required root local checks, full remote CI/security and independent review; P13.3 QA/Security/operations/Owner GO matrix | no unresolved failure; human PR/merge decision only under separate authorization; exact candidate evidence |
@@ -514,15 +540,15 @@ All future PASS entries require an executed procedure and immutable candidate id
 
 | Test ID / boundary | Reproducible procedure (later authorized phase unless P01) | Acceptance evidence |
 |---|---|---|
-| Q01 Prototype composition/isolation | actual component render tests; baseline source/tree comparison with only injected control omitted; exercise all demo states and `__DEV__=false` | original subtree/callbacks unchanged; no send/network/Guest generation imports; button follows Guest card |
+| Q01 Prototype composition/isolation | actual component render tests; baseline source/tree comparison with only injected control omitted; exercise all demo states and `__DEV__=false` | original subtree/callbacks unchanged; no send/network/Guest generation imports; button follows Guest card, no visible Demo/تجريبي, immediate same-button Sending/spinner, no concurrent timer or stale unmount work |
 | Q02 Prototype appearance/access | EN/AR × light/dark, small/standard/reference-comparable Android sizes, text scale/TalkBack; matched screenshots before/after | only new control region/content-height difference; contrast/touch/name/busy/disabled verified; missing captures explicitly SKIP |
 | Q03 Shared contracts/unit | rejected unknown/body fields, invalid selectors, finite safe status/errors; imported public exports | no client tenant/recipient/token authority; schema and compatibility results |
 | Q04 Staff authentication | real principal/session middleware, duplicate/missing bearer, expired/revoked session/inactive user | denied with safe request ID/no secret output |
 | Q05 Object/tenant/Location auth | two real principals/resources, foreign tenant/Location, inactive member/org/Location, revoked grant, wrong role; repeat after committed operation | no protected write/audit/provider call or unauthorized status; exact denied query/mutation proof |
 | Q06 Shift/Task/lifecycle | every accepted D04/D05 predicate and current-main revocation contract; race disable/end/reassign/cancel vs command | chosen eligibility boundary enforced without altering old Guest policy |
-| Q07 Consent/phone | no GRANT, expired/withdrawn/mismatched revision, saved phone, phone correction, HMAC key mismatch, re-grant | no send to old/new unconsented recipient; exact version/current evidence; rollback branches |
+| Q07 Consent/phone | no GRANT, expired/withdrawn/mismatched revision, saved phone, phone correction, HMAC key mismatch, re-grant | no extra consent UI; no fabricated historical permission; no send to stale/withdrawn/unproven recipient; exact version/current evidence and rollback branches |
 | Q08 Policy | inherited fields, null Location override, disabled company/Location, revisions changed concurrently, missing template/binding/control | fail closed and preserve independent tenant decisions |
-| Q09 First/retry/races | real PG concurrent first taps/two employees/auto+manual, same key diff material, losing transaction commit and rollback; lost HTTP response | one accepted logical identity; exact approved replay response; no hidden rotation/extra audit/send |
+| Q09 First/retry/races | real PG concurrent first manual taps/two employees and legacy automatic-hook cutover races, same key diff material, losing transaction commit and rollback; lost HTTP response | one accepted logical identity; exact approved replay response; no hidden rotation/extra audit/send |
 | Q10 Guest lifecycle | fresh marker/active hash/consumed/expired/revoked/reissued generations; pending dispatch vs rotate/revoke/browser exchange | accepted policy only; old browser/credential never resurrected; envelope purged safely |
 | Q11 PG integrity/migrations | real PG17 empty+populated versioned migration deploy; scoped FK/unique/check/partial-index and role denial tests | actual migrations, no db-push substitute; no rewritten SQL/history; cleanup of owned target only |
 | Q12 Provider mocks | exact AR/EN one-URL template, wrong WABA/phone/alias/mode/origin/recipient; bounded response/timeout/redirect/truncation/invalid wamid/error codes | one external call per permit; valid acceptance vs definitive negative vs UNKNOWN; no leakage |
@@ -531,7 +557,7 @@ All future PASS entries require an executed procedure and immutable candidate id
 | Q15 Webhook signatures | original raw bytes, wrong/missing/duplicate signature, altered whitespace/body, malformed/oversized callback, unconfigured receiver | rejected before persisted facts; challenge verification alone never proves POST authenticity |
 | Q16 Webhook correlation/order | wrong tenant/account/phone/message/recipient/handle; duplicate/delayed/out-of-order/callback-first; persistence outage | normalized durable monotone facts only; no ambiguous central sender tenant; ack only after commit |
 | Q17 Status query | authorized reopen/relaunch, old generation, no prior intent, scope change during read, concurrent facts, read deadline/index EXPLAIN/cost | truthful evidence/freshness; no sensitive identifiers, history leakage or mutation |
-| Q18 Native integration | tap/offline/timeouts/background/foreground/navigation/logout/Location or identity change; double tap and relaunch | no stale UI success or mount-triggered send; existing Parking/Guest/tracking/nav regressions pass |
+| Q18 Native integration | manual tap/offline/timeouts/background/foreground/navigation/logout/Location or identity change; immediate Sending, visible-disabled prerequisites, double tap and relaunch | no stale UI success or mount-triggered send; existing Parking/Guest/tracking/nav regressions pass |
 | Q19 Real sandbox | separately approve exact test account/recipient/consent/template/origin/one-send budget; one Native command → worker → real Meta → signed callback | private correlation record, sanitized counts/times/source SHA; no unintended duplicate; controls OFF afterward |
 | Q20 Guest browser | same physical phone opens delivered exact link; privately validate fragment, scrub, enroll/exchange, reload/restart, other visit/device, rotation/revocation and lock-wait expiry | correct exact visit; no token in logs/history/referrer/analytics/screenshots; root 200 insufficient |
 | Q21 Operations failure | actual stack startup/health/network/roles; sender outage, DB loss, callback retry, key rotation, restore, kill-switch | process/log/DB and recovery evidence, not only compose config/image build |
@@ -550,7 +576,7 @@ Production architecture remains the modular monolith plus its separately restric
 
 Before release, operations supplies and verifies:
 
-- Environment flags (`GUEST_ACCESS_AUTO_ISSUE_ENABLED`, `OUTBOUND_MESSAGING_SEND_ENABLED`, `OUTBOUND_MESSAGING_MODE`), durable per-mode issue/send controls, company/Location policies and central sender entitlement are all independent; disablement wins. Boot rejects test artifacts in production. No browser/public provider secrets.
+- Manual-only cutover must retire/fence historical `GUEST_ACCESS_AUTO_ISSUE_ENABLED` behavior; its presence in old code is not a target automatic product option. Future rollback/startup/old-replica tests prove no automatic issuance/dispatch. Existing flags (`GUEST_ACCESS_AUTO_ISSUE_ENABLED`, `OUTBOUND_MESSAGING_SEND_ENABLED`, `OUTBOUND_MESSAGING_MODE`), durable per-mode issue/send controls, company/Location policies and central sender entitlement are all independent; disablement wins. Boot rejects test artifacts in production. No browser/public provider secrets.
 - Production secret manager, distinct public-encryption/private-decryption/HMAC/webhook/access-token keys, aliases/versions, access audit, rotation/revocation, private-key backup and restore/destruction runbooks. Meta invalidation is checked at Meta, not inferred from local deletion.
 - Separate encrypted DB/runtime/migration/sender/webhook connections and least-privilege SQL startup probes. Backups encrypted with recorded retention/access owner; restores tested with send OFF and stale permits/envelopes quarantined or expired under accepted rules.
 - Worker health/readiness that reflects role/config/dependency readiness, backlog age, claim/finalize/cleanup progression and key capability without logging payloads. OFF mode cleanup/callback reconciliation remains useful and must not imply sending readiness.
@@ -564,7 +590,7 @@ GO/NO-GO table for P13/P14:
 
 | Owner | GO evidence | NO-GO examples |
 |---|---|---|
-| Product Owner | approved design + all required DECs; rollout cohort and explicit activation instruction | unresolved central/manual/consent/resend semantics |
+| Product Owner | approved design + all required DECs; rollout cohort and explicit activation instruction | unreconciled central transport, operational-permission evidence or delayed-credential/replay contracts; D10–D12 pending |
 | Security reviewer | exact-source tenant/role/credential/consent/webhook/role/backup acceptance | wrong-recipient, secret leakage, unsigned/unmatched status, unsafe UNKNOWN replay |
 | QA | real Native + Meta + signed callback + Customer entry, all relevant regression/CI | only mocked provider/root HTTPS evidence, missing physical required scope, unresolved failures |
 | Operations | deploy/health/kill/rotation/restore/cost/alerts/support owners and exercises | shared runtime/admin credentials, unproven recovery, unbounded backlog/cost |
@@ -581,10 +607,10 @@ Post-release observe first controlled sends, exact-visit Guest entry, no duplica
 | Shared WABA maps callback to wrong tenant | critical / high without redesign | D01 immutable attempt correlation, scoped FKs/grants, cross-tenant callback tests |
 | Wrong phone / stale saved contact / phone correction | critical / medium | D03 contact authority, current HMAC/revision fences, SQL093 race proof, real recipient review |
 | Credential/URL leaks into screenshots/logs/backups | critical / medium | synthetic fixtures, no raw payload telemetry, DEC-105 key isolation/purge and backup destruction tests |
-| Manual+automatic duplicates | high / high until D02 | one accepted logical identity, real concurrent command/auto races, no per-tap new send |
+| Historical automatic hook survives manual-only cutover | high / high until technical reconciliation | selected D02 manual-only; startup/rollback/old-replica fences, legacy pending cohort disposition, no per-tap new send |
 | Hidden rotation invalidates guest browser | high / high if old issue reused | D05 explicit lifecycle, no implicit recovery from hashes, browser generation regression |
 | UNKNOWN treated as failed/retryable | high / medium | irreversible marker, independent crash tests, clear same-button unknown state |
-| Consent presumed from phone/tenant policy | high / high until D03 | verifiable GRANT/withdrawal, no fabricated evidence or sandbox ceremony reuse |
+| Operational permission intent mistaken for proven historical consent | high / high until evidence contract | D03 one-step UX selected; approved provenance, withdrawal and GRANT mapping; no fabricated evidence or new consent UI |
 | Sandbox PASS mistaken for production GO | high / high | dated evidence ladder; real webhook/Guest/device/root-CI/ops gates |
 | Branch integration removes new main security/Native fixes | high / high (444-behind baseline) | P02 semantic reconciliation, no automatic merge/rebase, exact integrated regressions |
 | Central credential/reputation outage affects all tenants | high / medium | platform secret isolation, global+tenant budgets, kill and rotation, monitored provider quality |
@@ -596,31 +622,35 @@ Post-release observe first controlled sends, exact-visit Guest entry, no duplica
 
 ## T. Decision register
 
-IDs below are **planning identifiers**, not fabricated repository DEC numbers. None is marked Accepted. Owner approval must be recorded in focused decisions and synchronized summaries/binding docs before affected code.
+IDs are stable planning identifiers, not fabricated Accepted DEC numbers. **OWNER DIRECTION SELECTED** records product intent; **TECHNICAL CONTRACT PENDING** does not undo that selection and does not grant implementation. Focused Accepted DECs/logs remain unchanged in this task. The following is the required reconciliation matrix; each row identifies prototype impact, future API/DB/worker impact, external dependencies and owning phases.
 
-| ID | Unresolved choice / evidence | Alternatives, trade-offs and recommendation | Required approval / blocked phases |
-|---|---|---|---|
-| D01 | Central sender direction vs WA-D10/DEC-087/C0/E10 | platform transport + scoped tenant grants (recommended proposal) vs keep company-owned model; central simplifies onboarding but widens shared failure/consent/cost/correlation obligations | Owner architecture + security/Meta/legal suitability; P03/P05/P08/P09/P12–P15 |
-| D02 | Manual/automatic trigger and repeated sends, initial unique intent | manual-only vs configurable shared initial operation (recommended if auto retained) vs separate explicit resend; never infer resend from tap | Owner trigger/duplicate policy; P03/P06/P07/P10/P11 |
-| D03 | Consent collection, sender/purpose/visit scope, contact changes | approved new consent UI vs verifiable prior consent vs authorized attestation; recommend explicit auditable opt-in without assuming phone possession; settle current corrected vs captured visit contact | Owner compliance/product + exact UI carveout; P04–P08/P11/P14 |
-| D04 | New command/status role/Shift/Task/lifecycle and request-actor revocation | match existing Guest employee/supervisor authority vs accepted task-scoped policy; recommend minimum explicit operational permission, no inferred manager/admin hierarchy | Owner authorization + security; P07/P09/P10 and corresponding DB guards |
-| D05 | Delayed initial envelope, active/consumed/expired/revoked links and reissue | initial-only delayed issuance vs explicit separate reissue/resend contract; recommend no silent rotation and preserve hash-only authority; DEC-105 amendment if manual envelope permitted | Owner credential/security decision; P05/P06/P07/P11 |
-| D06 | Safe status schema, fact precedence, freshness/retention, poll budget and exact EN/AR copy | bounded foreground polling vs manual refresh vs later existing async transport if justified; recommend bounded foreground authoritative reads, no Meta polling and provider-reported delivery only | Owner UX/status contract + performance/security; P09/P10/P11 |
-| D07 | Exact command/query transport, replay key/response/error, audit identity/catalog | resource-scoped empty command vs explicit stable operation identity; recommendation depends on D02/D05 uncertain-commit reconciliation; inspect current shared contract conventions | Owner accepted API/domain/audit contract; P05–P07/P09; no invented paths/events now |
-| D08 | Visibility/disabled behavior, actionable consent/contact/offline UX | always visible safe unavailable state vs eligible-only plus retained status; recommend Owner compare within same control; no new banners/cards | Owner prototype/design review; P10 production presentation |
-| D09 | Shared throughput/fairness, retention/legal hold, billing allocation/SLO thresholds | shared provider cap + per-tenant budgets vs approved simpler bounded pilot; recommend measured pilot controls and recorded retention/rotation owners; no invented charges/quotas | Owner commercial/ops/security + real measurements; P05/P08/P09/P12–P15 |
+| Decision | Previous plan | New Owner direction | Required update / affected surfaces | Unresolved technical gate / binding contract / phase |
+|---|---|---|---|---|
+| D01 | Central vs company-owned alternatives; proposed platform grant split | **OWNER DIRECTION SELECTED:** central VAYLET sender; actual production number deferred | Prototype: no sender data. Future API/DB/worker/webhook: central transport with tenant authorization, Company/Location policy and immutable attempt correlation; no sandbox promotion | **TECHNICAL CONTRACT PENDING:** WA-D09/WA-D10, DEC-087/105 and company-binding FKs/resolver amendments; external Meta identity/WABA/number/credentials/templates not provided. Block central implementation/activation; P03/P05/P08/P09/P12–P15 |
+| D02 | Manual-only vs recommended configurable auto/manual vs resend alternatives | **OWNER DIRECTION SELECTED: MANUAL ONLY** after eligible employee tap | Prototype tap only. Future Intake/API/DB/worker: safely retire/fence historical automatic hooks, old replicas and legacy work; prove Check-In alone never queues/dispatches | **TECHNICAL CONTRACT PENDING:** DEC-105/C0/WA-D02 trigger amendment and cutover/replay details. No external asset needed to select trigger; sending still requires D01. Block real hook replacement now; P03/P06/P07/P10/P11 |
+| D03 | New consent UI / prior grant / attestation alternatives | **OWNER DIRECTION SELECTED:** voluntarily supplied phone for Guest link, existing entry is complete UX; no extra consent UI/step | Prototype: no consent UI. Future API/DB/worker: genuine operational-evidence mapping, historical/future distinction, correction/withdrawal/session scope | **TECHNICAL CONTRACT PENDING + EXTERNAL COMPLIANCE DEPENDENCY:** current DEC-105/C0 GRANT/evidence gate is not satisfied by bare historical phone data; approve sender notice/provenance/process/lawful basis/retention without inventing grants. Block dispatch until suitable evidence; P03/P04/P05–P08/P11/P14 |
+| D04 | Guest role match vs task-scoped authority alternatives | **OWNER DIRECTION SELECTED:** actual Check-In permission in current scope, no guessed role allowlist | Prototype unchanged authorization isolation. Future command/status/DB guards reuse/reconcile owning Check-In capability, current principal/member/org/Location/Shift requirements and exact session; reauthorize retries/reads | **TECHNICAL CONTRACT PENDING:** exact capability reuse, accepting-intake/lifecycle, revocation/transaction semantics at integrated source. Current Intake helper has employee/supervisor filtering and no Shift check; Guest/OCR policies cannot substitute. No external provider asset for authority; P02/P03/P07/P09/P10/P11 |
+| D05 | No-silent-rotation recommendation; delayed initial/reissue alternatives | **OWNER DIRECTION SELECTED:** no per-tap rotation/reissue, browser invalidation, second message after success/uncertainty or blind UNKNOWN retry | Prototype local states only. Future Guest/API/DB/worker: delayed permitted material, generation/envelope/purge/replay classification; Native supplies no raw token | **TECHNICAL CONTRACT PENDING:** DEC-064/105 lifecycle/envelope reconciliation for active/consumed/expired/revoked/unrecoverable links; no raw-token reconstruction. No new provider asset resolves missing hashes. Block credential work; P03/P05/P06/P07/P11 |
+| D06 | Feedback feasible; copy and query options unresolved | **OWNER DIRECTION SELECTED:** immediate Sending… / جاري الإرسال…; later evidence-based states inside same button | Prototype: exact EN/AR labels, spinner/busy; no visible Demo. Future API/query/DB facts/worker/webhook/Native: queue vs acceptance vs delivery vs UNKNOWN retained | **TECHNICAL CONTRACT PENDING:** safe status shape, refresh cadence/budgets, precedence/freshness/retention/retry; external authenticated correlated callback required for real Delivered. No local timer proves delivery; P03/P09/P10/P11 |
+| D07 | Durable/replay recommendations and transport alternatives | **OWNER DIRECTION SELECTED:** durable duplicate-safe server-derived recipient/session, auditable security | Prototype unchanged no I/O. Future API/DB/worker/webhook: first/double/two-employee/legacy-auto/contact/withdrawal/crash/unknown-commit/callback/revocation/lifecycle schedules | **TECHNICAL CONTRACT PENDING:** exact API/schema/error/audit/identity/transaction/locking/replay contracts, no invented names or mechanisms. Provider real failure proof later. Block functional implementation; P03/P05–P09/P11 |
+| D08 | Always-visible-disabled vs eligible-only alternatives | **OWNER DIRECTION SELECTED:** visible directly below conditionally present Guest Access; unavailable/disabled when ineligible | Prototype: same placement/disabled variant. Future API eligibility/query and Native only: offline/missing sender/prerequisites do not silently hide it; safe non-disclosing feedback | **TECHNICAL CONTRACT PENDING:** finite safe reason projection and exact eligibility contract; D10 design approval pending. No provider asset needed for prototype. No existing conditional Guest rendering change; P03/P09/P10/P11 |
+| D09 | Shared cap/per-tenant safeguards recommended; simpler pilot alternative | **OWNER DIRECTION SELECTED:** centralized provider capacity plus tenant budgets/fairness/rate/abuse/cost/privacy/operations controls | Prototype no operational controls. Future DB/API/sender/ops: global+tenant reservations, custody/rotation/revocation/kill, retention/restore/alerts/runbooks/rollout | **TECHNICAL CONTRACT PENDING + EXTERNAL DEPENDENCY:** actual account capacity/cost and approved numeric quotas, retention, pricing/SLOs; no invented values. Existing bounds are historical not new commercial policy; P03/P05/P08/P09/P12–P15 |
+| D10 | Pending Owner visual approval | **PENDING OWNER**, not approved by copy selection or this task | Prototype/spec/screenshots available for Owner review; blocks production Native action wiring | No Accepted design approval created; no external provider asset for visual review; P01/P03/P10 |
+| D11 | Pending exact-source security/QA GO | **PENDING QUALIFICATION**, local prototype checks are not integrated release approval | Future API/DB/worker/provider/webhook/Guest/device/PG17/security/CI/ops qualification remains | Real account/callback/device and integrated exact-SHA evidence required; P11/P12/P13 |
+| D12 | Pending production deployment/activation authorization | **PENDING OWNER ACTIVATION AUTHORIZATION** | No production flags/credentials/deploy/send changes now; OFF-first future rollout only under separate instruction | D01–D11 technical/external/release gates plus explicit Owner production GO; P14/P15; no PR/merge/deployment/closure authorized here |
 
-Additional dependencies are approvals rather than domain choices: D10 records Owner visual approval of P01; D11 records exact reconciled-source QA/security GO; D12 records explicit production deployment/activation permission. These remain pending and block their corresponding later gates even after D01–D09 are accepted. No expiration of time or successful prototype test grants approval.
+Historical alternatives are deliberately retained in the Previous plan column and §E, marked superseded where the Owner selected direction. New consent UI, automatic mode, role-name inheritance and per-tap reissue are not active options. D01–D09 do not become blanket ACCEPTED entries merely because product intent is chosen. Technical alternatives remain only where the Owner left the mechanism unresolved. Required future amendments: central ownership/tenant grants (DEC-087/WA-D09/WA-D10), manual/delayed envelope and automatic cutover (DEC-105/WA-D02/C0), permission evidence compatibility and credential scope (DEC-064/105 as affected), plus approved command/status/replay/audit contracts. No such accepted file is amended now.
 
 ## U. Definition of Done
 
 | Status | Required proof | State at plan baseline |
 |---|---|---|
-| Plan complete | A–U plus sources, decision-dependent tasks/tests/release gates, audit, separate commit and remote confirmation | authored; audit/commit/push recorded by Git delivery |
-| Prototype complete | actual component, isolated fixture/state variants, available checks and honest visual evidence, separate commit/push | not implemented by plan commit |
+| Plan complete | A–U retained, 16 phases/48 tasks, D01–D12 reconciliation, sources/tests/release gates, consistency review and push | original complete plan pushed; November 14 update validated/delivered through current evidence |
+| Prototype complete | same dev-only component, refined copy/immediate Sending, tests and newly source-tied screenshots; commit/push | prior prototype delivered; current refinement evidence in supporting docs, not old captures reused as new proof |
+| Current refinement visual evidence | fresh default/Sending/remaining states and matched locale/theme/size captures | **PARTIAL: no new PNG accepted** after task-emulator failures; old captures remain historical, current Native label-fit/pixel checks pending |
 | Design approved | explicit Owner review of placement/default/all relevant variants | PENDING OWNER |
 | Feature code implemented | accepted reconciled contracts, current-main integration, backend/client/sender/status and permitted Native wiring | NOT STARTED in this assignment; historical automatic/sandbox code preserved |
-| Tests passed | each applicable matrix row executed against exact candidate; unresolved failures preclude completion | future; dated old results do not qualify new source |
+| Tests passed | applicable prototype checks executed against exact current source; future integrated Q rows remain separate | current local results only in evidence; historical tests never qualify new source or D11 |
 | Integration proven | real authorized Native → Meta → signed webhook → exact Guest browser session | NOT PROVEN by old WhatsApp-only receipt |
 | Production ready | independent security/QA/operations/CI and provider/key/backup/consent evidence | NOT READY |
 | Production deployed | separately authorized deployment, OFF-first and approved controlled activation/post-check | NOT AUTHORIZED |
@@ -631,7 +661,7 @@ Final feature checklist for later closure:
 - [ ] Reconciled current main without losing sandbox history or later Guest/Native/security fixes.
 - [ ] Command/status contracts, authorization-before-first-write and every retry/re-read proven.
 - [ ] Explicit consent/current persisted recipient and Company/Location/sender/template/control gates proven.
-- [ ] One accepted logical operation across duplicate/manual/auto/concurrent schedules; no unauthorized second message.
+- [ ] Manual-only trigger proven with no automatic Check-In dispatch; one logical operation across repeats/concurrent employees/legacy cutover, no unauthorized second message.
 - [ ] Hash-only credential/browser authority and narrowly approved encrypted transport lifetime preserved.
 - [ ] UNKNOWN/possible remote success cannot be blindly requeued or reconstructed; hard-crash evidence exists.
 - [ ] Signed callback and central account correlation are durable, monotone, private and tenant-safe.
@@ -665,13 +695,15 @@ Paths refer to original planning HEAD unless explicitly labeled `origin/main`. R
 | E12 | [C0](../../validation/whatsapp/C0_CONTRACT_AND_OWNERSHIP.md), [old master plan](../AUTOMATIC_WHATSAPP_GUEST_ACCESS_MASTER_EXECUTION_PLAN.md), [handoff](../../validation/whatsapp/ISSUE_310_NEW_ISOLATED_SANDBOX_HANDOFF.md), [live evidence](../../validation/whatsapp/ISSUE_310_LIVE_SANDBOX_EVIDENCE_20261024.md), PRIME final remediation and W7 independent acceptance | historical frozen decisions and later scoped fixes/evidence; no cumulative current release GO |
 | E13 | [DEC-105](../../decisions/DEC-105_AUTOMATIC_WHATSAPP_GUEST_ACCESS_ENVELOPE.md), [DEC-064](../../decisions/DEC-064_GUEST_BROWSER_ENTRY_TRANSPORT.md), [DEC-087](../../decisions/DEC-087_READ_ONLY_INTEGRATIONS.md), `docs/08_DECISIONS_LOG.md` | focused contracts, mirror and central/manual reconciliation requirements |
 | E14 | original HEAD vs `origin/main` path/name/diff/log inspections, including `outbound-postgres-repository.ts`, worker assembly, Customer auth and Check-In | reconciliation inventory, not automatic approval or full audit of 444 commits |
+| E16 | November 14 Owner instruction and [dated reconciliation](OWNER_DECISIONS_RECONCILIATION_2026-11-14.md) | selected D01–D09 product directions, D10–D12 pending, planning/prototype/Issue-only scope |
+| E17 | `apps/api/src/modules/check-in-api/check-in-location-authorization.ts::authorizeCheckInLocation`; Intake executor and custody authorizer; separate OCR Shift check | actual Check-In permission provenance before writes/replay, no inferred role hierarchy or borrowed Shift rule |
 | E15 | Native package/vitest config, parking/locale/appearance tests, `appearance-render-{tree,evidence}.ts`; root scripts and CI workflow | actual available validation mechanisms; tree renderer explicitly stubs Native hosts and is not pixel evidence |
 
 Binding discovery covers AGENTS, `docs/00_SOURCE_OF_TRUTH.md` through `docs/18_PHASE3_OPERATIONS_EXECUTION_PLAN.md` (including schema, security, DoD, decisions, traceability, collaboration, rebaseline, deployment and code structure) and CONTRIBUTING. Large schema/security/decision inventories are navigated by relevant Guest, Intake, Notification, audit, consent, outbound and role sections plus owning code/SQL; this is not a claim of a line-by-line security audit of every unrelated product area. The missing Blueprint PDF is explicitly recorded in §A.
 
 ### Files expected to change
 
-Authorized now: this master Markdown, later prototype spec/evidence/real screenshots, minimal development fixture/route/button/copy/logo and focused tests, with one optional guarded insertion in actual Parking Task. No production backend/client contract/schema/deploy/config/credential changes. Future decision-dependent file areas are named in §D/P; exact future path allowlists must be frozen per task after decisions. Do not treat a proposed filename as an implemented/exported symbol.
+Authorized now: this existing master Markdown, reconciliation/register, prototype spec/evidence/new captures and capture inventory/manifest, minimal existing prototype copy/local-state tests and live Issue append. The actual Parking Task component and original styles/handlers need no new edit. No production backend/client contract/schema/deploy/config/credential changes. Future decision-dependent file areas are named in §D/P; exact future path allowlists must be frozen per task after decisions. Do not treat a proposed filename as an implemented/exported symbol.
 
 ### Explicitly out of scope
 
@@ -679,7 +711,7 @@ Real sends, credential generation, production API or DB semantics, migrations, p
 
 ### Planning completion gate
 
-Check R01–R26 against the retained old Issue criteria and November 13 update; preserve old sandbox evidence; inspect every source path; run the available planning audit; inspect full Markdown diff and `git diff --check`; stage only plan files, commit and push normally, confirm remote SHA before P01. The Owner's A–U structure intentionally takes precedence over the skill's generic output ordering; its required discovery/locked/derived/unresolved/risks/test/files/scope/verdict content is retained here.
+Check R01–R27 against retained historical criteria and the November 14 Owner selections; cross-check all D01–D12 rows and the append-only Issue section; preserve old sandbox evidence; inspect every source path; run the available planning audit; inspect full Markdown diff and `git diff --check`; stage only task-owned files, commit and push normally and confirm final remote SHA/ancestry. The original plan-first P00/P01 push sequence is completed history, not a new production authorization. The Owner's A–U structure intentionally takes precedence over the skill's generic output ordering; its required discovery/locked/derived/unresolved/risks/test/files/scope/verdict content is retained here.
 
 Strongest unresolved risk: a shared central account cannot safely be obtained by simply removing binding uniqueness. Most dangerous convenience shortcut: calling manual Guest issue on every retry. Both remain explicit decision gates. This plan selects no new production route, audit catalog, role/Shift rule, retry result or schema. An absent employee status API is a capability gap, not proof that it is forbidden.
 
@@ -687,6 +719,8 @@ Planning audit v1.5 was executed. Its initial seven missing-heading warnings con
 
 The subsequent heuristic audit also matched the explicit prohibitions on Prisma-only error handling, a generic repository layer and a premature no-migration conclusion. Those are rejected shortcuts in §L/M, not selected behavior. Its retry-vocabulary warning was addressed by the explicit schedule inventory in §K. These are manually reviewed heuristic matches, not a clean automated audit PASS.
 
+November 14 audit v1.5 was rerun after Owner reconciliation: seven heuristic warnings were reviewed. Three parse the required OWNER DIRECTION SELECTED / TECHNICAL CONTRACT PENDING status words as unresolved identifiers; product selections and pending mechanisms are explicitly separated in §T. Four match the retained prohibitions on schema sync, Prisma error handling in raw SQL, a generic repository layer and a premature no-migration conclusion. None is a selected implementation mechanism. Independent pre-push review confirmed A–U, 16 phases/48 tasks, exact copy and scope; two selected-versus-pending/consent-process wording issues were corrected. This is a manual disposition, not an automated semantic PASS or acceptance of future code.
+
 ### Ready-to-implement verdict
 
-**DECISION REQUIRED** for real feature code. The already-authorized isolated visual prototype can proceed only after this plan's successful commit/push gate; it grants no production approval.
+**DECISION REQUIRED** for real feature code. The Owner-selected planning reconciliation and isolated visual refinement are authorized now; actual backend/DB/worker/provider/Native production action implementation is NOT STARTED, and D10/D11/D12 remain pending. No new Accepted DEC or production approval is created.
