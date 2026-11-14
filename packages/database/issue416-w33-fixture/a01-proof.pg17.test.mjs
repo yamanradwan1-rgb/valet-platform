@@ -183,8 +183,15 @@ test("A01 full source-derived challenge with independently computed HMAC", async
       (SELECT state FROM public.anti_abuse_events
         WHERE id=${uuidSql(limiterId)}),
       (SELECT count(*) FROM auth_proof_private.operation_receipts
-        WHERE operation_id=${uuidSql(operation)})`);
-    assert.equal(persisted, "1|1|IGNORED|1");
+        WHERE operation_id=${uuidSql(operation)}),
+      (SELECT count(*) FROM auth_proof_private.operation_receipts r
+        JOIN public.account_security_audit_events a
+          ON a.id=r.audit_event_id
+        WHERE r.operation_id=${uuidSql(operation)}
+          AND a.event_type='STAFF_LOGIN_SESSION_CREATED'
+          AND a.actor_type='USER' AND a.actor_user_id=${uuidSql(user)}
+          AND a.subject_user_id=${uuidSql(user)})`);
+    assert.equal(persisted, "1|1|IGNORED|1|1");
     const runtime = await verify.query(`SELECT
       has_schema_privilege('issue416_w33_runtime',
         'auth_proof_private','USAGE'),
@@ -233,4 +240,41 @@ test("A01 full source-derived challenge with independently computed HMAC", async
       END $w33_wrong_xid$`);
     assert.equal(wrongLease, "");
   } finally { verify.close(); }
+
+  // A SQL owner capable of appending generic audit rows still cannot spoof,
+  // replace or delete a reserved A01 event without the signed transaction.
+  const forgery = new FixtureSession();
+  try {
+    const forbidden = await forgery.query(`DO $w33_audit$ BEGIN
+      INSERT INTO public.account_security_audit_events(
+        id,event_type,subject_user_id,actor_type,actor_user_id,occurred_at
+      ) VALUES (
+        ${uuidSql(randomUUID())},'STAFF_LOGIN_SESSION_CREATED',
+        ${uuidSql(user)},'USER',${uuidSql(user)},clock_timestamp());
+      RAISE EXCEPTION 'UNEXPECTED_A01_AUDIT_FORGERY';
+    EXCEPTION WHEN SQLSTATE '42501' THEN NULL;
+    END $w33_audit$`);
+    assert.equal(forbidden,"");
+    const edit = await forgery.query(`DO $w33_edit$ BEGIN
+      DELETE FROM public.account_security_audit_events
+      WHERE event_type='STAFF_LOGIN_SESSION_CREATED'
+        AND subject_user_id=${uuidSql(user)};
+      RAISE EXCEPTION 'UNEXPECTED_A01_AUDIT_DELETE';
+    EXCEPTION WHEN SQLSTATE '42501' THEN NULL;
+    END $w33_edit$`);
+    assert.equal(edit,"");
+    await forgery.query(`UPDATE public.staff_auth_sessions
+      SET revoked_at=clock_timestamp() WHERE id=${uuidSql(sessionId)}`);
+  } finally { forgery.close(); }
+
+  const revokedObserver = new FixtureSession();
+  try {
+    await revokedObserver.query("SET ROLE vap1_proof_owner");
+    const result = await revokedObserver.query(`SELECT receipt_status
+      FROM auth_proof_private.a01_read_commit_receipt(
+        'w33-test',${uuidSql(operation)},${uuidSql(user)},
+        ${uuidSql(sessionId)},${uuidSql(refreshId)},${uuidSql(limiterId)},
+        '${access}','${refresh}')`);
+    assert.equal(result,"UNKNOWN");
+  } finally { revokedObserver.close(); }
 });
