@@ -7,14 +7,16 @@ import { promisify } from "node:util";
 
 import { resolvePrismaMigrateInvocation } from "./prisma-migrations.mjs";
 import { assertFixedMigration113OnDisk, assertFailed113Snapshot,
-  assertResolve113OnlyChangedTarget, FAILED_113 } from "./resolve-113-guard.mjs";
+  assertResolve113OnlyChangedTarget, assertOriginalW9RecoveryTarget,
+  assertOriginalW9DefaultAcls, assertOriginalW9FullHistory,
+  FAILED_113 } from "./resolve-113-guard.mjs";
 import { snapshotW9RecoveryState } from "./resolve-113-state.mjs";
 import { preflightSanitizedChild } from "./target-preflight.mjs";
 import { sanitizedChildEnvironment } from "./target-contract.mjs";
 
 const execFileAsync = promisify(execFile);
 const packageRoot = fileURLToPath(new URL("../", import.meta.url));
-const childPreflight = new URL("./child-preflight.mjs", import.meta.url).href;
+const childPreflight = new URL("./recovery-child-preflight.mjs", import.meta.url).href;
 // Shared with private Vitest global setup, which refuses existing leases.
 const leasePath = join(tmpdir(), "vaylet-issue416-w9-pg17-exclusive-lease");
 
@@ -26,7 +28,8 @@ export function assertResolve113Mode(argv) {
 
 export async function resolveOnlyFailed113(env = process.env) {
   const invocation = resolvePrismaMigrateInvocation();
-  await preflightSanitizedChild(env); // Must precede lease and any writes.
+  const initialTarget = await preflightSanitizedChild(env);
+  assertOriginalW9RecoveryTarget(initialTarget); // Before lease or any write.
   try {
     await mkdir(leasePath);
   } catch {
@@ -36,9 +39,13 @@ export async function resolveOnlyFailed113(env = process.env) {
   try {
     await assertFixedMigration113OnDisk();
     const old = await snapshotW9RecoveryState(env);
+    assertOriginalW9RecoveryTarget(old.target, initialTarget);
     assertFailed113Snapshot(old.rows, old.catalog);
+    assertOriginalW9FullHistory(old.rows);
+    assertOriginalW9DefaultAcls(old.defaultAcls);
     const clean = sanitizedChildEnvironment(env);
     clean.NODE_OPTIONS = `--import=${childPreflight}`;
+    clean.ISSUE416_W9_RECOVERY_SERVER_STARTED = initialTarget.serverStarted;
     // Exact one-record Prisma bookkeeping change only. No generic cleanup,
     // failed SQL re-run, deploy, reset, or arbitrary migration identifier.
     await execFileAsync(process.execPath, [invocation.cli, "migrate", "resolve",
@@ -51,7 +58,9 @@ export async function resolveOnlyFailed113(env = process.env) {
       maxBuffer: 128 * 1024,
     });
     const current = await snapshotW9RecoveryState(env);
+    assertOriginalW9RecoveryTarget(current.target, initialTarget);
     assertResolve113OnlyChangedTarget(old.rows, current.rows);
+    assertOriginalW9DefaultAcls(old.defaultAcls, current.defaultAcls);
     if (JSON.stringify(old.roles) !== JSON.stringify(current.roles) ||
         JSON.stringify(old.memberships) !== JSON.stringify(current.memberships)) {
       throw new Error("Issue416 recovery unexpectedly altered historical roles or memberships.");

@@ -25,6 +25,49 @@ export const W9_MIGRATIONS = Object.freeze({
 // ALTER under SET ROLE vap1_proof_owner. Normalize line endings only.
 export const W9_REPAIRED_113_SHA256 =
   "4978f3388b650211a6d588af0c67dcd46a0e31cc2bbecda2589338b44aafffba";
+// Historical Docker identity is independent of name/labels; only the original
+// W9 fixture may have its previously failed Prisma history amended.
+export const W9_ORIGINAL_RECOVERY_TARGET = Object.freeze({
+  containerId: "188f2f28df10bce811b38568f59e8482daa78f14f31f68cc1563346c7b2a758f",
+  imageId: "sha256:ab20e934b27ba3ff927c1b4c9ff8cf6c32f315f743efe68dd3441182a87fb085",
+  volume: "vaylet-issue416-w9-pg17-data",
+});
+// SHA256 of all 114 historical Prisma rows (ordered by start/name/id), from
+// separately attested original W9 read-only snapshot, including timestamps
+// and logs. A different pre-113 history is never an equivalent test target.
+export const W9_ORIGINAL_FULL_HISTORY_SHA256 =
+  "3aa0fb1e76a5936f1e31784197c75073852df59a5706e2f8471fb10f0c89662c";
+
+export function assertOriginalW9FullHistory(rows) {
+  if (!Array.isArray(rows) || rows.length !== 114 ||
+      createHash("sha256").update(JSON.stringify(rows)).digest("hex") !==
+        W9_ORIGINAL_FULL_HISTORY_SHA256) {
+    throw new Error("Issue416 recovery refuses unpinned complete Prisma history.");
+  }
+}
+
+export function assertOriginalW9RecoveryTarget(candidate, baseline) {
+  const pinned = W9_ORIGINAL_RECOVERY_TARGET;
+  if (!candidate || candidate.containerId !== pinned.containerId ||
+      candidate.imageId !== pinned.imageId || candidate.volume !== pinned.volume ||
+      typeof candidate.serverStarted !== "string" || !candidate.serverStarted) {
+    throw new Error("Issue416 recovery refuses non-original Docker identity.");
+  }
+  if (baseline && (baseline.containerId !== candidate.containerId ||
+      baseline.imageId !== candidate.imageId ||
+      baseline.volume !== candidate.volume ||
+      baseline.serverStarted !== candidate.serverStarted)) {
+    throw new Error("Issue416 original recovery target changed across snapshots.");
+  }
+}
+
+export function assertOriginalW9DefaultAcls(before, after) {
+  if (!Array.isArray(before) || before.length !== 0 ||
+      (arguments.length >= 2 && (!Array.isArray(after) ||
+        JSON.stringify(after) !== JSON.stringify(before)))) {
+    throw new Error("Issue416 recovery refuses default-ACL state or drift.");
+  }
+}
 
 export function assertPinnedSource113(source) {
   const sha = createHash("sha256").update(source.replace(/\r\n/g, "\n")).digest("hex");

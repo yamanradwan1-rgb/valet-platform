@@ -2,8 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import { assertFixedSource113, assertFailed113Snapshot,
   assertPinnedSource113, assertResolve113OnlyChangedTarget, FAILED_113,
-  SUCCEEDED_112, W9_MIGRATIONS } from "./resolve-113-guard.mjs";
+  SUCCEEDED_112, W9_MIGRATIONS, W9_ORIGINAL_RECOVERY_TARGET,
+  assertOriginalW9RecoveryTarget, assertOriginalW9DefaultAcls,
+  assertOriginalW9FullHistory,
+} from "./resolve-113-guard.mjs";
 import { assertResolve113Mode } from "./resolve-113.mjs";
+import { assertRecoveryChildTarget } from "./recovery-child-guard.mjs";
 
 const sourceFixed = `
 CREATE SCHEMA auth_proof_private AUTHORIZATION vap1_proof_owner;
@@ -35,6 +39,57 @@ function history() {
 }
 
 describe("Issue416 precise W9 recovery guard", () => {
+  it("never accepts an arbitrary three-row or extra pre-113 history", () => {
+    expect(() => assertOriginalW9FullHistory(history())).toThrow(
+      "unpinned complete Prisma history");
+    const unexpected = [...history(), {
+      ...history()[0], id: "injected", migration_name: "20261113011150_foreign",
+    }];
+    expect(() => assertOriginalW9FullHistory(unexpected)).toThrow();
+    const repeated = Array.from({ length: 114 }, (_, i) =>
+      ({ ...history()[0], id: String(i) }));
+    expect(() => assertOriginalW9FullHistory(repeated)).toThrow();
+  });
+
+  it("requires pinned start epoch and original identity at Prisma child entry", () => {
+    const original = { ...W9_ORIGINAL_RECOVERY_TARGET,
+      serverStarted: "2026-11-14T02:00:00.000Z" };
+    const env = { ISSUE416_W9_RECOVERY_SERVER_STARTED: original.serverStarted };
+    expect(() => assertRecoveryChildTarget(original, env)).not.toThrow();
+    for (const bad of [
+      { ...original, containerId: "replaced" },
+      { ...original, imageId: "sha256:replaced" },
+      { ...original, serverStarted: "2026-11-14T02:00:01.000Z" },
+    ]) expect(() => assertRecoveryChildTarget(bad, env)).toThrow();
+    expect(() => assertRecoveryChildTarget(original, {})).toThrow();
+    expect(() => assertRecoveryChildTarget(original, {
+      ISSUE416_W9_RECOVERY_SERVER_STARTED: "not-a-time",
+    })).toThrow();
+  });
+
+  it("requires the exact original Docker image/container/volume across snapshots", () => {
+    const original = { ...W9_ORIGINAL_RECOVERY_TARGET,
+      serverStarted: "2026-11-14T02:00:00.000Z" };
+    expect(() => assertOriginalW9RecoveryTarget(original)).not.toThrow();
+    expect(() => assertOriginalW9RecoveryTarget(original, original)).not.toThrow();
+    for (const name of ["containerId", "imageId", "volume", "serverStarted"]) {
+      expect(() => assertOriginalW9RecoveryTarget({
+        ...original, [name]: name === "serverStarted" ? "" : "changed",
+      })).toThrow();
+    }
+    expect(() => assertOriginalW9RecoveryTarget(original, {
+      ...original, serverStarted: "changed",
+    })).toThrow();
+  });
+
+  it("requires empty historical default ACLs before and after Prisma bookkeeping", () => {
+    expect(() => assertOriginalW9DefaultAcls([], [])).not.toThrow();
+    for (const rows of [null, undefined, [{ owner_oid: "100" }]]) {
+      expect(() => assertOriginalW9DefaultAcls(rows)).toThrow();
+      expect(() => assertOriginalW9DefaultAcls([], rows)).toThrow();
+    }
+  });
+
   it("requires exact explicit CLI mode", () => {
     expect(() => assertResolve113Mode(["--resolve-113"])).not.toThrow();
     for (const argv of [[], ["--rolled-back"], ["--resolve-114"],

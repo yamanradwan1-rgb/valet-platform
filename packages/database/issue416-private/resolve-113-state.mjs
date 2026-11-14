@@ -27,6 +27,11 @@ SELECT roleid::text, member::text, grantor::text,
        admin_option, inherit_option, set_option
 FROM pg_catalog.pg_auth_members
 ORDER BY roleid, member, grantor`;
+const DEFAULT_ACLS_SQL = `
+SELECT defaclrole::text AS owner_oid, defaclnamespace::text AS namespace_oid,
+       defaclobjtype AS object_type, defaclacl::text AS acl
+FROM pg_catalog.pg_default_acl
+ORDER BY defaclrole, defaclnamespace, defaclobjtype`;
 
 export async function snapshotW9RecoveryState(env = process.env) {
   const urls = assertTargetEnvironment(env);
@@ -55,6 +60,7 @@ export async function snapshotW9RecoveryState(env = process.env) {
     const catalog = await client.query(CATALOG_SQL);
     const roles = await client.query(ROLES_SQL);
     const memberships = await client.query(MEMBERSHIPS_SQL);
+    const defaultAcls = await client.query(DEFAULT_ACLS_SQL);
     await client.query("ROLLBACK");
     begun = false;
     const after = await preflightSanitizedChild(env);
@@ -68,6 +74,8 @@ export async function snapshotW9RecoveryState(env = process.env) {
       catalog: catalog.rows[0],
       roles: roles.rows,
       memberships: memberships.rows,
+      defaultAcls: defaultAcls.rows,
+      target: after,
     };
   } finally {
     if (begun) await client.query("ROLLBACK").catch(() => {});
