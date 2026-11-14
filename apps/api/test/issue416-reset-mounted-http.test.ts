@@ -91,8 +91,15 @@ let baseUrl: string;
 beforeAll(async () => {
   // TEST-ONLY mount, deliberately not part of AuthModule or ManagementModule.
   app = await NestFactory.create(DormantResetHttpFixture, { logger: false });
-  // Must be before Nest's JSON parser, including malformed or rejected bodies.
-  app.use(publicPath, issue416ResetRedeemPreParser(ingress));
+  // Exact method-specific Express route, before Nest's JSON parser. app.use
+  // would match /redeem/child too, wasting the 30-IP quota on wrong paths.
+  const expressApp = app.getHttpAdapter().getInstance() as {
+    post(
+      route: string,
+      middleware: ReturnType<typeof issue416ResetRedeemPreParser>,
+    ): void;
+  };
+  expressApp.post(publicPath, issue416ResetRedeemPreParser(ingress));
   await app.listen(0, "127.0.0.1");
   baseUrl = await app.getUrl();
 }, 20_000);

@@ -18,8 +18,10 @@ interface EarlyResponse {
 /**
  * Only for the exact POST public redeem path, mounted by the app before its
  * body parser. Does not register the route, install itself or enable SQL.
- * Call this through the Express path router so its case/trailing-slash rules
- * agree with Nest: never rely on raw string equality to req.originalUrl.
+ * Future integration MUST use an exact method-specific Express .post(path)
+ * before Nest's body parser. .use(path) matches child paths and would count
+ * invalid endpoints. Express .post preserves Nest's default case/trailing
+ * slash matching; never rely on raw req.originalUrl string equality.
  */
 export function issue416ResetRedeemPreParser(
   ingress: Issue416PasswordResetIngress,
