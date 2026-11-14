@@ -106,6 +106,64 @@ BEGIN
 END;
 $$;
 
+-- The Node U2 encoder sorts only class-declared non-null key field VALUES.
+-- Sorting full serialized records would put TLV length before UTF8 bytes,
+-- disagreeing with Node for different-length audience/object-kind strings.
+CREATE FUNCTION auth_proof_private.state_row_sort_key(
+  p_group integer, p_row bytea
+) RETURNS bytea[] LANGUAGE plpgsql IMMUTABLE STRICT
+SET search_path = pg_catalog AS $$
+DECLARE
+  v_indices integer[];
+  v_keys bytea[] := ARRAY[]::bytea[];
+  v_offset integer := 4;
+  v_count integer;
+  v_index integer;
+  v_wire integer;
+  v_length integer;
+BEGIN
+  PERFORM auth_proof_private.assert_state_row(p_group,p_row);
+  v_indices := CASE p_group
+    WHEN 5 THEN ARRAY[1,2,3]
+    WHEN 6 THEN ARRAY[1]
+    WHEN 7 THEN ARRAY[1]
+    WHEN 8 THEN ARRAY[1]
+    WHEN 9 THEN ARRAY[1,2,3]
+    WHEN 10 THEN ARRAY[1,2]
+    WHEN 11 THEN ARRAY[1,2,3]
+    WHEN 12 THEN ARRAY[1,2]
+    WHEN 13 THEN ARRAY[1,2,3]
+    WHEN 14 THEN ARRAY[1,2]
+    WHEN 15 THEN ARRAY[1,2,3,4]
+    WHEN 16 THEN ARRAY[1,2,4]
+    WHEN 17 THEN ARRAY[1,2,3]
+    WHEN 18 THEN ARRAY[1,2]
+    WHEN 19 THEN ARRAY[1]
+    WHEN 20 THEN ARRAY[1]
+    ELSE NULL END;
+  IF v_indices IS NULL THEN
+    RAISE EXCEPTION 'VAP1_STATE_NONCANONICAL' USING ERRCODE = '22023';
+  END IF;
+  v_count := auth_proof_private.read_u16(p_row,2);
+  FOR v_index IN 1..v_count LOOP
+    v_wire := pg_catalog.get_byte(p_row,v_offset + 2);
+    v_length := auth_proof_private.read_u32(p_row,v_offset + 3)::integer;
+    IF v_index = ANY(v_indices) THEN
+      IF v_wire = 0 THEN
+        RAISE EXCEPTION 'VAP1_STATE_NONCANONICAL' USING ERRCODE = '22023';
+      END IF;
+      v_keys := pg_catalog.array_append(
+        v_keys, pg_catalog.substring(p_row,v_offset + 8,v_length));
+    END IF;
+    v_offset := v_offset + 7 + v_length;
+  END LOOP;
+  IF pg_catalog.cardinality(v_keys) <> pg_catalog.cardinality(v_indices) THEN
+    RAISE EXCEPTION 'VAP1_STATE_NONCANONICAL' USING ERRCODE = '22023';
+  END IF;
+  RETURN v_keys;
+END;
+$$;
+
 CREATE FUNCTION auth_proof_private.assert_state_group(
   p_group integer, p_group_bytes bytea
 ) RETURNS void LANGUAGE plpgsql IMMUTABLE STRICT
@@ -118,7 +176,8 @@ DECLARE
   v_size bigint;
   v_index bigint;
   v_row bytea;
-  v_prev bytea;
+  v_prev_key bytea[];
+  v_key bytea[];
 BEGIN
   IF p_group NOT BETWEEN 5 AND 20
     OR pg_catalog.octet_length(p_group_bytes) < 25
@@ -145,13 +204,13 @@ BEGIN
     END IF;
     v_row := pg_catalog.substring(p_group_bytes,
       v_offset + 6, v_size::integer);
-    PERFORM auth_proof_private.assert_state_row(p_group,v_row);
-    -- Exact serialized row order is a necessary condition; future writers
-    -- must also check complete SQL-derived keys and row-set membership.
-    IF v_prev IS NOT NULL AND v_row <= v_prev THEN
+    v_key := auth_proof_private.state_row_sort_key(p_group,v_row);
+    -- Compare key VALUES only, in the frozen class-defined order. The
+    -- complete SQL-derived row set still needs to be proven by its writer.
+    IF v_prev_key IS NOT NULL AND v_key <= v_prev_key THEN
       RAISE EXCEPTION 'VAP1_STATE_NONCANONICAL' USING ERRCODE = '22023';
     END IF;
-    v_prev := v_row;
+    v_prev_key := v_key;
     v_offset := v_offset + 5 + v_size::integer;
   END LOOP;
   IF v_offset <> pg_catalog.octet_length(p_group_bytes) THEN
@@ -205,6 +264,7 @@ REVOKE ALL ON FUNCTION auth_proof_private.state_row_wire_types(integer) FROM PUB
 REVOKE ALL ON FUNCTION auth_proof_private.read_u16(bytea,integer) FROM PUBLIC;
 REVOKE ALL ON FUNCTION auth_proof_private.read_u32(bytea,integer) FROM PUBLIC;
 REVOKE ALL ON FUNCTION auth_proof_private.assert_state_row(integer,bytea) FROM PUBLIC;
+REVOKE ALL ON FUNCTION auth_proof_private.state_row_sort_key(integer,bytea) FROM PUBLIC;
 REVOKE ALL ON FUNCTION auth_proof_private.assert_state_group(integer,bytea) FROM PUBLIC;
 REVOKE ALL ON FUNCTION auth_proof_private.empty_state_group(integer) FROM PUBLIC;
 REVOKE ALL ON FUNCTION auth_proof_private.state_frame_v1(uuid,text,bigint,bytea[]) FROM PUBLIC;

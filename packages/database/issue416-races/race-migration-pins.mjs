@@ -3,7 +3,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath, URL } from "node:url";
 
-// Reviewed raw SQL bytes at source baseline e130441a. Prisma stores SHA-256
+// Exact raw SQL bytes for the current proposed Issue416 source set. Prisma stores SHA-256
 // migration.sql checksums; a syntactically valid arbitrary 64-hex checksum is
 // NOT evidence that the installed migration matches this source.
 export const PINNED_MIGRATION_SHA256 = Object.freeze({
@@ -12,9 +12,9 @@ export const PINNED_MIGRATION_SHA256 = Object.freeze({
   "20261113011300_issue416_vap1_private_foundation":
     "55faf42491358f9273aff6b99b5c6a13d921c64a7ecc61f030c4703fdb5f8090",
   "20261113011400_issue416_vap1_private_codec":
-    "ee1e77d1d7fc06908fee13c69e85aaa95cb15080f7226bc1d384e11b556b2b45",
+    "0cc8949c0fbf5a6d116a7a1a207a17c909e067716966286424b7f44b9c9f3e9d",
   "20261113011500_issue416_vap1_private_lifecycle":
-    "59ed4cd3e758bea2f6f27b7c3e20c7eca300c8e13b46dda6f4a74abd8e0e75f2",
+    "fcdd5a4efc89bf590cc1a5d4c489ddd266bef9de31dc8923c433c294a4fe5b1b",
   "20261113011600_issue416_vap1_audit_gate":
     "793e6ef0a2be4e853e945d6f464f728700e10173af215f11ee8be7ba603c0845",
   "20261113011700_issue416_vap1_key_boundary_guard":
@@ -45,6 +45,8 @@ export const PINNED_MIGRATION_SHA256 = Object.freeze({
     "225918035f87abebcef1b144f9a7ef61b97f021511d266b559df181af2e9df2e",
   "20261113013500_issue416_r03_public_legacy_scope_deny":
     "7ff71645e45667584f625d6846fe8e6978fadd9888b7d31d196a1be35ab5d7f8",
+  "20261113013600_issue416_vap1_state_codec":
+    "98d2d34d5e33d2dea983aaa7fb61651ea22288dc18133d421e6b10f9baefc802",
 });
 
 export const REQUIRED_MIGRATIONS = Object.freeze(

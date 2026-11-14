@@ -63,9 +63,10 @@ describe("append-only migration source history", () => {
       "20261113013200_issue416_redeem_exact_identity_evidence",
       "20261113013300_issue416_r03_private_attempt_ledger",
       "20261113013400_issue416_r03_private_attempt_guards",
-  "20261113013500_issue416_r03_public_legacy_scope_deny",
+      "20261113013500_issue416_r03_public_legacy_scope_deny",
+      "20261113013600_issue416_vap1_state_codec",
     ]);
-    expect(expectedCurrentMigrationDirectories).toHaveLength(130);
+    expect(expectedCurrentMigrationDirectories).toHaveLength(131);
     const migrationRoot = fileURLToPath(
       new URL("../prisma/migrations/", import.meta.url),
     );

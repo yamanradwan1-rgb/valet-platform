@@ -57,6 +57,7 @@ export const issue416AppendedMigrationDirectories = [
   "20261113013300_issue416_r03_private_attempt_ledger",
   "20261113013400_issue416_r03_private_attempt_guards",
   "20261113013500_issue416_r03_public_legacy_scope_deny",
+  "20261113013600_issue416_vap1_state_codec",
 ] as const;
 
 export const expectedCurrentMigrationDirectories = [
