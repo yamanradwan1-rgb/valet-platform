@@ -1,0 +1,18 @@
+{
+  "issueUrl": "https://github.com/yamanradwan1-rgb/valet-platform/issues/310",
+  "issueNumber": 310,
+  "title": "[WhatsApp][Meta Cloud API] Sandbox send/receipt PASS — Merge deferred (Production OFF)",
+  "state": "open",
+  "updatedAt": "2026-11-14T03:25:38Z",
+  "section": "Owner Decision Update — 2026-11-14",
+  "sectionOccurrences": 1,
+  "originalBodyCharacters": 18562,
+  "updatedBodyCharacters": 26689,
+  "originalPrefixPreserved": true,
+  "exactAppendReadbackVerified": true,
+  "titleUnchanged": true,
+  "branchAssociationPreserved": true,
+  "sectionFile": "ISSUE_310_OWNER_DECISION_UPDATE_2026-11-14.md",
+  "scope": "planning and prototype only; no closure/PR/merge/deployment/production activation",
+  "normalizedAppendedSectionSha256": "a494bde3c8097a71ea26df2fe0dcb4ca3f9d457788382094cc544bcc0dcf1cd3"
+}

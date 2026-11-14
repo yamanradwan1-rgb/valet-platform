@@ -1,5 +1,7 @@
 # Issue #310 — Native capture inventory
 
+**November 14 Owner refinement:** visible Demo/تجريبي copy below is historical. [Current source/capture-attempt inventory](owner-2026-11-14/README.md): **PARTIAL, zero new PNGs accepted**. Default/Sending/remaining-state EN/AR/theme/size/label-fit/pixel checks for the new copy remain pending. Do not treat the older captures or comparisons as fresh proof.
+
 Real Android emulator captures; synthetic fixture data only. See [validation evidence](../PROTOTYPE_VALIDATION_EVIDENCE.md) for runtime identity, comparison exclusions and limits.
 
 | Capture | Metadata | Purpose |

@@ -2,7 +2,9 @@
 
 Work date: 2026-11-13–14 (Asia/Amman). **Design approval: PENDING OWNER.**
 
-## Identity and delivery
+**Current update — Owner reconciliation, 2026-11-14:** see the appended current-task section below. The original commands, labels, screenshots and review records retained in this document are **historical delivery evidence for `0a1d40c0` and earlier**, not current-copy verification. Visible Demo/تجريبي requirements in the historical narrative are superseded by the Owner's November 14 refinement. Historical PNG/JSON files are not overwritten.
+
+## Historical identity and delivery — prior prototype
 
 - Repository: `yamanradwan1-rgb/valet-platform`.
 - Required branch: `feat/issue-310-sandbox-last-mile-authorization`.
@@ -135,3 +137,72 @@ Self-review: the real source diff adds seven lines to the actual Parking Task co
 Static imports and release-mode/component tests prove the new prototype has no provider/API/credential/business-runtime dependency or reachable production action. This is bounded source/test evidence, not a claim of a new production security audit. No production flags were enabled, no dependency/lockfile/schema/migration changed, and no messaging/custody/Task state was mutated.
 
 Owner design approval and the master plan's central sender, trigger/repeat-send, consent/contact, credential-envelope, authority, contract/status and operational decisions remain pending. Real feature implementation, live Meta/webhook/Guest entry, production release and full remote CI are separate future gates. Independent read-only VAYLET review follows the prototype push; no merge approval is implied.
+
+## Current task — Owner decisions reconciliation and copy refinement, 2026-11-14
+
+Initial clean local/remote HEAD: `0a1d40c0518c34ad15e089b3f0dc9afac64a95ef`, verified with `git ls-remote` before edits in the same owned feature worktree. The preceding sections are historical delivery evidence. Current authoritative intent is [the reconciliation](OWNER_DECISIONS_RECONCILIATION_2026-11-14.md), master-plan §T and the new dated Issue section.
+
+### Current scope and source
+
+The only implementation source changed is `native-whatsapp-prototype-state.ts`: exact Owner EN/AR labels replace visible Demo prefixes, Requesting becomes Sending… / جاري الإرسال…, and the non-visible simulated-Delivered hint explicitly disclaims provider evidence. The existing button/screen/route/guarded Parking Task slot, all geometry/colors/fonts/logo/handlers, theme restoration and immediate loading/timer logic are unchanged. No extra panels, status card or consent UI. Internal Demo type names and original synthetic Demo Hotel/DEMO-310 fixture remain; the Owner requested removing visible prefixes from the button, not restyling the frozen header.
+
+The button and lifecycle tests now check all exact labels, absent visible prefixes/leading separators, busy/disabled/spinner, local same-control Sending→Queued, double-call single timer, cancelled stale work, unmount cleanup and original theme restoration. Original release/route/Guest/Open Parking/tree/style guards remain in force; no existing security/architecture assertion or baseline is weakened. No backend/packages/schema/Prisma/migration/worker/provider/config/credential/dependency/production wiring changes.
+
+The complete master plan remains A–U, **16 phases / 48 bounded tasks**, now with R01–R27 and D01–D12 reconciliation. D01–D09 product directions are selected; technical contracts/external suitability remain pending. D10–D12 are unapproved. The current Owner instruction explicitly authorizes a dated append to Issue #310 while forbidding closure/PR/merge/deployment/activation.
+
+### Current executed checks
+
+| Command / check | Observed result |
+|---|---|
+| Git status/branch/worktree ownership, local HEAD and `git ls-remote` | PASS, clean owned existing branch at 0a1d40c0 before editing |
+| `D:/Git/bin/bash.exe D:/kndoom/valet-platform/.agents/skills/vaylet-implementation-guardian/scripts/preflight.sh` | PASS, read-only checks |
+| New copy/lifecycle tests before source change | Expected RED: 5 failures identified old visible prefixes/copy and missing simulated-delivery hint |
+| `pnpm exec vitest run test/issue-310-whatsapp-button.test.tsx test/issue-310-whatsapp-lifecycle.test.tsx test/issue-310-whatsapp-parity.test.tsx test/issue-310-whatsapp-route.test.tsx --maxWorkers=2 --no-file-parallelism --testTimeout=15000` in Native directory | PASS, **4 files / 18 tests**; independently repeated PASS by reviewer |
+| `pnpm --filter @valet/valet-native typecheck` | PASS |
+| `pnpm --filter @valet/valet-native lint` | PASS, zero warnings |
+| `pnpm architecture:check` | PASS, existing grandfathered warnings only |
+| Scoped `pnpm exec prettier --write` then `--check` for changed source/tests and plan/spec/reconciliation | PASS where executed; final inventory check recorded at delivery |
+| Planning guardian `audit_plan.py` on current plan | Executed; seven heuristic warnings manually dispositioned in master-plan review, not a clean semantic audit PASS |
+| Independent pre-push VAYLET review | No BLOCKER/MAJOR; two MINOR selected-vs-pending/consent-process wording issues corrected |
+
+Current raw local logs remain in ignored `tmp/issue310-prototype-runtime/`; they are not remote CI. Full Native rerun, line/source/manifest/link checks and final delivery identities are recorded below when observed. Root backend/PG17/security/deploy/release-build/remote quality CI/live Meta/webhook/physical-device tests are SKIP: they are future integration/release gates, not scope performed here.
+
+### Current visual result — PARTIAL
+
+[Attempt inventory and exact pending matrix](qa-artifacts/owner-2026-11-14/README.md). **No new PNG was accepted and no new pixel comparison ran.** Task-owned Android API37.1 emulator/compatible prior dev APK and current-source Metro were attempted; 1536MiB run reached an app ANR, 1024MiB retry did not reach a usable booted fixture. Host free physical memory was approximately 0.25–0.43GiB of 16GiB. This does not establish a code or production-device defect. The first capture helper refused an invalid hierarchy rather than labeling a launcher/ANR as product evidence.
+
+New default and Sending screenshots, remaining states, EN/AR × Light/Dark, standard/small, native typography/fit/scroll and matched pixel checks are all pending. Prior 27 PNGs/eight comparisons remain unchanged historical evidence, not proof of new text. Static source and rendered-tree/style tests confirm unchanged original code/styles/handlers; those checks do not establish fresh Native pixels, physical accessibility or Owner design approval. [source-files.json](qa-artifacts/owner-2026-11-14/source-files.json) hashes the exact current Native app/src source with LF normalization; it is source identity only.
+
+The prior reusable development APK SHA remains `B4470D34EB6230C458B36695569E66ABDD36DD6FE881BAC38B60DE5A402DA974`; no fresh candidate release APK was built. Both task emulator attempts, task Metro and loopback bridge were stopped before the complete test run. No unrelated user process/device was modified. No credentials, real business data, Meta call or WhatsApp message participated.
+
+### Current Issue and final delivery
+
+The exact dated append is [ISSUE_310_OWNER_DECISION_UPDATE_2026-11-14.md](ISSUE_310_OWNER_DECISION_UPDATE_2026-11-14.md). Update the fresh live body by preserving its full original prefix, append this section once, keep OPEN/title/branch/history and read it back. A successful update/read-back must be recorded; a prepared patch alone is not an UPDATED claim. No future implementation approval follows this documentation task.
+
+**Observed update/read-back:** Issue #310 successfully updated and fetched back at `2026-11-14T03:25:38Z`. Its exact original 18,562-character body prefix is preserved; the dated section occurs once, the body exactly matches the expected append, and OPEN/title/unmerged branch association are unchanged. [Read-back metadata](ISSUE_UPDATE_READBACK_2026-11-14.json) records the normalized section SHA-256. Only the dated append was written; no labels/assignees/milestone/title/state change or Issue closure.
+
+| Final current-source check | Observed result |
+|---|---|
+| `pnpm exec vitest run test --maxWorkers=1 --no-file-parallelism --testTimeout=15000` in Native directory | **PASS, 243 files / 1,710 tests**, 328.59s, exit 0; log `tmp/issue310-prototype-runtime/owner-final-native-vitest.log` |
+| Full Native typecheck/lint and architecture | PASS; lint zero warnings, architecture preexisting grandfathered warnings only |
+| Exact current source/test line counts | PASS: state 93, button test 157, lifecycle test 190, all <=300 |
+| A–U / roadmap / traceability / register accounting | PASS: 21 lettered sections, 16 phases, 48 task IDs, 27 requirements, 12 decision rows |
+| Source hash inventory | PASS: all 326 recorded Native app/src files match current source (LF-normalized SHA-256) |
+| Exact changed-path guard | PASS: only the one allowed prototype implementation module + two tests under apps; no backend/packages/deploy/production UI/accepted DEC changes |
+| Scoped formatting + `git diff --check` | PASS |
+| Local Markdown links + file manifest | PASS: 94 links; all 13 task-changed files exactly inventoried |
+| Live Issue append/read-back | PASS, original body preserved and OPEN; exact dated section matches tracked Markdown |
+| New Native screenshot/pixel/physical/TalkBack/large-font checks | NOT VERIFIED; explicit current visual matrix PARTIAL, not historical PASS |
+
+All executed current checks used the unchanged candidate source represented by the inventory; subsequent identity/review updates are documentation only. Final source/plan/evidence commit identities and normal remote parity are recorded below after commits exist. No root backend test/build, PostgreSQL migration, security scan, release APK, production/runtime activation or real Meta test is implied by these local results.
+
+### Immutable current delivery identities and review
+
+- Initial task HEAD: `0a1d40c0518c34ad15e089b3f0dc9afac64a95ef`.
+- Owner reconciliation / complete plan commit: `674cf048fad1bee02b5fbb5c47aa64dc7e1aabb0`.
+- Refined prototype / exact tested Native source commit: `f5ff6458a8233633e0a3a9b4bd0546c5ff795245`. Its app/src contents match all 326 source inventory entries, and it contains the exact source/tests used in the 1,710-test run. No source change follows.
+- Supporting evidence/Issue/manifest commit is the subsequent documentation-only delivery commit; its final remote SHA is reported after normal push, avoiding an impossible self-referential commit hash in this file.
+
+The independent final pre-commit VAYLET review found **no remaining actionable findings** after the two MINOR wording corrections. It independently verified A–U/16/48, current exact labels, all 13 changed paths, all 326 source hashes, unchanged historical images/comparisons and zero new PNGs, current Issue OPEN/title/branch/exact dated append and digest, and inspected the full 243-file/1,710-test log. It previously independently ran all 18 focused tests. Reviewer merge verdict remains **BLOCK MERGE** because D10/D11/D12 and technical/integration/security/CI/production authorization are pending/outside this task. This is not an unresolved defect in the bounded code/documentation delivery, and the disclosed visual matrix remains **PARTIAL**.
+
+Normal fast-forward push, final remote ancestry/clean worktree and independent post-push confirmation are final delivery checks, recorded in the final report once observed. No force-push, reset, main integration, PR, merge/rebase, deployment, production API/DB/worker/provider action, actual WhatsApp send, production flag/credential change or Issue closure is performed.
