@@ -1,5 +1,7 @@
 // Isolated L1 planning contract; authoritative SQL identity is W2-owned.
 // Never accept a caller-supplied surrogate, hash, or text collation as a key.
+import { Buffer } from "node:buffer";
+
 export const ADMISSION_RANK = Object.freeze({
   USER: 9, ORGANIZATION: 10, ENTITLEMENT: 10,
   MEMBERSHIP: 11, LOCATION: 11, GRANT: 11,

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { generateKeyPairSync, sign } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
 import test from "node:test";
+import { URL } from "node:url";
 import {
   ADMISSION_RANK, admissionKey, admissionKeyId, compareAdmissionKeys,
 } from "../typed-admission-key.mjs";

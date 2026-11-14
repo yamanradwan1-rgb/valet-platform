@@ -1,3 +1,4 @@
+import { Buffer } from "node:buffer";
 import { createHash, createPublicKey, verify } from "node:crypto";
 import { admissionKeyId } from "./typed-admission-key.mjs";
 

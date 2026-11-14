@@ -1,3 +1,4 @@
+import process from "node:process";
 import { describeSafeL2Rehearsal, evaluateL2Evidence } from "./cutover-plan.mjs";
 
 // Deliberately never parses database URLs or opens sockets. This executable
