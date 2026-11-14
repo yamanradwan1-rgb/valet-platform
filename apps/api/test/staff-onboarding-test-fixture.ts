@@ -97,6 +97,28 @@ export class StaffOnboardingTestFixture extends ManagementControlPlaneTestFixtur
     );
     return client;
   }
+  async emailBarrier(email: string) {
+    const client = new Client({
+      connectionString: this.migrationDatabaseUrl(),
+    });
+    await client.connect();
+    await client.query("BEGIN");
+    await client.query(
+      "SELECT pg_advisory_xact_lock(hashtextextended('staff-onboarding-email:' || $1::text,0))",
+      [email.toLowerCase()],
+    );
+    return client;
+  }
+  async memberEmailBarrier(member: string) {
+    const result = await this.query<{ email: string }>(
+      `SELECT account.email FROM organization_memberships AS membership
+       JOIN users AS account ON account.id=membership.user_id WHERE membership.id=$1`,
+      [member],
+    );
+    if (result.rowCount !== 1 || result.rows[0] === undefined)
+      throw new Error("Missing activation fixture account.");
+    return this.emailBarrier(result.rows[0].email);
+  }
   async waitBlocked(count: number) {
     const deadline = Date.now() + 10_000;
     while (Date.now() < deadline) {

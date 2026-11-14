@@ -26,7 +26,9 @@ describe("T05-D PostgreSQL activation serialization", () => {
       const actor = await fixture.actor();
       const invite = issued(await fixture.create(actor));
       const token = invitationToken(invite.activationLink);
-      const lock = await fixture.barrier(actor.organizationId);
+      // Stage both commands at their shared account lock. An organization
+      // barrier can block resend preflight while activation overtakes it.
+      const lock = await fixture.memberEmailBarrier(invite.membershipId);
       const one =
         first === "activation"
           ? fixture.activate(token)
@@ -98,7 +100,7 @@ describe("T05-D PostgreSQL activation serialization", () => {
           fixture.command(b.locationId, { email: command.email }),
         ),
       );
-      const lock = await fixture.barrier(a.organizationId);
+      const lock = await fixture.memberEmailBarrier(oneInvite.membershipId);
       const one = fixture.activate(invitationToken(oneInvite.activationLink));
       await fixture.waitBlocked(1);
       const secondPassword = samePassword
