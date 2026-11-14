@@ -6,7 +6,7 @@ const context = new Issue416AuditTestContext();
 beforeAll(() => context.setup(), 120_000);
 afterAll(() => context.cleanup(), 60_000);
 
-it("records effective provisioned runtime privileges without changing session state", async () => {
+it("enforces private proof isolation while inspecting legacy-compatible runtime privileges", async () => {
   const identity = await context.runtime.query(
     `SELECT current_user AS role, r.rolsuper, r.rolcreaterole, r.rolcreatedb,
             r.rolreplication, r.rolbypassrls
@@ -56,17 +56,61 @@ it("records effective provisioned runtime privileges without changing session st
     `SELECT has_column_privilege(current_user,'public.users','password_hash','UPDATE') AS allowed`,
   );
   expect(password.rows[0]?.allowed).toBe(false);
-  // Catalog facts are evidence of capabilities. They establish no completed
-  // impersonation and do not validate the unimplemented reset issuer proof.
-  console.info(
-    "ISSUE416_RUNTIME_INVENTORY",
-    JSON.stringify({
-      role: context.runtimeRole,
-      inherited: inherited.rows,
-      sessionColumns: columns.rows,
-      functions: functions.rows,
-      guards: guards.rows,
-      directPasswordUpdate: password.rows[0]?.allowed,
-    }),
+  const boundary = await context.admin.query(
+    "SELECT phase FROM auth_proof_private.security_boundary WHERE singleton",
   );
+  // This fixture has NOT promoted the 35 legacy writer families: verify
+  // private proof isolation, not falsely claim PROTECTED operational readiness.
+  expect(boundary.rows).toEqual([{ phase: "LEGACY_COMPAT" }]);
+  const isolation = await context.admin.query(
+    `SELECT NOT has_schema_privilege($1,'auth_proof_private','USAGE')
+            AS private_schema_denied,
+            NOT has_schema_privilege($1,'auth_proof_private','CREATE')
+            AS private_schema_create_denied,
+            NOT has_table_privilege($1,'auth_proof_private.proof_keys','SELECT')
+            AS proof_keys_denied,
+            NOT has_table_privilege($1,'auth_proof_private.proof_challenges','INSERT')
+            AS challenge_writes_denied,
+            NOT has_table_privilege($1,'auth_proof_private.operation_receipts','SELECT')
+            AS receipt_reads_denied,
+            NOT EXISTS (
+              SELECT 1 FROM pg_proc p
+              JOIN pg_namespace n ON n.oid=p.pronamespace
+              WHERE n.nspname='auth_proof_private'
+                AND has_function_privilege($1,p.oid,'EXECUTE')
+            ) AS private_calls_denied`,
+    [context.runtimeRole],
+  );
+  expect(isolation.rows).toEqual([
+    {
+      private_schema_denied: true,
+      private_schema_create_denied: true,
+      proof_keys_denied: true,
+      challenge_writes_denied: true,
+      receipt_reads_denied: true,
+      private_calls_denied: true,
+    },
+  ]);
+  // Check the full catalog shape without logging sensitive role, session or
+  // function metadata to CI output. Public LEGACY_COMPAT grants remain known
+  // open work and are not incorrectly asserted to be PROTECTED here.
+  expect(functions.rowCount).toBeGreaterThan(0);
+  for (const column of columns.rows) {
+    expect(typeof column.column).toBe("string");
+    expect(typeof column.select).toBe("boolean");
+    expect(typeof column.insert).toBe("boolean");
+    expect(typeof column.update).toBe("boolean");
+  }
+  for (const fn of functions.rows) {
+    expect(typeof fn.signature).toBe("string");
+    expect(typeof fn.execute).toBe("boolean");
+  }
+  expect(guards.rows).toHaveLength(2);
+  for (const guard of guards.rows) {
+    expect(typeof guard.relname).toBe("string");
+    expect(typeof guard.relrowsecurity).toBe("boolean");
+    expect(typeof guard.relforcerowsecurity).toBe("boolean");
+    expect(Number(guard.user_triggers)).toBeGreaterThanOrEqual(0);
+    expect(Number(guard.constraints)).toBeGreaterThanOrEqual(0);
+  }
 });
