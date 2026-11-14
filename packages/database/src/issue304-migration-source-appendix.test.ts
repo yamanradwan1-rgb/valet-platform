@@ -61,8 +61,10 @@ describe("append-only migration source history", () => {
       "20261113013000_issue416_reset_commit_integrity",
       "20261113013100_issue416_reset_quota_receipt_finalization",
       "20261113013200_issue416_redeem_exact_identity_evidence",
+      "20261113013300_issue416_r03_private_attempt_ledger",
+      "20261113013400_issue416_r03_private_attempt_guards",
     ]);
-    expect(expectedCurrentMigrationDirectories).toHaveLength(127);
+    expect(expectedCurrentMigrationDirectories).toHaveLength(129);
     const migrationRoot = fileURLToPath(
       new URL("../prisma/migrations/", import.meta.url),
     );
