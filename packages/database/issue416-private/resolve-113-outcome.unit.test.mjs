@@ -188,7 +188,7 @@ test("production wrapper retains exact official Prisma command, one-shot dispatc
   );
   assert.match(
     src,
-    /execFileAsync\(process\.execPath, \[invocation\.cli,[\s\S]*?"migrate", "resolve", "--rolled-back", FAILED_113\]/,
+    /execFileAsync\s*\(\s*process\.execPath,\s*\[\s*invocation\.cli,\s*"migrate",\s*"resolve",\s*"--rolled-back",\s*FAILED_113\s*\]/,
   );
   assert.match(src, /timeout: 90_000/);
   assert.match(src, /const handle = await open\(path, "wx", 0o600\)/);
