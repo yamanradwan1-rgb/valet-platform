@@ -37,6 +37,20 @@ private admission ACL and owner default-ACL queries. Its validators only check
 source-shaped observations; they cannot independently attest the connection or
 authorize a runtime lease.
 
+The evidence checker accepts only a **flat, explicitly typed closed schema**:
+fixed status/event/phase/outcome/SQLSTATE enums, bounded counts and booleans.
+No arbitrary event strings (including uppercase passwords), UUID-looking or
+bearer-looking text, unknown keys, nested objects or accessor properties can be
+serialized through that checker. The migration ledger validator also checks
+the **exact SHA-256 of the reviewed 14 migration SQL files** against pinned
+source checksums and requires matching ledger hashes; this is a local source
+integrity condition, not evidence of a real committed database migration.
+Read-only ACL text now includes per-column INSERT/UPDATE, runtime TRUNCATE,
+PUBLIC table/column grants, global and schema default EXECUTE privileges, and
+private function overload EXECUTE (runtime/PUBLIC/owner membership). No source
+query establishes completeness of deployed role inheritance or old definer
+grants; an independent, authorized SQL-only negative audit is still mandatory.
+
 After the original denial is resolved through *new authorization* and independent
 review, the executor requires a genuinely owned per-connection lease; an attested
 disposable PG17 with all reviewed migrations committed; real purpose-specific

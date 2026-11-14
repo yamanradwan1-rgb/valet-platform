@@ -62,32 +62,78 @@ export function assertFailureClassification({
 export function assertNoSecretEvidence(snapshot) {
   const forbidden =
     /password|raw.?token|bearer|hmac|secret|seed|totp|recovery.?code|access.?token|private.?key/i;
-  const keys = (value) => {
-    if (!value || typeof value !== "object") return [];
-    return Object.entries(value).flatMap(([key, child]) => [
-      key,
-      ...keys(child),
-    ]);
+  // This is an intentionally *flat*, closed evidence schema. A generic string,
+  // nested object, unknown key, array or accessor can carry a raw credential.
+  // Even a value looking like an all-uppercase enum is NOT evidence-safe.
+  const enumFields = {
+    status: ["BLOCKED", "BLOCKED_PG17_NOT_RUN"],
+    event: [
+      "COMMIT_OBSERVED",
+      "ROLLBACK_OBSERVED",
+      "PRECOMMIT_DISCONNECT",
+      "COMMIT_ACK_LOST",
+      "LOCK_TIMEOUT",
+    ],
+    phase: COMMIT_PHASES,
+    direction: ["A-first", "B-first"],
+    outcome: ["C", "R", "D", "U", "T", "PG17_NOT_RUN"],
+    sqlstate: ["40P01", "40001", "55P03", "57014", "25P02", "08006", "57P01"],
   };
-  if (keys(snapshot).some((key) => forbidden.test(key))) {
+  const integerFields = {
+    count: 210,
+    caseId: 21,
+    auditCount: 210,
+    receiptCount: 210,
+  };
+  const booleanFields = new Set([
+    "serverCommitObserved",
+    "rollbackObserved",
+    "preCommitDisconnectObserved",
+    "namedFenceVerified",
+  ]);
+  if (
+    !snapshot ||
+    typeof snapshot !== "object" ||
+    Array.isArray(snapshot) ||
+    ![Object.prototype, null].includes(Object.getPrototypeOf(snapshot))
+  ) {
+    throw new Error("ISSUE416_RACE_EVIDENCE_SCHEMA_INVALID");
+  }
+  const keys = Reflect.ownKeys(snapshot);
+  if (keys.some((key) => typeof key !== "string")) {
+    throw new Error("ISSUE416_RACE_EVIDENCE_SCHEMA_INVALID");
+  }
+  if (keys.some((key) => forbidden.test(key))) {
     throw new Error("ISSUE416_RACE_SECRET_EVIDENCE_FORBIDDEN");
   }
-  // No free-form string payloads are accepted into persisted evidence. Codes,
-  // UUIDs and counts are held in a separate narrow, typed runtime witness.
-  const values = (value) => {
-    if (typeof value === "string") return [value];
-    if (!value || typeof value !== "object") return [];
-    return Object.values(value).flatMap(values);
-  };
-  if (
-    values(snapshot).some(
-      (value) =>
-        !/^(?:[0-9a-f]{8}-[0-9a-f-]{27,}|[A-Z][A-Z0-9_]{0,63}|\d{1,12})$/.test(
-          value,
-        ),
-    )
-  ) {
-    throw new Error("ISSUE416_RACE_UNREDACTED_STRING_EVIDENCE_FORBIDDEN");
+  if (keys.length === 0) {
+    throw new Error("ISSUE416_RACE_EVIDENCE_SCHEMA_INVALID");
+  }
+  for (const key of keys) {
+    const descriptor = Object.getOwnPropertyDescriptor(snapshot, key);
+    if (!descriptor || !("value" in descriptor)) {
+      throw new Error("ISSUE416_RACE_EVIDENCE_SCHEMA_INVALID");
+    }
+    const value = descriptor.value;
+    if (Object.hasOwn(enumFields, key)) {
+      if (!enumFields[key].includes(value)) {
+        throw new Error("ISSUE416_RACE_UNREDACTED_STRING_EVIDENCE_FORBIDDEN");
+      }
+    } else if (Object.hasOwn(integerFields, key)) {
+      if (
+        !Number.isSafeInteger(value) ||
+        value < (key === "caseId" ? 1 : 0) ||
+        value > integerFields[key]
+      ) {
+        throw new Error("ISSUE416_RACE_EVIDENCE_NUMBER_INVALID");
+      }
+    } else if (booleanFields.has(key)) {
+      if (typeof value !== "boolean") {
+        throw new Error("ISSUE416_RACE_EVIDENCE_BOOLEAN_INVALID");
+      }
+    } else {
+      throw new Error("ISSUE416_RACE_EVIDENCE_UNKNOWN_FIELD");
+    }
   }
   return true;
 }
