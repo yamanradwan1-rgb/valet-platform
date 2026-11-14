@@ -14,9 +14,11 @@ export const staffPublicResetScript = String.raw`
   const match = /^#reset=(vspr1\.[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048])$/.exec(fragment);
   let resetToken = scrubbed && !hadQuery && match ? match[1] : null;
   fragment = '';
+  let fragmentRevision = 0;
   window.addEventListener('hashchange', function () {
     // A same-document navigation can add a new fragment without reloading this
     // script. Invalidate the earlier token and never import another credential.
+    fragmentRevision++;
     resetToken = null;
     try { window.history.replaceState(null, '', window.location.pathname); }
     catch (_) { /* Keep redemption disabled even if navigation cannot be scrubbed. */ }
@@ -24,10 +26,16 @@ export const staffPublicResetScript = String.raw`
     const missing = document.getElementById('reset-missing');
     const password = document.getElementById('reset-password');
     const confirmation = document.getElementById('reset-confirm');
+    const complete = document.getElementById('reset-complete');
+    const unknown = document.getElementById('reset-unknown');
+    const feedback = document.getElementById('reset-feedback');
     if (password) password.value = '';
     if (confirmation) confirmation.value = '';
     if (form) form.hidden = true;
     if (missing) missing.hidden = false;
+    if (complete) complete.hidden = true;
+    if (unknown) unknown.hidden = true;
+    if (feedback) feedback.textContent = '';
   });
 
   const translations = {
@@ -134,6 +142,7 @@ export const staffPublicResetScript = String.raw`
         message(t.mismatch);
         return;
       }
+      const submittedRevision = fragmentRevision;
       busy = true;
       submit.disabled = true;
       message(t.busy);
@@ -143,8 +152,12 @@ export const staffPublicResetScript = String.raw`
           body: JSON.stringify({ resetToken: resetToken, newPassword: candidate }),
           cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer', mode: 'same-origin'
         });
+        // A fragment navigation can invalidate the token while the POST is in
+        // flight. Its late response may have committed, but must not revive UI.
+        if (submittedRevision !== fragmentRevision || !resetToken) return;
         if (response.ok) {
           const payload = await response.json();
+          if (submittedRevision !== fragmentRevision || !resetToken) return;
           if (payload && payload.outcome === 'PASSWORD_RESET_COMPLETE' && Object.keys(payload).length === 1) {
             resetToken = null;
             completed = true;
@@ -168,6 +181,7 @@ export const staffPublicResetScript = String.raw`
           message(t.failed);
         }
       } catch (_) {
+        if (submittedRevision !== fragmentRevision || !resetToken) return;
         // A lost response must never trigger an automatic second redemption.
         showUnknownResult();
       } finally {
