@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { generateKeyPairSync, sign } from "node:crypto";
+import { generateKeyPairSync, sign, verify } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
 import test from "node:test";
 import { URL } from "node:url";
@@ -147,14 +147,23 @@ test("operator recovery signatures must use independent Ed25519 roots", () => {
   const message = canonicalCaseBytes(body);
   for (const algorithm of ["ec", "rsa"]) {
     const options = algorithm === "ec" ? { namedCurve: "prime256v1" }
-      : { modulusLength: 1536 }; // Base64 fits the preexisting 256-char bound.
+      : { modulusLength: 1536 }; // Valid RSA signature fits 256-char bound.
     const first = generateKeyPairSync(algorithm, options);
     const second = generateKeyPairSync(algorithm, options);
+    const firstSignature = sign("sha256", message, first.privateKey);
+    const secondSignature = sign("sha256", message, second.privateKey);
+    if (algorithm === "rsa") {
+      // Node verifies these genuine RSA signatures with algorithm=null. Without
+      // the explicit Ed25519-only key gate, this negative test would be bypassed.
+      assert.equal(verify(null, message, first.publicKey, firstSignature), true);
+      assert.equal(verify(null, message, second.publicKey, secondSignature), true);
+      assert.equal(firstSignature.toString("base64").length, 256);
+    }
     const envelope = { body, signatures: [
       { role: "CASE_VERIFIER", keyId: "one",
-        base64Signature: sign("sha256", message, first.privateKey).toString("base64") },
+        base64Signature: firstSignature.toString("base64") },
       { role: "SECURITY_APPROVER", keyId: "two",
-        base64Signature: sign("sha256", message, second.privateKey).toString("base64") },
+        base64Signature: secondSignature.toString("base64") },
     ] };
     const trust = {
       one: { role: "CASE_VERIFIER", enabled: true, publicKey: first.publicKey },
