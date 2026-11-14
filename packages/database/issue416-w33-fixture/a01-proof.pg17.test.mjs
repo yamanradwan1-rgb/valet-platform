@@ -5,6 +5,7 @@ import { spawn, spawnSync } from "node:child_process";
 import { test } from "node:test";
 import readline from "node:readline";
 import { assertForeignBackendDenied } from "./a01-foreign-backend-negative.mjs";
+import { assertSameMillisecondLineage } from "./a01-same-ms-lineage-negative.mjs";
 
 const fixture = process.env.W33_PG17_CONTAINER ?? "vaylet-issue416-w33-pg17";
 const database = process.env.W33_PG17_DB ?? "issue416_w33_db";
@@ -215,6 +216,11 @@ test("A01 full source-derived challenge with independently computed HMAC", async
       auth_proof_private.a01_read_commit_receipt(
         ${receiptArgs.join(",")})`);
     assert.equal(readback, "COMMITTED");
+    await assertSameMillisecondLineage({
+      createSession: () => new FixtureSession(), audience:"w33-test",
+      operationId:operation,userId:user,originalSessionId:sessionId,
+      reservationId:limiterId,
+    });
     const wrongVerifier = await verify.query(`SELECT receipt_status FROM
       auth_proof_private.a01_read_commit_receipt(
         ${[...receiptArgs.slice(0,7),
