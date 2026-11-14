@@ -1,30 +1,22 @@
 import { Injectable } from "@nestjs/common";
 import type { ApiRequest } from "../../common/http/api-request";
-import { AntiAbuseService } from "../anti-abuse/anti-abuse.service";
-import { STAFF_PASSWORD_RESET_ANTI_ABUSE } from "../anti-abuse/anti-abuse-key";
-import { TrustedClientAddressResolver } from "../anti-abuse/client-address";
-import {
-  Issue416ResetRateLimitedError,
-  Issue416ResetUnavailableError,
-} from "./issue416-password-reset-errors";
+import { Issue416R03PrivateAttemptAdmission } from "./issue416-r03-private-attempt-admission";
+import type { Issue416R03ClientAttemptReceipt } from "./issue416-r03-private-attempt-contract";
+import { Issue416ResetUnavailableError } from "./issue416-password-reset-errors";
 
-const countedRequests = new WeakMap<object, string>();
+const countedRequests = new WeakMap<object, Issue416R03ClientAttemptReceipt>();
 const countingRequests = new WeakSet<object>();
 const attemptedRequests = new WeakSet<object>();
-const ADDRESS_ATTEMPTS_PER_15_MINUTES =
-  STAFF_PASSWORD_RESET_ANTI_ABUSE.redeemClientAddress.limit;
 
 /**
  * Prime must install the call BEFORE its HTTP JSON parser for the exact public
- * redeem route. It durably counts even malformed JSON and parser-rejected
- * requests. A controller call cannot substitute for this pre-parser step.
+ * redeem route. It must independently COMMIT the private CLIENT stage even
+ * for malformed JSON; while the trusted R03 binder is missing it rejects
+ * every request, without counting via mutable public anti_abuse_events.
  */
 @Injectable()
 export class Issue416PasswordResetIngress {
-  constructor(
-    private readonly antiAbuse: AntiAbuseService,
-    private readonly addresses: TrustedClientAddressResolver,
-  ) {}
+  constructor(private readonly r03: Issue416R03PrivateAttemptAdmission) {}
 
   async countBeforeBodyParser(request: ApiRequest): Promise<void> {
     if (
@@ -46,35 +38,21 @@ export class Issue416PasswordResetIngress {
   }
 
   private async countOnce(request: ApiRequest): Promise<void> {
-    let address: string;
     try {
-      address = this.addresses.resolve(request);
+      const committed = await this.r03.countClientBeforeBodyParser(request);
+      countedRequests.set(request, committed);
     } catch {
       throw new Issue416ResetUnavailableError();
     }
-    let decision: Awaited<ReturnType<AntiAbuseService["count"]>>;
-    try {
-      decision = await this.antiAbuse.count(
-        this.antiAbuse.key(
-          "v1:staff-password-reset-redeem-client-address",
-          address,
-        ),
-        ADDRESS_ATTEMPTS_PER_15_MINUTES,
-      );
-    } catch {
-      throw new Issue416ResetUnavailableError();
-    }
-    if (!decision.allowed) {
-      throw new Issue416ResetRateLimitedError(decision.retryAfter);
-    }
-    countedRequests.set(request, address);
   }
 
-  /** Single-use, in-process attestation that the HTTP ingress budget committed. */
-  takeCountedAddress(request: ApiRequest): string {
-    const address = countedRequests.get(request);
+  /** Single-use result; not authorization without a real committed R03 binder. */
+  takeCountedClientAttempt(
+    request: ApiRequest,
+  ): Issue416R03ClientAttemptReceipt {
+    const receipt = countedRequests.get(request);
     countedRequests.delete(request);
-    if (address === undefined) throw new Issue416ResetUnavailableError();
-    return address;
+    if (receipt === undefined) throw new Issue416ResetUnavailableError();
+    return receipt;
   }
 }

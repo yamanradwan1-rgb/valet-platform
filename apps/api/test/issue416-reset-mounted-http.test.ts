@@ -20,6 +20,7 @@ import { Issue416PasswordResetRedeemController } from "../src/modules/auth/issue
 import { Issue416PasswordResetRedeemService } from "../src/modules/auth/issue416-password-reset-redeem.service";
 import { Issue416PasswordResetIngress } from "../src/modules/auth/issue416-password-reset-redeem-ingress";
 import { issue416ResetRedeemPreParser } from "../src/modules/auth/issue416-password-reset-redeem-preparser";
+import { Issue416R03PrivateAttemptAdmission } from "../src/modules/auth/issue416-r03-private-attempt-admission";
 import { generateStaffPasswordResetToken } from "../src/modules/auth/staff-password-reset-credential";
 import { StaffAuthOriginPolicy } from "../src/modules/auth/staff-auth.origin";
 import { Issue416PasswordResetManagementController } from "../src/modules/management/issue416-password-reset.controller";
@@ -39,21 +40,13 @@ const validRedeem = { resetToken: token, newPassword: "Strong-Password-2026!" };
 const sql = { query: vi.fn() };
 const sessions = { resolve: vi.fn() };
 const addresses = { resolve: vi.fn(() => "198.51.100.23") };
-const antiAbuse = {
-  key: vi.fn((scope: string, value: string) => ({ scope, keyHash: value })),
-  count: vi.fn(
-    async (): Promise<{ allowed: boolean; retryAfter?: number }> => ({
-      allowed: true,
-    }),
-  ),
-};
 const forgedProtected = { status: vi.fn(), issue: vi.fn() };
 const forgedRedeem = { redeem: vi.fn() };
 const origins = { allows: (value: string | undefined) => value === origin };
-const ingress = new Issue416PasswordResetIngress(
-  antiAbuse as never,
-  addresses as never,
-);
+const r03 = new Issue416R03PrivateAttemptAdmission();
+const clientAttempts = vi.spyOn(r03, "countClientBeforeBodyParser");
+const credentialAttempts = vi.spyOn(r03, "countCanonicalCredential");
+const ingress = new Issue416PasswordResetIngress(r03);
 const protectedService = new Issue416PasswordResetService(
   sql as never,
   sessions as never,
@@ -63,7 +56,7 @@ const protectedService = new Issue416PasswordResetService(
 const publicService = new Issue416PasswordResetRedeemService(
   ingress,
   origins as never,
-  antiAbuse as never,
+  r03,
   forgedRedeem as never,
 );
 const runner = new ApiOperationRunner(
@@ -109,7 +102,8 @@ afterAll(async () => {
 });
 
 beforeEach(() => {
-  antiAbuse.count.mockReset().mockResolvedValue({ allowed: true });
+  clientAttempts.mockClear();
+  credentialAttempts.mockClear();
   sql.query.mockClear();
   sessions.resolve.mockClear();
   forgedProtected.status.mockClear();
@@ -153,7 +147,7 @@ describe("Issue416 TEST-ONLY mounted HTTP (SQL proof intentionally absent)", () 
   it("does not spend public POST quota on a GET to the same route", async () => {
     const response = await fetch(`${baseUrl}${publicPath}`);
     expect(response.status).toBe(404);
-    expect(antiAbuse.count).not.toHaveBeenCalled();
+    expect(clientAttempts).not.toHaveBeenCalled();
   });
 
   it("rejects an unauthenticated status read with 401 before service", async () => {
@@ -198,33 +192,32 @@ describe("Issue416 TEST-ONLY mounted HTTP (SQL proof intentionally absent)", () 
     noPrivilegedSql();
   });
 
-  it("counts bad JSON at pre-parser ingress before Nest rejects the body", async () => {
-    const before = antiAbuse.count.mock.calls.length;
+  it("fails closed before parsing malformed JSON when private R03 binder is unavailable", async () => {
     const response = await post(publicPath, '{"resetToken":');
-    expect(response.status).toBe(400);
-    expect(antiAbuse.count.mock.calls.length).toBe(before + 1);
-    expect(antiAbuse.key).toHaveBeenLastCalledWith(
-      "v1:staff-password-reset-redeem-client-address",
-      "198.51.100.23",
+    expect(response.status).toBe(503);
+    expect(((await response.json()) as { code: string }).code).toBe(
+      "STAFF_PASSWORD_RESET_UNAVAILABLE",
     );
+    expect(clientAttempts).toHaveBeenCalledTimes(1);
+    expect(credentialAttempts).not.toHaveBeenCalled();
     noPrivilegedSql();
   });
 
-  it("counts public attempt before rejecting a foreign Origin", async () => {
+  it("rejects foreign Origin at pre-parser while trusted SQL is unavailable", async () => {
     const response = await post(publicPath, JSON.stringify(validRedeem), {
       ...authHeaders,
       origin: "https://evil.example",
     });
-    expect(response.status).toBe(403);
-    expect(antiAbuse.count).toHaveBeenCalledWith(expect.anything(), 30);
+    expect(response.status).toBe(503);
+    expect(clientAttempts).toHaveBeenCalledTimes(1);
     noPrivilegedSql();
   });
 
-  it("counts both budgets but refuses forged redeem success and never logs a bearer", async () => {
+  it("never trusts forged redeem writer nor exposes token/password", async () => {
     const response = await post(publicPath, JSON.stringify(validRedeem));
     expect(response.status).toBe(503);
-    expect(antiAbuse.count).toHaveBeenCalledWith(expect.anything(), 30);
-    expect(antiAbuse.count).toHaveBeenCalledWith(expect.anything(), 5);
+    expect(clientAttempts).toHaveBeenCalledTimes(1);
+    expect(credentialAttempts).not.toHaveBeenCalled();
     const body = await response.text();
     expect(body).not.toContain(token);
     expect(body).not.toContain(validRedeem.newPassword);
@@ -232,30 +225,26 @@ describe("Issue416 TEST-ONLY mounted HTTP (SQL proof intentionally absent)", () 
     noPrivilegedSql();
   });
 
-  it("returns bounded pre-parser 429 and stops before the JSON parser", async () => {
-    antiAbuse.count.mockResolvedValueOnce({
-      allowed: false,
-      retryAfter: 999_999,
-    });
+  it("never claims a 429 count from mutable legacy anti-abuse tables", async () => {
     const response = await post(publicPath, '{"not":"valid json"');
-    expect(response.status).toBe(429);
-    expect(response.headers.get("retry-after")).toBe("900");
+    expect(response.status).toBe(503);
+    expect(response.headers.get("retry-after")).toBeNull();
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect(((await response.json()) as { code: string }).code).toBe(
-      "STAFF_PASSWORD_RESET_RATE_LIMITED",
+      "STAFF_PASSWORD_RESET_UNAVAILABLE",
     );
+    expect(clientAttempts).toHaveBeenCalledTimes(1);
     noPrivilegedSql();
   });
 
-  it("fails closed on an untrusted/missing client address before body parsing", async () => {
-    addresses.resolve.mockImplementationOnce(() => {
-      throw new Error("no edge IP");
-    });
+  it("fails closed before consuming any credential without key custody", async () => {
     const response = await post(publicPath, JSON.stringify(validRedeem));
     expect(response.status).toBe(503);
     expect(((await response.json()) as { code: string }).code).toBe(
       "STAFF_PASSWORD_RESET_UNAVAILABLE",
     );
+    expect(credentialAttempts).not.toHaveBeenCalled();
+    expect(addresses.resolve).not.toHaveBeenCalled();
     noPrivilegedSql();
   });
 });

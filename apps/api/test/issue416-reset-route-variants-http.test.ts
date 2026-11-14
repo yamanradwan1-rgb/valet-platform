@@ -17,23 +17,19 @@ import { Issue416PasswordResetRedeemController } from "../src/modules/auth/issue
 import { Issue416PasswordResetRedeemService } from "../src/modules/auth/issue416-password-reset-redeem.service";
 import { Issue416PasswordResetIngress } from "../src/modules/auth/issue416-password-reset-redeem-ingress";
 import { issue416ResetRedeemPreParser } from "../src/modules/auth/issue416-password-reset-redeem-preparser";
+import { Issue416R03PrivateAttemptAdmission } from "../src/modules/auth/issue416-r03-private-attempt-admission";
 
 const path = "/v1/staff/auth/password-resets/redeem";
 const origin = "https://reset.example";
-const antiAbuse = {
-  key: vi.fn((scope: string, value: string) => ({ scope, keyHash: value })),
-  count: vi.fn().mockResolvedValue({ allowed: true }),
-};
-const addresses = { resolve: vi.fn(() => "198.51.100.23") };
-const ingress = new Issue416PasswordResetIngress(
-  antiAbuse as never,
-  addresses as never,
-);
+const r03 = new Issue416R03PrivateAttemptAdmission();
+const clientAttempts = vi.spyOn(r03, "countClientBeforeBodyParser");
+const credentialAttempts = vi.spyOn(r03, "countCanonicalCredential");
+const ingress = new Issue416PasswordResetIngress(r03);
 const origins = { allows: (value: string | undefined) => value === origin };
 const service = new Issue416PasswordResetRedeemService(
   ingress,
   origins as never,
-  antiAbuse as never,
+  r03,
 );
 const runner = new ApiOperationRunner(
   { now: () => Date.now() } as never,
@@ -73,9 +69,8 @@ afterAll(async () => {
 });
 
 beforeEach(() => {
-  antiAbuse.count.mockReset().mockResolvedValue({ allowed: true });
-  antiAbuse.key.mockClear();
-  addresses.resolve.mockClear();
+  clientAttempts.mockClear();
+  credentialAttempts.mockClear();
 });
 
 function request(urlPath: string, body: string, method = "POST") {
@@ -95,20 +90,17 @@ describe("Issue416 TEST-ONLY exact pre-parser route versus actual Nest dispatch"
     // fetch normalizes this dot-segment URL into the accepted /redeem/ path.
     path + "/%2e",
   ])(
-    "precounts malformed JSON for every case/trailing path Nest accepts: %s",
+    "fails closed before malformed JSON parser on every Nest path: %s",
     async (variant) => {
       const response = await request(variant, '{"resetToken":');
-      expect(response.status).toBe(400);
-      expect(antiAbuse.count).toHaveBeenCalledTimes(1);
-      expect(antiAbuse.key).toHaveBeenCalledWith(
-        "v1:staff-password-reset-redeem-client-address",
-        "198.51.100.23",
-      );
+      expect(response.status).toBe(503);
+      expect(clientAttempts).toHaveBeenCalledTimes(1);
+      expect(credentialAttempts).not.toHaveBeenCalled();
     },
   );
 
   it.each([path, path + "/", "/V1/STAFF/AUTH/PASSWORD-RESETS/REDEEM"])(
-    "mounts invalid bearer as generic 401 after exactly one IP count: %s",
+    "denies invalid bearer before unverified IP accounting: %s",
     async (variant) => {
       const response = await request(
         variant,
@@ -117,11 +109,12 @@ describe("Issue416 TEST-ONLY exact pre-parser route versus actual Nest dispatch"
           newPassword: "Str0ng-New-Password!",
         }),
       );
-      expect(response.status).toBe(401);
+      expect(response.status).toBe(503);
       const body = (await response.json()) as { code: string };
-      expect(body.code).toBe("STAFF_PASSWORD_RESET_INVALID");
+      expect(body.code).toBe("STAFF_PASSWORD_RESET_UNAVAILABLE");
       expect(JSON.stringify(body)).not.toContain("Str0ng-New-Password!");
-      expect(antiAbuse.count).toHaveBeenCalledTimes(1);
+      expect(clientAttempts).toHaveBeenCalledTimes(1);
+      expect(credentialAttempts).not.toHaveBeenCalled();
     },
   );
 
@@ -139,24 +132,23 @@ describe("Issue416 TEST-ONLY exact pre-parser route versus actual Nest dispatch"
         JSON.stringify({ resetToken: "vspr1.invalid" }),
       );
       expect(response.status).toBe(404);
-      expect(antiAbuse.count).not.toHaveBeenCalled();
-      expect(addresses.resolve).not.toHaveBeenCalled();
+      expect(clientAttempts).not.toHaveBeenCalled();
       const malformed = await request(variant, '{"resetToken":');
       // Nest's global JSON parser may reject a malformed body even on a 404.
       expect([400, 404]).toContain(malformed.status);
-      expect(antiAbuse.count).not.toHaveBeenCalled();
+      expect(clientAttempts).not.toHaveBeenCalled();
     },
   );
 
   it("does not spend POST quota on GET or sibling paths", async () => {
     const response = await request(path, "", "GET");
     expect(response.status).toBe(404);
-    expect(antiAbuse.count).not.toHaveBeenCalled();
+    expect(clientAttempts).not.toHaveBeenCalled();
   });
 
-  it("counts correct path even with query before JSON validation", async () => {
+  it("denies correct path with query before JSON validation", async () => {
     const response = await request(path + "?ignored=true", '{"resetToken":');
-    expect(response.status).toBe(400);
-    expect(antiAbuse.count).toHaveBeenCalledTimes(1);
+    expect(response.status).toBe(503);
+    expect(clientAttempts).toHaveBeenCalledTimes(1);
   });
 });
