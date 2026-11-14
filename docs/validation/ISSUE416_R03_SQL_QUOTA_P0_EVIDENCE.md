@@ -30,6 +30,6 @@ Status (2026-11-14): **SOURCE DEFECT CONFIRMED; EFFECTIVE POST-MIGRATION ACL / R
 | SQL-only role deny after cutover | **NOT VERIFIED** | Neither effective PG17 ACL nor two-time provisioner test executed. |
 | Trusted early HTTP ingress + canonical verifier admission | **BLOCKED** | Test-only mounted HTTP is not an authenticated private-ledger binder and production pre-parser remains unmounted. |
 | Actual 30/5 concurrency, independent commit and business rollback | **NOT RUN** | No post-migration isolated PG17 proof. |
-| Migration113 original W9 recovery | **DENIED** | Prior Owner denial retained; Docker Linux Engine unavailable at this continuation's read-only preflight, so identity/history could not be re-attested now. |
+| Migration113 original W9 recovery | **DENIED** | Initial Docker Engine failure was followed by recovery of the engine. Exact original W9 container ID, image, retained volume and labels matched on read-only inspect, but container remained **EXITED** with no published port; current PostgreSQL migration-history/ACL cannot be re-attested. No restart or SQL. |
 
-This P0 closure is prerequisite to replacing the unconditional SQL-unavailable gate or registering any of the three staff password-reset controllers. **No current local PASS permits production activation.**
+This P0 closure is prerequisite to replacing the unconditional SQL-unavailable gate or registering either of the two Staff password-reset controller classes (three planned routes). **No current local PASS permits production activation.**

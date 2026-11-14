@@ -30,3 +30,13 @@ targetRules = ["generic-api-key"]
 paths = ['''^(?:docs/plans/issue-416-option-a-writer-inventory\.md|docs/validation/ISSUE_416_IMPLEMENTATION_EXECUTION\.md)$''']
 regexTarget = "match"
 regexes = ['''^key, duplicate/unknown[ `]$''']
+
+[[allowlists]]
+description = "Issue416 execution ledger prints a publicly verified Git ref, not an API credential"
+condition = "AND"
+targetRules = ["generic-api-key"]
+paths = ['''^docs/validation/ISSUE_416_IMPLEMENTATION_EXECUTION\.md$''']
+regexTarget = "match"
+# Pin the complete, exact non-secret matched text from the redacted scan.
+# Never allow other hashes, files, rule types or arbitrary value-bearing lines.
+regexes = ['''^issue-416-company-admin-password-reset = 9b873610f00d5d520c9553d4a5185b9598e0fdb5`$''']

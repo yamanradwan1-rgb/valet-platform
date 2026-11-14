@@ -6,7 +6,7 @@
 
 | Gate | Evidence required | Status |
 | --- | --- | --- |
-| Original test DB | Officially approved W9 Migration113 failed-history repair; actual PG17 fresh and upgrade paths, exact checksums | **BLOCKED** — recovery DENIED; current Docker Engine unavailable, prior identity attestation not current evidence |
+| Original test DB | Officially approved W9 Migration113 failed-history repair; actual PG17 fresh and upgrade paths, exact checksums | **BLOCKED** — recovery DENIED; Docker Engine recovered but original W9 container is EXITED, no published port and no current DB history/ACL attestation |
 | VAP1 proof | Genuine credentials, purpose-limited signer, 18-field and U2 20-field HMAC Node/PG parity, same transaction/XID and replay negatives | NOT RUN |
 | SQL ACL | Private NOLOGIN custody, effective runtime/PUBLIC/inherited denials, no ordinary SQL key read, old overloads and provisioner twice | NOT RUN |
 | 35 U2 records | Each actual executable writer protected or safely retired, legacy paths maintained until coordinated cutover | NOT VERIFIED |
@@ -39,4 +39,4 @@
 **Distinct external authorizations required:** W9 guarded Prisma bookkeeping; feature-branch push/Draft PR; merge; real signing-key provisioning; production migrations, cutover, activation, rollback/restore and Issue closure.
 
 **Current verdict: historical isolated fixture identity previously PASS; current W9 identity NOT VERIFIED, protected SQL and production readiness BLOCKED.**
-**2026-11-14 current correction:** W9 fixture identity was attested in a *previous* read-only session, not in this continuation. Current `docker inspect` could not connect to `dockerDesktopLinuxEngine`; therefore current fixture identity/ownership/migration/ACL state is **NOT VERIFIED**, without replacing the historical record. See `ISSUE416_R03_SQL_QUOTA_P0_EVIDENCE.md` and `ISSUE416_REQUIREMENTS_AND_35_WRITER_ACCEPTANCE.md` for source-only privilege/acceptance evidence. The 21-race harness declares 210 branches but ran **zero PG17 races**.
+**2026-11-14 identity recheck:** Initial `docker inspect` could not reach `dockerDesktopLinuxEngine`. Docker subsequently became available and a read-only inspect matched original W9 Docker container ID/image/volume/labels, but the container is **stopped** and has no published port. Do not confuse immutable Docker object identity with a current PostgreSQL migration/ACL attestation. See `ISSUE416_R03_SQL_QUOTA_P0_EVIDENCE.md` and `ISSUE416_REQUIREMENTS_AND_35_WRITER_ACCEPTANCE.md` for source-only privilege/acceptance evidence. The 21-race harness declares 210 branches but ran **zero PG17 races**.
