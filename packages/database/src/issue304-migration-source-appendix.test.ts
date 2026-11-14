@@ -14,7 +14,7 @@ import {
 import { expectedMigrationDirectories } from "./migration-manifest.js";
 
 describe("append-only migration source history", () => {
-  it("preserves migrations 1..111 and appends Issue416 112 in exact order", () => {
+  it("preserves migrations 1..111 and enumerates dormant Issue416 sources", () => {
     expect(expectedMigrationDirectories).toHaveLength(93);
     expect(issue300AppendedMigrationDirectories).toEqual([
       "20261018009400_issue_300_u05_birth_xid",
@@ -46,8 +46,15 @@ describe("append-only migration source history", () => {
     ]);
     expect(issue416AppendedMigrationDirectories).toEqual([
       "20261113011200_issue416_reserved_security_audit",
+      "20261113011300_issue416_vap1_private_foundation",
+      "20261113011400_issue416_vap1_private_codec",
+      "20261113011500_issue416_vap1_private_lifecycle",
+      "20261113011600_issue416_vap1_audit_gate",
+      "20261113011700_issue416_vap1_key_boundary_guard",
+      "20261113012000_issue416_vap1_atomic_reset_quota",
+      "20261113012400_issue416_vap1_atomic_reset_quota_functions",
     ]);
-    expect(expectedCurrentMigrationDirectories).toHaveLength(112);
+    expect(expectedCurrentMigrationDirectories).toHaveLength(119);
     const migrationRoot = fileURLToPath(
       new URL("../prisma/migrations/", import.meta.url),
     );

@@ -36,6 +36,16 @@ export const issue435AppendedMigrationDirectories = [
 
 export const issue416AppendedMigrationDirectories = [
   "20261113011200_issue416_reserved_security_audit",
+  // Dormant Option A security sources are still part of the immutable Git
+  // migration inventory. Their presence does NOT imply Prisma ever applied
+  // them to W9, QA, or production.
+  "20261113011300_issue416_vap1_private_foundation",
+  "20261113011400_issue416_vap1_private_codec",
+  "20261113011500_issue416_vap1_private_lifecycle",
+  "20261113011600_issue416_vap1_audit_gate",
+  "20261113011700_issue416_vap1_key_boundary_guard",
+  "20261113012000_issue416_vap1_atomic_reset_quota",
+  "20261113012400_issue416_vap1_atomic_reset_quota_functions",
 ] as const;
 
 export const expectedCurrentMigrationDirectories = [
