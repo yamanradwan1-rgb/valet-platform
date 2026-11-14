@@ -51,7 +51,7 @@ explicitly blocks bound-event UPDATE; do not bypass this trigger.
 
 ## Replay / 15-minute protocol
 
-Fresh PENDING within DB-clock 15 minutes permits only a *candidate* new
+Fresh PENDING within DB-clock 15 minutes permits only a _candidate_ new
 issuance, never a completed receipt. Resolved IGNORED supports only a new
 genuine password ceremony and exact signed linkless same-operation replay;
 it never creates SS/RC or rediscloses raw tokens. COUNTED denies new birth.

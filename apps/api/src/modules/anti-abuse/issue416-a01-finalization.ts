@@ -53,16 +53,23 @@ export function inspectUntrustedA01Finalization(
   }>,
   row: A01UntrustedFinalizationObservation | undefined,
 ): A01FinalizationInspection {
-  if (!context.deploymentAudience ||
-      !UUID.test(context.operationId) || !UUID.test(context.reservationId) ||
-      !UUID.test(context.userId) || !DIGEST.test(context.payloadDigest)) {
+  if (
+    !context.deploymentAudience ||
+    !UUID.test(context.operationId) ||
+    !UUID.test(context.reservationId) ||
+    !UUID.test(context.userId) ||
+    !DIGEST.test(context.payloadDigest)
+  ) {
     return { authorized: false, blocker: "INVALID_CONTEXT" };
   }
   if (context.commitKnowledge === "UNKNOWN") {
     return { authorized: false, blocker: "UNKNOWN_COMMIT" };
   }
-  if (!row || row.reservationId !== context.reservationId ||
-      row.limiterState !== "PENDING") {
+  if (
+    !row ||
+    row.reservationId !== context.reservationId ||
+    row.limiterState !== "PENDING"
+  ) {
     return { authorized: false, blocker: "TERMINAL_OR_MISSING_RESERVATION" };
   }
   if (row.audience !== context.deploymentAudience) {
@@ -78,16 +85,22 @@ export function inspectUntrustedA01Finalization(
     // A01 is globally User-scoped, not a selected Company/Location grant.
     return { authorized: false, blocker: "CROSS_TENANT" };
   }
-  if (context.commitKnowledge !== "CONFIRMED" ||
-      row.purpose !== "STAFF_LOGIN_COMMIT" ||
-      row.receiptOutcome !== "COMPLETED" ||
-      row.subjectUserId !== context.userId ||
-      row.actorKind !== "ANONYMOUS" ||
-      row.auditEventId === null || !UUID.test(row.auditEventId) ||
-      !row.challengeConsumed) {
+  if (
+    context.commitKnowledge !== "CONFIRMED" ||
+    row.purpose !== "STAFF_LOGIN_COMMIT" ||
+    row.receiptOutcome !== "COMPLETED" ||
+    row.subjectUserId !== context.userId ||
+    row.actorKind !== "ANONYMOUS" ||
+    row.auditEventId === null ||
+    !UUID.test(row.auditEventId) ||
+    !row.challengeConsumed
+  ) {
     return { authorized: false, blocker: "UNTRUSTED_AUDIT_OR_RECEIPT" };
   }
   // Even an apparently perfect record can be fabricated from mutable SQL
   // or caller JSON. Never return IGNORED/COUNTED or a permit from this code.
-  return { authorized: false, blocker: "TRUSTED_POST_DOMAIN_FINALIZER_MISSING" };
+  return {
+    authorized: false,
+    blocker: "TRUSTED_POST_DOMAIN_FINALIZER_MISSING",
+  };
 }

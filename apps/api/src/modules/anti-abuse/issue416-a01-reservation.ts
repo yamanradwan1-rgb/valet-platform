@@ -51,11 +51,15 @@ export function inspectUntrustedA01Reservation(
   }>,
   row: A01UntrustedReservationRow | undefined,
 ): A01ReservationInspection {
-  if (!AUDIENCE.test(context.deploymentAudience) ||
-      !UUID.test(context.operationId) ||
-      context.canonicalIdentifier.length < 3 ||
-      context.canonicalIdentifier !== context.canonicalIdentifier.trim().toLowerCase() ||
-      !row || !UUID.test(row.reservationId)) {
+  if (
+    !AUDIENCE.test(context.deploymentAudience) ||
+    !UUID.test(context.operationId) ||
+    context.canonicalIdentifier.length < 3 ||
+    context.canonicalIdentifier !==
+      context.canonicalIdentifier.trim().toLowerCase() ||
+    !row ||
+    !UUID.test(row.reservationId)
+  ) {
     return { admissible: false, blocker: "INVALID_CONTEXT" };
   }
   if (row.audience !== context.deploymentAudience) {
@@ -78,8 +82,11 @@ export function inspectUntrustedA01Reservation(
   } catch {
     return { admissible: false, blocker: "WRONG_KEY" };
   }
-  if (expected.scope !== SCOPE || !KEY_HASH.test(expected.keyHash) ||
-      row.keyHash !== expected.keyHash) {
+  if (
+    expected.scope !== SCOPE ||
+    !KEY_HASH.test(expected.keyHash) ||
+    row.keyHash !== expected.keyHash
+  ) {
     return { admissible: false, blocker: "WRONG_KEY" };
   }
   if (row.state !== "PENDING") {
