@@ -4,6 +4,8 @@ import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
 
 import { preflightIssue416Target } from "../issue416-private/target-preflight.mjs";
+import { attestQuotaSchema } from "./pg17-quota-fixture.mjs";
+import { assertPg17QuotaRelease } from "./pg17-quota-release.mjs";
 
 const require = createRequire(new URL("../package.json", import.meta.url));
 const { Client } = require("pg");
@@ -11,6 +13,7 @@ const scopes = ["target", "issuer", "organization", "client"];
 const caps = [3, 20, 100, 30];
 
 async function attestedClient(urlKey) {
+  assertPg17QuotaRelease();
   // W9's global setup already holds the isolated exclusive lease.
   // Recheck real Docker + SQL target identity before every connection.
   await preflightIssue416Target();
@@ -18,6 +21,12 @@ async function attestedClient(urlKey) {
     connectionString: process.env[urlKey], connectionTimeoutMillis: 3000,
   });
   await client.connect();
+  try {
+    if (urlKey === "MIGRATION_DATABASE_URL") await attestQuotaSchema(client);
+  } catch (error) {
+    await client.end();
+    throw error;
+  }
   return client;
 }
 

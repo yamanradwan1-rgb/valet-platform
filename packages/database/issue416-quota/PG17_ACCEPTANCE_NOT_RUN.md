@@ -47,6 +47,30 @@ PG17 test file is *not* evidence that any of the cases below passed.
 | Q13 | Rollback before reserve COMMIT, denied domain operation, confirmed domain rollback, unknown transaction outcome and receipt replay under connection-pool exhaustion. | Clear separate pre-domain and post-domain leases; no nested pool acquisition under domain locks; distinguish confirmed rollback from unknown commit; never mint link or discard a pending attempt without authoritative receipt. |
 | Q14 | Inspect migration120 after its COMMIT but before migration124, then source and catalog after 124. Force failure at a statement in each migration in a fresh disposable database only if approved. | 120 has private storage/guards/evidence, no reserve/reconcile callable; 124 installs both functions without broader grants. Each failed migration is transactionally rolled back; ordering is 120 then W2 121–123 then 124. |
 
+## Executable test coverage prepared, still NOT RUN
+
+The W12-only opt-in PG17 project is guarded by a release check **before** W9
+Docker/SQL attestation and its exclusive lease. Every connection rechecks
+release and exact W9 target identity. Test-only owner transactions end in
+ROLLBACK; the source-only harness test connects to nothing. The release flag
+may **only** be supplied following an explicit Owner migration113 clearance
+and successful W9 re-attestation; the flag cannot authorize itself.
+
+| Acceptance IDs | Test source | Completeness |
+| --- | --- | --- |
+| Q01/Q11 | pg17-r02-abi-acl.integration.test.mjs | Runtime private ACL negative, original public-FK/private UUID mismatch; old public limiter UPDATE/DELETE/TRUNCATE must be revoked and is expected RED while legacy compatibility remains. R03 scope CHECK also expected RED; no real R02 domain proof writer. |
+| Q02–Q05 | pg17-reset-issue-quota.integration.test.mjs | Atomic bundle, source-order four UUIDs, same-operation retry, cap denial and deferred-integrity rollback. No durable external COMMIT. |
+| Q06/Q13 | pg17-r02-concurrency.integration.test.mjs | Two-connection lock timeout (same key and same operation), both rolled back. Committed boundary, nested leases and pool starvation NOT TESTED. |
+| Q07–Q10 | pg17-r02-receipt.integration.test.mjs | Fake evidence denied, unknown source receipt PENDING, no caller discount, changed-payload conflict. Genuine domain proof/COMMIT/900s expiry NOT IMPLEMENTED/NOT TESTED. |
+| Q12 | pg17-r02-abi-acl.integration.test.mjs + source-only harness unit | R03 client-address 30 and canonical credential 5 source-distinct; public SQL allowlist and trusted pre-parser R03 writer missing. PG17 acceptance must remain RED. |
+| Q14 | pg17-quota-fixture.mjs + W9 global setup | Read-only applied-migration history guard and exclusive synthetic target preflight; actual migration apply/failure-rollback is outside W12 and NOT RUN. |
+
+**New source blocker:** the latest known public anti_abuse_events scope CHECK
+(migration098:52–66) excludes both R03 redemption scopes even though
+anti-abuse-key.ts:22–29 defines them. No W12 private R02 table or function
+accepts an R03 scope. A separate, approved forward-only R03 admission/SQL
+implementation must close this before any end-to-end redemption test can pass.
+
 ## Known source-supported blockers — not waivable by a green unit test
 
 - **P0 activation blocker — limiter ABI mismatch.** Migration113

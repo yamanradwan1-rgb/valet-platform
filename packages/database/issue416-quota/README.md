@@ -87,3 +87,36 @@ container identity and exclusive lease
 attestations. The guarded PG17 fixture previously failed migration113 (P3018);
 all PG17 quota tests are **NOT RUN** pending W2/Prime safe recovery. No
 production DB, PR, push, merge or cutover is authorized by this change.
+
+### Retained PG17 acceptance harness — strictly NOT RUN
+
+The opt-in Vitest configuration now routes through
+pg17-quota-global-setup.mjs: an explicit Owner recovery-release flag must
+pass **before** W9's identity attestation or exclusive-lease acquisition.
+Every connection also checks release and W9's exact synthetic PG17 identity;
+migrator connections read _prisma_migrations to reject missing, failed or
+incomplete 113/118/119/120/121/122/123/124 prerequisites. This gate does
+not itself attest Owner approval or repair the existing migration113 failure.
+Never set its release flag while P3018/recovery authorization remains blocked.
+
+The rollback-only acceptance files are:
+
+- pg17-reset-issue-quota.integration.test.mjs: four atomic issuance scopes,
+  same-operation replay, cap denial at 3/20/100/30, deferred integrity and ACL.
+- pg17-r02-concurrency.integration.test.mjs: two W9-attested connections,
+  advisory lock waiting/timeouts on same key and same operation; both rollback.
+- pg17-r02-abi-acl.integration.test.mjs: direct private grant negatives,
+  legacy public limiter write-grant negatives, old public limiter FK versus
+  private UUIDs, and distinct R03 scope catalog requirements (expected to
+  remain **RED** until old grants are closed and R03 migration is approved).
+- pg17-r02-receipt.integration.test.mjs: fake evidence denial, missing receipt
+  stays PENDING, exact replay and changed-fingerprint conflict.
+
+The source-only pg17-quota-harness.unit.test.mjs verifies the release
+gate, six source caps, known R03 catalog mismatch and coverage wiring, without
+loading PostgreSQL or Docker. The rollback-only tests cannot simulate actual
+cross-lease **committed** unknown-COMMIT, authenticated reset generation, real
+two-transaction cap-boundary COMMIT, 900s expiry or production role grants;
+those cases are explicitly skipped/documented, not falsely counted as PASS.
+They require separate Owner-approved disposable committed test data, a real
+signed R02/R03 domain writer and complete receipt/finalizer authority.

@@ -1,7 +1,7 @@
 import { defineConfig } from "vitest/config";
 
-// This opt-in integration lane MUST NOT run before W9's 113–119 foundation
-// is repaired/migrated and migration120 is reviewed/installed on that fixture.
+// Never run while migration113 recovery is blocked. Explicit release gate runs
+// before W9 attestation/lease; all project tests are opt-in and NOT RUN to date.
 export default defineConfig({
   test: {
     projects: [{
@@ -11,7 +11,7 @@ export default defineConfig({
         maxWorkers: 1,
         fileParallelism: false,
         pool: "forks",
-        globalSetup: ["./issue416-private/global-setup.mjs"],
+        globalSetup: ["./issue416-quota/pg17-quota-global-setup.mjs"],
       },
     }],
   },
