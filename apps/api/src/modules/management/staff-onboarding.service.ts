@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, Logger } from "@nestjs/common";
 import type {
   StaffOnboardingCreate,
   StaffOnboardingResend,
@@ -10,8 +10,10 @@ import { inPostgresTransaction } from "../../common/database/postgres-transactio
 import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
 import type { AntiAbuseScope } from "../anti-abuse/anti-abuse-key";
 import {
+  AntiAbuseUnavailableError,
   AntiAbuseService,
   type AntiAbuseReservation,
+  type AntiAbuseReservationState,
 } from "../anti-abuse/anti-abuse.service";
 import { recordAdminActivityInTransaction } from "../auth/mfa/mfa-assurance-policy";
 import type { StaffSessionContext } from "../auth/staff-session-context";
@@ -42,6 +44,8 @@ const RESEND_ISSUANCE_LIMIT = 5;
 
 @Injectable()
 export class StaffOnboardingService {
+  private readonly logger = new Logger(StaffOnboardingService.name);
+
   constructor(
     @Inject(RUNTIME_POSTGRES_POOL) private readonly pool: PostgresPool,
     private readonly antiAbuse: AntiAbuseService,
@@ -63,38 +67,43 @@ export class StaffOnboardingService {
     );
     let domainCallbackCompleted = false;
     try {
-      const committed = await inPostgresTransaction(this.pool, async (transaction) => {
-        await lockStaffOnboardingAccount(
-          transaction,
-          context.userId,
-          command.email,
-        );
-        const authority = await authorizeStaffManagement(transaction, context, {
-          organizationId,
-          assurance: "SENSITIVE",
-        });
-        const issued = await createStaffOnboarding(transaction, {
-          actorMembershipId: authority.membershipId,
-          organizationId,
-          operationId: command.operationId,
-          command,
-          fingerprint: staffOnboardingCreateFingerprint(
+      const committed = await inPostgresTransaction(
+        this.pool,
+        async (transaction) => {
+          await lockStaffOnboardingAccount(
+            transaction,
+            context.userId,
+            command.email,
+          );
+          const authority = await authorizeStaffManagement(
+            transaction,
+            context,
+            {
+              organizationId,
+              assurance: "SENSITIVE",
+            },
+          );
+          const issued = await createStaffOnboarding(transaction, {
+            actorMembershipId: authority.membershipId,
             organizationId,
+            operationId: command.operationId,
             command,
-          ),
-          tokenHash: staffInvitationHash(token),
-        });
-        await recordAdminActivityInTransaction(transaction, context);
-        const response = this.result(issued, token);
-        domainCallbackCompleted = true;
-        return { changed: issued.changed, response };
-      });
-      if (reservation !== undefined) {
-        await this.antiAbuse.finalize(
-          reservation,
-          committed.changed ? "COUNTED" : "IGNORED",
-        );
-      }
+            fingerprint: staffOnboardingCreateFingerprint(
+              organizationId,
+              command,
+            ),
+            tokenHash: staffInvitationHash(token),
+          });
+          await recordAdminActivityInTransaction(transaction, context);
+          const response = this.result(issued, token);
+          domainCallbackCompleted = true;
+          return { changed: issued.changed, response };
+        },
+      );
+      await this.finalizeConfirmedIssuance(
+        reservation,
+        committed.changed ? "COUNTED" : "IGNORED",
+      );
       return committed.response;
     } catch (error) {
       // Callback success followed by a failed COMMIT has an unknown outcome.
@@ -124,39 +133,44 @@ export class StaffOnboardingService {
     );
     let domainCallbackCompleted = false;
     try {
-      const committed = await inPostgresTransaction(this.pool, async (transaction) => {
-        const email = await staffOnboardingTargetEmail(
-          transaction,
-          organizationId,
-          membershipId,
-        );
-        await lockStaffOnboardingAccount(transaction, context.userId, email);
-        const authority = await authorizeStaffManagement(transaction, context, {
-          organizationId,
-          assurance: "SENSITIVE",
-        });
-        const issued = await resendStaffOnboarding(transaction, {
-          actorMembershipId: authority.membershipId,
-          organizationId,
-          membershipId,
-          operationId: command.operationId,
-          fingerprint: staffOnboardingResendFingerprint(
+      const committed = await inPostgresTransaction(
+        this.pool,
+        async (transaction) => {
+          const email = await staffOnboardingTargetEmail(
+            transaction,
             organizationId,
             membershipId,
-          ),
-          tokenHash: staffInvitationHash(token),
-        });
-        await recordAdminActivityInTransaction(transaction, context);
-        const response = this.result(issued, token);
-        domainCallbackCompleted = true;
-        return { changed: issued.changed, response };
-      });
-      if (reservation !== undefined) {
-        await this.antiAbuse.finalize(
-          reservation,
-          committed.changed ? "COUNTED" : "IGNORED",
-        );
-      }
+          );
+          await lockStaffOnboardingAccount(transaction, context.userId, email);
+          const authority = await authorizeStaffManagement(
+            transaction,
+            context,
+            {
+              organizationId,
+              assurance: "SENSITIVE",
+            },
+          );
+          const issued = await resendStaffOnboarding(transaction, {
+            actorMembershipId: authority.membershipId,
+            organizationId,
+            membershipId,
+            operationId: command.operationId,
+            fingerprint: staffOnboardingResendFingerprint(
+              organizationId,
+              membershipId,
+            ),
+            tokenHash: staffInvitationHash(token),
+          });
+          await recordAdminActivityInTransaction(transaction, context);
+          const response = this.result(issued, token);
+          domainCallbackCompleted = true;
+          return { changed: issued.changed, response };
+        },
+      );
+      await this.finalizeConfirmedIssuance(
+        reservation,
+        committed.changed ? "COUNTED" : "IGNORED",
+      );
       return committed.response;
     } catch (error) {
       if (reservation !== undefined && !domainCallbackCompleted) {
@@ -209,6 +223,24 @@ export class StaffOnboardingService {
       throw new StaffOnboardingRateLimitedError(decision.retryAfter);
     }
     return decision.reservation;
+  }
+
+  private async finalizeConfirmedIssuance(
+    reservation: AntiAbuseReservation | undefined,
+    state: AntiAbuseReservationState,
+  ): Promise<void> {
+    if (reservation === undefined) return;
+    try {
+      await this.antiAbuse.finalize(reservation, state);
+    } catch (error) {
+      if (!(error instanceof AntiAbuseUnavailableError)) throw error;
+      // The domain COMMIT was acknowledged. A pending reservation is counted
+      // conservatively; an unknown finalization outcome needs reconciliation.
+      // Rejecting now would permanently lose the one-time plaintext link.
+      this.logger.warn(
+        "Committed staff onboarding quota finalization unconfirmed; investigate reservation state.",
+      );
+    }
   }
 
   private result(
