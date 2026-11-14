@@ -3378,3 +3378,48 @@ The migration owner records the actual additive migration ID, final SQL details
 and test evidence on implementation. Ordinary Check-In and Manual/No Plate do
 not depend on OCR admission/recovery; performance and NOWAIT availability must
 be proven in independent real-load tests.
+
+### Issue #416 — private authenticated Staff reset and attempt accounting (Option A/v9 source)
+
+The following is the **locally committed, dormant** forward-only migration
+source inventory, **not** the installed state of W9, QA or production. The
+original isolated W9 PostgreSQL17 migration113 failed, and its history repair
+remains specifically denied. No private SQL tables, ACLs, functions, or keys
+are claimed to exist in a running database by this section.
+
+| Source migrations | Tables and key invariants | Current authorization status |
+| --- | --- | --- |
+| 113–117 | `auth_proof_private` schema with NOLOGIN/NOINHERIT owner, private proof-key/selection/boundary, challenges, nonsecret receipts and fixed binary codec; schema and default PUBLIC grants restricted | Dormant, no keys provisioned and no runtime VAP1 signer |
+| 120, 124, 128, 131 | `reset_issue_quota_bundles`, four exact reservation entries, immutable domain evidence and source-bound finalization; target 3, issuer 20, Organization 100, trusted address 30 per 15 DB-clock minutes, atomic reservation, replay and conservative PENDING/COUNTED/IGNORED reconciliation | No ordinary runtime DML or generic SQL quota oracle; authentic R02 writer and actual PostgreSQL evidence absent |
+| 125–127, 129–130, 132 | Reset credential and consumed/evidence/issuer/target links, generation identity, canonical verifier hash, account-security audit and reciprocal deferred constraints; migration130 unconditionally denies unproved token consumption | No authentic raw bearer-to-private receipt proof, no protected atomic password/session/refresh/Push writer; redemption remains denied |
+| 133–134 *(independent review pending at writing)* | Separate `reset_redeem_client_attempts` and `reset_redeem_credential_attempts`; audience/request-scoped HMAC digest identity, credential FK to prior committed client attempt, one attempt per full XID, DB-owned time, 15-minute rolling 30/5 serialization, immutable UPDATE/DELETE/TRUNCATE and unconditional unbound INSERT rejection | Source candidate only; no reviewed trusted pre-parser binder, dedicated app/SQL key custody or SQL-only ACL attestation. Not part of operational migration inventory until reviewed integration. |
+
+The two R03 limits are **counted on the attempt**, not on successful password
+change. Malformed-body requests consume the trusted-IP allowance before body
+parsing; valid canonical bearer attempts additionally consume the 5-verifier
+allowance. A failure, password-policy error, invalid token or business rollback
+must not erase an independently committed attempt. A COUNTED-only terminal
+attempt ledger must never offer a discretionary `IGNORED` transition; the
+separate R02 issue limiter keeps its exact PENDING/COUNTED/IGNORED receipt
+reconciliation contract. Future durable writers must use trusted request IDs,
+private HMAC keys, fresh same-session authority and database clock; do not
+store raw IP, password, bearer or MFA evidence in SQL.
+
+**Critical existing grant incompatibility:** the current ordinary runtime
+provisioner intentionally grants `UPDATE(state,group_key_hash)` and `SELECT`
+on **public** `anti_abuse_events`; its source limiter counts only
+`PENDING`/`COUNTED`, allowing a SQL-only runtime principal to discount an R03
+public attempt to `IGNORED`. Current runtime readiness independently requires
+those legacy UPDATE grants; a global REVOKE without a staged compatible
+replacement breaks older Auth/Guest consumers and may be undone by another
+provisioner run. The private R03 attempt ledger must be the *only* accepted
+redemption-rate evidence, with effective PostgreSQL17 ACL denial tested for
+ordinary runtime, PUBLIC, inherited and twice-reprovisioned principals before
+any activation. See `docs/validation/ISSUE416_R03_SQL_QUOTA_P0_EVIDENCE.md`.
+
+No source-only migration or schema statement proves the later requirements:
+true purpose-specific app/PG HMAC parity, backend/full-XID one-use challenge,
+all 35 applicable writer-family privilege closures, simultaneous Staff
+session/refresh/Push revocation and anonymous audit, 21 actual two-connection
+races or L1/L2 controlled cutover. These remain blocked until a separately
+attested and authorized PG17 source/role/test environment exists.
