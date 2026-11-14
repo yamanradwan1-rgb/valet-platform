@@ -67,6 +67,10 @@ test("static PG17 ACL query examines SET ROLE closure and both global/schema def
   assert.equal(state.queries.length, 2);
   assert.match(state.queries[0], /pg_catalog\.aclexplode/);
   assert.match(state.queries[0], /a\.attacl/);
+  assert.match(state.queries[0], /pg_catalog\.acldefault\('c',c\.relowner\)/);
+  assert.match(state.queries[0], /pg_catalog\.array_length\(a\.attacl,1\)/);
+  assert.match(state.queries[0], /pg_catalog\.array_length\(d\.defaclacl,1\)/);
+  assert.doesNotMatch(state.queries[0], /ARRAY\[\]::aclitem\[\]/);
   assert.match(state.queries[0], /d\.defaclnamespace=0/);
   assert.match(state.queries[1], /WITH RECURSIVE reachable/);
   assert.match(state.queries[1], /m\.set_option/);
