@@ -55,6 +55,10 @@ export function staffPublicResetDocument() {
     <p data-copy="done">Your password was changed. Sign in again with your new password.</p>
     <a href="/" class="sign-in" id="reset-sign-in" data-copy="signIn">Sign in</a>
   </div>
+  <div id="reset-unknown" hidden role="status">
+    <p data-copy="unknown">The server did not confirm the result. Try signing in with your new password. If that fails, request a new link from your company administrator.</p>
+    <a href="/" class="sign-in" id="reset-unknown-sign-in" data-copy="signIn">Sign in</a>
+  </div>
 </article>
 </main>
 </body>

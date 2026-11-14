@@ -1,10 +1,12 @@
 "use client";
 
-import type { StaffPasswordResetIssueResponse } from "@valet/contracts";
+import type {
+  StaffPasswordResetIssueRequest,
+  StaffPasswordResetIssueResponse,
+} from "@valet/contracts";
 import { useCallback, useRef, useState } from "react";
 import { FocusDialog } from "../../../components/presentation/focus-dialog";
 import type { DashboardApiClient } from "../../../lib/api/dashboard-api-client";
-import { DashboardApiError } from "../../../lib/api/dashboard-api-error";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
 import { useProtectedDashboard } from "../../../components/foundation/protected-dashboard-context";
 import { administrationScopeKey } from "../administration-scope";
@@ -14,6 +16,7 @@ import { SensitiveMfaDialog } from "../sensitive-mfa-dialog";
 import { useAuthoritativeRead } from "../use-authoritative-read";
 import { useSensitiveMutation } from "../use-sensitive-mutation";
 import { issueStaffPasswordReset, readStaffPasswordResetStatus } from "./staff-password-reset-api";
+import { isStaffResetIssueOutcomeAmbiguous } from "./staff-password-reset-ambiguity";
 import { staffPasswordResetCopy } from "./staff-password-reset-copy";
 
 export function StaffPasswordResetAction(props: {
@@ -30,9 +33,12 @@ export function StaffPasswordResetAction(props: {
   const [open, setOpen] = useState(false);
   const openRef = useRef(false);
   const dialogGeneration = useRef(0);
-  const operationId = useRef<string | null>(null);
+  const attemptRef = useRef<StaffPasswordResetIssueRequest | null>(null);
   const [result, setResult] = useState<StaffPasswordResetIssueResponse | null>(null);
   const [uncertain, setUncertain] = useState(false);
+  const [reconciliation, setReconciliation] = useState<
+    "checking" | "blocked" | "same-operation" | "replacement" | null
+  >(null);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
   const load = useCallback(
     (signal: AbortSignal) =>
@@ -51,10 +57,33 @@ export function StaffPasswordResetAction(props: {
   const mutation = useSensitiveMutation(
     `password-reset:${props.organizationId}:${props.membershipId}`,
     () => {
-      operationId.current = null;
+      attemptRef.current = null;
+      setUncertain(false);
+      setReconciliation(null);
       status.refresh();
     },
   );
+
+  async function reconcileUnknownIssue(command: StaffPasswordResetIssueRequest) {
+    setReconciliation("checking");
+    try {
+      const current = await readStaffPasswordResetStatus(
+        props.api, props.organizationId, props.membershipId,
+      );
+      if (attemptRef.current !== command) return;
+      status.replace(current);
+      if (!current.eligible || current.latestGeneration < command.expectedGeneration) {
+        setReconciliation("blocked");
+      } else if (current.latestGeneration > command.expectedGeneration) {
+        attemptRef.current = null;
+        setReconciliation("replacement");
+      } else {
+        setReconciliation("same-operation");
+      }
+    } catch {
+      if (attemptRef.current === command) setReconciliation("blocked");
+    }
+  }
 
   function close() {
     dialogGeneration.current++;
@@ -62,11 +91,13 @@ export function StaffPasswordResetAction(props: {
     setOpen(false);
     setResult(null);
     setCopyFeedback(null);
-    operationId.current = null;
-    // Closing a POST in progress cannot establish whether it committed.
+    // A closed POST may still commit; retain its exact operation for reconciliation.
     if (mutation.busy) {
       setUncertain(true);
-      status.refresh();
+      setReconciliation("checking");
+    } else if (!uncertain) {
+      attemptRef.current = null;
+      setReconciliation(null);
     }
   }
 
@@ -76,19 +107,22 @@ export function StaffPasswordResetAction(props: {
       mutation.busy ||
       props.reconciling ||
       status.loading ||
+      !!status.error ||
+      reconciliation === "checking" ||
+      reconciliation === "blocked" ||
       !status.data?.eligible
     ) return;
     setResult(null);
     setCopyFeedback(null);
     setUncertain(false);
-    operationId.current ??= crypto.randomUUID();
+    attemptRef.current ??= {
+      operationId: crypto.randomUUID(),
+      expectedGeneration: status.data.latestGeneration,
+    };
     const capturedDialogGeneration = dialogGeneration.current;
     const currentDialog = () =>
       openRef.current && dialogGeneration.current === capturedDialogGeneration;
-    const command = {
-      operationId: operationId.current,
-      expectedGeneration: status.data.latestGeneration,
-    };
+    const command = attemptRef.current;
     void mutation.run(
       async () => {
         try {
@@ -96,27 +130,27 @@ export function StaffPasswordResetAction(props: {
             props.api, props.organizationId, props.membershipId, command,
           );
         } catch (reason) {
-          if (
-            reason instanceof DashboardApiError &&
-            (reason.kind === "network" || reason.kind === "malformed")
-          ) {
-            if (currentDialog()) {
+          if (isStaffResetIssueOutcomeAmbiguous(reason)) {
+            if (attemptRef.current === command) {
               setUncertain(true);
-              operationId.current = null;
+              await reconcileUnknownIssue(command);
             }
-            status.refresh();
+          } else if (!currentDialog() && attemptRef.current === command) {
+            setReconciliation("blocked");
           }
           throw reason;
         }
       },
       (next) => {
         if (!currentDialog()) {
-          status.refresh();
+          setUncertain(true);
+          void reconcileUnknownIssue(command);
           return;
         }
         setResult(next);
         setUncertain(false);
-        operationId.current = null;
+        setReconciliation(null);
+        attemptRef.current = null;
         status.refresh();
       },
     );
@@ -151,7 +185,7 @@ export function StaffPasswordResetAction(props: {
           dialogGeneration.current++;
           setOpen(true);
           setResult(null);
-          setUncertain(false);
+          if (!uncertain) setReconciliation(null);
           setCopyFeedback(null);
           status.refresh();
         }}
@@ -183,14 +217,30 @@ export function StaffPasswordResetAction(props: {
             ) : result?.outcome === "LINK_UNAVAILABLE" ? (
               <p role="status">{t.unavailable}</p>
             ) : null}
-            {uncertain ? <p className={styles.error} role="alert">{t.uncertain}</p> : null}
+            {uncertain ? <p className={styles.error} role="alert">
+              {reconciliation === "checking"
+                ? t.uncertainChecking
+                : reconciliation === "blocked"
+                  ? t.uncertainBlocked
+                  : reconciliation === "same-operation"
+                    ? t.uncertainSame
+                    : t.uncertain}
+            </p> : null}
             {mutation.error && !uncertain ? (
               <p className={styles.error} role="alert">
                 {mutation.error === adminCopy.mfaRetry ? adminCopy.mfaRetry : t.failed}
               </p>
             ) : null}
             {copyFeedback ? <p role="status">{copyFeedback}</p> : null}
-            {status.error ? (
+            {reconciliation === "blocked" ? (
+              <button
+                className={styles.secondary}
+                onClick={() => { if (attemptRef.current) void reconcileUnknownIssue(attemptRef.current); }}
+                type="button"
+              >
+                {t.retry}
+              </button>
+            ) : status.error ? (
               <button className={styles.secondary} onClick={status.refresh} type="button">
                 {t.retry}
               </button>
@@ -198,11 +248,17 @@ export function StaffPasswordResetAction(props: {
             <div className={styles.actions}>
               <button
                 className={styles.primary}
-                disabled={mutation.busy || status.loading || !status.data?.eligible || props.reconciling}
+                disabled={
+                  mutation.busy || status.loading || !!status.error ||
+                  !status.data?.eligible || props.reconciling ||
+                  reconciliation === "checking" || reconciliation === "blocked"
+                }
                 onClick={issue}
                 type="button"
               >
-                {result || uncertain || status.data?.linkState === "ACTIVE"
+                {reconciliation === "same-operation"
+                  ? t.retryOriginal
+                  : result || uncertain || status.data?.linkState === "ACTIVE"
                   ? t.replace
                   : t.confirm}
               </button>

@@ -22,6 +22,10 @@ export const staffPublicResetScript = String.raw`
     catch (_) { /* Keep redemption disabled even if navigation cannot be scrubbed. */ }
     const form = document.getElementById('reset-form');
     const missing = document.getElementById('reset-missing');
+    const password = document.getElementById('reset-password');
+    const confirmation = document.getElementById('reset-confirm');
+    if (password) password.value = '';
+    if (confirmation) confirmation.value = '';
     if (form) form.hidden = true;
     if (missing) missing.hidden = false;
   });
@@ -34,6 +38,7 @@ export const staffPublicResetScript = String.raw`
       missing: 'This link is invalid or unavailable. Request a new link from your company administrator.',
       mismatch: 'Passwords do not match.', invalid: 'Choose a password of 15–128 characters without line breaks.',
       failed: 'The link could not be used. Request a fresh link if it expired or has already been used.',
+      unknown: 'The server did not confirm the result. Try signing in with your new password. If that fails, request a new link from your company administrator.',
       limited: 'Too many attempts. Please try again later.', busy: 'Resetting password…',
       done: 'Your password was changed. Sign in again with your new password.',
       signIn: 'Sign in', dark: 'Dark mode', light: 'Light mode'
@@ -45,6 +50,7 @@ export const staffPublicResetScript = String.raw`
       missing: 'هذا الرابط غير صالح أو غير متاح. اطلب رابطاً جديداً من مدير شركتك.',
       mismatch: 'كلمتا المرور غير متطابقتين.', invalid: 'اختر كلمة مرور بين ١٥ و١٢٨ حرفاً دون فواصل أسطر.',
       failed: 'تعذر استخدام الرابط. اطلب رابطاً جديداً إذا انتهت صلاحيته أو استُخدم سابقاً.',
+      unknown: 'لم يؤكد الخادم نتيجة الطلب. حاول تسجيل الدخول بكلمة المرور الجديدة. إذا لم تنجح، اطلب رابطاً جديداً من مدير شركتك.',
       limited: 'محاولات كثيرة. حاول مرة أخرى لاحقاً.', busy: 'جارٍ تغيير كلمة المرور…',
       done: 'تم تغيير كلمة المرور. سجّل الدخول مجدداً بكلمة المرور الجديدة.',
       signIn: 'تسجيل الدخول', dark: 'الوضع الداكن', light: 'الوضع الفاتح'
@@ -55,6 +61,7 @@ export const staffPublicResetScript = String.raw`
     const form = document.getElementById('reset-form');
     const missing = document.getElementById('reset-missing');
     const complete = document.getElementById('reset-complete');
+    const unknown = document.getElementById('reset-unknown');
     const feedback = document.getElementById('reset-feedback');
     const password = document.getElementById('reset-password');
     const confirmation = document.getElementById('reset-confirm');
@@ -66,6 +73,7 @@ export const staffPublicResetScript = String.raw`
     let busy = false;
     let retryUntil = 0;
     let completed = false;
+    let unresolved = false;
 
     function translate() {
       const t = translations[locale];
@@ -85,9 +93,21 @@ export const staffPublicResetScript = String.raw`
     }
 
     function showState() {
-      form.hidden = !resetToken || completed;
-      missing.hidden = Boolean(resetToken) || completed;
+      form.hidden = !resetToken || completed || unresolved;
+      missing.hidden = Boolean(resetToken) || completed || unresolved;
       complete.hidden = !completed;
+      unknown.hidden = !unresolved;
+    }
+
+    function showUnknownResult() {
+      // The server may have committed before its response was lost.
+      resetToken = null;
+      unresolved = true;
+      password.value = '';
+      confirmation.value = '';
+      message('');
+      showState();
+      document.getElementById('reset-unknown-sign-in').focus();
     }
 
     language.addEventListener('click', function () {
@@ -135,17 +155,21 @@ export const staffPublicResetScript = String.raw`
             document.getElementById('reset-sign-in').focus();
             return;
           }
+          showUnknownResult();
+          return;
         }
         if (response.status === 429) {
           const seconds = Number(response.headers.get('Retry-After'));
           retryUntil = Date.now() + 1000 * (Number.isFinite(seconds) && seconds > 0 ? Math.min(900, seconds) : 60);
           message(t.limited);
+        } else if (response.status === 408 || response.status >= 500) {
+          showUnknownResult();
         } else {
           message(t.failed);
         }
       } catch (_) {
         // A lost response must never trigger an automatic second redemption.
-        message(t.failed);
+        showUnknownResult();
       } finally {
         busy = false;
         submit.disabled = completed;

@@ -178,7 +178,7 @@ test("an unknown issuance result reconciles status and needs explicit new operat
   await page.getByRole("button", { name: "Reset password" }).click();
   const modal = page.getByRole("dialog", { name: "Reset employee password" });
   await modal.getByRole("button", { name: "Generate a password reset link" }).click();
-  await expect(modal.getByText(/request outcome is unknown/)).toBeVisible();
+  await expect(modal.getByText(/request may have committed/)).toBeVisible();
   await expect(modal.getByRole("button", { name: "Copy link" })).toHaveCount(0);
   expect(commands).toHaveLength(1);
   await modal.getByRole("button", { name: "Generate a replacement link" }).click();

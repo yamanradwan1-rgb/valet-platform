@@ -104,3 +104,46 @@ test("public reset requires explicit retry after a denied or uncertain response"
   await expect(page.locator("#reset-complete")).toBeVisible();
   expect(count).toBe(2);
 });
+
+test("hashchange clears both password inputs and invalidates a valid token", async ({ page }) => {
+  let posts = 0;
+  await page.route("**/v1/staff/auth/password-resets/redeem", async (route) => {
+    posts++;
+    await route.abort();
+  });
+  await page.goto(`${path}#reset=${token}`);
+  await page.locator("#reset-password").fill(password);
+  await page.locator("#reset-confirm").fill(password);
+  await page.evaluate(() => { location.hash = "#new-fragment"; });
+  await expect.poll(() => new URL(page.url()).hash).toBe("");
+  await expect(page.locator("#reset-form")).toBeHidden();
+  await expect(page.locator("#reset-password")).toHaveValue("");
+  await expect(page.locator("#reset-confirm")).toHaveValue("");
+  expect(posts).toBe(0);
+});
+
+for (const responseStatus of [500, 408]) {
+  test(`public redeem HTTP ${responseStatus} leaves outcome unknown and requires manual sign-in`, async ({ page }) => {
+    let posts = 0;
+    await page.route("**/v1/staff/auth/password-resets/redeem", async (route) => {
+      posts++;
+      await route.fulfill({ status: responseStatus, json: {
+        code: "STAFF_PASSWORD_RESET_UNAVAILABLE", message: "Synthetic reply", requestId: "test",
+      } });
+    });
+    await page.goto(`${path}#reset=${token}`);
+    await page.locator("#reset-password").fill(password);
+    await page.locator("#reset-confirm").fill(password);
+    await page.locator("#reset-submit").click();
+    await expect(page.locator("#reset-unknown")).toContainText(
+      "The server did not confirm the result. Try signing in with your new password.",
+    );
+    await expect(page.locator("#reset-complete")).toBeHidden();
+    await expect(page.locator("#reset-form")).toBeHidden();
+    await expect(page.locator("#reset-password")).toHaveValue("");
+    await expect(page.locator("#reset-confirm")).toHaveValue("");
+    await expect(page.locator("#reset-unknown-sign-in")).toBeFocused();
+    expect(posts).toBe(1);
+    await expect(page.locator("#reset-unknown").getByRole("link", { name: "Sign in" })).toBeVisible();
+  });
+}
