@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readdirSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { test } from "node:test";
 import { fileURLToPath, URL } from "node:url";
 
@@ -23,6 +23,22 @@ import {
   assertReviewedMigrationSet,
 } from "./race-migration-pins.mjs";
 
+test("LF canonical Git blob and CRLF checkout accept only identical SQL bytes", () => {
+  const name = "20261113013500_issue416_r03_public_legacy_scope_deny";
+  const checkedOut = readFileSync(
+    new URL("../prisma/migrations/" + name + "/migration.sql", import.meta.url),
+  );
+  const lf = Buffer.from(checkedOut.toString("utf8").replace(/\r\n/g, "\n"));
+  const crlf = Buffer.from(lf.toString("utf8").replace(/\n/g, "\r\n"));
+  assert.equal(assertPinnedMigrationBytes(name, lf), true);
+  assert.equal(assertPinnedMigrationBytes(name, crlf), true);
+  const mixed = Buffer.from(crlf.toString("utf8").replace("\r\n", "\n"));
+  assert.throws(() => assertPinnedMigrationBytes(name, mixed), /CHECKSUM_CHANGED/);
+  const loneCr = Buffer.concat([lf, Buffer.from([13])]);
+  assert.throws(() => assertPinnedMigrationBytes(name, loneCr), /CHECKSUM_CHANGED/);
+  const changed = Buffer.from(lf.toString("utf8").replace("scope", "scoPe"));
+  assert.throws(() => assertPinnedMigrationBytes(name, changed), /CHECKSUM_CHANGED/);
+});
 test("migration list matches reviewed source directories, never performs DDL", () => {
   const dir = fileURLToPath(new URL("../prisma/migrations/", import.meta.url));
   const current = readdirSync(dir).filter((item) =>
