@@ -45,6 +45,7 @@ function fixture({ legacy = true, missing = false, privileges = {} } = {}) {
           rowCount: 1,
           rows: [
             {
+              public_schema_usage: legacy,
               table_sel: legacy,
               state_upd: legacy,
               group_upd: legacy,
@@ -111,6 +112,7 @@ test("real SQL observer distinguishes legacy Staff Auth/Guest from denied DRAINE
 
 test("adversarial partial grants cannot pass Staff Auth or Guest SQL requirements", async () => {
   const staffRequired = [
+    "public_schema_usage",
     "table_sel",
     "scope_ins",
     "key_ins",
@@ -118,6 +120,7 @@ test("adversarial partial grants cannot pass Staff Auth or Guest SQL requirement
     "state_upd",
   ];
   const guestRequired = [
+    "public_schema_usage",
     "table_sel",
     "scope_ins",
     "key_ins",
@@ -172,6 +175,18 @@ test("the previously reproduced partial-grant pattern is rejected", async () => 
   assert.equal(report.legacyStaffAuthSqlAclPresent, false);
   assert.equal(report.legacyGuestClassifiedSqlAclPresent, false);
   assert.equal(report.legacyRuntimeReadinessSqlAclPresent, false);
+});
+
+test("schema USAGE removal denies all legacy SQL ACL footprints despite table grants", async () => {
+  const { client } = fixture({ privileges: { public_schema_usage: false } });
+  const report = await inspectEffectivePg17Privileges(client, "schema_denied");
+  assert.equal(report.effective.table_sel, true);
+  assert.equal(report.effective.scope_ins, true);
+  assert.equal(report.effective.state_upd, true);
+  assert.equal(report.legacyStaffAuthSqlAclPresent, false);
+  assert.equal(report.legacyGuestClassifiedSqlAclPresent, false);
+  assert.equal(report.legacyRuntimeReadinessSqlAclPresent, false);
+  assert.equal(report.mountedFunctionalityVerified, false);
 });
 
 test("NULL catalog privilege cannot be misrepresented as safe", async () => {

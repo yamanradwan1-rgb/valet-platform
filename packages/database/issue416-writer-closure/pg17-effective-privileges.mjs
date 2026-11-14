@@ -31,6 +31,7 @@ export async function inspectEffectivePg17Privileges(client, role) {
   const effective = await one(
     client,
     "SELECT " +
+      "pg_catalog.has_schema_privilege($1,'public','USAGE') AS public_schema_usage, " +
       "pg_catalog.has_table_privilege($1,'public.anti_abuse_events','SELECT') AS table_sel, " +
       "pg_catalog.has_column_privilege($1,'public.anti_abuse_events','state','UPDATE') AS state_upd, " +
       "pg_catalog.has_column_privilege($1,'public.anti_abuse_events','group_key_hash','UPDATE') AS group_upd, " +
@@ -106,6 +107,7 @@ export async function inspectEffectivePg17Privileges(client, role) {
     // Staff reserve/count/finalize and Guest classified reserve/read/group
     // binding each require their exact SQL privilege footprint.
     legacyStaffAuthSqlAclPresent: [
+      effective.public_schema_usage,
       effective.table_sel,
       effective.scope_ins,
       effective.key_ins,
@@ -113,6 +115,7 @@ export async function inspectEffectivePg17Privileges(client, role) {
       effective.state_upd,
     ].every((right) => right === true),
     legacyGuestClassifiedSqlAclPresent: [
+      effective.public_schema_usage,
       effective.table_sel,
       effective.scope_ins,
       effective.key_ins,
@@ -123,6 +126,7 @@ export async function inspectEffectivePg17Privileges(client, role) {
       effective.state_upd,
     ].every((right) => right === true),
     legacyRuntimeReadinessSqlAclPresent: [
+      effective.public_schema_usage,
       effective.table_sel,
       effective.scope_ins,
       effective.key_ins,

@@ -1,7 +1,14 @@
 import assert from "node:assert/strict";
+import { Buffer } from "node:buffer";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { assertPinnedMigrationBytes } from "./race-migration-pins.mjs";
+import { URL } from "node:url";
+import {
+  approvedMigrationChecksums,
+  assertPinnedMigrationBytes,
+  PINNED_MIGRATION_SHA256,
+} from "./race-migration-pins.mjs";
 
 const migrationName = "20261113016000_issue416_a01_original_challenge_lineage";
 const bytes = readFileSync(
@@ -38,6 +45,27 @@ test("pinned SQL rejects modified content in both newline representations", () =
           Buffer.concat([candidate, Buffer.from("-- unauthorized change\n")]),
         ),
       /ISSUE416_RACE_SOURCE_MIGRATION_CHECKSUM_CHANGED/,
+    );
+  }
+});
+
+test("Prisma ledger allows exactly pinned LF and CRLF bytes for every reviewed migration", () => {
+  const digest = (bytes) => createHash("sha256").update(bytes).digest("hex");
+  for (const [name, pinned] of Object.entries(PINNED_MIGRATION_SHA256)) {
+    const source = readFileSync(
+      new URL(`../prisma/migrations/${name}/migration.sql`, import.meta.url),
+    );
+    const linuxLf = Buffer.from(source.toString("utf8").replace(/\r\n/g, "\n"));
+    const windowsCrlf = Buffer.from(
+      linuxLf.toString("utf8").replace(/\n/g, "\r\n"),
+    );
+    const accepted = approvedMigrationChecksums(name);
+    assert.equal(accepted.length, 2, name);
+    assert.equal(accepted[0], pinned, name);
+    assert.deepEqual(
+      new Set(accepted),
+      new Set([digest(linuxLf), digest(windowsCrlf)]),
+      name,
     );
   }
 });

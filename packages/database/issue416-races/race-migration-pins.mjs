@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { Buffer } from "node:buffer";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath, URL } from "node:url";
@@ -140,10 +141,23 @@ export function approvedMigrationChecksums(name) {
     if (bytes[i] === 13 && bytes[i + 1] === 10) continue;
     canonicalLf.push(bytes[i]);
   }
-  return Object.freeze([
-    PINNED_MIGRATION_SHA256[name],
-    createHash("sha256").update(Buffer.from(canonicalLf)).digest("hex"),
-  ]);
+  const lf = Buffer.from(canonicalLf);
+  const crlfCount = canonicalLf.reduce(
+    (count, byte) => count + (byte === 10 ? 1 : 0),
+    0,
+  );
+  const crlf = Buffer.alloc(lf.length + crlfCount);
+  for (let i = 0, offset = 0; i < lf.length; i += 1) {
+    if (lf[i] === 10) crlf[offset++] = 13;
+    crlf[offset++] = lf[i];
+  }
+  const lfHash = createHash("sha256").update(lf).digest("hex");
+  const crlfHash = createHash("sha256").update(crlf).digest("hex");
+  const pinned = PINNED_MIGRATION_SHA256[name];
+  if (pinned !== lfHash && pinned !== crlfHash) {
+    throw new Error("ISSUE416_RACE_SOURCE_MIGRATION_CHECKSUM_CHANGED");
+  }
+  return Object.freeze([pinned, pinned === lfHash ? crlfHash : lfHash]);
 }
 export function assertReviewedMigrationSet(names) {
   if (!Array.isArray(names) || names.some((name) => typeof name !== "string")) {
