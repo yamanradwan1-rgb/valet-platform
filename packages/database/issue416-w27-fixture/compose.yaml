@@ -10,7 +10,8 @@ services:
       vaylet.disposable: "true"
     environment:
       POSTGRES_USER: issue416_w27_owner
-      POSTGRES_PASSWORD: fixture_w27_owner_synthetic
+      # Mandatory per-run synthetic test credential; never ship a default.
+      POSTGRES_PASSWORD: ${ISSUE416_W27_POSTGRES_OWNER_PASSWORD:?required for disposable fixture}
       POSTGRES_DB: issue416_w27_db
     ports:
       - "127.0.0.1:55527:5432"
