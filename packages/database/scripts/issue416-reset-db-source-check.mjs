@@ -11,6 +11,7 @@ const migrations = [
   "20261113012700_issue416_reset_credential_receipt_binding",
   "20261113012800_issue416_reset_private_reservation_abi",
   "20261113012900_issue416_a01_limiter_fingerprint",
+  "20261113013000_issue416_reset_commit_integrity",
 ];
 
 function migration(name) {
@@ -87,7 +88,10 @@ test("R02 private ID ABI cannot accept the legacy public binding row", () => {
 test("A01 binding fingerprint is required but cannot mint signing authority", () => {
   const sql = migration(migrations[4]);
   assert.match(sql, /ALTER TABLE auth_proof_private\.limiter_bindings/);
-  assert.match(sql, /ADD COLUMN request_fingerprint bytea NOT NULL/);
+  assert.match(sql, /ADD COLUMN request_fingerprint bytea\s+CHECK/);
+  assert.match(sql, /NEW\.request_fingerprint IS NULL/);
+  assert.match(sql, /OLD\.request_fingerprint IS NULL/);
+  assert.match(sql, /NEW\.request_fingerprint IS DISTINCT FROM OLD\.request_fingerprint/);
   assert.match(sql, /octet_length\(request_fingerprint\) = 32/);
-  assert.doesNotMatch(sql, /CREATE FUNCTION|INSERT INTO|SECURITY DEFINER/i);
+  assert.doesNotMatch(sql, /INSERT INTO|SECURITY DEFINER/i);
 });
