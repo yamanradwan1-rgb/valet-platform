@@ -16,7 +16,12 @@ export function assertW26Fixture(args, inspected, inherited = {}) {
   }
   if (
     !/^[a-z_][a-z0-9_]{0,62}$/.test(args?.role ?? "") ||
-    !/^issue416_w26_(?:db|acl_corrected)$/.test(args?.database ?? "") ||
+    !/^issue416_w26_(?:db|acl_corrected|c3replay_20261114)$/.test(
+      args?.database ?? "",
+    ) ||
+    (args?.database === "issue416_w26_c3replay_20261114"
+      ? args?.role !== "issue416_w26_c3run_20261114"
+      : args?.role !== "issue416_w26_runtime") ||
     args?.container !== "vaylet-issue416-w26-20261114-pg17" ||
     !/^[a-f0-9]{64}$/.test(args?.containerId ?? "")
   ) {

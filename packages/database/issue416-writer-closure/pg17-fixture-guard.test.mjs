@@ -153,3 +153,24 @@ test("read-only mode requires canonical PG role and no ambiguous endpoint", () =
     assert.throws(() => assertW26Fixture({ ...config, ...candidate }, docker));
   }
 });
+
+test("new c3replay scratch is independent of previous failed and corrected roles", () => {
+  const fresh = {
+    ...config,
+    database: "issue416_w26_c3replay_20261114",
+    role: "issue416_w26_c3run_20261114",
+    url: config.url.replace(
+      "/issue416_w26_db",
+      "/issue416_w26_c3replay_20261114",
+    ),
+  };
+  assert.equal(assertW26Fixture(fresh, docker).runtimeRole, fresh.role);
+  assert.throws(
+    () => assertW26Fixture({ ...fresh, role: "issue416_w26_runtime" }, docker),
+    /FIXTURE_IDENTITY_REQUIRED/,
+  );
+  assert.throws(
+    () => assertW26Fixture({ ...fresh, database: "issue416_w26_db" }, docker),
+    /FIXTURE_IDENTITY_REQUIRED/,
+  );
+});

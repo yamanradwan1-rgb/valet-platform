@@ -12,7 +12,9 @@ import {
 const reviewedPrime = resolve(
   process.env.ISSUE416_W26_REVIEWED_PRIME_ROOT ?? "",
 );
-const requiredSha = "d8a470d26b6d37e1e100c7083b12c29be9eaaaf6";
+// The initial 131-file PG17 migration source was reviewed at this exact SHA.
+// Prime may move independently: reject any migration/schema content change.
+const reviewedSqlSha = "d8a470d26b6d37e1e100c7083b12c29be9eaaaf6";
 function git(...args) {
   return execFileSync("git", ["-C", reviewedPrime, ...args], {
     encoding: "utf8",
@@ -39,8 +41,15 @@ if (process.env.MIGRATION_DATABASE_URL !== owned.url) {
 }
 if (
   !process.env.ISSUE416_W26_REVIEWED_PRIME_ROOT ||
-  git("rev-parse", "HEAD") !== requiredSha ||
-  git("status", "--porcelain", "--", "packages/database/prisma") !== ""
+  git("status", "--porcelain", "--", "packages/database/prisma") !== "" ||
+  git(
+    "diff",
+    "--name-only",
+    reviewedSqlSha,
+    "HEAD",
+    "--",
+    "packages/database/prisma",
+  ) !== ""
 ) {
   throw new Error("W26_PG17_REVIEWED_PRIME_SOURCE_PIN_REQUIRED");
 }

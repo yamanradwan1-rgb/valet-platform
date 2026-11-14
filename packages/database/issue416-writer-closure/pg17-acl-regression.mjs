@@ -9,6 +9,11 @@ import process from "node:process";
 import { loadCatalog } from "./catalog.mjs";
 import { inspectLegacySignatures } from "./legacy-signatures.mjs";
 import { observeFamilyPublicSqlAuthority } from "./sql-family-authority.mjs";
+import { inspectEffectivePg17Privileges } from "./pg17-effective-privileges.mjs";
+import {
+  acquireExclusiveOwnedLease,
+  releaseExclusiveOwnedLease,
+} from "./pg17-exclusive-lease.mjs";
 import {
   assertW26Fixture,
   inspectW26Container,
@@ -146,11 +151,17 @@ export async function runOwnedPg17Fixture(config, inspected, clientFactory) {
     throw new Error("W26_PG17_SOURCE_INVENTORY_DRIFT");
   const client = clientFactory(config.url);
   await client.connect();
+  let lease = false;
   try {
     const actor = await verifyFixtureDb(client, config);
     if (actor !== config.actor) throw new Error("W26_PG17_UNEXPECTED_OPERATOR");
+    lease = await acquireExclusiveOwnedLease(client);
     const phase = await getBoundary(client);
     const before = await snapshot(client, config.role, legacy.signatures);
+    const beforeEffective = await inspectEffectivePg17Privileges(
+      client,
+      config.role,
+    );
     const publicFamilyAuthority = await observeFamilyPublicSqlAuthority(
       client,
       config.role,
@@ -166,6 +177,7 @@ export async function runOwnedPg17Fixture(config, inspected, clientFactory) {
         phase,
         legacyGuardRepetitions: 2,
         before,
+        beforeEffective,
         publicFamilyAuthority,
         pg17CutoverExecuted: false,
       };
@@ -184,15 +196,25 @@ export async function runOwnedPg17Fixture(config, inspected, clientFactory) {
       assert.equal(result.proofWritersReady, false);
       await assertAntiAbuseAclRetired(client);
       const now = await snapshot(client, config.role, legacy.signatures);
+      const afterEffective = await inspectEffectivePg17Privileges(
+        client,
+        config.role,
+      );
       assert.equal(now.antiAbuse.state_update, false);
       assert.equal(now.antiAbuse.group_update, false);
       assert.equal(now.antiAbuse.insert_any, false);
       assert.equal(now.legacyCallable, 0);
+      assert.equal(afterEffective.publicAcl.table_writes, 0);
+      assert.equal(afterEffective.publicAcl.column_writes, 0);
+      assert.equal(afterEffective.ordinary.login_writers, 0);
+      assert.equal(afterEffective.membership.outward, 0);
+      assert.equal(afterEffective.membership.inbound, 0);
       const sqlState = await sqlOnlyDiscountDenied(client, config.role);
       runs.push({
         index: iteration + 1,
         restricted: true,
         sqlOnlyDiscountSqlState: sqlState,
+        afterEffective,
         snapshot: now,
       });
     }
@@ -205,11 +227,15 @@ export async function runOwnedPg17Fixture(config, inspected, clientFactory) {
       legacyGuardRepetitions: 2,
       provisionerRuns: runs,
       before,
+      beforeEffective,
       publicFamilyAuthority,
       pg17CutoverExecuted: true,
       proofWritersReady: false,
     };
   } finally {
+    if (lease) {
+      await releaseExclusiveOwnedLease(client).catch(() => undefined);
+    }
     await client.end();
   }
 }
