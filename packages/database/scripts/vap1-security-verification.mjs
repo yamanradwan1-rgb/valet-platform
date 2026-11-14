@@ -3,6 +3,7 @@ import {
   vap1LegacyFunctionSignatures,
   vap1ProtectedTables,
 } from "./vap1-security-privileges.mjs";
+import { assertAntiAbuseAclRetired } from "./vap1-anti-abuse-closure.mjs";
 
 async function count(client, sql, params) {
   const result = await client.query(sql, params);
@@ -153,8 +154,13 @@ export async function verifyVap1PrivateIsolation(client, runtimeRole) {
       }
     }
   }
+  const antiAbuse =
+    currentPhase === "PROTECTED" || currentPhase === "DRAINED"
+      ? await assertAntiAbuseAclRetired(client)
+      : {};
   return {
     phase: currentPhase,
     checkedLegacyFunctions: vap1LegacyFunctionSignatures.length,
+    ...antiAbuse,
   };
 }

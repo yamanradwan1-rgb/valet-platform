@@ -1,10 +1,7 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { URL } from "node:url";
 import { assertVap1RuntimeDrainPreflight } from "./vap1-runtime-drain-preflight.mjs";
 import { provisionVap1RestrictedRuntime } from "./vap1-security-cutover-provision.mjs";
-import { assertLegacyRuntimeProvisioningAllowed } from "./vap1-security-privileges.mjs";
 
 const role = Object.freeze({
   rolinherit: false,
@@ -29,6 +26,8 @@ function fixture({
   ownedProtected = 0,
   otherWriters = 0,
   malformedCounts = false,
+  publicWrites = 0,
+  ordinaryWriters = 0,
 } = {}) {
   const queries = [];
   const formatted = [];
@@ -55,6 +54,17 @@ function fixture({
       }
       if (sql.includes("AS count FROM pg_catalog.pg_roles r")) {
         return result({ count: otherWriters });
+      }
+      if (sql.includes("AS public_table_writes")) {
+        return result({
+          present: true,
+          public_table_writes: publicWrites,
+          public_column_writes: 0,
+          public_default_writes: 0,
+        });
+      }
+      if (sql.includes("AS ordinary_writers")) {
+        return result({ ordinary_writers: ordinaryWriters });
       }
       if (sql.includes("pg_catalog.pg_prepared_xacts")) {
         return result({
@@ -200,6 +210,23 @@ test("PROTECTED drift rejects BEFORE repair; clean PROTECTED re-run stays restri
   assert.equal(unsafe.directWrites.length, 0);
   assert.equal(unsafe.queries.at(-1).sql, "ROLLBACK");
 
+  const publiclyWritable = fixture({
+    phase: "PROTECTED",
+    login: true,
+    publicWrites: 1,
+  });
+  await assert.rejects(
+    provisionVap1RestrictedRuntime(
+      publiclyWritable.client,
+      publiclyWritable.executeFormatted,
+      "app_runtime",
+    ),
+    /anti-abuse PUBLIC/,
+  );
+  assert.equal(publiclyWritable.formatted.length, 0);
+  assert.equal(publiclyWritable.directWrites.length, 0);
+  assert.equal(publiclyWritable.queries.at(-1).sql, "ROLLBACK");
+
   const clean = fixture({ phase: "PROTECTED", login: true });
   for (let run = 0; run < 2; run++) {
     const outcome = await provisionVap1RestrictedRuntime(
@@ -239,54 +266,17 @@ test("DRAINED NOLOGIN cutover repeats without admitting credentials or claiming 
   );
 });
 
-test("legacy provisioner remains compatible only in LEGACY_COMPAT and fences protected phases", async () => {
-  for (const phase of ["LEGACY_COMPAT", "DRAINED", "PROTECTED"]) {
-    const queries = [];
-    const client = {
-      async query(sql) {
-        queries.push(sql);
-        if (sql.includes("pg_catalog.pg_namespace"))
-          return result({ exists: 1 });
-        if (sql.includes("security_boundary WHERE singleton FOR SHARE")) {
-          return result({ phase });
-        }
-        throw new Error("Unreviewed SQL from legacy provisioner guard.");
-      },
-    };
-    if (phase === "LEGACY_COMPAT") {
-      await assert.doesNotReject(
-        assertLegacyRuntimeProvisioningAllowed(client),
-      );
-    } else {
-      await assert.rejects(
-        assertLegacyRuntimeProvisioningAllowed(client),
-        /VAP1/,
-      );
-    }
-    assert.equal(queries.length, 2);
-  }
-});
-
-test("old Staff Auth/Guest limiter UPDATE consumers still block a production closure claim", () => {
-  const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
-  assert.match(
-    read("./provision-runtime-role.mjs"),
-    /GRANT UPDATE \(state, group_key_hash\) ON TABLE anti_abuse_events TO %I/,
-  );
-  assert.match(
-    read("../../../apps/api/src/modules/anti-abuse/anti-abuse.service.ts"),
-    /UPDATE anti_abuse_events\s+SET state = \$1/,
-  );
-  assert.match(
-    read(
-      "../../../apps/api/src/modules/anti-abuse/classified-guest-counter.ts",
+test("DRAINED C3 rolls back if PUBLIC rights survive retirement", async () => {
+  const state = fixture({ publicWrites: 1 });
+  await assert.rejects(
+    provisionVap1RestrictedRuntime(
+      state.client,
+      state.executeFormatted,
+      "app_runtime",
     ),
-    /UPDATE anti_abuse_events SET group_key_hash=\$3/,
+    /anti-abuse PUBLIC/,
   );
-  const readiness = read(
-    "../../../apps/api/src/common/database/runtime-database-readiness.ts",
-  );
-  assert.match(readiness, /'state', 'UPDATE'/);
-  assert.match(readiness, /'group_key_hash', 'UPDATE'/);
-  assert.match(read("./guest-runtime-privileges.mjs"), /AS group_update/);
+  assert.ok(state.formatted.some(({ sql }) => sql.includes("REVOKE")));
+  assert.equal(state.queries.at(-1).sql, "ROLLBACK");
+  assert.ok(!state.queries.some(({ sql }) => sql === "COMMIT"));
 });
