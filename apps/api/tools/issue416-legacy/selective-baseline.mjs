@@ -11,6 +11,10 @@ const LEGACY_NONADMITTABLE = new Set([
   "SESSION", "REFRESH", "PUSH_REGISTRATION",
 ]);
 
+export function isLegacyNonadmittableKind(kind) {
+  return LEGACY_NONADMITTABLE.has(kind);
+}
+
 function snapshotRow(row) {
   const id = admissionKeyId(row?.key);
   if (!SHA256_RE.test(row?.materialDigest ?? "")) {
@@ -50,7 +54,7 @@ export function buildSelectiveBaseline(snapshot, signedCases, trustedKeys, nowMs
     if (!row || !sameAdmissionKey(row.key, proof.key)) {
       throw new Error("L1_CASE_OBJECT_ABSENT");
     }
-    if (LEGACY_NONADMITTABLE.has(row.key.kind)) {
+    if (isLegacyNonadmittableKind(row.key.kind)) {
       throw new Error("L1_LEGACY_AUTHORITY_ADMIT_FORBIDDEN");
     }
     if (approved.has(id)) throw new Error("L1_DUPLICATE_CASE_OBJECT");

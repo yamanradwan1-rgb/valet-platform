@@ -7,7 +7,8 @@ import {
   reconcileOlderBackup, REQUIRED_MONOTONE_DIMENSIONS,
 } from "../older-backup-fence.mjs";
 import { DIGEST, KEY, NOW, TRUST, fixtureCase } from "./synthetic-fixture.mjs";
-import { admissionKeyId } from "../typed-admission-key.mjs";
+import { admissionKey, admissionKeyId } from "../typed-admission-key.mjs";
+import { USER } from "./synthetic-fixture.mjs";
 
 const current = { key: KEY, disposition: "ADMIT", admissionVersion: 3,
   materialDigest: DIGEST };
@@ -86,6 +87,30 @@ test("RETIRE is terminal; later ADMIT needs an independent new case", () => {
   });
   assert.equal(admission.to, "ADMIT");
   assert.equal(admission.status, "OFFLINE_REVIEW_PLAN_NOT_AUTHORIZATION");
+});
+
+test("signed HOLD to ADMIT cannot revive pre-T0 session, refresh or push authority", () => {
+  for (const kind of ["SESSION", "REFRESH", "PUSH_REGISTRATION"]) {
+    const key = admissionKey({ audience: KEY.audience, kind, ids: [USER] });
+    const candidate = { ...current, key, disposition: "HOLD" };
+    const proof = caseFor("HOLD", "ADMIT", { key });
+    const checkpoint = ledger("ADMIT", {
+      keyId: admissionKeyId(key), priorDispositionsVerified: true,
+    });
+    assert.throws(() => planControlledTransition({
+      current: candidate, envelope: proof, trustedKeys: TRUST,
+      checkpoint, nowMs: NOW,
+    }), /L1_LEGACY_AUTHORITY_ADMIT_FORBIDDEN/, kind);
+    const denyPlan = planControlledTransition({
+      current: { ...candidate, disposition: "ADMIT" },
+      envelope: caseFor("ADMIT", "HOLD", { key }),
+      trustedKeys: TRUST, checkpoint: ledger("HOLD", {
+        keyId: admissionKeyId(key),
+      }), nowMs: NOW,
+    });
+    assert.equal(denyPlan.to, "HOLD", kind);
+    assert.equal(denyPlan.status, "OFFLINE_REVIEW_PLAN_NOT_AUTHORIZATION");
+  }
 });
 
 test("the real recovery execution API always refuses", () => {

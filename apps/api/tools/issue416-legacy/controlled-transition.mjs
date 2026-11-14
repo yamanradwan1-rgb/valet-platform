@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { admissionKeyId, sameAdmissionKey } from "./typed-admission-key.mjs";
+import { isLegacyNonadmittableKind } from "./selective-baseline.mjs";
 import { verifyRecoveryCase } from "./verified-recovery-case.mjs";
 
 function currentRow(row) {
@@ -47,6 +48,12 @@ export function planControlledTransition({
   }
   if (current.disposition === "RETIRE" || proof.from === proof.to) {
     throw new Error("L1_TERMINAL_ADMISSION");
+  }
+  // A case signature and a caller-supplied checkpoint do not establish
+  // fresh post-T0 lineage. Never rehabilitate legacy session/refresh/push
+  // authority through this generic offline planner.
+  if (proof.to === "ADMIT" && isLegacyNonadmittableKind(current.key.kind)) {
+    throw new Error("L1_LEGACY_AUTHORITY_ADMIT_FORBIDDEN");
   }
   checkCheckpoint(current, proof, checkpoint);
   const opDigest = createHash("sha256").update(JSON.stringify({
