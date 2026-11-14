@@ -1,5 +1,7 @@
 import type { PostgresTransaction } from "../../common/database/postgres";
 import type { StaffSessionContext } from "../auth/staff-session-context";
+import { localMfaBypassEnabled } from "../auth/mfa/local-mfa-bypass";
+import { Issue416ResetUnavailableError } from "../auth/issue416-password-reset-errors";
 import {
   authorizeCompanyAdminManagement,
   ManagementAccessDeniedError,
@@ -15,12 +17,13 @@ export async function preflightPasswordResetTarget(
   context: StaffSessionContext,
   organizationId: string,
   membershipId: string,
-  sensitive: boolean,
 ): Promise<string> {
+  // The ordinary local-dev MFA bypass is never a reset ceremony.
+  if (localMfaBypassEnabled()) throw new Issue416ResetUnavailableError();
   await authorizeCompanyAdminManagement(transaction, context, {
     organizationId,
     capability: "STAFF_MANAGE_ELIGIBLE",
-    assurance: sensitive ? "SENSITIVE" : "STANDARD",
+    assurance: "SENSITIVE",
   });
   const candidate = await transaction.query<{ readonly targetUserId: string }>(
     `SELECT target.user_id::text AS "targetUserId"

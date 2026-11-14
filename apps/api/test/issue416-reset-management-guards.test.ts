@@ -44,7 +44,6 @@ describe("Issue416 protected reset preflight", () => {
       context,
       organizationId,
       membershipId,
-      true,
     );
     expect(result).toBe(targetUserId);
     expect(authorizeCompanyAdminManagement).toHaveBeenCalledWith(
@@ -83,7 +82,6 @@ describe("Issue416 protected reset preflight", () => {
         context,
         organizationId,
         membershipId,
-        false,
       ),
     ).rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
     expect(authorizeCompanyAdminManagement).toHaveBeenLastCalledWith(
@@ -92,7 +90,7 @@ describe("Issue416 protected reset preflight", () => {
       {
         organizationId,
         capability: "STAFF_MANAGE_ELIGIBLE",
-        assurance: "STANDARD",
+        assurance: "SENSITIVE",
       },
     );
   });

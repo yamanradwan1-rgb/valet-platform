@@ -46,19 +46,19 @@ export class Issue416PasswordResetRedeemService {
     body: unknown,
   ): Promise<StaffPasswordResetRedeemResponse> {
     const committedClient = this.ingress.takeCountedClientAttempt(request);
+    // A canonical bearer spends its own budget even when the request has an
+    // invalid Origin, Content-Type, query or password. The earlier client
+    // stage has already committed independently before body parsing.
+    const canonicalToken = issue416CanonicalR03Credential(body);
+    if (canonicalToken !== null) {
+      await this.r03.countCanonicalCredential(committedClient, canonicalToken);
+    }
     if (!this.origins.allows(origin)) throw new StaffAuthOriginError();
     requireAuthJson(contentType);
     requireEmptyAuthQuery(query);
-
-    // Credential budget is independent of business success and also counts
-    // canonical bearers paired with invalid passwords or extraneous fields.
-    const canonicalToken = issue416CanonicalR03Credential(body);
     if (canonicalToken === null) {
       throw new Issue416ResetInvalidError();
     }
-    // Count independently of password/body correctness in a distinct private
-    // ledger COMMIT. Current R03 binder absent: always fails closed here.
-    await this.r03.countCanonicalCredential(committedClient, canonicalToken);
     const command = parseAuthBody(staffPasswordResetRedeemRequestSchema, body);
     requireIssue416VerifiedSqlAuthority("REDEEM");
     if (this.boundary === undefined) throw new Issue416ResetUnavailableError();

@@ -1,9 +1,4 @@
-import {
-  Inject,
-  Injectable,
-  Optional,
-  UnauthorizedException,
-} from "@nestjs/common";
+import { Inject, Injectable, Optional } from "@nestjs/common";
 import {
   staffPasswordResetIssueResponseSchema,
   staffPasswordResetStatusResponseSchema,
@@ -12,7 +7,6 @@ import {
   type StaffPasswordResetStatusResponse,
 } from "@valet/contracts";
 import type { PostgresPool } from "../../common/database/postgres";
-import { inPostgresTransaction } from "../../common/database/postgres-transaction";
 import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
 import type { ApiRequest } from "../../common/http/api-request";
 import { TrustedClientAddressResolver } from "../anti-abuse/client-address";
@@ -24,13 +18,12 @@ import {
   STAFF_SESSION_CONTEXT_RESOLVER,
   type StaffSessionContextResolver,
 } from "../auth/staff-session-context";
-import { preflightPasswordResetTarget } from "./issue416-password-reset-authority";
 import {
   ISSUE416_PROTECTED_RESET_SQL_BOUNDARY,
   Issue416ResetUnavailableError,
   type Issue416ProtectedResetSqlBoundary,
-  type ProtectedResetCaller,
 } from "./issue416-password-reset-boundary";
+import { resolveIssue416ResetCaller } from "./issue416-password-reset-caller";
 import { issue416PasswordResetLink } from "./issue416-password-reset-link";
 import { requireIssue416VerifiedSqlAuthority } from "../auth/issue416-password-reset-sql-readiness";
 
@@ -46,32 +39,6 @@ export class Issue416PasswordResetService {
     private readonly boundary?: Issue416ProtectedResetSqlBoundary,
   ) {}
 
-  private async caller(
-    authorization: string | undefined,
-    organizationId: string,
-    membershipId: string,
-    sensitive: boolean,
-  ): Promise<ProtectedResetCaller> {
-    if (authorization === undefined) throw new UnauthorizedException();
-    const context = await this.sessions.resolve(authorization);
-    const targetUserId = await inPostgresTransaction(this.pool, (transaction) =>
-      preflightPasswordResetTarget(
-        transaction,
-        context,
-        organizationId,
-        membershipId,
-        sensitive,
-      ),
-    );
-    return {
-      authorization,
-      context,
-      organizationId,
-      membershipId,
-      targetUserId,
-    };
-  }
-
   async status(
     authorization: string | undefined,
     organizationId: string,
@@ -79,11 +46,12 @@ export class Issue416PasswordResetService {
   ): Promise<StaffPasswordResetStatusResponse> {
     requireIssue416VerifiedSqlAuthority("STATUS");
     if (this.boundary === undefined) throw new Issue416ResetUnavailableError();
-    const caller = await this.caller(
+    const caller = await resolveIssue416ResetCaller(
+      this.pool,
+      this.sessions,
       authorization,
       organizationId,
       membershipId,
-      false,
     );
     return staffPasswordResetStatusResponseSchema.parse(
       await this.boundary.status(caller),
@@ -99,20 +67,21 @@ export class Issue416PasswordResetService {
   ): Promise<StaffPasswordResetIssueResponse> {
     requireIssue416VerifiedSqlAuthority("ISSUE");
     if (this.boundary === undefined) throw new Issue416ResetUnavailableError();
-    const token = generateStaffPasswordResetToken();
-    const resetLink = issue416PasswordResetLink(token);
+    const caller = await resolveIssue416ResetCaller(
+      this.pool,
+      this.sessions,
+      authorization,
+      organizationId,
+      membershipId,
+    );
     let trustedClientAddress: string;
     try {
       trustedClientAddress = this.addresses.resolve(request);
     } catch {
       throw new Issue416ResetUnavailableError();
     }
-    const caller = await this.caller(
-      authorization,
-      organizationId,
-      membershipId,
-      true,
-    );
+    const token = generateStaffPasswordResetToken();
+    const resetLink = issue416PasswordResetLink(token);
     const committed = await this.boundary.issue({
       ...caller,
       command,

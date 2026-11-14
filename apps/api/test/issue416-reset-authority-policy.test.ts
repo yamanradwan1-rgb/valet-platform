@@ -68,7 +68,6 @@ describe("Issue416 actual Company Admin authority policy, read-only preflight", 
         context,
         org,
         targetMembership,
-        true,
       ),
     ).toBe(targetUser);
     expect(requireMfaAssuranceInTransaction).toHaveBeenCalledWith(
@@ -87,19 +86,18 @@ describe("Issue416 actual Company Admin authority policy, read-only preflight", 
     expect(targetSql).not.toContain("membership_location_access");
   });
 
-  it("status still requires MFA but not a fresh sensitive step-up", async () => {
+  it("status requires the same five-minute MFA step-up as issuance", async () => {
     const transaction = fixture();
     await preflightPasswordResetTarget(
       transaction as never,
       context,
       org,
       targetMembership,
-      false,
     );
     expect(requireMfaAssuranceInTransaction).toHaveBeenCalledWith(
       transaction,
       context,
-      { sensitive: false },
+      { sensitive: true },
     );
   });
 
@@ -111,7 +109,6 @@ describe("Issue416 actual Company Admin authority policy, read-only preflight", 
         context,
         org,
         targetMembership,
-        true,
       ),
     ).rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
     expect(requireMfaAssuranceInTransaction).not.toHaveBeenCalled();
@@ -131,7 +128,6 @@ describe("Issue416 actual Company Admin authority policy, read-only preflight", 
         context,
         org,
         targetMembership,
-        true,
       ),
     ).rejects.toMatchObject({ code: "MFA_STEP_UP_REQUIRED" });
     expect(transaction.query).toHaveBeenCalledTimes(1);
@@ -145,7 +141,6 @@ describe("Issue416 actual Company Admin authority policy, read-only preflight", 
         context,
         org,
         targetMembership,
-        true,
       ),
     ).rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
     const targetSql = transaction.query.mock.calls.at(-1)?.[0] ?? "";

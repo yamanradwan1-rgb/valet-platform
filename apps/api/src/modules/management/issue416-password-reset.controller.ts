@@ -56,6 +56,7 @@ export class Issue416PasswordResetManagementController {
     @Res({ passthrough: true }) response: HeaderResponse,
   ) {
     setNoStoreResponseHeaders(response);
+    response.setHeader("Referrer-Policy", "no-referrer");
     return this.runner.run("STAFF_PASSWORD_RESET_STATUS", request, async () => {
       requireSingleManagementAuthorization(request);
       requireEmptyAuthQuery(query);
