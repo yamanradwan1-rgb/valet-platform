@@ -57,7 +57,7 @@ test("Prisma ledger query includes row UUID to distinguish W9 migration113 attem
 
 test("exact historic W9 first 113 rolled-back row coexists with reviewed successful rows", () => {
   const rows = currentRows();
-  assert.equal(rows.length === 14 || rows.length === 18, true);
+  assert.equal(rows.length === 14 || rows.length === 19, true);
   assert.equal(
     validateMigrationLedger([rows[0], historicFirst(), ...rows.slice(1)]),
     "SOURCE_LEDGER_SHAPE_ONLY",

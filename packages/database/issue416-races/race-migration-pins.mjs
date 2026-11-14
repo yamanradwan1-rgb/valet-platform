@@ -43,6 +43,8 @@ export const PINNED_MIGRATION_SHA256 = Object.freeze({
     "23a379264d6e9081195cebda56b391e45fb0560def0c58afcbcac32bc172b6e2",
   "20261113013400_issue416_r03_private_attempt_guards":
     "225918035f87abebcef1b144f9a7ef61b97f021511d266b559df181af2e9df2e",
+  "20261113013500_issue416_r03_public_legacy_scope_deny":
+    "7ff71645e45667584f625d6846fe8e6978fadd9888b7d31d196a1be35ab5d7f8",
 });
 
 export const REQUIRED_MIGRATIONS = Object.freeze(
