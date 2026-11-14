@@ -91,7 +91,7 @@ BEGIN
   END IF;
   IF p_wire_type = 4 THEN
     IF v_length >= 3 THEN
-      IF pg_catalog.substring(p_value FROM 1 FOR 3) = '\xefbbbf'::bytea THEN
+      IF pg_catalog.substring(p_value, 1, 3) = '\xefbbbf'::bytea THEN
         RAISE EXCEPTION 'VAP1_ENCODING_INVALID' USING ERRCODE = '22023';
       END IF;
     END IF;

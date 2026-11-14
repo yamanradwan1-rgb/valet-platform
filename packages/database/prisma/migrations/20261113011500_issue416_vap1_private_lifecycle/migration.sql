@@ -69,7 +69,7 @@ BEGIN
   v_nonce := auth_proof_private.pgcrypto_random32();
   v_full_xid := pg_catalog.pg_current_xact_id()::text::numeric;
   v_now_ms := pg_catalog.trunc(
-    pg_catalog.extract(epoch FROM pg_catalog.clock_timestamp()) * 1000
+    pg_catalog.extract('epoch', pg_catalog.clock_timestamp()) * 1000
   )::bigint;
   INSERT INTO auth_proof_private.proof_challenges (
     challenge_id, audience, key_id, promotion_epoch, purpose, operation_id,
@@ -153,7 +153,7 @@ BEGIN
   SELECT * INTO v_locked FROM auth_proof_private.proof_challenges
   WHERE challenge_id = p_challenge_id FOR UPDATE;
   v_now_ms := pg_catalog.trunc(
-    pg_catalog.extract(epoch FROM pg_catalog.clock_timestamp()) * 1000
+    pg_catalog.extract('epoch', pg_catalog.clock_timestamp()) * 1000
   )::bigint;
   IF v_locked.consumed_at IS NOT NULL
      OR v_locked.audience IS DISTINCT FROM v_preflight.audience
