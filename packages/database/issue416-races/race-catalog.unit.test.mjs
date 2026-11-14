@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readdirSync, readFileSync } from "node:fs";
 import { test } from "node:test";
 import { fileURLToPath, URL } from "node:url";
@@ -153,6 +154,27 @@ test("reviewed source migrations require pinned committed ledger rows", () => {
   assert.throws(assertRaceRuntimeAuthorized, /BLOCKED/);
 });
 
+test("Prisma ledger accepts exact Linux LF blobs but never changed SQL", () => {
+  const rows = REQUIRED_MIGRATIONS.map((migration_name) => {
+    const original = readFileSync(
+      new URL("../prisma/migrations/" + migration_name + "/migration.sql", import.meta.url),
+    );
+    const linux = Buffer.from(original.toString("utf8").replace(/\r\n/g, "\n"));
+    return {
+      migration_name,
+      finished_at: "synthetic-finished",
+      rolled_back_at: null,
+      applied_steps_count: 1,
+      checksum: createHash("sha256").update(linux).digest("hex"),
+    };
+  });
+  assert.equal(validateMigrationLedger(rows), "SOURCE_LEDGER_SHAPE_ONLY");
+  assert.throws(
+    () => validateMigrationLedger(rows.map((row, i) => i === 0
+      ? { ...row, checksum: "f".repeat(64) } : row)),
+    /LEDGER_MIGRATION_CHECKSUM_MISMATCH/,
+  );
+});
 test("admission ACL denies runtime, PUBLIC and inherited mutation/grant", () => {
   const admission = {
     private_schema: "auth_proof_private",

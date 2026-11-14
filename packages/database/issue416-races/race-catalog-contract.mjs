@@ -5,6 +5,7 @@ import {
   PINNED_MIGRATION_SHA256,
   REQUIRED_MIGRATIONS,
   verifyPinnedMigrationSources,
+  approvedMigrationChecksums,
 } from "./race-migration-pins.mjs";
 import {
   isExactW9FirstRollback,
@@ -15,6 +16,7 @@ export {
   PINNED_MIGRATION_SHA256,
   REQUIRED_MIGRATIONS,
   verifyPinnedMigrationSources,
+  approvedMigrationChecksums,
 };
 
 export const PG17_RUNTIME_SQL = `
@@ -115,6 +117,9 @@ ORDER BY p.oid::regprocedure::text`;
 
 export function validateMigrationLedger(rows) {
   const required = verifyPinnedMigrationSources();
+  const approved = new Map(required.map((name) => [
+    name, approvedMigrationChecksums(name),
+  ]));
   if (!Array.isArray(rows) || rows.some((row) => !row)) {
     throw new Error("ISSUE416_RACE_MIGRATION_LEDGER_UNRESOLVED");
   }
@@ -134,7 +139,7 @@ export function validateMigrationLedger(rows) {
     if (
       /^\d{14}_issue416_/.test(row.migration_name) &&
       (!required.includes(row.migration_name) ||
-        row.checksum !== PINNED_MIGRATION_SHA256[row.migration_name])
+        !approved.get(row.migration_name)?.includes(row.checksum))
     ) {
       throw new Error("ISSUE416_RACE_LEDGER_MIGRATION_CHECKSUM_MISMATCH");
     }
@@ -147,7 +152,7 @@ export function validateMigrationLedger(rows) {
         row.rolled_back_at == null &&
         Number.isSafeInteger(row.applied_steps_count) &&
         row.applied_steps_count >= 1 &&
-        row.checksum === PINNED_MIGRATION_SHA256[name],
+        approved.get(name).includes(row.checksum),
     );
     if (successful.length !== 1) {
       throw new Error("ISSUE416_RACE_REQUIRED_MIGRATION_NOT_COMMITTED");

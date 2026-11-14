@@ -86,6 +86,23 @@ export function assertPinnedMigrationBytes(name, bytes) {
   }
   return true;
 }
+/** Two exact Prisma SHA-256 variants of the SAME pinned migration SQL.
+ * Prisma stores the migration.sql checkout bytes: CRLF on Windows, LF on Linux.
+ * Never accept a third checksum or an unpinned source.
+ */
+export function approvedMigrationChecksums(name) {
+  const bytes = readFileSync(join(sourceRoot, name, "migration.sql"));
+  assertPinnedMigrationBytes(name, bytes);
+  const canonicalLf = [];
+  for (let i = 0; i < bytes.length; i += 1) {
+    if (bytes[i] === 13 && bytes[i + 1] === 10) continue;
+    canonicalLf.push(bytes[i]);
+  }
+  return Object.freeze([
+    PINNED_MIGRATION_SHA256[name],
+    createHash("sha256").update(Buffer.from(canonicalLf)).digest("hex"),
+  ]);
+}
 export function assertReviewedMigrationSet(names) {
   if (!Array.isArray(names) || names.some((name) => typeof name !== "string")) {
     throw new Error("ISSUE416_RACE_SOURCE_MIGRATION_SET_CHANGED");
