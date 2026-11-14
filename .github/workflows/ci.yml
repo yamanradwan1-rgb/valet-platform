@@ -163,6 +163,29 @@ jobs:
         if: ${{ matrix.lane == 'issue215' }}
         run: pnpm --filter @valet/api build
 
+      # The pinned Issue416 migration113 conditionally creates a cluster-wide
+      # NOLOGIN owner. Parallel disposable test databases must not race CREATE.
+      - name: Attest and pre-provision shared Issue416 CI proof owner
+        if: ${{ matrix.lane == 'database' }}
+        env:
+          TEST_PG_CONTAINER: ${{ job.services.postgres.id }}
+          EXPECTED_RUN_ID: ${{ github.run_id }}
+        shell: bash
+        run: |
+          test "$CI" = "true"
+          test -n "$TEST_PG_CONTAINER"
+          test "$(docker inspect --format '{{ index .Config.Labels "vaylet.issue215.disposable" }}' "$TEST_PG_CONTAINER")" = "true"
+          test "$(docker inspect --format '{{ index .Config.Labels "vaylet.issue215.run-id" }}' "$TEST_PG_CONTAINER")" = "$EXPECTED_RUN_ID"
+          version="$(docker exec "$TEST_PG_CONTAINER" psql -X -U valet -d valet -tAc 'SHOW server_version_num')"
+          test "$version" -ge 170000
+          test "$version" -lt 180000
+          docker exec "$TEST_PG_CONTAINER" psql -X -v ON_ERROR_STOP=1 -U valet -d valet -c \
+            'CREATE ROLE vap1_proof_owner NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS'
+          # All parallel migrations use this same disposable migration login.
+          # Materialize its one permitted SET-only membership before fan-out.
+          docker exec "$TEST_PG_CONTAINER" psql -X -v ON_ERROR_STOP=1 -U valet -d valet -c \
+            'GRANT vap1_proof_owner TO valet WITH INHERIT FALSE, SET TRUE'
+
       - name: Run bounded PostgreSQL API project
         if: ${{ startsWith(matrix.lane, 'api-') }}
         env:
