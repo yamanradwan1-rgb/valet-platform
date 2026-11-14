@@ -47,9 +47,9 @@ test("migration list matches reviewed source directories, never performs DDL", (
   );
   const reviewed = verifyPinnedMigrationSources();
   assert.deepEqual([...reviewed], current.sort());
-  assert.ok([14, 26].includes(reviewed.length));
-  assert.equal(Object.keys(PINNED_MIGRATION_SHA256).length, 26);
-  assert.equal(REQUIRED_MIGRATIONS.length, 26);
+  assert.ok([14, 27].includes(reviewed.length));
+  assert.equal(Object.keys(PINNED_MIGRATION_SHA256).length, 27);
+  assert.equal(REQUIRED_MIGRATIONS.length, 27);
   assert.equal(ORIGINAL_SOURCE_MIGRATIONS.length, 14);
   assert.equal(
     PINNED_MIGRATION_SHA256["20261113013500_issue416_r03_public_legacy_scope_deny"],

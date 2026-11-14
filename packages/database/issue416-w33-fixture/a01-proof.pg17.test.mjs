@@ -4,10 +4,11 @@ import { createHmac, createHash, randomUUID } from "node:crypto";
 import { spawn, spawnSync } from "node:child_process";
 import { test } from "node:test";
 import readline from "node:readline";
+import { assertForeignBackendDenied } from "./a01-foreign-backend-negative.mjs";
 
-const fixture = "vaylet-issue416-w33-pg17";
-const database = "issue416_w33_db";
-const migrationRole = "issue416_w33_migration";
+const fixture = process.env.W33_PG17_CONTAINER ?? "vaylet-issue416-w33-pg17";
+const database = process.env.W33_PG17_DB ?? "issue416_w33_db";
+const migrationRole = process.env.W33_PG17_ROLE ?? "issue416_w33_migration";
 const key = Buffer.from(Array.from({ length: 32 }, (_, i) => i));
 const user = randomUUID();
 const sessionId = randomUUID();
@@ -79,7 +80,13 @@ const live = JSON.parse(inspect.stdout)[0];
 assert.equal(live.Config.Image, "postgres:17-alpine");
 assert.equal(live.Config.Labels["vaylet.owner"], "worker-33");
 assert.equal(live.Config.Labels["vaylet.environment"], "isolated-test");
-assert.equal(live.HostConfig.NetworkMode, "none");
+if (process.env.W33_PG17_PRISMA_TEST === "1") {
+  assert.equal(fixture,"vaylet-issue416-w33-prisma-pg17");
+  assert.equal(live.Config.Labels["vaylet.database"],"fresh-prisma-migrate-deploy");
+  assert.equal(live.NetworkSettings.Ports["5432/tcp"][0].HostIp,"127.0.0.1");
+} else {
+  assert.equal(live.HostConfig.NetworkMode,"none");
+}
 assert.equal(live.State.Running, true);
 
 test("A01 full source-derived challenge with independently computed HMAC", async () => {
@@ -277,4 +284,8 @@ test("A01 full source-derived challenge with independently computed HMAC", async
         '${access}','${refresh}')`);
     assert.equal(result,"UNKNOWN");
   } finally { revokedObserver.close(); }
+  await assertForeignBackendDenied({
+    createSession: () => new FixtureSession(), userId:user, storedPhc:phc,
+    key, identifierHash:keyHash, fingerprint,
+  });
 });

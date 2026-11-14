@@ -71,8 +71,9 @@ describe("append-only migration source history", () => {
       "20261113014000_issue416_a01_execute_receipt",
       "20261113014100_issue416_a01_immutable_receipt_observer",
       "20261113014200_issue416_a01_audit_receipt_integrity",
+      "20261113014300_issue416_a01_receipt_observer_guard",
     ]);
-    expect(expectedCurrentMigrationDirectories).toHaveLength(137);
+    expect(expectedCurrentMigrationDirectories).toHaveLength(138);
     const migrationRoot = fileURLToPath(
       new URL("../prisma/migrations/", import.meta.url),
     );

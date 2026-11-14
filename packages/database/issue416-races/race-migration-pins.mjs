@@ -58,7 +58,9 @@ export const PINNED_MIGRATION_SHA256 = Object.freeze({
   "20261113014100_issue416_a01_immutable_receipt_observer":
     "93ee3c24eca4a78c5b2c6126b744266991ae1dc002983f983b0cf3cafc8327a5",
   "20261113014200_issue416_a01_audit_receipt_integrity":
-    "0e7ba1c6a3dbf4cab574a7d721b325d63c5c9aaf95b4aa2babfd2715425a0317",
+    "0cc268c9429a6725d20efafd308351248238c6843dacf205b6ce1608ed1f9f5f",
+  "20261113014300_issue416_a01_receipt_observer_guard":
+    "d33bdd8880c21885ee3acddd715c34586bb1f27125bfa638ba08978443dbadd8",
 });
 
 export const REQUIRED_MIGRATIONS = Object.freeze(

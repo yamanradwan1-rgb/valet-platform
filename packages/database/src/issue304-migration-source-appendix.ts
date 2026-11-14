@@ -64,6 +64,7 @@ export const issue416AppendedMigrationDirectories = [
   "20261113014000_issue416_a01_execute_receipt",
   "20261113014100_issue416_a01_immutable_receipt_observer",
   "20261113014200_issue416_a01_audit_receipt_integrity",
+  "20261113014300_issue416_a01_receipt_observer_guard",
 ] as const;
 
 export const expectedCurrentMigrationDirectories = [
