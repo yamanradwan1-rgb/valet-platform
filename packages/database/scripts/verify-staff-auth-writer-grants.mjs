@@ -1,4 +1,5 @@
 import { writerTableColumns } from "./staff-auth-writer-grants.mjs";
+import { verifyStaffAuthWriterMembership } from "./staff-auth-writer-membership.mjs";
 
 const deniedTable = ["DELETE", "TRUNCATE", "REFERENCES", "TRIGGER"];
 const columnsPrivileges = ["SELECT", "INSERT", "UPDATE", "REFERENCES"];
@@ -17,9 +18,6 @@ export async function verifyStaffAuthWriterGrants(client, writer, runtime) {
   }
   const authorities = await client.query(
     `SELECT
-       EXISTS (SELECT 1 FROM pg_auth_members
-         WHERE member=(SELECT oid FROM pg_roles WHERE rolname=$1)
-            OR roleid=(SELECT oid FROM pg_roles WHERE rolname=$1)) AS membership,
        EXISTS (SELECT 1 FROM pg_class WHERE relowner=(SELECT oid FROM pg_roles WHERE rolname=$1))
          OR EXISTS (SELECT 1 FROM pg_proc WHERE proowner=(SELECT oid FROM pg_roles WHERE rolname=$1))
          OR EXISTS (SELECT 1 FROM pg_namespace WHERE nspowner=(SELECT oid FROM pg_roles WHERE rolname=$1))
@@ -34,6 +32,7 @@ export async function verifyStaffAuthWriterGrants(client, writer, runtime) {
   if (!scope || Object.values(scope).some((value) => value !== false)) {
     throw new Error("Staff Auth writer has inherited or owner authority.");
   }
+  await verifyStaffAuthWriterMembership(client, writer, runtime);
   const externalNamespaces = await client.query(
     `SELECT nspname, has_schema_privilege($1,oid,'USAGE') AS can_use,
             has_schema_privilege($1,oid,'CREATE') AS can_create
