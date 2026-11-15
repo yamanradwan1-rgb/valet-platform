@@ -30,7 +30,12 @@ export class MfaAntiAbuse {
     transaction: PostgresTransaction,
     reservation: AntiAbuseReservation,
   ): Promise<void> {
-    await this.antiAbuse.finalizeInTransaction(transaction, reservation, "IGNORED");
+    if (!reservation.id) throw new AntiAbuseUnavailableError();
+    const result = await transaction.query<{ updated: number }>(
+      "SELECT public.s04_mfa_success($1::uuid,$2,$3) AS updated",
+      [reservation.id, reservation.key.scope, reservation.key.keyHash],
+    );
+    if (result.rows[0]?.updated !== 1) throw new AntiAbuseUnavailableError();
   }
 
   async failure(reservation: AntiAbuseReservation): Promise<void> {
