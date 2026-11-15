@@ -1,12 +1,14 @@
 // Only W33's dedicated local PG17 fixture may emulate the pending W58 helper.
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { Pool } from "pg";
 
 export async function installSyntheticS04ForS02(url: string): Promise<void> {
   const target = new URL(url);
   if (
     process.env.ISSUE416_S02_PROTECTED_TEST !== "1" ||
-    target.hostname !== "127.0.0.1" || target.port !== "45533" ||
+    target.hostname !== "127.0.0.1" ||
+    target.port !== "45533" ||
     !target.pathname.startsWith("/valet_mob007_auth_") ||
     target.username !== "issue416_w33_s02_owner"
   ) {
@@ -20,7 +22,10 @@ export async function installSyntheticS04ForS02(url: string): Promise<void> {
     );
     if (installed.rows[0]?.present) return;
     const fixtureSql = readFileSync(
-      new URL("../../../packages/database/issue416-s02-protected/s04-mfa-success-synthetic.sql", import.meta.url),
+      resolve(
+        __dirname,
+        "../../../packages/database/issue416-s02-protected/s04-mfa-success-synthetic.sql",
+      ),
       "utf8",
     );
     await pool.query(fixtureSql);

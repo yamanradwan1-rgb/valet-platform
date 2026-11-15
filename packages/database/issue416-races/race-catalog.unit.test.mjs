@@ -43,7 +43,7 @@ test("LF canonical Git blob and CRLF checkout accept only identical SQL bytes", 
 test("migration list matches reviewed source directories, never performs DDL", () => {
   const dir = fileURLToPath(new URL("../prisma/migrations/", import.meta.url));
   const current = readdirSync(dir).filter((item) =>
-    /^\d{14}_issue416_/.test(item),
+    /^20261113\d{6}_issue416_/.test(item),
   );
   const reviewed = verifyPinnedMigrationSources();
   assert.deepEqual([...reviewed], current.sort());

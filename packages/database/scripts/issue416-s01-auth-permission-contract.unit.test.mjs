@@ -239,7 +239,7 @@ test("legacy provisioner stays fenced and does not invoke broad VAP1 retirement"
   const source = read("./provision-runtime-role.mjs");
   assert.ok(
     source.indexOf("await assertLegacyRuntimeProvisioningAllowed(client)") <
-      source.indexOf("await provisionMfaPrivileges(client"),
+      source.indexOf("await provisionOptionCMfaBoundary("),
   );
   assert.match(source, /assertLegacyRuntimeProvisioningAllowed/);
   assert.doesNotMatch(source, /retireLegacyVap1Grants/);

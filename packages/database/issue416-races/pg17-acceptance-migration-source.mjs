@@ -54,7 +54,7 @@ function buildMigrationSourceChecksums() {
     throw new Error("W30_PG17_UNEXPECTED_MIGRATION_DIRECTORY");
   }
   const folders = entries.map((entry) => entry.name).sort();
-  const issue416 = folders.filter((name) => /^\d{14}_issue416_/.test(name));
+  const issue416 = folders.filter((name) => /^20261113\d{6}_issue416_/.test(name));
   assertReviewedMigrationSet(issue416);
   if (issue416.length !== REQUIRED_MIGRATIONS.length) {
     throw new Error("W30_PG17_ISSUE416_MIGRATION_SOURCE_INCOMPLETE");

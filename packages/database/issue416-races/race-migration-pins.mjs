@@ -180,7 +180,11 @@ export function assertReviewedMigrationSet(names) {
 
 export function verifyPinnedMigrationSources() {
   const names = assertReviewedMigrationSet(
-    readdirSync(sourceRoot).filter((name) => /^\d{14}_issue416_/.test(name)),
+    // Historic W9/Option A exact 29 migration pins predate Option C.
+    // New forward-only 20261115 migrations are checked independently against
+    // their committed Git source in pg17-acceptance-migration-source.mjs.
+    // Never rewrite, expand or reinterpret W9's applied migration evidence.
+    readdirSync(sourceRoot).filter((name) => /^20261113\d{6}_issue416_/.test(name)),
   );
   for (const name of names) {
     const bytes = readTrustedMigrationBytes(join(sourceRoot, name, "migration.sql"));

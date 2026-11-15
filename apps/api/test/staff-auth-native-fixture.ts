@@ -8,7 +8,6 @@ import argon2 from "argon2";
 import { Pool, type QueryResult } from "pg";
 
 import { AppModule } from "../src/app.module";
-import { installSyntheticS04ForS02 } from "./issue416-s02-synthetic-s04";
 
 export interface AuthHttpResult {
   readonly body: Record<string, unknown> | undefined;
@@ -106,7 +105,10 @@ export class StaffAuthNativeFixture {
   private roleCreated = false;
   private protectedMfaRoleCreated = false;
   private migrationUrl = "";
-  private readonly optionalWriterPrevious = new Map<string, string | undefined>();
+  private readonly optionalWriterPrevious = new Map<
+    string,
+    string | undefined
+  >();
   private readonly originalEnvironment = {
     antiAbuse: process.env.ANTI_ABUSE_HMAC_SECRET_B64URL,
     database: process.env.DATABASE_URL,
@@ -134,7 +136,8 @@ export class StaffAuthNativeFixture {
       MIGRATION_DATABASE_URL: this.migrationUrl,
       NODE_ENV: "test",
     });
-    if (protectedMode) await installSyntheticS04ForS02(this.migrationUrl);
+    // The integrated Option C fixture must use the real S04 migration.
+    // Do not silently install a synthetic SECURITY DEFINER function.
     const writers = {
       ...this.protectedWriterTestEnvironment(applicationUrl),
       MFA_PROTECTED_WRITER_ENABLED: protectedMode ? "true" : "false",
@@ -159,8 +162,10 @@ export class StaffAuthNativeFixture {
     }
     process.env.DATABASE_URL = applicationUrl;
     process.env.MFA_PROTECTED_WRITER_ENABLED = protectedMode ? "true" : "false";
-    if (protectedMode) process.env.MFA_WRITER_DATABASE_URL = mfaWriterUrl(databaseName);
-    if (protectedMode) process.env.MFA_ACTIVITY_PROOF_SECRET_B64URL = activityRoot;
+    if (protectedMode)
+      process.env.MFA_WRITER_DATABASE_URL = mfaWriterUrl(databaseName);
+    if (protectedMode)
+      process.env.MFA_ACTIVITY_PROOF_SECRET_B64URL = activityRoot;
     process.env.STAFF_AUTH_ALLOWED_ORIGINS = allowedOrigin;
     process.env.ANTI_ABUSE_HMAC_SECRET_B64URL =
       randomBytes(32).toString("base64url");
@@ -171,7 +176,9 @@ export class StaffAuthNativeFixture {
     this.baseUrl = `http://127.0.0.1:${address.port}`;
   }
 
-  protected protectedWriterTestEnvironment(applicationUrl: string): Record<string, string> {
+  protected protectedWriterTestEnvironment(
+    applicationUrl: string,
+  ): Record<string, string> {
     void applicationUrl;
     return {};
   }
@@ -309,9 +316,15 @@ export class StaffAuthNativeFixture {
       this.originalEnvironment.antiAbuse,
     );
     restore("DATABASE_URL", this.originalEnvironment.database);
-    restore("MFA_PROTECTED_WRITER_ENABLED", this.originalEnvironment.mfaProtected);
+    restore(
+      "MFA_PROTECTED_WRITER_ENABLED",
+      this.originalEnvironment.mfaProtected,
+    );
     restore("MFA_WRITER_DATABASE_URL", this.originalEnvironment.mfaWriter);
-    restore("MFA_ACTIVITY_PROOF_SECRET_B64URL", this.originalEnvironment.mfaActivity);
+    restore(
+      "MFA_ACTIVITY_PROOF_SECRET_B64URL",
+      this.originalEnvironment.mfaActivity,
+    );
     restore("STAFF_AUTH_ALLOWED_ORIGINS", this.originalEnvironment.origins);
     restore("ANTI_ABUSE_TRUSTED_PROXY_CIDRS", this.originalEnvironment.proxies);
     for (const [key, value] of this.optionalWriterPrevious) restore(key, value);
