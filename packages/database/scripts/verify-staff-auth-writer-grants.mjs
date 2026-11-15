@@ -136,14 +136,11 @@ export async function verifyStaffAuthWriterGrants(client, writer, runtime) {
     const rows = tablePrivileges.rows.filter((row) => row.table_name === table);
     for (const row of rows) {
       for (const privilege of ["INSERT", "UPDATE"]) {
-        const onlyRevocation = table === "staff_auth_sessions" &&
-          privilege === "UPDATE" &&
-          row.column_name === "revoked_at";
         const found = await client.query(
           "SELECT has_column_privilege($1,$2,$3,$4) AS allowed",
           [runtime, row.relation, row.column_name, privilege],
         );
-        if (found.rows[0]?.allowed !== onlyRevocation) {
+        if (found.rows[0]?.allowed !== false) {
           throw new Error(`Ordinary runtime ${table}.${row.column_name} ${privilege} unsafe.`);
         }
       }

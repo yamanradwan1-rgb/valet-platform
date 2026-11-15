@@ -7,7 +7,7 @@ import { verifyOptionCRoleIsolation } from "./option-c-protected-cutover-roles.m
 import { optionCRoles } from "./option-c-protected-cutover-state.mjs";
 
 const tableMutationContract = Object.freeze({
-  staff_auth_sessions: { INSERT: [], UPDATE: ["revoked_at"] },
+  staff_auth_sessions: { INSERT: [], UPDATE: [] },
   staff_refresh_credentials: { INSERT: [], UPDATE: [] },
   user_mfa_totp_factors: { INSERT: [], UPDATE: [] },
   mfa_recovery_codes: { INSERT: [], UPDATE: [] },

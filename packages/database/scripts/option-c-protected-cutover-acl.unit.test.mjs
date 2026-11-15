@@ -164,7 +164,7 @@ function retirementClient({ rogueRole = null } = {}) {
   return { client, direct, formatted, executeFormatted };
 }
 
-test("retirement is REVOKE-only, preserves runtime revoked_at, and closes protected EXECUTE", async () => {
+test("retirement is REVOKE-only, revokes runtime revoked_at, and closes protected EXECUTE", async () => {
   const fixture = retirementClient();
   await retireOptionCLegacyAcl(
     fixture.client,
@@ -186,7 +186,7 @@ test("retirement is REVOKE-only, preserves runtime revoked_at, and closes protec
         values[0] === "revoked_at" &&
         values.at(-1) === runtime,
     ),
-    false,
+    true,
   );
   assert.equal(
     fixture.formatted.some(

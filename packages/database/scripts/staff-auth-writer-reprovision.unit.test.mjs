@@ -37,6 +37,15 @@ test("S01 S03 runtime reprovision twice cannot restore activation of a PENDING a
   };
 
   await applyStaffAuthWriterGrants(client, exec, writerRole, runtimeRole);
+  assert.equal(
+    statements.some(
+      ({ sql, parameters }) =>
+        sql.includes("GRANT UPDATE") &&
+        parameters?.includes("revoked_at") &&
+        parameters.at(-1) === runtimeRole,
+    ),
+    false,
+  );
   for (let pass = 0; pass < 2; pass++) {
     await provisionStaffOnboardingPrivileges(client, exec, runtimeRole);
   }
