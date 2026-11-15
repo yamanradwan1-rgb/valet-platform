@@ -1,3 +1,5 @@
+import { randomBytes } from "node:crypto";
+
 import {
   MiddlewareConsumer,
   Module,
@@ -124,6 +126,7 @@ class GuestInformationTestModule implements NestModule {
 
 let app: INestApplication;
 let baseUrl: string;
+const originalS04Key = process.env.ANTI_ABUSE_SQL_PROOF_SECRET_B64URL;
 
 async function get(query: string, headers: Record<string, string> = {}) {
   const response = await fetch(`${baseUrl}/v1/guest/information${query}`, {
@@ -142,6 +145,11 @@ function noStore(headers: Headers): void {
 }
 
 beforeAll(async () => {
+  // These are transport-only fixture tests; the signed SQL function is mocked
+  // via guestAdmissionQueryStub. Use an isolated, synthetic HMAC secret rather
+  // than enabling any production fallback for missing S04 signing authority.
+  process.env.ANTI_ABUSE_SQL_PROOF_SECRET_B64URL =
+    randomBytes(32).toString("base64url");
   app = await NestFactory.create(GuestInformationTestModule, { logger: false });
   await app.listen(0, "127.0.0.1");
   baseUrl = await app.getUrl();
@@ -151,7 +159,12 @@ beforeEach(() => {
   locationActive = true;
   calls.mockReset();
 });
-afterAll(async () => app.close());
+afterAll(async () => {
+  await app.close();
+  if (originalS04Key === undefined)
+    delete process.env.ANTI_ABUSE_SQL_PROOF_SECRET_B64URL;
+  else process.env.ANTI_ABUSE_SQL_PROOF_SECRET_B64URL = originalS04Key;
+});
 
 describe("Guest #316 published information HTTP boundary", () => {
   it("returns only the published projection for a valid bearer", async () => {
