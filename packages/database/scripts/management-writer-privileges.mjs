@@ -4,11 +4,14 @@ import {
   parseRuntimeDatabaseUrlForProvisioning,
 } from "./database-connection-policy.mjs";
 import {
-  managementWriterFunctions,
   privateStaffManagementFunctions,
   runtimeStaffManagementFunctions,
 } from "./staff-management-runtime-privileges.mjs";
 import { protectedStaffOnboardingFunctions } from "./staff-onboarding-runtime-privileges.mjs";
+import {
+  managementWriterSecurityDefinerAllowlist,
+  verifyManagementWriterFunctionInventory,
+} from "./management-writer-function-inventory.mjs";
 import { verifyManagementWriterMutationInventory } from "./management-writer-mutation-inventory.mjs";
 
 const safeRole = /^[a-z_][a-z0-9_]{0,62}$/;
@@ -148,7 +151,7 @@ export async function provisionManagementWriterPrivileges(
   ]) {
     await formatted(client, "REVOKE ALL ON FUNCTION %s FROM %I", [name, role]);
   }
-  for (const name of managementWriterFunctions) {
+  for (const name of managementWriterSecurityDefinerAllowlist) {
     await formatted(client, "REVOKE ALL ON FUNCTION %s FROM %I", [name, runtimeRole]);
     await formatted(client, "REVOKE ALL ON FUNCTION %s FROM %I", [name, role]);
     await formatted(client, "GRANT EXECUTE ON FUNCTION %s TO %I", [name, role]);
@@ -157,32 +160,13 @@ export async function provisionManagementWriterPrivileges(
 
 export async function verifyManagementWriterPrivileges(client, role, runtimeRole) {
   await verifyManagementWriterMutationInventory(client, role);
-  const closure = await client.query(
-    `SELECT p.oid::regprocedure::text AS signature
-     FROM pg_proc AS p
-     WHERE p.pronamespace='public'::regnamespace
-       AND p.prosecdef
-       AND p.proname SIMILAR TO '(staff_management|staff_onboarding|staff_auth|mfa)_%'
-       AND has_function_privilege($1,p.oid,'EXECUTE')`,
-    [role],
-  );
-  const expected = new Set(managementWriterFunctions);
-  const actual = new Set(closure.rows.map(({ signature }) =>
-    signature.startsWith("public.") ? signature : "public." + signature,
-  ));
-  if (
-    actual.size !== expected.size ||
-    [...actual].some((signature) => !expected.has(signature))
-  ) {
-    throw new Error("Management writer inherited an unexpected protected function.");
-  }
   for (const name of [
-    ...managementWriterFunctions,
+    ...managementWriterSecurityDefinerAllowlist,
     ...runtimeStaffManagementFunctions,
     ...protectedStaffOnboardingFunctions,
     ...privateStaffManagementFunctions,
   ]) {
-    const allowed = managementWriterFunctions.includes(name);
+    const allowed = managementWriterSecurityDefinerAllowlist.includes(name);
     const result = await client.query(
       `SELECT has_function_privilege($1,$3,'EXECUTE') AS writer_allowed,
               has_function_privilege($2,$3,'EXECUTE') AS runtime_allowed,
@@ -205,6 +189,7 @@ export async function verifyManagementWriterPrivileges(client, role, runtimeRole
       value.acl_safe !== true
     ) throw new Error("Management writer function ACL check failed.");
   }
+  await verifyManagementWriterFunctionInventory(client, role);
   for (const [table, privilege, allowed] of [
     ...readableTables.map((table) => [table, "SELECT", true]),
     ["audit_events", "INSERT", true],

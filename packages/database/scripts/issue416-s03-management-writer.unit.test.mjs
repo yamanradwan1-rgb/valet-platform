@@ -17,6 +17,7 @@ import {
   requireManagementWriterIdentity,
   verifyManagementWriterPrivileges,
 } from "./management-writer-privileges.mjs";
+import { managementWriterSecurityDefinerAllowlist } from "./management-writer-function-inventory.mjs";
 import {
   parseMigrationDatabaseUrl,
   parseRuntimeDatabaseUrlForProvisioning,
@@ -91,16 +92,45 @@ test("repeated normal grants never restore SQL actor-ID management authority", a
   await provisionStaffManagementPrivileges(fixture, format, "ordinary");
 });
 
-test("writer provisioning grants exactly dedicated functions and read-only MFA facts", async () => {
+test("writer provisioning twice grants exactly dedicated functions and read-only MFA facts", async () => {
   const statements = [];
-  const format = async (_client, sql, args) => statements.push([sql, args]);
-  await provisionManagementWriterPrivileges(fixture, format, writer, "ordinary");
+  let roleExists = false;
+  const repeatedFixture = {
+    async query(sql) {
+      if (sql.includes("FROM pg_roles WHERE rolname")) {
+        return roleExists
+          ? { rowCount: 1, rows: [{
+            rolsuper: false, rolcreatedb: false, rolcreaterole: false,
+            rolreplication: false, rolbypassrls: false, rolinherit: false,
+          }] }
+          : { rowCount: 0, rows: [] };
+      }
+      if (sql.includes("FROM pg_auth_members")) return { rowCount: 0, rows: [] };
+      if (sql.includes("pg_catalog.pg_attribute")) {
+        return { rowCount: 3, rows: [
+          { column_sql: '"id"' }, { column_sql: '"user_id"' },
+          { column_sql: '"updated_at"' },
+        ] };
+      }
+      throw new Error("Unexpected repeated-provision catalog query");
+    },
+  };
+  const format = async (_client, sql, args) => {
+    statements.push([sql, args]);
+    if (sql.startsWith("CREATE ROLE")) roleExists = true;
+  };
+  for (let iteration = 0; iteration < 2; iteration++) {
+    await provisionManagementWriterPrivileges(
+      repeatedFixture, format, writer, "ordinary",
+    );
+  }
   const executions = statements.filter(([sql]) => sql.startsWith("GRANT EXECUTE"));
-  assert.deepEqual(
-    executions.map(([, args]) => args[0]).sort(),
-    [...managementWriterFunctions].sort(),
-  );
+  assert.equal(executions.length, managementWriterSecurityDefinerAllowlist.length * 2);
+  for (const signature of managementWriterSecurityDefinerAllowlist) {
+    assert.equal(executions.filter(([, args]) => args[0] === signature).length, 2);
+  }
   assert(executions.every(([, args]) => args[1] === "vaylet_management_writer"));
+  assert(!statements.some(([sql]) => /GRANT EXECUTE ON ALL FUNCTIONS/i.test(sql)));
   const sensitive = statements.filter(([, args]) =>
     args.includes("user_mfa_totp_factors") || args.includes("staff_auth_sessions"));
   assert(!sensitive.some(([sql]) => sql.startsWith("GRANT SELECT ON TABLE")));
