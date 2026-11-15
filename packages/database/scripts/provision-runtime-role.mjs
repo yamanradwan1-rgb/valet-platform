@@ -15,6 +15,7 @@ import { provisionMfaPrivileges } from "./mfa-runtime-privileges.mjs";
 import { provisionRuntimeTablePrivileges } from "./runtime-table-privileges.mjs";
 import { verifyRuntimeTablePrivileges } from "./verify-runtime-table-privileges.mjs";
 import { assertLegacyRuntimeProvisioningAllowed } from "./vap1-security-privileges.mjs";
+import { assertOptionCProvisioningIsLegacy } from "./option-c-runtime-provision-guard.mjs";
 
 const { Client } = pg;
 
@@ -98,6 +99,7 @@ async function provisionRuntimeRole() {
     await verifyMigrationConnectionTls(client, process.env.NODE_ENV);
     await client.query("BEGIN");
     await assertLegacyRuntimeProvisioningAllowed(client);
+    await assertOptionCProvisioningIsLegacy(client);
     const existingRole = await client.query(
       `SELECT rolsuper, rolcreatedb, rolcreaterole, rolreplication, rolbypassrls
        FROM pg_roles WHERE rolname = $1`,
