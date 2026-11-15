@@ -144,8 +144,8 @@ def _delta(head: list[dict], base: list[dict], root: Path,
             if severity not in ("HIGH", "CRITICAL"):
                 continue
             pin = _source_pin(root, row["path"], row["line"], pins)
-            details.append({"ruleId": row["ruleId"], "path": row["path"],
-                            "startLine": row["line"], "severity": severity,
+            details.append({"ruleId": row["ruleId"], "startLine": row["line"],
+                            "severity": severity,
                             "primaryLocationLineHashSha256": row[
                                 "primaryLocationLineHashSha256"],
                             "messageSha256": row["messageSha256"],
@@ -153,7 +153,7 @@ def _delta(head: list[dict], base: list[dict], root: Path,
     if len(details) != expected["blocked"]:
         raise TelemetryIncomplete("DELTA_COUNT")
     return sorted(details, key=lambda row: (
-        row["path"], row["startLine"], row["ruleId"], row["severity"],
+        row["startLine"], row["ruleId"], row["severity"],
         row["primaryLocationLineHashSha256"], row["messageSha256"]))
 
 

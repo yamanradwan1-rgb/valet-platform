@@ -337,6 +337,7 @@ jobs:
             --out security-reports/codeql-sanitized.json
       - name: Add sanitized source-pinned CodeQL delta telemetry
         if: ${{ always() && steps.codeql-analyze.outcome == 'success' }}
+        continue-on-error: true
         run: |
           python3 scripts/security/codeql_delta_telemetry.py \
             --head "$RUNNER_TEMP/codeql-head.sarif" \

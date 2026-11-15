@@ -1,6 +1,7 @@
 """Adversarial source-pinned telemetry checks; gate verdict remains authoritative."""
 
 import hashlib
+from io import StringIO
 import json
 from pathlib import Path
 import subprocess
@@ -83,19 +84,51 @@ class CodeQLDeltaTelemetryTests(unittest.TestCase):
                          {hashlib.sha256(raw.encode()).hexdigest()
                           for raw in ("raw-loc-1", "raw-loc-2")})
         for entry in entries:
-            self.assertEqual(set(entry), {"ruleId", "path", "startLine", "severity",
+            self.assertEqual(set(entry), {"ruleId", "startLine", "severity",
                                          "primaryLocationLineHashSha256",
                                          "messageSha256", "sourceBlobSha256"})
             self.assertEqual(entry["ruleId"], RULE)
-            self.assertEqual(entry["path"], "apps/api/src/route.ts")
             self.assertEqual(entry["startLine"], 100)
             self.assertEqual(entry["severity"], "CRITICAL")
             self.assertEqual(entry["sourceBlobSha256"],
                              hashlib.sha256(self.source_bytes).hexdigest())
         persisted = self.out.read_text()
         for forbidden in (SECRET, "raw-loc-1", "raw-loc-2", "private-message-1",
-                          "private-message-2", "snippet", "partialFingerprints"):
+                          "private-message-2", "apps/api/src/route.ts", "route.ts",
+                          "snippet", "partialFingerprints"):
             self.assertNotIn(forbidden, persisted)
+
+    def test_atomic_replace_failure_preserves_summary_and_removes_temporary_file(self):
+        self.save_pair(report(finding()), report())
+        original = self.out.read_bytes()
+        argv = [str(telemetry.__file__), "--head", str(self.head_path),
+                "--base", str(self.base_path), "--source-root", str(self.root),
+                "--out", str(self.out)]
+        with patch.object(sys, "argv", argv), patch("sys.stderr", new=StringIO()) as stderr:
+            with patch.object(telemetry.os, "replace", side_effect=OSError(SECRET)) as replace:
+                self.assertEqual(telemetry.main(), 2)
+        temporary = Path(replace.call_args.args[0])
+        self.assertFalse(temporary.exists())
+        self.assertEqual(self.out.read_bytes(), original)
+        self.assertEqual(stderr.getvalue().strip(),
+                         "CodeQL sanitized telemetry INCOMPLETE (fail closed): "
+                         "CATEGORY=OUTPUT_WRITE")
+        self.assertNotIn(SECRET, stderr.getvalue())
+
+    def test_atomic_replace_permission_failure_also_cleans_temporary_file(self):
+        self.save_pair(report(finding()), report())
+        original = self.out.read_bytes()
+        argv = [str(telemetry.__file__), "--head", str(self.head_path),
+                "--base", str(self.base_path), "--source-root", str(self.root),
+                "--out", str(self.out)]
+        with patch.object(sys, "argv", argv), patch("sys.stderr", new=StringIO()) as stderr:
+            with patch.object(telemetry.os, "replace",
+                              side_effect=PermissionError(SECRET)) as replace:
+                self.assertEqual(telemetry.main(), 2)
+        self.assertFalse(Path(replace.call_args.args[0]).exists())
+        self.assertEqual(self.out.read_bytes(), original)
+        self.assertIn("CATEGORY=OUTPUT_WRITE", stderr.getvalue())
+        self.assertNotIn(SECRET, stderr.getvalue())
 
     def test_duplicate_multiset_and_high_escalation(self):
         one = finding()
