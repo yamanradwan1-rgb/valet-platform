@@ -128,8 +128,6 @@ export class StaffAuthNativeFixture {
     process.env.DATABASE_URL = applicationUrl;
     process.env.MFA_PROTECTED_WRITER_ENABLED = protectedMode ? "true" : "false";
     if (protectedMode)
-      process.env.MFA_WRITER_DATABASE_URL = mfaWriterUrl(databaseName);
-    if (protectedMode)
       process.env.MFA_ACTIVITY_PROOF_SECRET_B64URL = activityRoot;
     process.env.STAFF_AUTH_ALLOWED_ORIGINS = allowedOrigin;
     process.env.ANTI_ABUSE_HMAC_SECRET_B64URL =
