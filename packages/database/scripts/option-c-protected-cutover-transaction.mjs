@@ -3,6 +3,7 @@ import {
   verifyOptionCProtectedAcl,
 } from "./option-c-protected-cutover-acl.mjs";
 import { verifyOptionCProtectedReadiness } from "./option-c-protected-cutover-readiness.mjs";
+import { assertOptionCLegacyWorkersDrained } from "./option-c-protected-cutover-drain.mjs";
 import {
   assertSameCutoverTransaction,
   lockOptionCBoundary,
@@ -11,6 +12,7 @@ import {
 
 export const optionCCutoverDependencies = Object.freeze({
   assertSameTransaction: assertSameCutoverTransaction,
+  assertLegacyDrained: assertOptionCLegacyWorkersDrained,
   lockBoundary: lockOptionCBoundary,
   promoteBoundary: promoteOptionCBoundary,
   retireLegacyAcl: retireOptionCLegacyAcl,
@@ -31,6 +33,9 @@ export async function runOptionCProtectedCutoverTransaction(
     // Legacy provisioning takes FOR SHARE on the same singleton, so this
     // owner-scoped FOR UPDATE serializes every pre-PROTECTED grant replay.
     state = await dependencies.lockBoundary(client, migrationRole);
+    if (state.phase === "LEGACY") {
+      await dependencies.assertLegacyDrained(client, runtimeRole);
+    }
     await dependencies.verifyReadiness(client, runtimeRole, migrationRole);
 
     let promoted = false;

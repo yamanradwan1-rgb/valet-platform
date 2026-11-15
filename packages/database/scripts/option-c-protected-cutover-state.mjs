@@ -27,6 +27,9 @@ export function readOptionCCutoverConfiguration(env = process.env) {
   if (env.OPTION_C_PROTECTED_CUTOVER !== "1") {
     throw new Error("Option C protected cutover requires explicit operator opt-in.");
   }
+  if (env.OPTION_C_LEGACY_WORKERS_DRAINED !== "1") {
+    throw new Error("Option C protected cutover requires an independently verified legacy worker drain.");
+  }
   const migration = parseMigrationDatabaseUrl(env.MIGRATION_DATABASE_URL, env.NODE_ENV);
   const runtime = parseRuntimeDatabaseUrlForProvisioning(env.DATABASE_URL);
   assertDatabaseCredentialSeparation(migration, runtime, env.NODE_ENV);

@@ -15,6 +15,7 @@ function configuration(overrides = {}) {
   return {
     NODE_ENV: "test",
     OPTION_C_PROTECTED_CUTOVER: "1",
+    OPTION_C_LEGACY_WORKERS_DRAINED: "1",
     MIGRATION_DATABASE_URL:
       "postgresql://cutover_migrator:migration-secret@127.0.0.1:45561/cutover_test",
     DATABASE_URL:
@@ -41,6 +42,9 @@ test("operator cutover input requires explicit opt-in and fixed isolated writer 
   assert.throws(() => readOptionCCutoverConfiguration(configuration({
     OPTION_C_PROTECTED_CUTOVER: "0",
   })), /explicit operator opt-in/);
+  assert.throws(() => readOptionCCutoverConfiguration(configuration({
+    OPTION_C_LEGACY_WORKERS_DRAINED: "0",
+  })), /legacy worker drain/);
   assert.throws(() => readOptionCCutoverConfiguration(configuration({
     MFA_WRITER_DATABASE_URL:
       "postgresql://wrong_mfa_writer:mfa-secret@127.0.0.1:45561/cutover_test",
@@ -132,6 +136,7 @@ function transactionFixture(phase = "LEGACY", failFinal = false) {
   } };
   const deps = {
     lockBoundary: async () => { events.push("LOCK_BOUNDARY"); return state; },
+    assertLegacyDrained: async () => events.push("ASSERT_LEGACY_DRAINED"),
     verifyReadiness: async () => events.push("VERIFY_READINESS"),
     retireLegacyAcl: async () => events.push("RETIRE_LEGACY_ACL"),
     verifyFinalAcl: async () => {
@@ -151,7 +156,7 @@ test("LEGACY cutover serializes lock, readiness, exact retirement, verification 
   );
   assert.deepEqual(result, { phaseBefore: "LEGACY", promoted: true });
   assert.deepEqual(events, [
-    "BEGIN", "LOCK_BOUNDARY", "VERIFY_READINESS", "RETIRE_LEGACY_ACL",
+    "BEGIN", "LOCK_BOUNDARY", "ASSERT_LEGACY_DRAINED", "VERIFY_READINESS", "RETIRE_LEGACY_ACL",
     "VERIFY_FINAL_ACL", "ASSERT_SAME_XID", "PROMOTE_PROTECTED",
     "ASSERT_SAME_XID", "COMMIT",
   ]);
