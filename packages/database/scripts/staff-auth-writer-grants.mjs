@@ -95,7 +95,10 @@ export async function applyStaffAuthWriterGrants(client, exec, role, runtimeRole
     [role]);
   // Ordinary readers retain precisely the MFA assurance/logout compatibility.
   await exec(client, "GRANT SELECT ON TABLE public.staff_auth_sessions, public.staff_refresh_credentials TO %I", [runtimeRole]);
-  for (const column of ["revoked_at", "mfa_authenticated_at", "mfa_factor_id", "last_admin_activity_at"]) {
+  // Staff Auth may only permit one-way logout revocation to ordinary SQL.
+  // MFA assurance/activity belongs exclusively to the S02 protected boundary.
+  // Replaying this provisioner after S02 must never restore forged assurance.
+  for (const column of ["revoked_at"]) {
     await exec(client, "GRANT UPDATE (%I) ON TABLE public.staff_auth_sessions TO %I",
       [column, runtimeRole]);
   }

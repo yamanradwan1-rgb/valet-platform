@@ -139,8 +139,7 @@ export async function verifyStaffAuthWriterGrants(client, writer, runtime) {
       for (const privilege of ["INSERT", "UPDATE"]) {
         const onlyRevocation = table === "staff_auth_sessions" &&
           privilege === "UPDATE" &&
-          ["revoked_at", "mfa_authenticated_at", "mfa_factor_id",
-            "last_admin_activity_at"].includes(row.column_name);
+          row.column_name === "revoked_at";
         const found = await client.query(
           "SELECT has_column_privilege($1,$2,$3,$4) AS allowed",
           [runtime, row.relation, row.column_name, privilege],
