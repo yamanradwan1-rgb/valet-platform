@@ -8,10 +8,13 @@ import {
   verifyOptionCManagementBodies,
 } from "./option-c-protected-cutover-management-bodies.mjs";
 
-const sql = readFileSync(new URL(
-  "../prisma/migrations/20261115190000_option_c_management_writer/migration.sql",
-  import.meta.url,
-), "utf8").replace(/\r\n/g, "\n");
+const sql = readFileSync(
+  new URL(
+    "../prisma/migrations/20261115190000_option_c_management_writer/migration.sql",
+    import.meta.url,
+  ),
+  "utf8",
+).replace(/\r\n/g, "\n");
 
 test("S03 installed-function SHA pins match the reviewed raw-token SQL source", () => {
   assert.equal(pinnedOptionCManagementBodies.length, 7);
@@ -41,7 +44,10 @@ test("S03 cutover rejects old installed SQL even when migration was marked appli
   await verifyOptionCManagementBodies(client);
   const first = pinnedOptionCManagementBodies[0][0];
   good.set(first, "0".repeat(64));
-  await assert.rejects(verifyOptionCManagementBodies(client), /installed function differs/);
+  await assert.rejects(
+    verifyOptionCManagementBodies(client),
+    /installed function differs/,
+  );
 });
 
 test("both LEGACY promotion and PROTECTED rerun verify exact S03 SQL bodies", () => {

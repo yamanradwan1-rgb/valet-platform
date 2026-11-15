@@ -11,8 +11,12 @@ export async function verifyStaffAuthWriterMembership(client, writer, runtime) {
   );
   const migrationRole = identity.rows[0]?.migration_role;
   const databaseOwner = identity.rows[0]?.database_owner;
-  if (identity.rowCount !== 1 || !migrationRole || !databaseOwner ||
-      [writer, runtime].includes(migrationRole)) {
+  if (
+    identity.rowCount !== 1 ||
+    !migrationRole ||
+    !databaseOwner ||
+    [writer, runtime].includes(migrationRole)
+  ) {
     throw new Error("Staff Auth writer migration identity is unsafe.");
   }
   const result = await client.query(
@@ -26,11 +30,18 @@ export async function verifyStaffAuthWriterMembership(client, writer, runtime) {
        WHERE parent.rolname=$1 OR member.rolname=$1`,
     [writer],
   );
-  if (result.rows.length > 1 || result.rows.some((row) =>
-    row.parent !== writer || row.member !== migrationRole ||
-    ![migrationRole, databaseOwner].includes(row.grantor) ||
-    row.inherit_option !== false || row.set_option !== false ||
-    row.admin_option !== true)) {
+  if (
+    result.rows.length > 1 ||
+    result.rows.some(
+      (row) =>
+        row.parent !== writer ||
+        row.member !== migrationRole ||
+        ![migrationRole, databaseOwner].includes(row.grantor) ||
+        row.inherit_option !== false ||
+        row.set_option !== false ||
+        row.admin_option !== true,
+    )
+  ) {
     throw new Error("Staff Auth writer has an unsafe role membership.");
   }
   const effective = await client.query(
@@ -42,8 +53,11 @@ export async function verifyStaffAuthWriterMembership(client, writer, runtime) {
             pg_catalog.pg_has_role($2,$3,'USAGE') AS writer_inherit_migrator`,
     [runtime, writer, migrationRole],
   );
-  if (effective.rowCount !== 1 || !effective.rows[0] ||
-      Object.values(effective.rows[0]).some((value) => value !== false)) {
+  if (
+    effective.rowCount !== 1 ||
+    !effective.rows[0] ||
+    Object.values(effective.rows[0]).some((value) => value !== false)
+  ) {
     throw new Error("Staff Auth writer SET or inherited authority is unsafe.");
   }
 }
