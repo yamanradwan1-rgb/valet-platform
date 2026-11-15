@@ -113,6 +113,9 @@ test("writer provisioning grants exactly dedicated functions and read-only MFA f
 test("verifier rejects omitted protected function EXECUTE permissions", async () => {
   const badClient = {
     query: async (sql) => {
+      if (sql.includes("FROM pg_catalog.pg_class relation")) {
+        return { rowCount: 0, rows: [] };
+      }
       if (sql.includes("p.oid::regprocedure::text")) {
         return {
           rows: managementWriterFunctions.map((signature) => ({ signature })),

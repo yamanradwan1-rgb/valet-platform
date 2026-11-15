@@ -9,6 +9,7 @@ import {
   runtimeStaffManagementFunctions,
 } from "./staff-management-runtime-privileges.mjs";
 import { protectedStaffOnboardingFunctions } from "./staff-onboarding-runtime-privileges.mjs";
+import { verifyManagementWriterMutationInventory } from "./management-writer-mutation-inventory.mjs";
 
 const safeRole = /^[a-z_][a-z0-9_]{0,62}$/;
 export const managementWriterRole = "vaylet_management_writer";
@@ -155,6 +156,7 @@ export async function provisionManagementWriterPrivileges(
 }
 
 export async function verifyManagementWriterPrivileges(client, role, runtimeRole) {
+  await verifyManagementWriterMutationInventory(client, role);
   const closure = await client.query(
     `SELECT p.oid::regprocedure::text AS signature
      FROM pg_proc AS p

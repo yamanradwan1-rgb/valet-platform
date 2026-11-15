@@ -21,9 +21,12 @@ const verified = {
     "7f4daa120f802ae0be236acafc8cc869735ac88f5742871dd92056c6fe253bba",
 };
 
-function client(row) {
+function client(row, bypassAllowed = false) {
   return {
     query: async (sql) => {
+      if (sql.includes("has_parameter_privilege")) {
+        return { rowCount: 1, rows: [{ allowed: bypassAllowed }] };
+      }
       assert.match(sql, /pg_catalog\.pg_trigger/);
       assert.match(sql, /staff_auth_session_revocation_monotonic_trigger/);
       assert.match(sql, /pg_catalog\.sha256/);
@@ -39,6 +42,13 @@ test("cutover requires exact enabled, source-pinned S01 revocation trigger", asy
   await assertOptionCRevocationIsMonotonic(
     client(verified),
     "ordinary_runtime",
+  );
+  await assert.rejects(
+    assertOptionCRevocationIsMonotonic(
+      client(verified, true),
+      "ordinary_runtime",
+    ),
+    /runtime may bypass the immutable revocation trigger/,
   );
   for (const changed of [
     { tgenabled: "D" },

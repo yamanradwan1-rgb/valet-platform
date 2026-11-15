@@ -46,4 +46,15 @@ export async function assertOptionCRevocationIsMonotonic(client, runtimeRole) {
       "Option C staff session revocation trigger is missing, disabled or changed.",
     );
   }
+  // Ordinary triggers are bypassed by session_replication_role=replica.
+  // PostgreSQL parameter SET privileges must remain denied to runtime.
+  const bypass = await client.query(
+    "SELECT pg_catalog.has_parameter_privilege($1,'session_replication_role','SET') AS allowed",
+    [runtimeRole],
+  );
+  if (bypass.rowCount !== 1 || bypass.rows[0]?.allowed !== false) {
+    throw new Error(
+      "Option C runtime may bypass the immutable revocation trigger.",
+    );
+  }
 }
