@@ -147,8 +147,10 @@ describe("T05-D PostgreSQL activation serialization", () => {
     const actor = await fixture.actor();
     const invite = issued(await fixture.create(actor));
     const token = invitationToken(invite.activationLink);
+    // The concurrency barrier intentionally uses fixture administrator authority;
+    // the ordinary SQL runtime must never call this activation function.
     const runtime = new Client({
-      connectionString: fixture.runtimeDatabaseUrl(),
+      connectionString: fixture.migrationDatabaseUrl(),
     });
     await runtime.connect();
     await runtime.query("BEGIN");

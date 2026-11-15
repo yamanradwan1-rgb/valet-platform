@@ -42,6 +42,10 @@ export async function provisionStaffOnboardingPrivileges(
     [runtimeRole],
   );
   for (const name of privateStaffOnboardingFunctions) {
+    if (name === "public.staff_onboarding_activate(text,text,text)") {
+      // Never let PUBLIC restore this SECURITY DEFINER entrypoint on runtime reprovision.
+      await client.query("REVOKE ALL ON FUNCTION public.staff_onboarding_activate(text,text,text) FROM PUBLIC");
+    }
     await executeFormatted(client, "REVOKE ALL ON FUNCTION %s FROM %I", [
       name,
       runtimeRole,
@@ -74,7 +78,8 @@ export async function verifyStaffOnboardingPrivileges(client, runtimeRole) {
         owner.rolname <> $1 AS owner_safe,
         NOT EXISTS (
           SELECT 1 FROM aclexplode(COALESCE(function.proacl,acldefault('f',function.proowner))) AS acl
-          WHERE acl.privilege_type = 'EXECUTE' AND (acl.grantee=0 OR acl.is_grantable)
+          WHERE acl.privilege_type = 'EXECUTE'
+            AND (acl.grantee=0 OR (acl.grantee<>function.proowner AND acl.is_grantable))
         ) AS acl_safe
        FROM pg_proc AS function JOIN pg_roles AS owner ON owner.oid=function.proowner
        WHERE function.oid=to_regprocedure($2)`,
