@@ -1,7 +1,7 @@
 # VAYLET — Customer Account Recovery Policy (Option C)
 
-**Status:** PROPOSED PRE-LAUNCH POLICY — NOT YET AN OPERATIONAL CAPABILITY.  
-**Decision:** Company Admin Password Reset remains API/UI disabled. No implicit authority to use development-only credentials, migration-owner SQL, W9, legacy reactivation, or a custom emergency endpoint.  
+**Status:** PROPOSED PRE-LAUNCH POLICY — NOT YET AN OPERATIONAL CAPABILITY.
+**Decision:** Company Admin Password Reset remains API/UI disabled. No implicit authority to use development-only credentials, migration-owner SQL, W9, legacy reactivation, or a custom emergency endpoint.
 **Scope:** Human-initiated recovery for real customer organizations (Company Admin and Staff). VAYLET is a SaaS provider, not a valet operator. This policy does not assign VAYLET operators permission to take customer vehicle or valet-operation actions.
 
 ## 1. Launch prerequisite
