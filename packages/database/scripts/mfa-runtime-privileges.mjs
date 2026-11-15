@@ -1,18 +1,8 @@
-export const mfaSessionInsertColumns = [
-  "id",
-  "user_id",
-  "current_access_token_hash",
-  "access_expires_at",
-  "absolute_expires_at",
-  "created_at",
-  "last_rotated_at",
-];
+// Staff session issuance belongs exclusively to the dedicated Auth writer.
+export const mfaSessionInsertColumns = [];
 
 export const mfaSessionUpdateColumns = [
-  "current_access_token_hash",
-  "access_expires_at",
   "revoked_at",
-  "last_rotated_at",
   "mfa_authenticated_at",
   "mfa_factor_id",
   "last_admin_activity_at",
@@ -40,13 +30,12 @@ export const mfaRecoveryInsertColumns = [
   "selector",
   "verifier",
 ];
-export const mfaRefreshUpdateColumns = [
-  "consumed_at",
-  "replaced_by_credential_id",
-];
+export const mfaRefreshUpdateColumns = [];
 
 const sessionColumns = [
-  ...new Set([...mfaSessionInsertColumns, ...mfaSessionUpdateColumns]),
+  "id", "user_id", "current_access_token_hash", "access_expires_at",
+  "absolute_expires_at", "created_at", "last_rotated_at",
+  ...mfaSessionUpdateColumns,
 ];
 const refreshColumns = [
   "id",
@@ -120,7 +109,7 @@ export async function provisionMfaPrivileges(
   );
   await executeFormatted(
     client,
-    "REVOKE UPDATE, DELETE, TRUNCATE ON TABLE staff_refresh_credentials FROM %I",
+    "REVOKE ALL ON TABLE staff_refresh_credentials FROM %I",
     [runtimeRole],
   );
   await client.query(
@@ -150,26 +139,13 @@ export async function provisionMfaPrivileges(
     client,
     executeFormatted,
     runtimeRole,
-    "INSERT",
-    "staff_auth_sessions",
-    mfaSessionInsertColumns,
-  );
-  await grantColumns(
-    client,
-    executeFormatted,
-    runtimeRole,
     "UPDATE",
     "staff_auth_sessions",
     mfaSessionUpdateColumns,
   );
   await executeFormatted(
     client,
-    "GRANT SELECT, INSERT ON TABLE staff_refresh_credentials TO %I",
-    [runtimeRole],
-  );
-  await executeFormatted(
-    client,
-    "GRANT UPDATE (consumed_at, replaced_by_credential_id) ON TABLE staff_refresh_credentials TO %I",
+    "GRANT SELECT ON TABLE staff_refresh_credentials TO %I",
     [runtimeRole],
   );
 

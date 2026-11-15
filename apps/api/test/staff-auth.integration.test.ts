@@ -686,8 +686,7 @@ describe("production staff authentication", () => {
     });
     try {
       const service = new StaffAuthService(
-        dstPool,
-        new Argon2StaffPasswordVerifier(),
+        dstPool, new Argon2StaffPasswordVerifier(), dstPool,
       );
       await service.login(fixture.email, fixture.password);
       const persisted = await dstPool.query<{

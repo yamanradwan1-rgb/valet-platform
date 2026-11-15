@@ -20,8 +20,8 @@ test("S01 source reproduction: an SQL writer can precompute a chosen bearer hash
     "../../../apps/api/src/modules/auth/staff-session-context.ts",
   );
   const service = read(
-    "../../../apps/api/src/modules/auth/staff-auth.service.ts",
-  );
+    "../../../apps/api/src/modules/auth/staff-auth-login-command.ts",
+  ) + read("../../../apps/api/src/modules/auth/staff-auth-refresh-command.ts");
   const raw = `vsa1.${"A".repeat(43)}`;
   const digest = `staff-access-sha256:v1:${createHash("sha256")
     .update(raw, "utf8")
@@ -42,33 +42,19 @@ test("S01 source reproduction: an SQL writer can precompute a chosen bearer hash
   assert.match(service, /SET consumed_at = \$2::timestamptz/);
 });
 
-test("S01 legacy permission contract exactly matches the live direct writer", () => {
-  assert.deepEqual(mfaSessionInsertColumns, [
-    "id",
-    "user_id",
-    "current_access_token_hash",
-    "access_expires_at",
-    "absolute_expires_at",
-    "created_at",
-    "last_rotated_at",
-  ]);
+test("S01 runtime has no direct session or refresh issuance grants", () => {
+  assert.deepEqual(mfaSessionInsertColumns, []);
   assert.deepEqual(mfaSessionUpdateColumns, [
-    "current_access_token_hash",
-    "access_expires_at",
     "revoked_at",
-    "last_rotated_at",
     "mfa_authenticated_at",
     "mfa_factor_id",
     "last_admin_activity_at",
   ]);
-  assert.deepEqual(mfaRefreshUpdateColumns, [
-    "consumed_at",
-    "replaced_by_credential_id",
-  ]);
+  assert.deepEqual(mfaRefreshUpdateColumns, []);
   const provisioner = read("./mfa-runtime-privileges.mjs");
   const service = read(
-    "../../../apps/api/src/modules/auth/staff-auth.service.ts",
-  );
+    "../../../apps/api/src/modules/auth/staff-auth-login-command.ts",
+  ) + read("../../../apps/api/src/modules/auth/staff-auth-refresh-command.ts");
   const web = read(
     "../../../apps/api/src/modules/auth/staff-auth.controller.ts",
   );
@@ -77,12 +63,10 @@ test("S01 legacy permission contract exactly matches the live direct writer", ()
   );
   assert.match(
     provisioner,
-    /GRANT SELECT, INSERT ON TABLE staff_refresh_credentials TO %I/,
+    /GRANT SELECT ON TABLE staff_refresh_credentials TO %I/,
   );
-  assert.match(
-    provisioner,
-    /GRANT UPDATE \(consumed_at, replaced_by_credential_id\)/,
-  );
+  assert.match(provisioner, /GRANT SELECT ON TABLE staff_auth_sessions TO %I/);
+  assert.match(read("./staff-auth-writer-grants.mjs"), /staff_auth_sessions/);
   assert.match(service, /INSERT INTO staff_auth_sessions/);
   assert.match(service, /INSERT INTO staff_refresh_credentials/);
   assert.match(service, /UPDATE staff_refresh_credentials/);
@@ -125,6 +109,6 @@ test("A01 stays dormant until an independently approved S01 writer boundary exis
   assert.match(protectedLogin, /no Nest route\/module registration/i);
   assert.match(
     read("./mfa-runtime-privileges.mjs"),
-    /GRANT SELECT, INSERT ON TABLE staff_refresh_credentials/,
+    /GRANT SELECT ON TABLE staff_refresh_credentials/,
   );
 });

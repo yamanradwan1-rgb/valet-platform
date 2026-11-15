@@ -4,8 +4,9 @@ import {
   type StaffActivationRequest,
 } from "@valet/contracts";
 import type { PostgresPool } from "../../common/database/postgres";
-import { inPostgresTransaction } from "../../common/database/postgres-transaction";
 import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
+import { STAFF_AUTH_WRITER_POOL } from "../../common/database/staff-auth-writer-database.module";
+import { staffAuthWriterTransaction } from "./staff-auth-writer-transaction";
 import type { ApiRequest } from "../../common/http/api-request";
 import {
   AntiAbuseService,
@@ -28,6 +29,7 @@ import {
   activateStaffInvitation,
   loadActivationAccount,
   StaffActivationFailedError,
+  verifyCommittedStaffActivation,
 } from "./staff-activation-repository";
 
 export const STAFF_ACTIVATION_CREDENTIAL_LIMIT = 5;
@@ -37,6 +39,7 @@ export const STAFF_ACTIVATION_ADDRESS_LIMIT = 30;
 export class StaffActivationService {
   constructor(
     @Inject(RUNTIME_POSTGRES_POOL) private readonly pool: PostgresPool,
+    @Inject(STAFF_AUTH_WRITER_POOL) private readonly writer: PostgresPool,
     private readonly antiAbuse: AntiAbuseService,
     private readonly addresses: TrustedClientAddressResolver,
     private readonly verifier: Argon2StaffPasswordVerifier,
@@ -98,7 +101,7 @@ export class StaffActivationService {
           verifiedHash = account.password_hash;
         else throw new StaffActivationFailedError();
       }
-      return await inPostgresTransaction(this.pool, async (transaction) => {
+      return await staffAuthWriterTransaction(this.writer, async (transaction) => {
         const result = await activateStaffInvitation(
           transaction,
           tokenHash,
@@ -113,7 +116,9 @@ export class StaffActivationService {
           );
         }
         return result;
-      });
+      }, async () => verifyCommittedStaffActivation(
+        this.pool, tokenHash, verifiedHash, newHash, reservations,
+      ));
     } catch (error) {
       for (const reservation of reservations)
         await this.antiAbuse.finalize(reservation, "COUNTED");

@@ -65,7 +65,7 @@ describe("source-only Staff refresh possession lookup (not VAP1 proof)", () => {
 
   it("refresh rejects noncanonical raw input without leasing or mutating SQL", async () => {
     const { pool, connect } = emptyTransactionPool();
-    const service = new StaffAuthService(pool, { verify: vi.fn() });
+    const service = new StaffAuthService(pool, { verify: vi.fn() }, pool);
     await expect(
       service.refresh(`vsr1.${"A".repeat(42)}B`),
     ).rejects.toMatchObject({ code: "STAFF_AUTHENTICATION_FAILED" });
@@ -97,7 +97,7 @@ describe("source-only Staff refresh possession lookup (not VAP1 proof)", () => {
   it("refresh lookup derives the same raw credential hash before any mutation", async () => {
     const raw = generateStaffCredential("vsr1.");
     const { pool, query } = emptyTransactionPool();
-    const service = new StaffAuthService(pool, { verify: vi.fn() });
+    const service = new StaffAuthService(pool, { verify: vi.fn() }, pool);
     await expect(service.refresh(raw)).rejects.toMatchObject({
       code: "STAFF_AUTHENTICATION_FAILED",
     });

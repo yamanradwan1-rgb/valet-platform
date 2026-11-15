@@ -4,12 +4,12 @@ import {
 } from "./staff-management-runtime-privileges.mjs";
 
 export const runtimeStaffOnboardingFunctions = [
-  "public.staff_onboarding_activate(text,text,text)",
   "public.staff_onboarding_create(uuid,uuid,uuid,text,text,text,text,membership_role,uuid[],text)",
   "public.staff_onboarding_resend(uuid,uuid,uuid,uuid,text,text)",
 ];
 
 export const privateStaffOnboardingFunctions = [
+  "public.staff_onboarding_activate(text,text,text)",
   "public.staff_onboarding_proof_current(uuid)",
   "public.staff_onboarding_lock_identity(uuid,text)",
   "public.staff_onboarding_authorize_actor(uuid,uuid)",

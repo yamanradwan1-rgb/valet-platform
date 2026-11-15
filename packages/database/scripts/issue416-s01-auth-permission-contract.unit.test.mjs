@@ -61,7 +61,7 @@ function permissionClient({
         const table = String(params[1]).replace(/^public\./, "");
         const expected = {
           staff_auth_sessions: { can_select: true, can_insert: false },
-          staff_refresh_credentials: { can_select: true, can_insert: true },
+          staff_refresh_credentials: { can_select: true, can_insert: false },
           user_mfa_totp_factors: { can_select: true, can_insert: false },
           mfa_recovery_codes: { can_select: true, can_insert: false },
         }[table];
@@ -121,7 +121,7 @@ function permissionClient({
   };
 }
 
-test("PUBLIC session and refresh table access is revoked without changing runtime grants", async () => {
+test("PUBLIC and runtime session/refresh issuance grants remain revoked", async () => {
   const statements = [];
   const client = {
     async query(sql) {
@@ -140,7 +140,7 @@ test("PUBLIC session and refresh table access is revoked without changing runtim
   const refreshRuntimeGrantIndex = statements.findIndex(
     ({ format }) =>
       format ===
-      "GRANT SELECT, INSERT ON TABLE staff_refresh_credentials TO %I",
+      "GRANT SELECT ON TABLE staff_refresh_credentials TO %I",
   );
   assert.ok(publicRevokeIndex >= 0);
   assert.ok(refreshRuntimeGrantIndex > publicRevokeIndex);
@@ -161,25 +161,12 @@ test("PUBLIC session and refresh table access is revoked without changing runtim
     statements.some(
       ({ format }) =>
         format ===
-        "GRANT SELECT, INSERT ON TABLE staff_refresh_credentials TO %I",
+        "GRANT SELECT ON TABLE staff_refresh_credentials TO %I",
     ),
   );
-  assert.ok(
-    statements.some(
-      ({ format }) =>
-        format ===
-        "GRANT UPDATE (consumed_at, replaced_by_credential_id) ON TABLE staff_refresh_credentials TO %I",
-    ),
-  );
-  assert.deepEqual(mfaSessionInsertColumns, [
-    "id",
-    "user_id",
-    "current_access_token_hash",
-    "access_expires_at",
-    "absolute_expires_at",
-    "created_at",
-    "last_rotated_at",
-  ]);
+  assert.equal(statements.some(({ format }) => /GRANT (INSERT|UPDATE).*staff_refresh_credentials/.test(format ?? "")), false);
+  assert.deepEqual(mfaSessionInsertColumns, []);
+  assert.deepEqual(mfaRefreshUpdateColumns, []);
 });
 
 test("effective permission verifier rejects PUBLIC session/refresh access and privilege drift", async () => {

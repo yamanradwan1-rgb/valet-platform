@@ -40,7 +40,7 @@ describe("Staff login/refresh ceremony source regressions (legacy SQL, NOT VAP1)
       }),
       connect: vi.fn(async () => ({ query: lockedQuery, release })),
     } as unknown as PostgresPool;
-    const auth = new StaffAuthService(pool, { verify });
+    const auth = new StaffAuthService(pool, { verify }, pool);
 
     await expect(
       auth.login("staff@example.test", "presented-password"),
@@ -95,7 +95,7 @@ describe("Staff login/refresh ceremony source regressions (legacy SQL, NOT VAP1)
     const pool = {
       connect: vi.fn(async () => ({ query: lockedQuery, release: released })),
     } as unknown as PostgresPool;
-    const auth = new StaffAuthService(pool, { verify: vi.fn() });
+    const auth = new StaffAuthService(pool, { verify: vi.fn() }, pool);
 
     await expect(auth.refresh(rawRefresh)).rejects.toMatchObject({
       code: "STAFF_AUTHENTICATION_FAILED",

@@ -644,6 +644,13 @@ Constraints/rules:
 - access expiry is at most 15 minutes and never exceeds the fixed absolute expiry
 - absolute expiry is exactly 30 days from database-authoritative session creation and never slides
 - revocation retains the session and its refresh lineage
+- under Option C S01, a forward-only database trigger makes a non-null
+  `revoked_at` immutable; neither the ordinary runtime role nor the dedicated
+  Staff Auth writer may clear or backdate a committed revocation
+- Staff session issuance and access/refresh rotation are restricted to the
+  dedicated `vaylet_staff_auth_writer` SQL principal; the ordinary runtime
+  principal retains read access and the narrowly required MFA assurance and
+  irrevocable session-revocation updates
 - MFA assurance fields are all-null or all-present; `mfa_factor_id` is a
   restrictive same-User reference to `user_mfa_totp_factors`
 - assurance is valid only while that exact factor remains the User's current

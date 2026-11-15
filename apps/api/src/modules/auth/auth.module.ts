@@ -2,6 +2,7 @@ import { MiddlewareConsumer, Module, type NestModule } from "@nestjs/common";
 import { APP_INTERCEPTOR } from "@nestjs/core";
 
 import { RuntimeDatabaseModule } from "../../common/database/runtime-database.module";
+import { StaffAuthWriterDatabaseModule } from "../../common/database/staff-auth-writer-database.module";
 import { HttpInfrastructureModule } from "../../common/http/http-infrastructure.module";
 import { RequestIdMiddleware } from "../../common/http/api-request";
 import { AntiAbuseModule } from "../anti-abuse/anti-abuse.module";
@@ -38,7 +39,7 @@ import { StaffResponseUserRevalidationInterceptor } from "./staff-response-user-
     NativeStaffAuthController,
     StaffMfaController,
   ],
-  imports: [AntiAbuseModule, RuntimeDatabaseModule, HttpInfrastructureModule],
+  imports: [AntiAbuseModule, RuntimeDatabaseModule, StaffAuthWriterDatabaseModule, HttpInfrastructureModule],
   providers: [
     StaffAuthService,
     StaffLoginService,

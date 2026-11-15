@@ -37,6 +37,25 @@ as a higher trust-boundary compromise.
 
 ## 2. Recommended design
 
+**2026-11-15 implementation reconciliation:** Owner-approved Option C retains
+the SQL-only ordinary-runtime T5 threat boundary. The trusted Staff Auth writer
+principal can issue sessions directly once its credentials are obtained; this
+is an explicit higher-trust T6 credential-compromise risk, requiring separate
+secret custody, no shared runtime credentials, and application-only raw
+password verification before invoking its writes. No claim is made that the
+database cryptographically attests the password ceremony to this writer.
+The S01 implementation transfers logout to this same protected writer because
+PostgreSQL `FOR UPDATE OF refresh` cannot run on a read-only refresh table;
+logout still commits session revocation and Push retirement together. The
+dedicated writer receives only the exact Push retirement columns needed.
+As S04 removes general anti-abuse UPDATE grants, S01 commits login reservation
+success via `public.s04_staff_login_success(uuid,text)` with its exact
+returned row count of one, rather than generic limiter-table updates.
+Activation of a verified Staff invitation likewise uses the writer-only
+`staff_onboarding_activate(text,text,text)` function.
+The preceding role matrix records the original proposal and is superseded
+by this narrow implementation reconciliation where the two differ.
+
 Use one dedicated login role and one API connection pool for the small set of
 Staff Auth domain writes. Do not convert the other 35 writer families and do
 not activate global VAP1.

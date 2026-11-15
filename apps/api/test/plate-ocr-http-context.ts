@@ -131,7 +131,7 @@ export class PlateOcrHttpContext extends ReturningCheckInTestContext {
     // Password hashing is outside this route's scope; credentials/session resolution are real.
     const tokens = await new StaffAuthService(this.runtime, {
       verify: async () => true,
-    }).login(email, "test-only");
+    }, this.runtime).login(email, "test-only");
     if (shift)
       await this.admin.query(
         `INSERT INTO shifts (id, organization_id, location_id, membership_id, started_at)

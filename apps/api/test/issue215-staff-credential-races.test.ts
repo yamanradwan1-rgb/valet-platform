@@ -155,7 +155,7 @@ describe("Issue #283 real StaffAuthSession T1/T2 credential races", () => {
     const scope = await ctx.seed();
     const { credential, refreshToken } = await createCredential(ctx, scope);
     const { gate, wrapper } = pausedWriter(ctx.pool, /UPDATE staff_auth_sessions\s+SET current_access_token_hash/i);
-    const auth = new StaffAuthService(wrapper, { verify: async () => false });
+    const auth = new StaffAuthService(ctx.pool, { verify: async () => false }, wrapper);
     const refresh = auth.refresh(refreshToken);
     await gate.atBarrier;
     try {
@@ -180,7 +180,7 @@ describe("Issue #283 real StaffAuthSession T1/T2 credential races", () => {
     const { credential, refreshToken } = await createCredential(ctx, scope);
     const lease = await storedLease(ctx, scope, credential);
     const { gate, wrapper } = pausedWriter(ctx.pool, /UPDATE staff_auth_sessions\s+SET current_access_token_hash/i);
-    const refresh = new StaffAuthService(wrapper, { verify: async () => false }).refresh(refreshToken);
+    const refresh = new StaffAuthService(ctx.pool, { verify: async () => false }, wrapper).refresh(refreshToken);
     await gate.atBarrier;
     try {
       const finalize = finalizeConditionPhoto(ctx.pool, credential, scope.sessionId, lease, facts);
@@ -203,7 +203,7 @@ describe("Issue #283 real StaffAuthSession T1/T2 credential races", () => {
     let refresh!: Promise<unknown>;
     await inPostgresTransaction(ctx.pool, async (client) => {
       await authorizeConditionPhotoScope(client, credential, scope.sessionId);
-      refresh = new StaffAuthService(ctx.pool, { verify: async () => false }).refresh(refreshToken);
+      refresh = new StaffAuthService(ctx.pool, { verify: async () => false }, ctx.pool).refresh(refreshToken);
       await awaitLockWait(observer, /pg_advisory_xact_lock/i);
       await finalizeInsideLockedTransaction(client, scope, credential, lease);
     });

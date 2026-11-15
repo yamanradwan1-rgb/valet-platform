@@ -85,7 +85,7 @@ describe("#293 exact cancellation credential with real PostgreSQL", () => {
     }
     const auth = new StaffAuthService(harness.context.adminPool, {
       verify: async () => false,
-    });
+    }, harness.context.adminPool);
     return auth.refresh(refresh);
   }
 
@@ -154,7 +154,7 @@ describe("#293 exact cancellation credential with real PostgreSQL", () => {
         ? logoutStaffSession(harness.context.adminPool, refresh)
         : new StaffAuthService(harness.context.adminPool, {
             verify: async () => false,
-          }).refresh(refresh);
+          }, harness.context.adminPool).refresh(refresh);
       try {
         await barrier.proveBlocked(harness.context.adminPool);
       } finally {

@@ -111,7 +111,7 @@ export async function verifyMfaPrivileges(client, runtimeRole) {
     runtimeRole,
     "staff_refresh_credentials",
     {
-      insert: true,
+      insert: false,
       select: true,
     },
   );
