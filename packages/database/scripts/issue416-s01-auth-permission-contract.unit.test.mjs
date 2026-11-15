@@ -220,6 +220,8 @@ test("legacy provisioner stays fenced and does not invoke broad VAP1 retirement"
     async query(sql) {
       if (sql.includes("pg_catalog.pg_namespace"))
         return { rowCount: 1, rows: [{}] };
+      if (sql === "SET LOCAL ROLE vap1_proof_owner" || sql === "RESET ROLE")
+        return { rowCount: 0, rows: [] };
       if (sql.includes("security_boundary WHERE singleton FOR SHARE")) {
         return { rowCount: 1, rows: [{ phase: "LEGACY_COMPAT" }] };
       }
@@ -234,6 +236,8 @@ test("legacy provisioner stays fenced and does not invoke broad VAP1 retirement"
       async query(sql) {
         if (sql.includes("pg_catalog.pg_namespace"))
           return { rowCount: 1, rows: [{}] };
+        if (sql === "SET LOCAL ROLE vap1_proof_owner" || sql === "RESET ROLE")
+          return { rowCount: 0, rows: [] };
         if (sql.includes("security_boundary WHERE singleton FOR SHARE")) {
           return { rowCount: 1, rows: [{ phase }] };
         }
