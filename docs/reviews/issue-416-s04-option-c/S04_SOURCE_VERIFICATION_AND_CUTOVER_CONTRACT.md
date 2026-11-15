@@ -73,7 +73,7 @@ Automated rotation and mixed-version production rollout have **not** been
 implemented or tested in this branch; do not rotate by changing the existing
 environment variable alone.
 
-## Exact current source path
+## Exact pre-remediation source path (baseline 1fbf95c5)
 
 - `packages/database/scripts/provision-runtime-role.mjs:211-240` grants ordinary
   runtime SELECT, INSERT on scope/key/state/class/group and UPDATE on state/group.
@@ -151,19 +151,23 @@ purpose and inherited-role escalation; a real Staff/MFA/Guest writer permits
 all legitimate transitions, with commit loss, rollback and concurrent quota
 checks. Reprovision the same isolated DB twice and repeat the negatives.
 
-## Evidence limits
+## Earlier blocked attempt and current evidence limits
 
-W58 created an independent Docker `desktop-linux` PostgreSQL 17 fixture
+Before the later successful protected SQL exercise described in lines 43–54,
+W58 created a separate independent Docker `desktop-linux` PostgreSQL 17 fixture
 `vaylet-issue416-w58-s04-20261115-pg17`, container ID starting `8579c587`,
 loopback `127.0.0.1:51558`, database `s04_w58_disposable`, owner
 `w58_owner`, `pg_control_system().system_identifier=7708456259384864802`;
-container `pg_controldata` returned the same system identifier. The fixture
-held no project migrations or runtime role at attestation. The intended
+container `pg_controldata` returned the same system identifier. That first fixture
+held no project migrations or runtime role at attestation. Its intended
 synthetic DDL/SQL repro was blocked by the tool safety gate **before it was
-sent to the host**. There is therefore **no actual W58 role/DML exploit
-result, no migration/role provisioning result and no mounted HTTP proof**.
+sent to the host**. That blocked attempt supplied no SQL or HTTP evidence.
 W58 removed only its own label/id-attested disposable container and volume
 after the blocked attempt; no shared fixture was changed.
-Historical baseline proof was the cited source contract. Current post-fix
-negative/positive contract suite:
+**Subsequently**, W58 attested a different disposable PostgreSQL 17 fixture
+`vaylet-issue416-w58-s04-protected-pg17`, executed the isolated S04 SQL role
+and command proofs successfully, and recorded those results in lines 43–54.
+The later result supersedes the earlier *lack of SQL proof*, not the still
+outstanding full migration-stack and mounted HTTP acceptance gates.
+Current post-fix negative/positive contract suite:
 `packages/database/issue416-s04/s04-protected-source-contract.test.mjs`.
