@@ -1,13 +1,18 @@
 import assert from "node:assert/strict";
 import { Buffer } from "node:buffer";
+import fs, {
+  appendFileSync,
+} from "node:fs";
 import {
   mkdirSync, mkdtempSync, rmSync, symlinkSync, truncateSync, writeFileSync,
 } from "node:fs";
+import { syncBuiltinESMExports } from "node:module";
 import { dirname, join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 import { readTrustedMigrationBytes } from "./pg17-acceptance-source-fd.mjs";
+import { approvedMigrationChecksums } from "./race-migration-pins.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const UNTRUSTED = /W30_PG17_MIGRATION_SOURCE_FILE_UNTRUSTED/;
@@ -50,4 +55,36 @@ test("migration SQL read rejects a symlink even if its target is a valid file", 
     throw error;
   }
   assert.throws(() => readTrustedMigrationBytes(link), UNTRUSTED);
+});
+
+test("migration SQL read fails closed on post-fstat file growth", (t) => {
+  const root = mkdtempSync(join(HERE, ".w36-fd-test-"));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const file = join(root, "migration.sql");
+  writeFileSync(file, "SELECT 1;");
+  const originalRead = fs.readSync;
+  let appended = false;
+  fs.readSync = (...args) => {
+    const count = originalRead(...args);
+    if (count > 0 && !appended) {
+      appended = true;
+      appendFileSync(file, "X");
+    }
+    return count;
+  };
+  syncBuiltinESMExports();
+  try {
+    assert.throws(() => readTrustedMigrationBytes(file), UNTRUSTED);
+    assert.equal(appended, true);
+  } finally {
+    fs.readSync = originalRead;
+    syncBuiltinESMExports();
+  }
+});
+
+test("migration checksum lookup rejects unreviewed traversal before touching disk", () => {
+  assert.throws(
+    () => approvedMigrationChecksums("../../../../outside-repository"),
+    /ISSUE416_RACE_SOURCE_MIGRATION_NOT_REVIEWED/,
+  );
 });

@@ -1,8 +1,9 @@
 import { createHash } from "node:crypto";
 import { Buffer } from "node:buffer";
-import { readFileSync, readdirSync } from "node:fs";
+import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath, URL } from "node:url";
+import { readTrustedMigrationBytes } from "./pg17-acceptance-source-fd.mjs";
 
 // Exact raw SQL bytes for the current proposed Issue416 source set. Prisma stores SHA-256
 // migration.sql checksums; a syntactically valid arbitrary 64-hex checksum is
@@ -134,7 +135,10 @@ export function assertPinnedMigrationBytes(name, bytes) {
  * Never accept a third checksum or an unpinned source.
  */
 export function approvedMigrationChecksums(name) {
-  const bytes = readFileSync(join(sourceRoot, name, "migration.sql"));
+  if (!Object.hasOwn(PINNED_MIGRATION_SHA256, name)) {
+    throw new Error("ISSUE416_RACE_SOURCE_MIGRATION_NOT_REVIEWED");
+  }
+  const bytes = readTrustedMigrationBytes(join(sourceRoot, name, "migration.sql"));
   assertPinnedMigrationBytes(name, bytes);
   const canonicalLf = [];
   for (let i = 0; i < bytes.length; i += 1) {
@@ -179,7 +183,7 @@ export function verifyPinnedMigrationSources() {
     readdirSync(sourceRoot).filter((name) => /^\d{14}_issue416_/.test(name)),
   );
   for (const name of names) {
-    const bytes = readFileSync(join(sourceRoot, name, "migration.sql"));
+    const bytes = readTrustedMigrationBytes(join(sourceRoot, name, "migration.sql"));
     assertPinnedMigrationBytes(name, bytes);
   }
   // A local source identity, not evidence of deployed rows or DB permissions.

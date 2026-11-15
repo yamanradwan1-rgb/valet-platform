@@ -1,6 +1,7 @@
 import {
-  constants, closeSync, fstatSync, lstatSync, openSync, readFileSync,
+  constants, closeSync, fstatSync, lstatSync, openSync, readSync,
 } from "node:fs";
+import { Buffer } from "node:buffer";
 
 const MAX_MIGRATION_SOURCE_BYTES = 16 * 1024 * 1024;
 
@@ -18,7 +19,18 @@ export function readTrustedMigrationBytes(path) {
     if (!before.isFile() || before.size > BigInt(MAX_MIGRATION_SOURCE_BYTES)) {
       throw new Error("untrusted file descriptor");
     }
-    const bytes = readFileSync(descriptor);
+    // Read exactly the attested size from this descriptor. readFileSync(fd)
+    // would continue until EOF if another process grew the file after fstat,
+    // permitting unbounded memory consumption on an untrusted source tree.
+    const bytes = Buffer.alloc(Number(before.size));
+    for (let offset = 0; offset < bytes.length;) {
+      const count = readSync(descriptor, bytes, offset, bytes.length - offset, offset);
+      if (count === 0) throw new Error("source truncated during read");
+      offset += count;
+    }
+    if (readSync(descriptor, Buffer.alloc(1), 0, 1, bytes.length) !== 0) {
+      throw new Error("source grew during read");
+    }
     const after = fstatSync(descriptor, { bigint: true });
     const atPath = lstatSync(path, { bigint: true });
     if (
