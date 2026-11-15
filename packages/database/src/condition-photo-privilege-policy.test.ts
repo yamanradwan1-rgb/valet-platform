@@ -48,6 +48,7 @@ function roleProvisionHarness() {
     "public.condition_photo_coherence_guard()",
   ];
   const statements: Statement[] = [];
+  let currentRole = "valet_migration";
   const client = {
     query: async (sql: string, params?: unknown[]) => {
       if (sql.includes("FROM pg_proc function")) {
@@ -64,7 +65,15 @@ function roleProvisionHarness() {
           })),
         };
       }
-      if (sql === "SELECT current_user AS name") return { rows: [{ name: "valet_migration" }] };
+      if (sql === "SET LOCAL ROLE valet_photo_evidence_lock_owner") {
+        currentRole = "valet_photo_evidence_lock_owner";
+        return { rows: [] };
+      }
+      if (sql === "RESET ROLE") {
+        currentRole = "valet_migration";
+        return { rows: [] };
+      }
+      if (sql === "SELECT current_user AS name") return { rows: [{ name: currentRole }] };
       if (sql.includes("FROM pg_proc p JOIN pg_roles role ON role.oid=p.proowner")) {
         return { rowCount: 1, rows: [{
           prosecdef: true, safe: true, denied: true,
@@ -77,6 +86,22 @@ function roleProvisionHarness() {
           rolcreaterole: false, rolreplication: false, rolbypassrls: false,
           rolinherit: false,
         }] };
+      }
+      if (sql.includes("FROM pg_auth_members AS membership")) {
+        // This pre-existing owner fixture has no inherited creator edge;
+        // the strict PG17 ADMIN-only/SET-denied cases are tested separately.
+        expect(sql).toContain("membership.set_option");
+        expect(sql).toContain("membership.admin_option");
+        return { rowCount: 0, rows: [] };
+      }
+      if (sql.includes("pg_get_userbyid(acl.grantee)")) {
+        return {
+          rowCount: 2,
+          rows: [
+            { grantee: "valet_photo_evidence_lock_owner", grantor: "valet_photo_evidence_lock_owner", is_grantable: false },
+            { grantee: "valet_runtime", grantor: "valet_photo_evidence_lock_owner", is_grantable: false },
+          ],
+        };
       }
       if (sql.includes("COUNT(*)::integer AS total")) return { rows: [{ total: 0 }] };
       if (sql.includes("SELECT p.prosecdef,r.rolcanlogin")) {

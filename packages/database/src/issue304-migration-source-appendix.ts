@@ -69,6 +69,16 @@ export const issue416AppendedMigrationDirectories = [
   "20261113016100_issue416_a01_signed_lineage_readback",
 ] as const;
 
+// Option C is a separate, append-only launch security remediation. These
+// sources are not part of the dormant 140-migration Option A inventory.
+export const optionCAppendedMigrationDirectories = [
+  "20261115016200_issue416_s04_signed_quota_guard",
+  "20261115020100_issue416_optionc_s01_revocation_monotonic",
+  "20261115190000_option_c_management_writer",
+  "20261115220000_issue416_s02_bound_admin_activity",
+  "20261115235000_option_c_launch_writer_boundary",
+] as const;
+
 export const expectedCurrentMigrationDirectories = [
   ...expectedMigrationDirectories,
   ...issue300AppendedMigrationDirectories,
@@ -77,4 +87,5 @@ export const expectedCurrentMigrationDirectories = [
   ...issue429AppendedMigrationDirectories,
   ...issue435AppendedMigrationDirectories,
   ...issue416AppendedMigrationDirectories,
+  ...optionCAppendedMigrationDirectories,
 ] as const;

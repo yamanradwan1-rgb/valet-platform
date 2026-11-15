@@ -8,6 +8,7 @@ import {
   issue429AppendedMigrationDirectories,
   issue435AppendedMigrationDirectories,
   issue416AppendedMigrationDirectories,
+  optionCAppendedMigrationDirectories,
   issue304AppendedMigrationDirectories,
   subsequentAppendedMigrationDirectories,
 } from "./issue304-migration-source-appendix.js";
@@ -75,7 +76,14 @@ describe("append-only migration source history", () => {
       "20261113016000_issue416_a01_original_challenge_lineage",
       "20261113016100_issue416_a01_signed_lineage_readback",
     ]);
-    expect(expectedCurrentMigrationDirectories).toHaveLength(140);
+    expect(optionCAppendedMigrationDirectories).toEqual([
+      "20261115016200_issue416_s04_signed_quota_guard",
+      "20261115020100_issue416_optionc_s01_revocation_monotonic",
+      "20261115190000_option_c_management_writer",
+      "20261115220000_issue416_s02_bound_admin_activity",
+      "20261115235000_option_c_launch_writer_boundary",
+    ]);
+    expect(expectedCurrentMigrationDirectories).toHaveLength(145);
     const migrationRoot = fileURLToPath(
       new URL("../prisma/migrations/", import.meta.url),
     );
