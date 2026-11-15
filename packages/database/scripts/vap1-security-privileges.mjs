@@ -66,14 +66,23 @@ export async function assertLegacyRuntimeProvisioningAllowed(client) {
     "SELECT 1 FROM pg_catalog.pg_namespace WHERE nspname='auth_proof_private'",
   );
   if (exists.rowCount === 0) return;
-  // Hold the SAME boundary row lock until the provisioning transaction COMMIT.
-  // Otherwise LEGACY_COMPAT preflight could race a C3 DRAINED transition,
-  // regranting old auth SQL authority *after* the operator's REVOKEs.
-  // Operator promotion UPDATE blocks on our FOR SHARE and must retire grants
-  // only after this transaction has completed.
-  const result = await client.query(
-    "SELECT phase FROM auth_proof_private.security_boundary WHERE singleton FOR SHARE",
-  );
+  // Migration113 gives the trusted migrator SET-only membership in the
+  // NOLOGIN private owner, but deliberately only SELECT on this boundary
+  // table. PostgreSQL FOR SHARE itself requires UPDATE privilege. Acquire
+  // the original transaction-scoped row lock *as that existing owner*, then
+  // restore the migrator role before touching public grants. Do not grant
+  // migration/runtime UPDATE on private security state merely to fix this
+  // preflight. The lock survives RESET ROLE until the caller's COMMIT.
+  // A runtime SQL principal cannot SET ROLE to the private owner.
+  await client.query("SET LOCAL ROLE vap1_proof_owner");
+  let result;
+  try {
+    result = await client.query(
+      "SELECT phase FROM auth_proof_private.security_boundary WHERE singleton FOR SHARE",
+    );
+  } finally {
+    await client.query("RESET ROLE");
+  }
   if (result.rowCount !== 1 || result.rows[0].phase !== "LEGACY_COMPAT") {
     throw new Error(
       "VAP1 protected/drained phase: legacy runtime provisioner may restore authority grants; run only the reviewed protected provisioner.",

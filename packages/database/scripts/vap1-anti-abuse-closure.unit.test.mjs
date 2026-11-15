@@ -115,6 +115,8 @@ test("LEGACY_COMPAT allows the original role provisioner, protected phases prohi
         queries.push(sql);
         if (sql.includes("pg_catalog.pg_namespace"))
           return { rowCount: 1, rows: [{}] };
+        if (sql === "SET LOCAL ROLE vap1_proof_owner" || sql === "RESET ROLE")
+          return { rowCount: 0, rows: [] };
         if (sql.includes("security_boundary WHERE singleton FOR SHARE")) {
           return { rowCount: 1, rows: [{ phase }] };
         }
@@ -131,6 +133,32 @@ test("LEGACY_COMPAT allows the original role provisioner, protected phases prohi
         /VAP1/,
       );
     }
-    assert.equal(queries.length, 2);
+    assert.deepEqual(queries.slice(1, 4), [
+      "SET LOCAL ROLE vap1_proof_owner",
+      "SELECT phase FROM auth_proof_private.security_boundary WHERE singleton FOR SHARE",
+      "RESET ROLE",
+    ]);
+    assert.equal(queries.length, 4);
   }
+});
+
+test("legacy provisioner restores its migrator role even when locked phase read fails", async () => {
+  const queries = [];
+  const client = {
+    async query(sql) {
+      queries.push(sql);
+      if (sql.includes("pg_catalog.pg_namespace")) return { rowCount: 1, rows: [{}] };
+      if (sql === "SET LOCAL ROLE vap1_proof_owner" || sql === "RESET ROLE")
+        return { rowCount: 0, rows: [] };
+      if (sql.includes("security_boundary WHERE singleton FOR SHARE")) {
+        throw new Error("SIMULATED_LOCK_FAILURE");
+      }
+      throw new Error("UNEXPECTED_QUERY");
+    },
+  };
+  await assert.rejects(
+    assertLegacyRuntimeProvisioningAllowed(client),
+    /SIMULATED_LOCK_FAILURE/,
+  );
+  assert.equal(queries.at(-1), "RESET ROLE");
 });
