@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { OptionCAfterFixture, runtimeBoolean } from "./after-fixture";
-import { reprovisionRuntime } from "./after-provisioner-runner";
+import { runLegacyRuntimeProvisioner } from "./after-provisioner-runner";
 
 const fixture = new OptionCAfterFixture();
 beforeAll(() => fixture.start(), 180_000);
@@ -26,19 +26,25 @@ async function closureViolations(): Promise<string[]> {
     ["staff_refresh_credentials", "token_hash", "INSERT"],
     ["staff_refresh_credentials", "consumed_at", "UPDATE"],
   ] as const) {
-    if (await runtimeBoolean(
-      fixture,
-      `SELECT has_column_privilege(current_user,$1,$2,$3) AS allowed`,
-      [table, column, privilege],
-    )) violations.push(`${table}.${column}:${privilege}`);
+    if (
+      await runtimeBoolean(
+        fixture,
+        `SELECT has_column_privilege(current_user,$1,$2,$3) AS allowed`,
+        [table, column, privilege],
+      )
+    )
+      violations.push(`${table}.${column}:${privilege}`);
   }
   for (const fn of deniedFunctions) {
-    if (await runtimeBoolean(
-      fixture,
-      `SELECT COALESCE(has_function_privilege(current_user,
+    if (
+      await runtimeBoolean(
+        fixture,
+        `SELECT COALESCE(has_function_privilege(current_user,
            to_regprocedure($1), 'EXECUTE'),false) AS allowed`,
-      [fn],
-    )) violations.push(`${fn}:EXECUTE`);
+        [fn],
+      )
+    )
+      violations.push(`${fn}:EXECUTE`);
   }
   const ancestry = await fixture.query<{
     parent_count: string;
@@ -50,14 +56,17 @@ async function closureViolations(): Promise<string[]> {
      WHERE role.rolname=$1 GROUP BY role.oid,role.rolinherit`,
     [new URL(fixture.runtimeDatabaseUrl()).username],
   );
-  if (ancestry.rows[0]?.inherit !== false || ancestry.rows[0]?.parent_count !== "0") {
+  if (
+    ancestry.rows[0]?.inherit !== false ||
+    ancestry.rows[0]?.parent_count !== "0"
+  ) {
     violations.push("runtime role membership/inheritance");
   }
   return violations;
 }
 
-describe("Option C AFTER / reprovision twice and inherited-role attack", () => {
-  it("strips an injected grant-bearing parent then cannot re-GRANT legacy SQL authority", async () => {
+describe("Option C AFTER / protected legacy-provision fence", () => {
+  it("rejects legacy runtime provisioning twice without changing injected ACL state", async () => {
     const parent = `w37_after_parent_${randomBytes(5).toString("hex")}`;
     const principal = new URL(fixture.runtimeDatabaseUrl()).username;
     if (!/^[a-z_][a-z0-9_]{0,62}$/.test(principal)) {
@@ -86,13 +95,20 @@ describe("Option C AFTER / reprovision twice and inherited-role attack", () => {
       );
       expect(injected.rows[0]?.parent_count).toBe("1");
 
-      await reprovisionRuntime(fixture);
-      const first = await closureViolations();
-      await reprovisionRuntime(fixture);
-      const second = await closureViolations();
-      console.info(`W37 AFTER reprovision first_violations=${first.length} second_violations=${second.length}`);
-      expect(first, "first provisioner replay must close inherited and legacy grants").toEqual([]);
-      expect(second, "second provisioner replay must not re-grant unsafe authority").toEqual([]);
+      const before = await closureViolations();
+      expect(before.length).toBeGreaterThan(0);
+      for (let pass = 1; pass <= 2; pass++) {
+        const result = await runLegacyRuntimeProvisioner(fixture);
+        expect(result.code).not.toBe(0);
+        expect(`${result.stdout}\n${result.stderr}`).toContain(
+          "Option C PROTECTED",
+        );
+        const after = await closureViolations();
+        expect(
+          after,
+          `legacy provisioner rejection ${pass} must not mutate ACL state`,
+        ).toEqual(before);
+      }
     } finally {
       if (created) {
         await fixture

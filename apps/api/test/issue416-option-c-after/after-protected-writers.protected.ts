@@ -4,20 +4,25 @@ import {
   staffDirectoryPath,
   staffRolePath,
 } from "../issue416-option-c-t5/probe-fixture";
-import { reprovisionRuntime } from "./after-provisioner-runner";
+import { runLegacyRuntimeProvisioner } from "./after-provisioner-runner";
 import { OptionCAfterProtectedFixture } from "./after-protected-fixture";
 
 const fixture = new OptionCAfterProtectedFixture();
 beforeAll(() => fixture.start(), 180_000);
 afterAll(() => fixture.stop(), 120_000);
 
-async function deniedRuntimePrivilege(table: string, column: string, privilege: string) {
+async function deniedRuntimePrivilege(
+  table: string,
+  column: string,
+  privilege: string,
+) {
   const result = await fixture.runtimeSql(
     `SELECT has_column_privilege(current_user,$1,$2,$3) AS allowed`,
     [table, column, privilege],
   );
   expect(result.allowed).toBe(true);
-  if (!result.allowed) throw new Error("W37 protected permission query failed.");
+  if (!result.allowed)
+    throw new Error("W37 protected permission query failed.");
   expect(result.result?.allowed, `${table}.${column}:${privilege}`).toBe(false);
 }
 
@@ -35,20 +40,25 @@ async function assertRuntimeS01Fence() {
     `SELECT has_table_privilege(current_user,
        'staff_refresh_credentials','INSERT') AS allowed`,
   );
-  if (!table.allowed) throw new Error("W37 refresh table privilege query failed.");
+  if (!table.allowed)
+    throw new Error("W37 refresh table privilege query failed.");
   expect(table.result?.allowed).toBe(false);
 }
 
 describe("Option C protected writer integration / strict writer principals", () => {
-  it("provisions three independently attested known DB writer identities, then twice replays all grants", async () => {
+  it("attests three writer identities and rejects legacy runtime provisioning twice", async () => {
     await fixture.assertIndependentWriterConnections();
     await assertRuntimeS01Fence();
-    await reprovisionRuntime(fixture);
-    await fixture.assertIndependentWriterConnections();
-    await assertRuntimeS01Fence();
-    await reprovisionRuntime(fixture);
-    await fixture.assertIndependentWriterConnections();
-    await assertRuntimeS01Fence();
+    for (let pass = 1; pass <= 2; pass++) {
+      const result = await runLegacyRuntimeProvisioner(fixture);
+      expect(result.code).not.toBe(0);
+      expect(`${result.stdout}\n${result.stderr}`).toContain(
+        "Option C PROTECTED",
+      );
+      await fixture.assertIndependentWriterConnections();
+      await assertRuntimeS01Fence();
+      console.info(`W66 protected legacy provision rejection pass=${pass}`);
+    }
   }, 90_000);
 
   it("management writer cannot directly read a stored Staff access verifier", async () => {
@@ -74,9 +84,16 @@ describe("Option C protected writer integration / strict writer principals", () 
     const copied = await fixture.managementWriterSql(
       `SELECT * FROM public.staff_management_authorized_set_role(
         $1::uuid,$2::uuid,$3::text,$4::uuid,$5::uuid,$6::uuid,$7::integer,$8::membership_role)`,
-      [admin.auth.sessionId, admin.user.id, copiedHash,
-        admin.membership.membershipId, admin.membership.organizationId,
-        target.membershipId, 1, "VALET_SUPERVISOR"],
+      [
+        admin.auth.sessionId,
+        admin.user.id,
+        copiedHash,
+        admin.membership.membershipId,
+        admin.membership.organizationId,
+        target.membershipId,
+        1,
+        "VALET_SUPERVISOR",
+      ],
     );
     expect(copied.allowed).toBe(false);
     const targetState = await fixture.query<{ role: string; version: number }>(
@@ -105,7 +122,8 @@ describe("Option C protected writer integration / strict writer principals", () 
     const refresh = await fixture.refresh(admin.auth.refreshToken);
     expect(refresh.status).toBe(200);
     const oldAccess = await fixture.managementGet(
-      staffDirectoryPath(admin.membership.organizationId), admin.auth.accessToken,
+      staffDirectoryPath(admin.membership.organizationId),
+      admin.auth.accessToken,
     );
     expect(oldAccess.status).toBe(401);
     const beforeLogout = await fixture.managementGet(
@@ -116,12 +134,18 @@ describe("Option C protected writer integration / strict writer principals", () 
     const query = await fixture.managementWriterSql(
       `SELECT * FROM public.staff_management_authorize_writer(
         $1::uuid,$2::uuid,$3::text,$4::uuid,$5::uuid)`,
-      [admin.auth.sessionId, admin.user.id,
+      [
+        admin.auth.sessionId,
+        admin.user.id,
         oldHash.rows[0]!.current_access_token_hash,
-        admin.membership.membershipId, admin.membership.organizationId],
+        admin.membership.membershipId,
+        admin.membership.organizationId,
+      ],
     );
     expect(query.allowed).toBe(false);
-    expect((await fixture.logout(String(refresh.body?.refreshToken))).status).toBe(204);
+    expect(
+      (await fixture.logout(String(refresh.body?.refreshToken))).status,
+    ).toBe(204);
     const closed = await fixture.managementGet(
       staffDirectoryPath(admin.membership.organizationId),
       String(refresh.body?.accessToken),
