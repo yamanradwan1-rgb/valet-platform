@@ -1,4 +1,4 @@
-import { randomBytes, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -20,7 +20,7 @@ type WriterKey =
 
 export class OptionCAfterProtectedFixture extends OptionCAfterOnboardingFixture {
   private readonly passwords = [randomUUID(), randomUUID(), randomUUID()];
-  private readonly mfaRole = `valet_mfa_w37_after_${randomBytes(5).toString("hex")}`;
+  private readonly mfaRole = "vaylet_mfa_writer";
   private writerUrls: Partial<Record<WriterKey, string>> = {};
 
   override async start(): Promise<void> {
@@ -46,7 +46,14 @@ export class OptionCAfterProtectedFixture extends OptionCAfterOnboardingFixture 
       MFA_WRITER_DATABASE_URL: url(this.mfaRole, this.passwords[1]!),
       MANAGEMENT_WRITER_DATABASE_URL: url("vaylet_management_writer", this.passwords[2]!),
     };
-    return { ...this.writerUrls, MFA_PROTECTED_WRITER_ENABLED: "true" };
+    return {
+      STAFF_AUTH_WRITER_DATABASE_URL:
+        this.writerUrls.STAFF_AUTH_WRITER_DATABASE_URL!,
+      MFA_WRITER_DATABASE_URL: this.writerUrls.MFA_WRITER_DATABASE_URL!,
+      MANAGEMENT_WRITER_DATABASE_URL:
+        this.writerUrls.MANAGEMENT_WRITER_DATABASE_URL!,
+      MFA_PROTECTED_WRITER_ENABLED: "true",
+    };
   }
 
   writerUrl(key: WriterKey): string {

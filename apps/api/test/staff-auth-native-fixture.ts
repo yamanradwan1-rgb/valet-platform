@@ -1,25 +1,20 @@
 import { randomBytes, randomUUID } from "node:crypto";
-
 import type { INestApplication } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import argon2 from "argon2";
 import { Pool, type QueryResult } from "pg";
-
 import { AppModule } from "../src/app.module";
 import { runPnpm } from "./staff-auth-native-run-pnpm";
-
 export interface AuthHttpResult {
   readonly body: Record<string, unknown> | undefined;
   readonly headers: Headers;
   readonly status: number;
 }
-
 export interface AuthRawHttpResult {
   readonly bytes: Uint8Array;
   readonly headers: Headers;
   readonly status: number;
 }
-
 interface AuthRequestOptions {
   readonly authorization?: string;
   readonly body?: unknown;
@@ -28,7 +23,6 @@ interface AuthRequestOptions {
   readonly method?: "GET" | "POST" | "PUT";
   readonly origin?: string;
 }
-
 const allowedOrigin = "https://staff.mob007.test";
 const adminDatabaseUrl =
   process.env.TEST_DATABASE_URL ??
@@ -42,7 +36,9 @@ const mfaWriterRole = `valet_mfa_writer_mob007_${suffix}`;
 const mfaWriterPassword = `mfa-writer-${randomUUID()}`;
 
 function databaseUrl(name: string): string {
-  const url = new URL(adminDatabaseUrl);
+  const url = new URL(
+    process.env.STAFF_AUTH_TEST_MIGRATION_BASE_URL ?? adminDatabaseUrl,
+  );
   url.pathname = `/${name}`;
   return url.toString();
 }
@@ -93,6 +89,7 @@ export class StaffAuthNativeFixture {
     try {
       await bootstrap.query(`CREATE DATABASE "${databaseName}"`);
       this.databaseCreated = true;
+      await this.prepareMigrationDatabase(databaseName);
     } finally {
       await bootstrap.end();
     }
@@ -102,10 +99,10 @@ export class StaffAuthNativeFixture {
       MIGRATION_DATABASE_URL: this.migrationUrl,
       NODE_ENV: "test",
     });
+    await this.prepareRuntimeProvisioning(applicationUrl);
     // The integrated Option C fixture must use the real S04 migration.
     // Do not silently install a synthetic SECURITY DEFINER function.
     const writers = {
-      ...this.protectedWriterTestEnvironment(applicationUrl),
       MFA_PROTECTED_WRITER_ENABLED: protectedMode ? "true" : "false",
       ...(protectedMode
         ? {
@@ -113,6 +110,7 @@ export class StaffAuthNativeFixture {
             MFA_ACTIVITY_PROOF_SECRET_B64URL: activityRoot,
           }
         : {}),
+      ...this.protectedWriterTestEnvironment(applicationUrl),
     };
     this.roleCreated = true;
     await runPnpm(["--filter", "@valet/database", "runtime:provision"], {
@@ -121,6 +119,7 @@ export class StaffAuthNativeFixture {
       ...writers,
       NODE_ENV: "test",
     });
+    await this.afterRuntimeProvisioning(applicationUrl, writers);
     this.adminPool = new Pool({ connectionString: this.migrationUrl });
     for (const [key, value] of Object.entries(writers)) {
       this.optionalWriterPrevious.set(key, process.env[key]);
@@ -141,14 +140,15 @@ export class StaffAuthNativeFixture {
     const address = this.app.getHttpServer().address() as { port: number };
     this.baseUrl = `http://127.0.0.1:${address.port}`;
   }
-
   protected protectedWriterTestEnvironment(
     applicationUrl: string,
   ): Record<string, string> {
     void applicationUrl;
     return {};
   }
-
+  protected async prepareMigrationDatabase(_databaseName: string): Promise<void> {}
+  protected async prepareRuntimeProvisioning(_applicationUrl: string): Promise<void> {}
+  protected async afterRuntimeProvisioning(_applicationUrl: string, _writers: Record<string, string>): Promise<void> {}
   async resetLimits(): Promise<void> {
     await this.query("DELETE FROM anti_abuse_events");
   }

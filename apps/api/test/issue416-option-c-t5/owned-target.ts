@@ -24,13 +24,13 @@ const beforeTarget: OwnedTarget = {
 };
 
 const afterTarget: OwnedTarget = {
-  containerName: "vaylet-issue416-w37-after-20261115-pg17",
-  owner: "issue416-w37-after-20261115",
-  port: "51157",
-  database: "valet_w37after",
-  user: "valet_w37after",
+  containerName: "vaylet-issue416-w62-final2-20261115-pg17",
+  owner: "issue416-w62-final2-20261115",
+  port: "51273",
+  database: "valet_w62final2",
+  user: "valet_w62final2",
   flag: "ISSUE416_OPTION_C_AFTER",
-  flagValue: "W37_AFTER_DISPOSABLE_ONLY",
+  flagValue: "W62_FINAL2_DISPOSABLE_ONLY",
 };
 
 function docker(args: string[]): string {
