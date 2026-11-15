@@ -1,6 +1,13 @@
-import { createHash } from "node:crypto";
-import { readdirSync, readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import {
+  REQUIRED_PRIVATE_FUNCTION_SIGNATURES,
+  REQUIRED_PRIVATE_TABLES,
+} from "./pg17-acceptance-private-manifest.mjs";
+
+export { REQUIRED_PRIVATE_FUNCTION_SIGNATURES, REQUIRED_PRIVATE_TABLES };
+export {
+  assertCommittedExactLedger,
+  migrationSourceChecksums,
+} from "./pg17-acceptance-migration-source.mjs";
 
 export const IDENTITY_SQL = `
 SELECT current_database() AS database, current_user AS actor,
@@ -26,88 +33,185 @@ SELECT migration_name, checksum, finished_at, rolled_back_at,
        started_at, applied_steps_count
 FROM public._prisma_migrations ORDER BY migration_name, id`;
 
-export const ACL_SQL = `
-SELECT n.nspname AS schema_name, c.relname AS table_name,
- has_table_privilege($1::name, c.oid, 'INSERT') AS insert_allowed,
- has_table_privilege($1::name, c.oid, 'UPDATE') AS update_allowed,
- has_table_privilege($1::name, c.oid, 'DELETE') AS delete_allowed,
- has_table_privilege($1::name, c.oid, 'TRUNCATE') AS truncate_allowed,
- has_any_column_privilege($1::name, c.oid, 'INSERT') AS column_insert_allowed,
- has_any_column_privilege($1::name, c.oid, 'UPDATE') AS column_update_allowed,
- pg_has_role($1::name, c.relowner, 'MEMBER') AS owner_membership,
- EXISTS (SELECT 1 FROM pg_attribute a
-         CROSS JOIN LATERAL aclexplode(a.attacl) acl
-         WHERE a.attrelid = c.oid AND a.attnum > 0
-           AND NOT a.attisdropped AND acl.grantee = 0
-           AND acl.privilege_type IN ('INSERT','UPDATE'))
-         AS public_column_write_allowed,
- EXISTS (SELECT 1 FROM aclexplode(COALESCE(c.relacl, acldefault('r', c.relowner))) a
-         WHERE a.grantee = 0 AND a.privilege_type IN ('INSERT','UPDATE','DELETE','TRUNCATE'))
-         AS public_write_allowed
-FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-WHERE n.nspname = 'auth_proof_private' AND c.relkind IN ('r','p')`;
+export {
+  ACL_SQL,
+  SCHEMA_ACL_SQL,
+  FUNCTION_ACL_SQL,
+  DEFAULT_FUNCTION_ACL_SQL,
+  RELATION_INVENTORY_SQL,
+} from "./pg17-acceptance-acl-sql.mjs";
 
-export const FUNCTION_ACL_SQL = `
-SELECT p.oid::regprocedure::text AS signature,
- has_function_privilege($1::name, p.oid, 'EXECUTE') AS runtime_execute,
- EXISTS (SELECT 1 FROM aclexplode(COALESCE(p.proacl, acldefault('f',p.proowner))) a
-         WHERE a.grantee = 0 AND a.privilege_type = 'EXECUTE') AS public_execute
-FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
-WHERE n.nspname = 'auth_proof_private'`;
+export const OWNER_ROLE_SQL = `
+SELECT rolname, rolcanlogin, rolinherit, rolsuper, rolcreatedb,
+       rolcreaterole, rolreplication, rolbypassrls
+FROM pg_roles WHERE rolname='vap1_proof_owner'`;
 
-const migrationsPath = fileURLToPath(new URL("../prisma/migrations/", import.meta.url));
-const hash = (bytes) => createHash("sha256").update(bytes).digest("hex");
+export const OWNER_MEMBERSHIP_SQL = `
+SELECT parent.rolname AS granted_role, member.rolname AS member_role,
+       m.inherit_option, m.set_option, m.admin_option
+FROM pg_auth_members m
+JOIN pg_roles parent ON parent.oid=m.roleid
+JOIN pg_roles member ON member.oid=m.member
+WHERE parent.rolname='vap1_proof_owner'
+   OR member.rolname='vap1_proof_owner'
+   OR parent.rolname=$1::name`;
 
-export function migrationSourceChecksums() {
-  const folders = readdirSync(migrationsPath, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory()).map((entry) => entry.name);
-  const result = new Map();
-  for (const name of folders) {
-    if (!/^\d{14}_[a-z0-9_-]+$/.test(name)) {
-      throw new Error("W30_PG17_UNEXPECTED_MIGRATION_DIRECTORY");
-    }
-    const bytes = readFileSync(new URL(`../prisma/migrations/${name}/migration.sql`, import.meta.url));
-    const normalized = Buffer.from(bytes.toString("utf8").replace(/\r\n/g, "\n"), "utf8");
-    result.set(name, new Set([hash(bytes), hash(normalized)]));
-  }
-  if (result.size < 19 || [...result.keys()].filter((name) => name.includes("issue416")).length < 19) {
-    throw new Error("W30_PG17_ISSUE416_MIGRATION_SOURCE_INCOMPLETE");
-  }
-  return result;
-}
-
-export function assertCommittedExactLedger(rows, source = migrationSourceChecksums()) {
-  if (!Array.isArray(rows) || rows.length !== source.size) {
-    throw new Error("W30_PG17_MIGRATION_HISTORY_INCOMPLETE");
-  }
-  const seen = new Set();
-  for (const row of rows) {
-    if (!row || !source.has(row.migration_name) || seen.has(row.migration_name) ||
-      !source.get(row.migration_name).has(row.checksum) ||
-      row.finished_at == null || row.rolled_back_at != null ||
-      row.started_at == null || !Number.isSafeInteger(row.applied_steps_count) ||
-      row.applied_steps_count < 1) {
-      throw new Error("W30_PG17_MIGRATION_HISTORY_UNTRUSTED");
-    }
-    seen.add(row.migration_name);
-  }
-  return seen.size;
-}
-
-export function assertPrivateAcl(rows, functions) {
-  if (!Array.isArray(rows) || rows.length < 1 ||
-    !rows.some((row) => row.schema_name === "auth_proof_private" &&
-      row.table_name === "authority_admissions") ||
-    rows.some((row) => !row || row.schema_name !== "auth_proof_private" ||
-      ["insert_allowed", "update_allowed", "delete_allowed", "truncate_allowed",
-        "column_insert_allowed", "column_update_allowed", "owner_membership",
-        "public_column_write_allowed", "public_write_allowed"]
-        .some((field) => row[field] !== false)) ||
-    !Array.isArray(functions) || functions.length < 1 ||
-    functions.some((row) => !row ||
-      typeof row.signature !== "string" ||
-      !row.signature.startsWith("auth_proof_private.") ||
-      row.runtime_execute !== false || row.public_execute !== false)) {
+export function assertPrivateAcl(
+  rows,
+  functions,
+  schemas,
+  defaults,
+  ownerRole,
+  ownerMembership,
+  migrationOwner = "issue416_w38_migrator",
+  relationRows,
+) {
+  const tables = new Set(
+    Array.isArray(rows) ? rows.map((row) => row?.table_name) : [],
+  );
+  const signatures = new Set(
+    Array.isArray(functions) ? functions.map((row) => row?.signature) : [],
+  );
+  const schemaNames = new Set(
+    Array.isArray(schemas) ? schemas.map((row) => row?.schema_name) : [],
+  );
+  const extensionSchemas = Array.isArray(schemas)
+    ? schemas.filter((row) => row?.is_pgcrypto_extension === true)
+    : [];
+  const privateSchema = Array.isArray(schemas)
+    ? schemas.find((row) => row?.schema_name === "auth_proof_private")
+    : undefined;
+  const cryptoSchema = Array.isArray(schemas)
+    ? schemas.find((row) => row?.schema_name === "auth_proof_crypto")
+    : undefined;
+  const extensionSchema = extensionSchemas[0];
+  const relationNames = new Set(
+    Array.isArray(relationRows)
+      ? relationRows.map((r) => r?.relation_name)
+      : [],
+  );
+  if (
+    !Array.isArray(relationRows) ||
+    relationRows.length !== 50 ||
+    relationNames.size !== relationRows.length ||
+    relationRows.some(
+      (row) =>
+        !row ||
+        row.schema_name !== "auth_proof_private" ||
+        row.relation_kind !== "i" ||
+        row.relation_owner !== "vap1_proof_owner" ||
+        row.parent_schema !== "auth_proof_private" ||
+        row.parent_owner !== "vap1_proof_owner" ||
+        !REQUIRED_PRIVATE_TABLES.includes(row.parent_table),
+    ) ||
+    !Array.isArray(rows) ||
+    rows.length < REQUIRED_PRIVATE_TABLES.length ||
+    tables.size !== rows.length ||
+    tables.size !== REQUIRED_PRIVATE_TABLES.length ||
+    REQUIRED_PRIVATE_TABLES.some((name) => !tables.has(name)) ||
+    rows.some(
+      (row) =>
+        !row ||
+        row.schema_name !== "auth_proof_private" ||
+        row.relation_kind !== "r" ||
+        row.table_owner !== "vap1_proof_owner" ||
+        [
+          "select_allowed",
+          "insert_allowed",
+          "update_allowed",
+          "delete_allowed",
+          "truncate_allowed",
+          "column_select_allowed",
+          "column_insert_allowed",
+          "column_update_allowed",
+          "owner_membership",
+          "public_column_allowed",
+          "public_table_allowed",
+          "nonowner_table_allowed",
+          "nonowner_column_allowed",
+        ].some((field) => row[field] !== false),
+    ) ||
+    !Array.isArray(schemas) ||
+    extensionSchemas.length !== 1 ||
+    schemas.length !== 2 ||
+    schemaNames.size !== schemas.length ||
+    !schemaNames.has("auth_proof_private") ||
+    !schemaNames.has("auth_proof_crypto") ||
+    !privateSchema ||
+    privateSchema.schema_owner !== "vap1_proof_owner" ||
+    privateSchema.owner_membership !== false ||
+    privateSchema.runtime_usage !== false ||
+    privateSchema.runtime_create !== false ||
+    privateSchema.public_usage !== false ||
+    privateSchema.public_create !== false ||
+    privateSchema.nonowner_create_allowed !== false ||
+    privateSchema.untrusted_schema_usage !== false ||
+    privateSchema.schema_owner_superuser !== false ||
+    !cryptoSchema ||
+    cryptoSchema.schema_owner !== migrationOwner ||
+    cryptoSchema.owner_membership !== false ||
+    cryptoSchema.runtime_usage !== false ||
+    cryptoSchema.runtime_create !== false ||
+    cryptoSchema.public_usage !== false ||
+    cryptoSchema.public_create !== false ||
+    cryptoSchema.nonowner_create_allowed !== false ||
+    cryptoSchema.untrusted_schema_usage !== false ||
+    cryptoSchema.schema_owner_superuser !== false ||
+    !extensionSchema ||
+    extensionSchema.schema_name !== "auth_proof_crypto" ||
+    extensionSchema.extension_owner !== migrationOwner ||
+    extensionSchema.schema_owner !== migrationOwner ||
+    extensionSchema.owner_membership !== false ||
+    extensionSchema.runtime_create !== false ||
+    extensionSchema.public_create !== false ||
+    extensionSchema.nonowner_create_allowed !== false ||
+    extensionSchema.extension_owner_superuser !== false ||
+    !Array.isArray(functions) ||
+    functions.length !== REQUIRED_PRIVATE_FUNCTION_SIGNATURES.length ||
+    signatures.size !== functions.length ||
+    REQUIRED_PRIVATE_FUNCTION_SIGNATURES.some(
+      (signature) => !signatures.has(signature),
+    ) ||
+    functions.some(
+      (row) =>
+        !row ||
+        typeof row.signature !== "string" ||
+        !row.signature.startsWith("auth_proof_private.") ||
+        row.function_kind !== "f" ||
+        row.function_owner !== "vap1_proof_owner" ||
+        row.owner_membership !== false ||
+        row.runtime_execute !== false ||
+        row.public_execute !== false ||
+        row.nonowner_execute !== false,
+    ) ||
+    !Array.isArray(defaults) ||
+    defaults.length !== 1 ||
+    defaults[0]?.default_owner !== "vap1_proof_owner" ||
+    defaults[0]?.default_schema !== "auth_proof_private" ||
+    defaults[0]?.global_public_execute !== false ||
+    defaults[0]?.global_nonowner_execute !== false ||
+    defaults[0]?.schema_public_execute !== false ||
+    defaults[0]?.schema_nonowner_execute !== false ||
+    !Array.isArray(ownerRole) ||
+    ownerRole.length !== 1 ||
+    ownerRole[0]?.rolname !== "vap1_proof_owner" ||
+    [
+      "rolcanlogin",
+      "rolinherit",
+      "rolsuper",
+      "rolcreatedb",
+      "rolcreaterole",
+      "rolreplication",
+      "rolbypassrls",
+    ].some((field) => ownerRole[0][field] !== false) ||
+    !Array.isArray(ownerMembership) ||
+    ownerMembership.length !== 1 ||
+    ownerMembership[0]?.granted_role !== "vap1_proof_owner" ||
+    ownerMembership[0]?.member_role !== migrationOwner ||
+    ownerMembership[0]?.inherit_option !== false ||
+    ownerMembership[0]?.set_option !== true ||
+    ownerMembership[0]?.admin_option !== false
+  ) {
     throw new Error("W30_PG17_PRIVATE_ACL_UNPROVEN");
   }
   return true;
