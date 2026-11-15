@@ -18,6 +18,7 @@ export const optionCFunctionContract = Object.freeze({
   staffAuth: [
     "public.staff_onboarding_activate(text,text,text)",
     "public.s04_staff_login_success(uuid,text)",
+    "public.s04_staff_activation_success(uuid,text,text,text)",
   ],
   mfa: ["public.s04_mfa_success(uuid,text,text)"],
   management: [
@@ -81,6 +82,7 @@ export async function retireOptionCLegacyAcl(client, formatted, runtimeRole) {
   const exclusiveFunctions = [
     [optionCFunctionContract.staffAuth[0], optionCRoles.staffAuthWriter],
     [optionCFunctionContract.staffAuth[1], optionCRoles.staffAuthWriter],
+    [optionCFunctionContract.staffAuth[2], optionCRoles.staffAuthWriter],
     [optionCFunctionContract.mfa[0], optionCRoles.mfaWriter],
     ...optionCFunctionContract.management.map((name) =>
       [name, optionCRoles.managementWriter]),
@@ -242,6 +244,8 @@ export async function verifyOptionCProtectedAcl(client, runtimeRole, migrationRo
   await assertFunction(client, optionCFunctionContract.staffAuth[0],
     optionCRoles.staffAuthWriter, denied, "search_path=pg_catalog, public");
   await assertFunction(client, optionCFunctionContract.staffAuth[1],
+    optionCRoles.staffAuthWriter, denied, "search_path=pg_catalog");
+  await assertFunction(client, optionCFunctionContract.staffAuth[2],
     optionCRoles.staffAuthWriter, denied, "search_path=pg_catalog");
   await assertFunction(client, optionCFunctionContract.mfa[0], optionCRoles.mfaWriter,
     roles.filter((role) => role !== optionCRoles.mfaWriter), "search_path=pg_catalog");

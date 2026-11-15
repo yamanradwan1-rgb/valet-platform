@@ -109,11 +109,16 @@ export class StaffActivationService {
           newHash,
         );
         for (const reservation of reservations) {
-          await this.antiAbuse.finalizeInTransaction(
-            transaction,
-            reservation,
-            "IGNORED",
+          if (!reservation.id) throw new AntiAbuseUnavailableError();
+          const settled = await transaction.query<{ affected: number }>(
+            `SELECT public.s04_staff_activation_success(
+               $1::uuid,$2::text,$3::text,$4::text
+             ) AS affected`,
+            [reservation.id, reservation.key.scope,
+              reservation.key.keyHash, tokenHash],
           );
+          if (settled.rows[0]?.affected !== 1)
+            throw new AntiAbuseUnavailableError();
         }
         return result;
       }, async () => verifyCommittedStaffActivation(

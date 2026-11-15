@@ -1,3 +1,5 @@
+import { grantS04ProtectedWriterFunction } from "./s04-protected-writer-privileges.mjs";
+
 export const writerTableColumns = {
   users: {
     SELECT: ["id", "password_hash", "status"],
@@ -165,6 +167,9 @@ export async function applyStaffAuthWriterGrants(
     client,
     "GRANT EXECUTE ON FUNCTION public.s04_staff_login_success(uuid,text) TO %I",
     [role],
+  );
+  await grantS04ProtectedWriterFunction(
+    client, exec, "staffActivation", role, runtimeRole,
   );
   // Ordinary readers retain precisely the MFA assurance/logout compatibility.
   await exec(

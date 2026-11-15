@@ -1,5 +1,6 @@
 import { randomBytes, randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { AntiAbuseKeyDeriver } from "../../src/modules/anti-abuse/anti-abuse-key";
 
 import { assertRuntimeDeny } from "./after-fixture";
 import {
@@ -133,9 +134,28 @@ describe("Option C AFTER / onboarding issuer and activation trust boundaries", (
       password_hash: null,
       consumed: "0",
     });
+    const admissionStart = await fixture.query<{ started: Date }>(
+      "SELECT clock_timestamp() AS started",
+    );
+    const credentialKey = new AntiAbuseKeyDeriver().derive(
+      "v1:staff-activation-credential", realToken,
+    ).keyHash;
     const real = await fixture.activateViaHttp(realToken);
     expect(real.status).toBe(200);
     expect(real.body?.outcome).toBe("ACTIVATED");
+    const finalized = await fixture.query<{ scope: string; state: string }>(
+      `SELECT scope,state FROM public.anti_abuse_events
+       WHERE state='IGNORED' AND occurred_at>=$1::timestamptz
+         AND (scope='v1:staff-activation-client-address' OR
+           (scope='v1:staff-activation-credential' AND key_hash=$2))
+       ORDER BY occurred_at DESC`,
+      [admissionStart.rows[0]!.started, credentialKey],
+    );
+    expect(finalized.rows).toHaveLength(2);
+    expect(new Set(finalized.rows.map((row) => row.scope))).toEqual(new Set([
+      "v1:staff-activation-client-address",
+      "v1:staff-activation-credential",
+    ]));
     const loggedIn = await fixture.request("/v1/staff/auth/native/login", {
       body: { email: command.email, password: activationPassword },
     });

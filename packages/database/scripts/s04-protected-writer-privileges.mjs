@@ -2,6 +2,7 @@
 // transaction. Ordinary DATABASE_URL must never acquire either EXECUTE grant.
 export const s04ProtectedWriterSignatures = {
   staffAuth: "public.s04_staff_login_success(uuid,text)",
+  staffActivation: "public.s04_staff_activation_success(uuid,text,text,text)",
   mfa: "public.s04_mfa_success(uuid,text,text)",
 };
 

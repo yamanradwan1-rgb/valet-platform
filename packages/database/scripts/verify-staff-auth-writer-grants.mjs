@@ -173,7 +173,8 @@ export async function verifyStaffAuthWriterGrants(client, writer, runtime) {
        WHERE ns.nspname='public' AND p.prosecdef
          AND p.oid NOT IN (
            'public.staff_onboarding_activate(text,text,text)'::regprocedure,
-           'public.s04_staff_login_success(uuid,text)'::regprocedure
+           'public.s04_staff_login_success(uuid,text)'::regprocedure,
+           'public.s04_staff_activation_success(uuid,text,text,text)'::regprocedure
          )
          AND has_function_privilege($1,p.oid,'EXECUTE')`,
     [writer],
@@ -191,7 +192,8 @@ export async function verifyStaffAuthWriterGrants(client, writer, runtime) {
          AND acl.privilege_type='EXECUTE'
          AND p.oid NOT IN (
            'public.staff_onboarding_activate(text,text,text)'::regprocedure,
-           'public.s04_staff_login_success(uuid,text)'::regprocedure
+           'public.s04_staff_login_success(uuid,text)'::regprocedure,
+           'public.s04_staff_activation_success(uuid,text,text,text)'::regprocedure
          )
        LIMIT 1`, [writer],
   );
@@ -219,5 +221,16 @@ export async function verifyStaffAuthWriterGrants(client, writer, runtime) {
   if (limiterAcl.rows[0]?.writer !== true ||
       limiterAcl.rows[0]?.runtime !== false) {
     throw new Error("Signed S04 Staff login finalizer authority is unsafe.");
+  }
+  const activationLimiterAcl = await client.query(
+    `SELECT has_function_privilege($1,
+       'public.s04_staff_activation_success(uuid,text,text,text)', 'EXECUTE') AS writer,
+       has_function_privilege($2,
+       'public.s04_staff_activation_success(uuid,text,text,text)', 'EXECUTE') AS runtime`,
+    [writer, runtime],
+  );
+  if (activationLimiterAcl.rows[0]?.writer !== true ||
+      activationLimiterAcl.rows[0]?.runtime !== false) {
+    throw new Error("S04 Staff activation finalizer authority is unsafe.");
   }
 }
