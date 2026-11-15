@@ -16,6 +16,12 @@ import {
 
 import { runtimePoolMeasurements } from "./bounded-postgres-pool";
 import { databaseFailureReason } from "./database-failure-reason";
+import {
+  MFA_CEREMONY_POSTGRES_POOL,
+  closeMfaProtectedPool,
+  getMfaProtectedPool,
+  mfaProtectedWriterEnabled,
+} from "./mfa-protected-pool";
 
 export const RUNTIME_POSTGRES_POOL = Symbol("RUNTIME_POSTGRES_POOL");
 
@@ -89,11 +95,49 @@ export class RuntimeDatabaseLifecycle
   }
 }
 
+@Injectable()
+export class MfaProtectedDatabaseLifecycle
+  implements OnApplicationBootstrap, OnApplicationShutdown
+{
+  constructor(
+    @Inject(MFA_CEREMONY_POSTGRES_POOL) private readonly pool: PostgresPool,
+  ) {}
+
+  async onApplicationBootstrap(): Promise<void> {
+    if (!mfaProtectedWriterEnabled()) return;
+    const role = await this.pool.query<{ current_role: string }>(
+      "SELECT current_user AS current_role",
+    );
+    if (
+      role.rowCount !== 1 ||
+      !role.rows[0]?.current_role ||
+      role.rows[0].current_role !==
+        new URL(process.env.MFA_WRITER_DATABASE_URL!).username
+    ) {
+      throw new Error("Protected MFA writer database identity mismatch.");
+    }
+    if (process.env.NODE_ENV === "production") {
+      await verifyProductionRuntimeDatabaseSafety(this.pool);
+    }
+  }
+
+  async onApplicationShutdown(): Promise<void> {
+    if (mfaProtectedWriterEnabled()) await closeMfaProtectedPool();
+  }
+}
+
 @Module({
   providers: [
     RuntimeDatabaseLifecycle,
+    MfaProtectedDatabaseLifecycle,
     { provide: RUNTIME_POSTGRES_POOL, useFactory: createRuntimePool },
+    {
+      provide: MFA_CEREMONY_POSTGRES_POOL,
+      useFactory: (runtime: PostgresPool) =>
+        mfaProtectedWriterEnabled() ? getMfaProtectedPool() : runtime,
+      inject: [RUNTIME_POSTGRES_POOL],
+    },
   ],
-  exports: [RUNTIME_POSTGRES_POOL],
+  exports: [RUNTIME_POSTGRES_POOL, MFA_CEREMONY_POSTGRES_POOL],
 })
 export class RuntimeDatabaseModule {}

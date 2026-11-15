@@ -8,6 +8,7 @@ import argon2 from "argon2";
 import { Pool, type QueryResult } from "pg";
 
 import { AppModule } from "../src/app.module";
+import { installSyntheticS04ForS02 } from "./issue416-s02-synthetic-s04";
 
 export interface AuthHttpResult {
   readonly body: Record<string, unknown> | undefined;
@@ -39,6 +40,8 @@ const suffix = `${process.pid}_${randomBytes(4).toString("hex")}`;
 const databaseName = `valet_mob007_auth_${suffix}`;
 const runtimeRole = `valet_runtime_mob007_${suffix}`;
 const runtimePassword = `runtime-${randomUUID()}`;
+const mfaWriterRole = `valet_mfa_writer_mob007_${suffix}`;
+const mfaWriterPassword = `mfa-writer-${randomUUID()}`;
 const repositoryRoot = resolve(process.cwd(), "../..");
 
 function databaseUrl(name: string): string {
@@ -52,6 +55,13 @@ function runtimeUrl(name: string): string {
   url.pathname = `/${name}`;
   url.username = runtimeRole;
   url.password = runtimePassword;
+  return url.toString();
+}
+
+function mfaWriterUrl(name: string): string {
+  const url = new URL(runtimeUrl(name));
+  url.username = mfaWriterRole;
+  url.password = mfaWriterPassword;
   return url.toString();
 }
 
@@ -94,16 +104,23 @@ export class StaffAuthNativeFixture {
   private baseUrl = "";
   private databaseCreated = false;
   private roleCreated = false;
+  private protectedMfaRoleCreated = false;
   private migrationUrl = "";
   private readonly optionalWriterPrevious = new Map<string, string | undefined>();
   private readonly originalEnvironment = {
     antiAbuse: process.env.ANTI_ABUSE_HMAC_SECRET_B64URL,
     database: process.env.DATABASE_URL,
+    mfaProtected: process.env.MFA_PROTECTED_WRITER_ENABLED,
+    mfaWriter: process.env.MFA_WRITER_DATABASE_URL,
+    mfaActivity: process.env.MFA_ACTIVITY_PROOF_SECRET_B64URL,
     origins: process.env.STAFF_AUTH_ALLOWED_ORIGINS,
     proxies: process.env.ANTI_ABUSE_TRUSTED_PROXY_CIDRS,
   };
 
   async start(): Promise<void> {
+    const protectedMode = process.env.ISSUE416_S02_PROTECTED_TEST === "1";
+    const activityRoot = randomBytes(32).toString("base64url");
+    this.protectedMfaRoleCreated = protectedMode;
     const bootstrap = new Pool({ connectionString: adminDatabaseUrl });
     try {
       await bootstrap.query(`CREATE DATABASE "${databaseName}"`);
@@ -117,7 +134,17 @@ export class StaffAuthNativeFixture {
       MIGRATION_DATABASE_URL: this.migrationUrl,
       NODE_ENV: "test",
     });
-    const writers = this.protectedWriterTestEnvironment(applicationUrl);
+    if (protectedMode) await installSyntheticS04ForS02(this.migrationUrl);
+    const writers = {
+      ...this.protectedWriterTestEnvironment(applicationUrl),
+      MFA_PROTECTED_WRITER_ENABLED: protectedMode ? "true" : "false",
+      ...(protectedMode
+        ? {
+            MFA_WRITER_DATABASE_URL: mfaWriterUrl(databaseName),
+            MFA_ACTIVITY_PROOF_SECRET_B64URL: activityRoot,
+          }
+        : {}),
+    };
     this.roleCreated = true;
     await runPnpm(["--filter", "@valet/database", "runtime:provision"], {
       DATABASE_URL: applicationUrl,
@@ -131,6 +158,9 @@ export class StaffAuthNativeFixture {
       process.env[key] = value;
     }
     process.env.DATABASE_URL = applicationUrl;
+    process.env.MFA_PROTECTED_WRITER_ENABLED = protectedMode ? "true" : "false";
+    if (protectedMode) process.env.MFA_WRITER_DATABASE_URL = mfaWriterUrl(databaseName);
+    if (protectedMode) process.env.MFA_ACTIVITY_PROOF_SECRET_B64URL = activityRoot;
     process.env.STAFF_AUTH_ALLOWED_ORIGINS = allowedOrigin;
     process.env.ANTI_ABUSE_HMAC_SECRET_B64URL =
       randomBytes(32).toString("base64url");
@@ -260,6 +290,9 @@ export class StaffAuthNativeFixture {
       }
       if (this.roleCreated)
         await bootstrap.query(`DROP ROLE IF EXISTS "${runtimeRole}"`);
+      if (this.protectedMfaRoleCreated) {
+        await bootstrap.query(`DROP ROLE IF EXISTS "${mfaWriterRole}"`);
+      }
     } finally {
       await bootstrap.end();
       this.restoreEnvironment();
@@ -276,6 +309,9 @@ export class StaffAuthNativeFixture {
       this.originalEnvironment.antiAbuse,
     );
     restore("DATABASE_URL", this.originalEnvironment.database);
+    restore("MFA_PROTECTED_WRITER_ENABLED", this.originalEnvironment.mfaProtected);
+    restore("MFA_WRITER_DATABASE_URL", this.originalEnvironment.mfaWriter);
+    restore("MFA_ACTIVITY_PROOF_SECRET_B64URL", this.originalEnvironment.mfaActivity);
     restore("STAFF_AUTH_ALLOWED_ORIGINS", this.originalEnvironment.origins);
     restore("ANTI_ABUSE_TRUSTED_PROXY_CIDRS", this.originalEnvironment.proxies);
     for (const [key, value] of this.optionalWriterPrevious) restore(key, value);

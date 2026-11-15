@@ -1,0 +1,33 @@
+name: vaylet-issue416-w33-s02
+services:
+  pg17:
+    image: postgres:17-alpine
+    container_name: vaylet-issue416-w33-s02-pg17
+    labels:
+      vaylet.environment: isolated-test
+      vaylet.owner: worker-33
+      vaylet.issue: "416"
+      vaylet.scope: s02-mfa-protected
+      vaylet.disposable: "true"
+    environment:
+      POSTGRES_USER: issue416_w33_s02_owner
+      POSTGRES_PASSWORD: ${ISSUE416_W33_S02_OWNER_PASSWORD:?Local synthetic password required}
+      POSTGRES_DB: issue416_w33_s02
+    ports:
+      - "127.0.0.1:45533:5432"
+    volumes:
+      - w33_s02_pg17_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U issue416_w33_s02_owner -d issue416_w33_s02
+      interval: 3s
+      timeout: 2s
+      retries: 30
+volumes:
+  w33_s02_pg17_data:
+    name: vaylet-issue416-w33-s02-data
+    labels:
+      vaylet.environment: isolated-test
+      vaylet.owner: worker-33
+      vaylet.disposable: "true"

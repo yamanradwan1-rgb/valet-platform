@@ -13,6 +13,8 @@ import {
 import { localMfaBypassEnabled } from "./local-mfa-bypass";
 import { MfaStepUpRequiredError } from "./mfa-errors";
 import { lockAndRecheckMfaSession } from "./mfa-session-repository";
+import { mfaProtectedWriterEnabled } from "../../../common/database/mfa-protected-pool";
+import { registerProtectedAdminActivity } from "./mfa-protected-admin-touch";
 
 const maxAssuranceMs = 8 * 60 * 60 * 1000;
 const inactivityMs = 30 * 60 * 1000;
@@ -143,6 +145,10 @@ export async function recordAdminActivityInTransaction(
 ): Promise<void> {
   if (localMfaBypassEnabled()) {
     await lockAndRecheckMfaSession(transaction, context);
+    return;
+  }
+  if (mfaProtectedWriterEnabled()) {
+    await registerProtectedAdminActivity(transaction, context);
     return;
   }
   const clock = await transaction.query<{ readonly now: Date }>(

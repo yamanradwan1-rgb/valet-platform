@@ -95,6 +95,8 @@ export async function provisionMfaPrivileges(
   client,
   executeFormatted,
   runtimeRole,
+  protectedEnabled = false,
+  staffAuthProtected = false,
 ) {
   // The runtime role receives its explicit SELECT/column grants below. PUBLIC
   // must never inherit table-level access to bearer/session material.
@@ -141,7 +143,19 @@ export async function provisionMfaPrivileges(
     runtimeRole,
     "UPDATE",
     "staff_auth_sessions",
-    mfaSessionUpdateColumns,
+    protectedEnabled || staffAuthProtected
+      ? mfaSessionUpdateColumns.filter((column) =>
+          ![
+            ...(protectedEnabled
+              ? ["mfa_authenticated_at", "mfa_factor_id",
+                "last_admin_activity_at"]
+              : []),
+            ...(staffAuthProtected
+              ? ["current_access_token_hash", "access_expires_at",
+                "last_rotated_at"]
+              : []),
+          ].includes(column))
+      : mfaSessionUpdateColumns,
   );
   await executeFormatted(
     client,
@@ -155,35 +169,25 @@ export async function provisionMfaPrivileges(
       runtimeRole,
     ]);
   }
-  await grantColumns(
-    client,
-    executeFormatted,
-    runtimeRole,
-    "INSERT",
-    "user_mfa_totp_factors",
-    mfaFactorInsertColumns,
-  );
-  await grantColumns(
-    client,
-    executeFormatted,
-    runtimeRole,
-    "UPDATE",
-    "user_mfa_totp_factors",
-    mfaFactorUpdateColumns,
-  );
-  await grantColumns(
-    client,
-    executeFormatted,
-    runtimeRole,
-    "INSERT",
-    "mfa_recovery_codes",
-    mfaRecoveryInsertColumns,
-  );
-  await executeFormatted(
-    client,
-    "GRANT UPDATE (consumed_at) ON TABLE mfa_recovery_codes TO %I",
-    [runtimeRole],
-  );
+  if (!protectedEnabled) {
+    await grantColumns(
+      client, executeFormatted, runtimeRole, "INSERT",
+      "user_mfa_totp_factors", mfaFactorInsertColumns,
+    );
+    await grantColumns(
+      client, executeFormatted, runtimeRole, "UPDATE",
+      "user_mfa_totp_factors", mfaFactorUpdateColumns,
+    );
+    await grantColumns(
+      client, executeFormatted, runtimeRole, "INSERT",
+      "mfa_recovery_codes", mfaRecoveryInsertColumns,
+    );
+    await executeFormatted(
+      client,
+      "GRANT UPDATE (consumed_at) ON TABLE mfa_recovery_codes TO %I",
+      [runtimeRole],
+    );
+  }
   for (const fn of [
     "mfa_totp_factor_guard()",
     "mfa_recovery_code_guard()",

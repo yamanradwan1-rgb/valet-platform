@@ -101,7 +101,9 @@ async function assertPublicDenied(client, table) {
   }
 }
 
-export async function verifyMfaPrivileges(client, runtimeRole) {
+export async function verifyMfaPrivileges(
+  client, runtimeRole, protectedEnabled = false, staffAuthProtected = false,
+) {
   await assertTablePrivileges(client, runtimeRole, "staff_auth_sessions", {
     insert: false,
     select: true,
@@ -130,49 +132,61 @@ export async function verifyMfaPrivileges(client, runtimeRole) {
     runtimeRole,
     "staff_auth_sessions",
     "INSERT",
-    mfaSessionInsertColumns,
+    staffAuthProtected ? [] : mfaSessionInsertColumns,
   );
   await assertColumnPrivileges(
     client,
     runtimeRole,
     "staff_auth_sessions",
     "UPDATE",
-    mfaSessionUpdateColumns,
+    protectedEnabled || staffAuthProtected
+      ? mfaSessionUpdateColumns.filter((column) =>
+          ![
+            ...(protectedEnabled
+              ? ["mfa_authenticated_at", "mfa_factor_id",
+                "last_admin_activity_at"]
+              : []),
+            ...(staffAuthProtected
+              ? ["current_access_token_hash", "access_expires_at",
+                "last_rotated_at"]
+              : []),
+          ].includes(column))
+      : mfaSessionUpdateColumns,
   );
   await assertColumnPrivileges(
     client,
     runtimeRole,
     "staff_refresh_credentials",
     "UPDATE",
-    mfaRefreshUpdateColumns,
+    staffAuthProtected ? [] : mfaRefreshUpdateColumns,
   );
   await assertColumnPrivileges(
     client,
     runtimeRole,
     "user_mfa_totp_factors",
     "INSERT",
-    mfaFactorInsertColumns,
+    protectedEnabled ? [] : mfaFactorInsertColumns,
   );
   await assertColumnPrivileges(
     client,
     runtimeRole,
     "user_mfa_totp_factors",
     "UPDATE",
-    mfaFactorUpdateColumns,
+    protectedEnabled ? [] : mfaFactorUpdateColumns,
   );
   await assertColumnPrivileges(
     client,
     runtimeRole,
     "mfa_recovery_codes",
     "INSERT",
-    mfaRecoveryInsertColumns,
+    protectedEnabled ? [] : mfaRecoveryInsertColumns,
   );
   await assertColumnPrivileges(
     client,
     runtimeRole,
     "mfa_recovery_codes",
     "UPDATE",
-    ["consumed_at"],
+    protectedEnabled ? [] : ["consumed_at"],
   );
   for (const table of [
     "staff_auth_sessions",

@@ -2,7 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 
 import type { PostgresPool } from "../../../common/database/postgres";
 import { inPostgresTransaction } from "../../../common/database/postgres-transaction";
-import { RUNTIME_POSTGRES_POOL } from "../../../common/database/runtime-database.module";
+import { MFA_CEREMONY_POSTGRES_POOL } from "../../../common/database/mfa-protected-pool";
 import {
   STAFF_SESSION_CONTEXT_RESOLVER,
   type StaffSessionContextResolver,
@@ -21,7 +21,7 @@ export type MfaSafeState =
 @Injectable()
 export class MfaStateService {
   constructor(
-    @Inject(RUNTIME_POSTGRES_POOL) private readonly pool: PostgresPool,
+    @Inject(MFA_CEREMONY_POSTGRES_POOL) private readonly pool: PostgresPool,
     @Inject(STAFF_SESSION_CONTEXT_RESOLVER)
     private readonly sessions: StaffSessionContextResolver,
     private readonly assurance: MfaAssurancePolicy,

@@ -11,7 +11,7 @@ import {
   verifyMigrationConnectionTls,
 } from "./database-connection-policy.mjs";
 import { provisionAppendOnlyTablePrivileges } from "./provision-append-only-tables.mjs";
-import { provisionMfaPrivileges } from "./mfa-runtime-privileges.mjs";
+import { provisionOptionCMfaBoundary } from "./mfa-protected-writer-privileges.mjs";
 import { provisionRuntimeTablePrivileges } from "./runtime-table-privileges.mjs";
 import { verifyRuntimeTablePrivileges } from "./verify-runtime-table-privileges.mjs";
 import { assertLegacyRuntimeProvisioningAllowed } from "./vap1-security-privileges.mjs";
@@ -219,8 +219,9 @@ async function provisionRuntimeRole() {
       executeFormatted,
       runtimeRole,
     );
-
-    await provisionMfaPrivileges(client, executeFormatted, runtimeRole);
+    await provisionOptionCMfaBoundary(
+      client, executeFormatted, runtimeRole, migrationRole,
+    );
     await provisionManagementWriterPrivileges(
       client, executeFormatted, managementWriter, runtimeRole,
     );
