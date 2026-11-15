@@ -5,6 +5,11 @@ const path = "/staff/reset-password";
 const password = "A new synthetic password 416!";
 
 test.use({ trace: "off" });
+// Owner Option C: keep the legacy UI evidence for a future authorized reset,
+// but only the disabled-route negative spec is part of current release checks.
+test.beforeEach(() => {
+  test.skip(true, "Option C: public Password Reset is not an enabled feature.");
+});
 
 for (const arabic of [false, true]) {
   test(`standalone reset scrubs secret before any request, then redeems once ${arabic ? "AR RTL dark mobile" : "EN light desktop"}`, async ({ page }) => {

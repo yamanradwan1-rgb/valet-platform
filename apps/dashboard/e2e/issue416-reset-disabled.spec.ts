@@ -3,11 +3,7 @@ import { staffDirectoryItem } from "./support/administration-fixtures";
 import { DashboardApiFixture, LOCATION_A, ORG_A } from "./support/dashboard-api-fixture";
 import { openEmployees, STAFF_BASE } from "./support/issue240d-onboarding";
 
-test("Issue416 reset is default OFF: Company Admin employee detail makes no status request", async ({ page }) => {
-  test.skip(
-    process.env.NEXT_PUBLIC_ISSUE416_STAFF_PASSWORD_RESET_ENABLED === "1",
-    "Default-OFF regression runs only on an unflagged build.",
-  );
+test("Issue416 reset remains unavailable even with its former UI flag enabled", async ({ page }) => {
   const employee = staffDirectoryItem();
   const detailPath = `${STAFF_BASE}/${employee.membershipId}`;
   const fixture = new DashboardApiFixture({
@@ -33,4 +29,12 @@ test("Issue416 reset is default OFF: Company Admin employee detail makes no stat
   await expect(page.getByRole("button", { name: "Reset password" })).toHaveCount(0);
   expect(fixture.count(`${detailPath}/password-resets/status`)).toBe(0);
   expect(fixture.count(`${detailPath}/password-resets`)).toBe(0);
+});
+
+test("Issue416 standalone reset page is unavailable while Option C is active", async ({ page }) => {
+  const token = `vspr1.${"A".repeat(43)}`;
+  const response = await page.goto(`/staff/reset-password#reset=${token}`);
+  expect(response?.status()).toBe(404);
+  await expect(page.locator("#reset-form")).toHaveCount(0);
+  await expect(page.locator("#reset-submit")).toHaveCount(0);
 });

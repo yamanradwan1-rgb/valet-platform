@@ -5,6 +5,9 @@ const password = "A safe replacement password 416!";
 const redeem = "**/v1/staff/auth/password-resets/redeem";
 
 test.use({ trace: "off" });
+test.beforeEach(() => {
+  test.skip(true, "Option C: public Password Reset is not an enabled feature.");
+});
 
 for (const status of [200, 503]) {
   test(`fragment invalidation fences delayed public redeem HTTP ${status} response`, async ({

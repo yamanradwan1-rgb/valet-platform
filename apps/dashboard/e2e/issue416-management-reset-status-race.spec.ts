@@ -9,6 +9,9 @@ import {
 import { openEmployees, STAFF_BASE } from "./support/issue240d-onboarding";
 
 test.use({ trace: "off" });
+test.beforeEach(() => {
+  test.skip(true, "Option C: Company Admin Password Reset is not an enabled feature.");
+});
 const employee = staffDirectoryItem();
 const detailPath = `${STAFF_BASE}/${employee.membershipId}`;
 const statusPath = `${detailPath}/password-resets/status`;
