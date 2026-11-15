@@ -4,23 +4,59 @@ export const writerTableColumns = {
     UPDATE: ["last_login_at", "updated_at"],
   },
   staff_auth_sessions: {
-    SELECT: ["id", "user_id", "current_access_token_hash", "access_expires_at",
-      "absolute_expires_at", "revoked_at"],
-    INSERT: ["id", "user_id", "current_access_token_hash", "access_expires_at",
-      "absolute_expires_at", "created_at", "last_rotated_at"],
-    UPDATE: ["current_access_token_hash", "access_expires_at", "last_rotated_at",
-      "revoked_at"],
+    SELECT: [
+      "id",
+      "user_id",
+      "current_access_token_hash",
+      "access_expires_at",
+      "absolute_expires_at",
+      "revoked_at",
+    ],
+    INSERT: [
+      "id",
+      "user_id",
+      "current_access_token_hash",
+      "access_expires_at",
+      "absolute_expires_at",
+      "created_at",
+      "last_rotated_at",
+    ],
+    UPDATE: [
+      "current_access_token_hash",
+      "access_expires_at",
+      "last_rotated_at",
+      "revoked_at",
+    ],
   },
   staff_refresh_credentials: {
-    SELECT: ["id", "session_id", "token_hash", "generation", "expires_at",
-      "consumed_at", "replaced_by_credential_id"],
-    INSERT: ["id", "session_id", "token_hash", "generation", "created_at", "expires_at"],
+    SELECT: [
+      "id",
+      "session_id",
+      "token_hash",
+      "generation",
+      "expires_at",
+      "consumed_at",
+      "replaced_by_credential_id",
+    ],
+    INSERT: [
+      "id",
+      "session_id",
+      "token_hash",
+      "generation",
+      "created_at",
+      "expires_at",
+    ],
     UPDATE: ["consumed_at", "replaced_by_credential_id"],
   },
   staff_push_registrations: {
     SELECT: ["staff_auth_session_id", "state"],
-    UPDATE: ["state", "provider_token", "terminal_at",
-      "terminal_reason_class", "updated_at"],
+    UPDATE: [
+      "state",
+      "provider_token",
+      "terminal_at",
+      "terminal_reason_class",
+      "updated_at",
+    ],
   },
 };
 
@@ -38,24 +74,44 @@ async function revokeColumnGrants(client, exec, role, onlyStaffAuth) {
   );
   for (const table of tables.rows) {
     const privileges = ["SELECT", "INSERT", "UPDATE", "REFERENCES"];
-    const fragment = privileges.map((name) =>
-      `${name} (${table.columns.map(() => "%I").join(", ")})`,
-    ).join(", ");
-    const values = [...privileges.flatMap(() => table.columns), table.table_name];
-    if (role === "PUBLIC") {
-      await exec(client, `REVOKE ${fragment} ON TABLE public.%I FROM PUBLIC`, values);
-    } else {
-      await exec(client, `REVOKE ${fragment} ON TABLE public.%I FROM %I`,
-        [...values, role]);
+    // PostgreSQL format() accepts at most 100 arguments. Four privilege types
+    // over a wide table can otherwise abort the entire protected provisioning.
+    for (let offset = 0; offset < table.columns.length; offset += 20) {
+      const columns = table.columns.slice(offset, offset + 20);
+      const fragment = privileges
+        .map((name) => `${name} (${columns.map(() => "%I").join(", ")})`)
+        .join(", ");
+      const values = [...privileges.flatMap(() => columns), table.table_name];
+      if (role === "PUBLIC") {
+        await exec(
+          client,
+          `REVOKE ${fragment} ON TABLE public.%I FROM PUBLIC`,
+          values,
+        );
+      } else {
+        await exec(client, `REVOKE ${fragment} ON TABLE public.%I FROM %I`, [
+          ...values,
+          role,
+        ]);
+      }
     }
   }
 }
 
-export async function applyStaffAuthWriterGrants(client, exec, role, runtimeRole) {
+export async function applyStaffAuthWriterGrants(
+  client,
+  exec,
+  role,
+  runtimeRole,
+) {
   await exec(client, "REVOKE ALL ON SCHEMA public FROM %I", [role]);
   await exec(client, "GRANT USAGE ON SCHEMA public TO %I", [role]);
   for (const objectType of ["TABLES", "SEQUENCES", "FUNCTIONS"]) {
-    await exec(client, `REVOKE ALL ON ALL ${objectType} IN SCHEMA public FROM %I`, [role]);
+    await exec(
+      client,
+      `REVOKE ALL ON ALL ${objectType} IN SCHEMA public FROM %I`,
+      [role],
+    );
   }
   await revokeColumnGrants(client, exec, role, false);
   // Existing migrations previously allowed ordinary runtime to mint staff bearers.
@@ -63,7 +119,8 @@ export async function applyStaffAuthWriterGrants(client, exec, role, runtimeRole
   await client.query(
     `REVOKE ALL ON TABLE public.staff_auth_sessions, public.staff_refresh_credentials FROM PUBLIC`,
   );
-  await exec(client,
+  await exec(
+    client,
     "REVOKE ALL ON TABLE public.staff_auth_sessions, public.staff_refresh_credentials FROM %I",
     [runtimeRole],
   );
@@ -71,35 +128,53 @@ export async function applyStaffAuthWriterGrants(client, exec, role, runtimeRole
   await revokeColumnGrants(client, exec, runtimeRole, true);
   for (const [table, privileges] of Object.entries(writerTableColumns)) {
     for (const [privilege, columns] of Object.entries(privileges)) {
-      await exec(client, `GRANT ${privilege} (${columns.map(() => "%I").join(", ")}) ON TABLE public.%I TO %I`,
-        [...columns, table, role]);
+      await exec(
+        client,
+        `GRANT ${privilege} (${columns.map(() => "%I").join(", ")}) ON TABLE public.%I TO %I`,
+        [...columns, table, role],
+      );
     }
   }
-  await exec(client,
+  await exec(
+    client,
     "REVOKE ALL ON FUNCTION public.staff_onboarding_activate(text,text,text) FROM %I",
-    [runtimeRole]);
+    [runtimeRole],
+  );
   await client.query(
     "REVOKE ALL ON FUNCTION public.staff_onboarding_activate(text,text,text) FROM PUBLIC",
   );
-  await exec(client,
+  await exec(
+    client,
     "GRANT EXECUTE ON FUNCTION public.staff_onboarding_activate(text,text,text) TO %I",
-    [role]);
-  await exec(client,
+    [role],
+  );
+  await exec(
+    client,
     "REVOKE ALL ON FUNCTION public.s04_staff_login_success(uuid,text) FROM %I",
-    [runtimeRole]);
+    [runtimeRole],
+  );
   await client.query(
     "REVOKE ALL ON FUNCTION public.s04_staff_login_success(uuid,text) FROM PUBLIC",
   );
-  await exec(client,
+  await exec(
+    client,
     "GRANT EXECUTE ON FUNCTION public.s04_staff_login_success(uuid,text) TO %I",
-    [role]);
+    [role],
+  );
   // Ordinary readers retain precisely the MFA assurance/logout compatibility.
-  await exec(client, "GRANT SELECT ON TABLE public.staff_auth_sessions, public.staff_refresh_credentials TO %I", [runtimeRole]);
+  await exec(
+    client,
+    "GRANT SELECT ON TABLE public.staff_auth_sessions, public.staff_refresh_credentials TO %I",
+    [runtimeRole],
+  );
   // Staff Auth may only permit one-way logout revocation to ordinary SQL.
   // MFA assurance/activity belongs exclusively to the S02 protected boundary.
   // Replaying this provisioner after S02 must never restore forged assurance.
   for (const column of ["revoked_at"]) {
-    await exec(client, "GRANT UPDATE (%I) ON TABLE public.staff_auth_sessions TO %I",
-      [column, runtimeRole]);
+    await exec(
+      client,
+      "GRANT UPDATE (%I) ON TABLE public.staff_auth_sessions TO %I",
+      [column, runtimeRole],
+    );
   }
 }
