@@ -1,4 +1,5 @@
 import { verifyS04RuntimePrivileges } from "./s04-runtime-privileges.mjs";
+import { revokeUnexpectedFunctionExecutors } from "./option-c-protected-cutover-executor-revocation.mjs";
 import { verifyOptionCRoleIsolation } from "./option-c-protected-cutover-roles.mjs";
 import { optionCRoles } from "./option-c-protected-cutover-state.mjs";
 
@@ -84,6 +85,7 @@ export async function retireOptionCLegacyAcl(client, formatted, runtimeRole) {
   ];
   for (const [signature, allowedRole] of exclusiveFunctions) {
     await client.query(`REVOKE ALL ON FUNCTION ${signature} FROM PUBLIC`);
+    await revokeUnexpectedFunctionExecutors(client, formatted, signature, allowedRole);
     for (const role of allProtectedRoles) {
       if (role !== allowedRole) {
         await formatted(client, `REVOKE ALL ON FUNCTION ${signature} FROM %I`, [role]);
@@ -92,6 +94,7 @@ export async function retireOptionCLegacyAcl(client, formatted, runtimeRole) {
   }
   for (const signature of optionCFunctionContract.retiredManagement) {
     await client.query(`REVOKE ALL ON FUNCTION ${signature} FROM PUBLIC`);
+    await revokeUnexpectedFunctionExecutors(client, formatted, signature, null);
     for (const role of allProtectedRoles) {
       await formatted(client, `REVOKE ALL ON FUNCTION ${signature} FROM %I`, [role]);
     }
@@ -165,14 +168,19 @@ async function assertFunction(client, signature, allowedRole, deniedRoles, path)
             NOT EXISTS (SELECT 1 FROM pg_catalog.aclexplode(
               COALESCE(function.proacl,pg_catalog.acldefault('f',function.proowner))) acl
               WHERE acl.privilege_type='EXECUTE' AND acl.grantee<>function.proowner
-                AND acl.is_grantable) AS grant_option_denied
+                AND acl.is_grantable) AS grant_option_denied,
+            NOT EXISTS (SELECT 1 FROM pg_catalog.aclexplode(
+              COALESCE(function.proacl,pg_catalog.acldefault('f',function.proowner))) acl
+              WHERE acl.privilege_type='EXECUTE' AND acl.grantee<>function.proowner
+                AND acl.grantee<>0 AND ($2::text IS NULL OR acl.grantee <>
+                  (SELECT oid FROM pg_catalog.pg_roles WHERE rolname=$2))) AS other_roles_denied
        FROM pg_catalog.pg_proc function JOIN pg_catalog.pg_roles owner
          ON owner.oid=function.proowner WHERE function.oid=pg_catalog.to_regprocedure($1)`,
-    [signature],
+    [signature, allowedRole],
   );
   const row = metadata.rows[0];
   if (metadata.rowCount !== 1 || row?.prosecdef !== true || row.public_denied !== true ||
-      row.grant_option_denied !== true ||
+      row.grant_option_denied !== true || row.other_roles_denied !== true ||
       deniedRoles.includes(row.owner) || !Array.isArray(row.proconfig) ||
       !row.proconfig.includes(path)) {
     throw new Error(`Option C protected function ${signature} metadata is unsafe.`);
