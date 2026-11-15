@@ -52,6 +52,27 @@ export function signS04Finalize(
   return signAction("FINALIZE", `${id}|${key.scope}|${key.keyHash}|${state}`);
 }
 
+export function signS04StaffActivationSuccess(
+  id: string,
+  key: AntiAbuseKey,
+  invitationHash: string,
+  transactionId: string,
+): S04Proof {
+  if (
+    (key.scope !== "v1:staff-activation-client-address" &&
+      key.scope !== "v1:staff-activation-credential") ||
+    !/^anti-abuse-hmac-sha256:v1:[0-9a-f]{64}$/.test(key.keyHash) ||
+    !/^staff-invite-sha256:v1:[0-9a-f]{64}$/.test(invitationHash) ||
+    !/^\d+$/.test(transactionId)
+  ) {
+    throw new Error("S04 Staff activation proof arguments are invalid.");
+  }
+  return signAction(
+    "STAFF_ACTIVATION",
+    `${id}|${key.scope}|${key.keyHash}|${invitationHash}|${transactionId}`,
+  );
+}
+
 export function signS04GuestClassified(
   key: AntiAbuseKey,
   group: AntiAbuseKey,

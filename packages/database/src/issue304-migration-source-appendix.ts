@@ -79,6 +79,7 @@ export const optionCAppendedMigrationDirectories = [
   "20261115235000_option_c_launch_writer_boundary",
   "20261115235900_option_c_s03_raw_bearer_upgrade",
   "20261115235910_option_c_s04_staff_activation_success",
+  "20261116000100_option_c_s04_signed_staff_activation_success",
 ] as const;
 
 export const expectedCurrentMigrationDirectories = [

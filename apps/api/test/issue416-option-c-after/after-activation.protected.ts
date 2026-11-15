@@ -3,10 +3,11 @@ import { Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { AntiAbuseKeyDeriver } from "../../src/modules/anti-abuse/anti-abuse-key";
-import { assertRuntimeDeny } from "./after-fixture";
+import { signS04StaffActivationSuccess } from "../../src/modules/anti-abuse/s04-signed-sql-proof";
 import { OptionCAfterProtectedFixture } from "./after-protected-fixture";
 import {
   activationPassword,
+  forgedInvitationToken,
   invitationToken,
   invitationVerifier,
 } from "./after-onboarding-fixture";
@@ -18,7 +19,7 @@ const fixture = new OptionCAfterProtectedFixture();
 beforeAll(() => fixture.start(), 180_000);
 afterAll(() => fixture.stop(), 120_000);
 
-const activationFunction = "public.s04_staff_activation_success(uuid,text,text,text)";
+const activationFunction = "public.s04_staff_activation_success(uuid,text,text,text,xid8,uuid,bigint,text)";
 
 describe("Option C protected writers / genuine Staff activation and S04 settlement", () => {
   it("activates with the raw invitation/Argon2 ceremony, atomically ignoring both quota reservations", async () => {
@@ -34,9 +35,10 @@ describe("Option C protected writers / genuine Staff activation and S04 settleme
     expect(issued.body?.outcome).toBe("INVITE_ISSUED");
     const memberId = String(issued.body?.membershipId);
     const token = invitationToken(String(issued.body?.activationLink));
-    const key = new AntiAbuseKeyDeriver().derive(
+    const credentialKey = new AntiAbuseKeyDeriver().derive(
       "v1:staff-activation-credential", token,
-    ).keyHash;
+    );
+    const key = credentialKey.keyHash;
     expect(await fixture.pendingSnapshot(memberId)).toMatchObject({
       user_status: "PENDING",
       member_status: "PENDING",
@@ -61,20 +63,60 @@ describe("Option C protected writers / genuine Staff activation and S04 settleme
         activation: true,
         generic: false,
       });
+      await writer.query("BEGIN");
+      const writerXid = (await writer.query<{ xid: string }>(
+        "SELECT pg_catalog.pg_current_xact_id()::text AS xid",
+      )).rows[0]!.xid;
+      const invalidId = randomUUID();
+      const invalidInvitationHash = invitationVerifier(forgedInvitationToken());
+      const invalidProof = signS04StaffActivationSuccess(
+        invalidId,
+        credentialKey,
+        invalidInvitationHash,
+        writerXid,
+      );
+      await expect(writer.query(
+        `SELECT public.s04_staff_activation_success(
+           $1::uuid,$2,$3,$4,$5::xid8,$6::uuid,$7::bigint,$8
+         )`,
+        [
+          invalidId,
+          credentialKey.scope,
+          credentialKey.keyHash,
+          invalidInvitationHash,
+          writerXid,
+          invalidProof.nonce,
+          invalidProof.expiresMs,
+          invalidProof.mac,
+        ],
+      )).rejects.toMatchObject({ code: "42501" });
+      await writer.query("ROLLBACK");
     } finally {
       await writer.end();
     }
-    await assertRuntimeDeny(
-      fixture,
-      `SELECT public.s04_staff_activation_success($1::uuid,$2,$3,$4)`,
-      [
-        randomUUID(),
-        "v1:staff-activation-credential",
-        key,
-        invitationVerifier(token),
-      ],
-      activationFunction,
-    );
+    const runtime = new Pool({ connectionString: fixture.runtimeDatabaseUrl(), max: 1 });
+    try {
+      await runtime.query("BEGIN");
+      const runtimeXid = (await runtime.query<{ xid: string }>(
+        "SELECT pg_catalog.pg_current_xact_id()::text AS xid",
+      )).rows[0]!.xid;
+      const runtimeId = randomUUID();
+      const runtimeInvitationHash = invitationVerifier(token);
+      const runtimeProof = signS04StaffActivationSuccess(
+        runtimeId, credentialKey, runtimeInvitationHash, runtimeXid,
+      );
+      await expect(runtime.query(
+        `SELECT public.s04_staff_activation_success(
+           $1::uuid,$2,$3,$4,$5::xid8,$6::uuid,$7::bigint,$8
+         )`,
+        [runtimeId,credentialKey.scope,credentialKey.keyHash,
+          runtimeInvitationHash,runtimeXid,runtimeProof.nonce,
+          runtimeProof.expiresMs,runtimeProof.mac],
+      )).rejects.toMatchObject({ code: "42501" });
+      await runtime.query("ROLLBACK");
+    } finally {
+      await runtime.end();
+    }
 
     const admissionStart = await fixture.query<{ started: Date }>(
       "SELECT clock_timestamp() AS started",

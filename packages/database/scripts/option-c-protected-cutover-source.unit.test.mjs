@@ -33,7 +33,7 @@ test("cutover preflight includes the narrow Staff activation success definer", (
   const acl = source("./option-c-protected-cutover-acl.mjs");
   assert.match(
     acl,
-    /public\.s04_staff_activation_success\(uuid,text,text,text\)/,
+    /public\.s04_staff_activation_success\(uuid,text,text,text,xid8,uuid,bigint,text\)/,
   );
   assert.match(
     readiness,

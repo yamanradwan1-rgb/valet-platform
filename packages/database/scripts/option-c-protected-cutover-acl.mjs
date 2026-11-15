@@ -18,7 +18,7 @@ export const optionCFunctionContract = Object.freeze({
   staffAuth: [
     "public.staff_onboarding_activate(text,text,text)",
     "public.s04_staff_login_success(uuid,text)",
-    "public.s04_staff_activation_success(uuid,text,text,text)",
+    "public.s04_staff_activation_success(uuid,text,text,text,xid8,uuid,bigint,text)",
   ],
   mfa: ["public.s04_mfa_success(uuid,text,text)"],
   management: [

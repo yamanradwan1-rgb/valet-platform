@@ -24,9 +24,13 @@ test("S01 S03 runtime reprovision twice cannot restore activation of a PENDING a
         assert.deepEqual(parameters, [
           writerRole,
           runtimeRole,
-          "public.s04_staff_activation_success(uuid,text,text,text)",
+          "public.s04_staff_activation_success(uuid,text,text,text,xid8,uuid,bigint,text)",
         ]);
-        return { rowCount: 1, rows: [{ writer: true, ordinary_denied: true }] };
+        return { rowCount: 1, rows: [{
+          writer: true,
+          ordinary_denied: true,
+          public_allowed: false,
+        }] };
       }
       // Only mock catalog rows; the privileges are audited separately on PG17.
       return { rowCount: 0, rows: [] };

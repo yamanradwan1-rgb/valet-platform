@@ -12,9 +12,13 @@ test("Staff Auth writer revokes all four column privileges on wide tables in bou
         assert.deepEqual(params, [
           "vaylet_staff_auth_writer",
           "vaylet_runtime",
-          "public.s04_staff_activation_success(uuid,text,text,text)",
+          "public.s04_staff_activation_success(uuid,text,text,text,xid8,uuid,bigint,text)",
         ]);
-        return { rowCount: 1, rows: [{ writer: true, ordinary_denied: true }] };
+        return { rowCount: 1, rows: [{
+          writer: true,
+          ordinary_denied: true,
+          public_allowed: false,
+        }] };
       }
       if (sql.includes("array_agg(att.attname::text")) {
         return {

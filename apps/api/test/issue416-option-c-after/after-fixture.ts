@@ -1,4 +1,4 @@
-import { randomBytes, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 
 import { Pool } from "pg";
 
@@ -16,7 +16,7 @@ import {
 // AFTER tests use a second, named owner-only cluster. BEFORE .probe.ts suites
 // retain their separate original target, opt-in switch and failing assertions.
 export class OptionCAfterFixture extends OptionCT5Fixture {
-  private readonly proofKey = randomBytes(32).toString("base64url");
+  private readonly proofKey = this.proofKeys.sqlProof;
   private readonly writerPasswords = [randomUUID(), randomUUID(), randomUUID()];
   private readonly priorProofKey =
     process.env.ANTI_ABUSE_SQL_PROOF_SECRET_B64URL;
@@ -81,21 +81,6 @@ export class OptionCAfterFixture extends OptionCT5Fixture {
     const ownerUrl = process.env.TEST_DATABASE_URL;
     if (!ownerUrl) throw new Error("W66 owner test URL is unavailable.");
     await ensureRuntimeRoleByOwner(ownerUrl, applicationUrl);
-    await runPnpm(
-      [
-        "--filter",
-        "@valet/database",
-        "exec",
-        "node",
-        "scripts/provision-s04-proof-key.mjs",
-      ],
-      {
-        NODE_ENV: "test",
-        DATABASE_URL: applicationUrl,
-        MIGRATION_DATABASE_URL: this.migrationDatabaseUrl(),
-        ANTI_ABUSE_SQL_PROOF_SECRET_B64URL: this.proofKey,
-      },
-    );
     process.env.MIGRATION_DATABASE_URL = this.migrationDatabaseUrl();
   }
 
@@ -113,10 +98,6 @@ export class OptionCAfterFixture extends OptionCT5Fixture {
       ANTI_ABUSE_SQL_PROOF_SECRET_B64URL: this.proofKey,
       ...writers,
     };
-    await runPnpm(
-      ["--filter", "@valet/database", "staff-auth-writer:provision"],
-      environment,
-    );
     await this.assertLegacyRuntimeDrained(applicationUrl);
     await runPnpm(
       [

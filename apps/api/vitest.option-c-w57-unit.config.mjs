@@ -7,6 +7,7 @@ export default defineConfig({
       "test/staff-auth-writer-atomic.test.ts",
       "test/staff-auth-writer-boundary.test.ts",
       "test/staff-auth.service.test.ts",
+      "test/s04-signed-sql-proof.test.ts",
     ],
     fileParallelism: false,
     maxWorkers: 1,

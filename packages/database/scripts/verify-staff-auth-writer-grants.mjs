@@ -171,7 +171,7 @@ export async function verifyStaffAuthWriterGrants(client, writer, runtime) {
          AND p.oid NOT IN (
            'public.staff_onboarding_activate(text,text,text)'::regprocedure,
            'public.s04_staff_login_success(uuid,text)'::regprocedure,
-           'public.s04_staff_activation_success(uuid,text,text,text)'::regprocedure
+           'public.s04_staff_activation_success(uuid,text,text,text,xid8,uuid,bigint,text)'::regprocedure
          )
          AND has_function_privilege($1,p.oid,'EXECUTE')`,
     [writer],
@@ -190,7 +190,7 @@ export async function verifyStaffAuthWriterGrants(client, writer, runtime) {
          AND p.oid NOT IN (
            'public.staff_onboarding_activate(text,text,text)'::regprocedure,
            'public.s04_staff_login_success(uuid,text)'::regprocedure,
-           'public.s04_staff_activation_success(uuid,text,text,text)'::regprocedure
+           'public.s04_staff_activation_success(uuid,text,text,text,xid8,uuid,bigint,text)'::regprocedure
          )
        LIMIT 1`, [writer],
   );
@@ -221,13 +221,23 @@ export async function verifyStaffAuthWriterGrants(client, writer, runtime) {
   }
   const activationLimiterAcl = await client.query(
     `SELECT has_function_privilege($1,
-       'public.s04_staff_activation_success(uuid,text,text,text)', 'EXECUTE') AS writer,
+       'public.s04_staff_activation_success(uuid,text,text,text,xid8,uuid,bigint,text)', 'EXECUTE') AS writer,
        has_function_privilege($2,
-       'public.s04_staff_activation_success(uuid,text,text,text)', 'EXECUTE') AS runtime`,
+       'public.s04_staff_activation_success(uuid,text,text,text,xid8,uuid,bigint,text)', 'EXECUTE') AS runtime,
+       EXISTS (
+         SELECT 1 FROM pg_catalog.pg_proc function
+         CROSS JOIN LATERAL pg_catalog.aclexplode(COALESCE(
+           function.proacl,pg_catalog.acldefault('f',function.proowner)
+         )) acl
+         WHERE function.oid=
+           'public.s04_staff_activation_success(uuid,text,text,text,xid8,uuid,bigint,text)'::regprocedure
+           AND acl.grantee=0 AND acl.privilege_type='EXECUTE'
+       ) AS public_execute`,
     [writer, runtime],
   );
   if (activationLimiterAcl.rows[0]?.writer !== true ||
-      activationLimiterAcl.rows[0]?.runtime !== false) {
+      activationLimiterAcl.rows[0]?.runtime !== false ||
+      activationLimiterAcl.rows[0]?.public_execute !== false) {
     throw new Error("S04 Staff activation finalizer authority is unsafe.");
   }
 }

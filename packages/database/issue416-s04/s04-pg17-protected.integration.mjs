@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
+import { Buffer } from "node:buffer";
 import { createHmac, randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import process from "node:process";
+import { fileURLToPath, URL } from "node:url";
 import { test } from "node:test";
 import pg from "pg";
 import {
@@ -12,8 +14,9 @@ import {
 import { grantS04ProtectedWriterFunction } from "../scripts/s04-protected-writer-privileges.mjs";
 import { provisionS04ProofKey } from "../scripts/provision-s04-proof-key.mjs";
 
-const fixtureUrl = process.env.S04_W58_PG17_FIXTURE_URL;
-const identifier = process.env.S04_W58_PG17_SYSTEM_ID;
+const fixtureUrl = process.env.S04_W67_PG17_FIXTURE_URL;
+const superuserUrl = process.env.S04_W67_PG17_SUPERUSER_URL;
+const identifier = process.env.S04_W67_PG17_SYSTEM_ID;
 const repo = resolve(fileURLToPath(import.meta.url), "../../../../");
 const migration = readFileSync(
   resolve(repo, "packages/database/prisma/migrations/20261115016200_issue416_s04_signed_quota_guard/migration.sql"),
@@ -33,7 +36,7 @@ const sign = (action, fields) => {
 function restrictedConfig(role) {
   const url = new URL(fixtureUrl);
   url.username = role;
-  url.password = "w58_test_only_password";
+  url.password = "w67_test_only_password";
   return { connectionString: url.toString() };
 }
 
@@ -50,11 +53,26 @@ async function expectDenied(client, sql, values = []) {
 }
 
 test("S04 independent PG17 fixture denies raw runtime SQL and accepts bounded proofs", {
-  skip: !fixtureUrl || !identifier ? "explicit unique disposable PG17 fixture required" : false,
+  skip: !fixtureUrl || !superuserUrl || !identifier
+    ? "explicit unique disposable PG17 fixture and bootstrap identity required"
+    : false,
 }, async () => {
   const url = new URL(fixtureUrl);
+  const bootstrapUrl = new URL(superuserUrl);
+  assert.equal(url.protocol, "postgresql:");
   assert.equal(url.hostname, "127.0.0.1");
-  assert.equal(url.pathname, "/s04_w58_disposable");
+  assert.equal(url.port, "51667");
+  assert.equal(url.pathname, "/s04_w67_disposable");
+  assert.equal(url.username, "w67_owner");
+  assert.equal(url.search, "");
+  assert.equal(url.hash, "");
+  assert.equal(bootstrapUrl.protocol, "postgresql:");
+  assert.equal(bootstrapUrl.hostname, "127.0.0.1");
+  assert.equal(bootstrapUrl.port, "51667");
+  assert.equal(bootstrapUrl.pathname, "/s04_w67_disposable");
+  assert.equal(bootstrapUrl.username, "postgres");
+  assert.equal(bootstrapUrl.search, "");
+  assert.equal(bootstrapUrl.hash, "");
   const admin = new pg.Client({ connectionString: fixtureUrl });
   await admin.connect();
   const clients = [];
@@ -62,13 +80,18 @@ test("S04 independent PG17 fixture denies raw runtime SQL and accepts bounded pr
     const attested = await admin.query(
       `SELECT current_database() AS db,current_user AS login,
         current_setting('server_version_num')::integer AS version,
-        system_identifier::text AS identifier FROM pg_control_system()`,
+        system_identifier::text AS identifier,role.rolsuper,
+        role.rolcreatedb,role.rolcreaterole
+       FROM pg_control_system() CROSS JOIN pg_roles role
+       WHERE role.rolname=current_user`,
     );
     assert.deepEqual(
-      [attested.rows[0].db, attested.rows[0].login, attested.rows[0].version,
-        attested.rows[0].identifier],
-      ["s04_w58_disposable", "w58_owner", 170011, identifier],
+      [attested.rows[0].db, attested.rows[0].login,
+        attested.rows[0].identifier,attested.rows[0].rolsuper,
+        attested.rows[0].rolcreatedb,attested.rows[0].rolcreaterole],
+      ["s04_w67_disposable", "w67_owner", identifier,false,true,true],
     );
+    assert.ok(attested.rows[0].version >= 170000 && attested.rows[0].version < 180000);
     await admin.query("CREATE SCHEMA auth_proof_crypto");
     await admin.query("CREATE EXTENSION pgcrypto WITH SCHEMA auth_proof_crypto");
     await admin.query(`CREATE TABLE public.anti_abuse_events(
@@ -90,8 +113,8 @@ test("S04 independent PG17 fixture denies raw runtime SQL and accepts bounded pr
     );
     await admin.query(migration);
     const runtimeUrl = new URL(fixtureUrl);
-    runtimeUrl.username = "w58_s04_runtime";
-    runtimeUrl.password = "w58_test_only_password";
+    runtimeUrl.username = "w67_s04_runtime";
+    runtimeUrl.password = "w67_test_only_password";
     const provisionEnvironment = {
       NODE_ENV: "test",
       MIGRATION_DATABASE_URL: fixtureUrl,
@@ -109,32 +132,57 @@ test("S04 independent PG17 fixture denies raw runtime SQL and accepts bounded pr
       }),
       /rotation requires a separately reviewed rollout/,
     );
-    await admin.query(`CREATE ROLE w58_s04_runtime LOGIN PASSWORD 'w58_test_only_password'
+    await admin.query(`CREATE ROLE w67_s04_runtime LOGIN PASSWORD 'w67_test_only_password'
       NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS`);
-    await admin.query(`CREATE ROLE w58_s04_staff_writer LOGIN PASSWORD 'w58_test_only_password'
+    await admin.query(`CREATE ROLE w67_s04_staff_writer LOGIN PASSWORD 'w67_test_only_password'
       NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS`);
-    await admin.query(`CREATE ROLE w58_s04_mfa_writer LOGIN PASSWORD 'w58_test_only_password'
+    await admin.query(`CREATE ROLE w67_s04_mfa_writer LOGIN PASSWORD 'w67_test_only_password'
       NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS`);
-    await admin.query("GRANT CONNECT ON DATABASE s04_w58_disposable TO w58_s04_runtime,w58_s04_staff_writer,w58_s04_mfa_writer");
-    await admin.query("GRANT USAGE ON SCHEMA public TO w58_s04_runtime,w58_s04_staff_writer,w58_s04_mfa_writer");
-    await provisionS04RuntimePrivileges(admin, formatted, "w58_s04_runtime");
-    await provisionS04RuntimePrivileges(admin, formatted, "w58_s04_runtime");
-    await verifyS04RuntimePrivileges(admin, "w58_s04_runtime");
+    await admin.query("GRANT CONNECT ON DATABASE s04_w67_disposable TO w67_s04_runtime,w67_s04_staff_writer,w67_s04_mfa_writer");
+    await admin.query("GRANT USAGE ON SCHEMA public TO w67_s04_runtime,w67_s04_staff_writer,w67_s04_mfa_writer");
+    await provisionS04RuntimePrivileges(admin, formatted, "w67_s04_runtime");
+    await provisionS04RuntimePrivileges(admin, formatted, "w67_s04_runtime");
+    await verifyS04RuntimePrivileges(admin, "w67_s04_runtime");
     await grantS04ProtectedWriterFunction(
-      admin, formatted, "staffAuth", "w58_s04_staff_writer", "w58_s04_runtime",
+      admin, formatted, "staffAuth", "w67_s04_staff_writer", "w67_s04_runtime",
     );
     await grantS04ProtectedWriterFunction(
-      admin, formatted, "mfa", "w58_s04_mfa_writer", "w58_s04_runtime",
+      admin, formatted, "mfa", "w67_s04_mfa_writer", "w67_s04_runtime",
     );
-    const runtime = new pg.Client(restrictedConfig("w58_s04_runtime"));
-    const staff = new pg.Client(restrictedConfig("w58_s04_staff_writer"));
-    const mfa = new pg.Client(restrictedConfig("w58_s04_mfa_writer"));
+    // Test-only bootstrap uses the isolated cluster superuser to create the
+    // same SET-only migrator membership required by the production cutover.
+    // All migrations and the activation transaction still run as w67_owner.
+    const bootstrap = new pg.Client({ connectionString: superuserUrl });
+    await bootstrap.connect();
+    try {
+      const bootstrapIdentity = await bootstrap.query(
+        `SELECT current_user AS principal,current_database() AS database,
+                role.rolsuper AS superuser,system_identifier::text
+         FROM pg_control_system() CROSS JOIN pg_roles AS role
+         WHERE role.rolname=current_user`,
+      );
+      assert.deepEqual(bootstrapIdentity.rows[0],{
+        principal:"postgres",database:"s04_w67_disposable",superuser:true,
+        system_identifier:identifier,
+      });
+      await bootstrap.query(
+        "REVOKE w67_s04_staff_writer FROM w67_owner",
+      );
+      await bootstrap.query(
+        "GRANT w67_s04_staff_writer TO w67_owner WITH ADMIN FALSE, INHERIT FALSE, SET TRUE",
+      );
+    } finally {
+      await bootstrap.end();
+    }
+    const runtime = new pg.Client(restrictedConfig("w67_s04_runtime"));
+    const staff = new pg.Client(restrictedConfig("w67_s04_staff_writer"));
+    const mfa = new pg.Client(restrictedConfig("w67_s04_mfa_writer"));
     clients.push(runtime, staff, mfa);
     for (const client of clients) await client.connect();
     const role = await runtime.query(`SELECT current_user,session_user,
       rolcanlogin,rolsuper,rolcreaterole,rolbypassrls FROM pg_roles WHERE rolname=current_user`);
-    assert.equal(role.rows[0].current_user, "w58_s04_runtime");
-    assert.equal(role.rows[0].session_user, "w58_s04_runtime");
+    assert.equal(role.rows[0].current_user, "w67_s04_runtime");
+    assert.equal(role.rows[0].session_user, "w67_s04_runtime");
     assert.equal(role.rows[0].rolsuper, false);
     assert.equal(role.rows[0].rolcreaterole, false);
     assert.equal(role.rows[0].rolbypassrls, false);

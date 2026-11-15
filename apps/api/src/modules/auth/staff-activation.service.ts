@@ -19,6 +19,7 @@ import {
   ClientAddressUnavailableError,
 } from "../anti-abuse/client-address";
 import { staffInvitationHash } from "../management/staff-invitation-credential";
+import { signS04StaffActivationSuccess } from "../anti-abuse/s04-signed-sql-proof";
 import { hashStaffPassword } from "./staff-password-hashing";
 import {
   Argon2StaffPasswordVerifier,
@@ -108,14 +109,28 @@ export class StaffActivationService {
           verifiedHash,
           newHash,
         );
+        const transactionIdentity = await transaction.query<{ xid: string }>(
+          "SELECT pg_catalog.pg_current_xact_id()::text AS xid",
+        );
+        const transactionId = transactionIdentity.rows[0]?.xid;
+        if (transactionIdentity.rowCount !== 1 || !transactionId) {
+          throw new AntiAbuseUnavailableError();
+        }
         for (const reservation of reservations) {
           if (!reservation.id) throw new AntiAbuseUnavailableError();
+          const proof = signS04StaffActivationSuccess(
+            reservation.id,
+            reservation.key,
+            tokenHash,
+            transactionId,
+          );
           const settled = await transaction.query<{ affected: number }>(
             `SELECT public.s04_staff_activation_success(
-               $1::uuid,$2::text,$3::text,$4::text
+               $1::uuid,$2::text,$3::text,$4::text,$5::xid8,$6::uuid,$7::bigint,$8::text
              ) AS affected`,
             [reservation.id, reservation.key.scope,
-              reservation.key.keyHash, tokenHash],
+              reservation.key.keyHash, tokenHash,
+              transactionId, proof.nonce, proof.expiresMs, proof.mac],
           );
           if (settled.rows[0]?.affected !== 1)
             throw new AntiAbuseUnavailableError();

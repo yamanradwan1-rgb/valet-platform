@@ -25,16 +25,27 @@ validity ceiling. The cleanup and original bounded anti-abuse retention
 remain independent of operational/audit event history.
 
 Forward-only migration `20261115235910_option_c_s04_staff_activation_success`
-adds `public.s04_staff_activation_success(uuid,text,text,text)` to the dedicated
-Staff Auth writer boundary. It can change only a matching `PENDING` anti-abuse
-reservation to `IGNORED` for the two Staff activation scopes and only when an
-unrevoked, consumed invitation is linked to an ACTIVE user and membership with
-the exact immutable activation audit generation. The successful invitation
-activation, quota finalization and audit are committed in the same Staff Auth
-writer transaction. Ordinary runtime, PUBLIC and the other protected writers
-must not execute this helper; the Staff Auth writer retains no generic
-`s04_finalize` permission. Existing migrations and historical quota events
-remain unchanged. Actual mounted protected HTTP qualification is a release gate.
+initially added the activation-only helper. Migration
+`20261116000100_option_c_s04_signed_staff_activation_success` replaces that
+unsigned four-argument signature with
+`public.s04_staff_activation_success(uuid,text,text,text,xid8,uuid,bigint,text)` and
+drops the old signature with `RESTRICT`. The current helper requires the S04
+action-bound HMAC proof and one-use nonce over the exact reservation ID, scope,
+key hash, invitation verifier and current PostgreSQL `xid8`; SQL compares the
+signed XID to `pg_current_xact_id()` inside the activation transaction. It can change only a matching `PENDING`
+anti-abuse reservation to `IGNORED` for the two Staff activation scopes and
+only when an unrevoked, consumed invitation is linked to an ACTIVE user and
+membership with the exact immutable activation audit generation. The
+successful invitation activation, proof nonce, quota finalization and audit
+are committed in the same Staff Auth writer transaction. Ordinary runtime,
+PUBLIC and the other protected writers must not execute this helper; the Staff
+Auth writer retains no generic `s04_finalize` permission. Existing migrations
+and historical quota events remain unchanged. The ordered source inventory
+now contains 148 migration directories. Actual mounted protected HTTP
+qualification is a release gate. The signed SQL-level PG17 qualification is
+available through `pnpm --filter @valet/database s04:staff-activation:pg17`;
+it requires an individually attested disposable fixture as documented in
+`packages/database/issue416-s04/README.md`.
 
 The separate migrator must seed the proof key before runtime privilege
 provisioning. Both API and migrator require the distinct secret

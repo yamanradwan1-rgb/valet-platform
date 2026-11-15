@@ -44,6 +44,7 @@ test("S04 AFTER: no SQL signing oracle, action-bound HMAC, bounded nonce retenti
   const seed = read("packages/database/scripts/provision-s04-proof-key.mjs");
   assert.match(signer, /signS04Counted/);
   assert.match(signer, /signS04Reservation/);
+  assert.match(signer, /signS04StaffActivationSuccess/);
   assert.match(signer, /signS04GuestClassified/);
   assert.doesNotMatch(signer, /export function signAction/);
   assert.match(signer, /ANTI_ABUSE_SQL_PROOF_SECRET_B64URL/);
@@ -56,6 +57,8 @@ test("S04 AFTER: no SQL signing oracle, action-bound HMAC, bounded nonce retenti
 test("S04 AFTER: scoped Staff and MFA success functions have explicit protected grants", () => {
   const writer = read("packages/database/scripts/s04-protected-writer-privileges.mjs");
   assert.match(writer, /public.s04_staff_login_success/);
+  assert.match(writer, /staffActivation: "public\.s04_staff_activation_success\(uuid,text,text,text,xid8,uuid,bigint,text\)"/);
+  assert.match(writer, /acl\.grantee=0 AND acl\.privilege_type='EXECUTE'/);
   assert.match(writer, /public.s04_mfa_success/);
   assert.match(writer, /REVOKE ALL ON FUNCTION/);
   assert.match(writer, /ordinary_denied/);
