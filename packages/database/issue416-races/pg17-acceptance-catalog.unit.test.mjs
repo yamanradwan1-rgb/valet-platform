@@ -26,16 +26,23 @@ const fixtureRows = (source = migrationSourceChecksums()) =>
     applied_steps_count: 1,
   }));
 
-test("all 29 Issue416 migrations are pinned and the full Prisma ledger is exact", () => {
+test("29 immutable Issue416 sources and 3 separate Option C names keep an exact ledger", () => {
   const source = migrationSourceChecksums();
   const issue416 = [...source.keys()].filter((name) =>
     name.includes("issue416"),
   );
-  assert.equal(issue416.length, 29);
-  assert.deepEqual([...issue416].sort(), [...REQUIRED_MIGRATIONS].sort());
+  const optionC = [
+    "20261115016200_issue416_s04_signed_quota_guard",
+    "20261115020100_issue416_optionc_s01_revocation_monotonic",
+    "20261115220000_issue416_s02_bound_admin_activity",
+  ];
+  assert.equal(REQUIRED_MIGRATIONS.length, 29);
+  assert.equal(issue416.length, REQUIRED_MIGRATIONS.length + optionC.length);
+  assert.deepEqual([...issue416].sort(), [...REQUIRED_MIGRATIONS, ...optionC].sort());
   assert.deepEqual(
-    [...assertReviewedMigrationSet(issue416)],
-    [...issue416].sort(),
+    [...assertReviewedMigrationSet(issue416.filter((name) =>
+      REQUIRED_MIGRATIONS.includes(name)))],
+    [...REQUIRED_MIGRATIONS].sort(),
   );
   assert.equal(assertCommittedExactLedger(fixtureRows()), source.size);
 
