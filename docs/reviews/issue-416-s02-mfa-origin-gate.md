@@ -30,10 +30,13 @@ recovery-code INSERT/consumption UPDATE:
   *explicitly executes* direct factor activation and assurance with runtime
   SQL, **without providing a TOTP**.
 
-This establishes a source-level privilege/origin gap conditional on effective
-T5 grants. It is **not** a reproduced deployed exploit or a verified
-SQL-to-mounted-HTTP acceptance path. The existing integration test source
-demonstrates intent, not that this worker ran a real PostgreSQL test.
+At the time of W33's standalone source review this established a source-level
+privilege/origin gap only; W33 did not run PostgreSQL. **Subsequent independent
+W37 testing reproduced the T5 SQL-to-mounted-HTTP bypass on synthetic users
+using an actual restricted runtime role** (sensitive Management HTTP201 after
+forged MFA and after revoked-session revival). See
+`docs/validation/issue416-option-c-launch-security-evidence.md` for the
+actual result and its limits. This does not mean any fix has been applied.
 
 ## Minimum credible remediation, blocked on an Owner trust-root gate
 

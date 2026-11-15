@@ -24,8 +24,11 @@ At baseline SHA db85db57fc5c3913a22d34ab5d9ef77269756301:
 Consequently a SQL-only T5 principal can choose a known bearer, compute its
 digest, and use the runtime grants to create or replace a session/refresh
 credential. Constraints and FKs validate row shape, not credential origin.
-W56's isolated actual-role PostgreSQL/API proof is a separate required
-evidence item; this document does not claim that runtime exploit was executed.
+**Later independent verification:** W37 reproduced the runtime-session and
+refresh forgery with actual restricted SQL privileges and mounted HTTP200,
+recorded in `docs/validation/issue416-option-c-launch-security-evidence.md`.
+W56's separately restricted-migrator provisioning exercise remains blocked;
+neither result authorizes implementing the proposed writer role.
 
 The intended boundary is specifically: possession of ordinary DATABASE_URL
 SQL authority must not imply authority to mint or rotate Staff bearers. A
