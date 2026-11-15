@@ -42,15 +42,16 @@ export async function provisionStaffOnboardingPrivileges(
     [runtimeRole],
   );
   for (const name of privateStaffOnboardingFunctions) {
-    if (name === "public.staff_onboarding_activate(text,text,text)") {
-      // Never let PUBLIC restore this SECURITY DEFINER entrypoint on runtime reprovision.
-      await client.query("REVOKE ALL ON FUNCTION public.staff_onboarding_activate(text,text,text) FROM PUBLIC");
-    }
     await executeFormatted(client, "REVOKE ALL ON FUNCTION %s FROM %I", [
       name,
       runtimeRole,
     ]);
   }
+  // The protected activation entrypoint must never inherit PUBLIC EXECUTE,
+  // including after ordinary runtime role provisioning is repeated.
+  await client.query(
+    "REVOKE ALL ON FUNCTION public.staff_onboarding_activate(text,text,text) FROM PUBLIC",
+  );
   for (const name of runtimeStaffOnboardingFunctions) {
     await executeFormatted(client, "REVOKE ALL ON FUNCTION %s FROM %I", [
       name,

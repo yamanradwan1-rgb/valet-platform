@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import { applyStaffAuthWriterGrants } from "./staff-auth-writer-grants.mjs";
 import {
-  privateStaffOnboardingFunctions,
+  protectedStaffOnboardingFunctions,
   provisionStaffOnboardingPrivileges,
   runtimeStaffOnboardingFunctions,
 } from "./staff-onboarding-runtime-privileges.mjs";
@@ -13,7 +13,7 @@ const runtimeRole = "vaylet_runtime";
 const writerRole = "vaylet_staff_auth_writer";
 
 test("S01 S03 runtime reprovision twice cannot restore activation of a PENDING account", async () => {
-  assert.ok(privateStaffOnboardingFunctions.includes(activation));
+  assert.ok(protectedStaffOnboardingFunctions.includes(activation));
   assert.ok(!runtimeStaffOnboardingFunctions.includes(activation));
 
   const statements = [];

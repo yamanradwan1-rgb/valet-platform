@@ -34,6 +34,9 @@ const writerUrl =
 const writer = requireManagementWriterIdentity(writerUrl, migration, runtime);
 const fixture = {
   query: async (sql) => {
+    if (sql === "REVOKE ALL ON FUNCTION public.staff_onboarding_activate(text,text,text) FROM PUBLIC") {
+      return { rowCount: 0, rows: [] };
+    }
     if (sql.includes("FROM pg_roles WHERE rolname")) return { rowCount: 0, rows: [] };
     if (sql.includes("FROM pg_auth_members")) return { rowCount: 0, rows: [] };
     if (sql.includes("pg_catalog.pg_attribute")) {
