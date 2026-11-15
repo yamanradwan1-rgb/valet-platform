@@ -84,6 +84,11 @@ export async function grantMigrationDatabase(
   try {
     await executeFormatted(
       owner,
+      "REVOKE CREATE, TEMPORARY ON DATABASE %I FROM PUBLIC",
+      [databaseName],
+    );
+    await executeFormatted(
+      owner,
       "GRANT CONNECT, CREATE, TEMPORARY ON DATABASE %I TO %I WITH GRANT OPTION",
       [databaseName, optionCTestMigratorRole],
     );

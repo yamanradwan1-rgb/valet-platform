@@ -24,13 +24,13 @@ const beforeTarget: OwnedTarget = {
 };
 
 const afterTarget: OwnedTarget = {
-  containerName: "vaylet-issue416-w66-final-20261115-pg17",
-  owner: "issue416-w66-final-20261115",
-  port: "51666",
-  database: "valet_w66final",
-  user: "valet_w66final",
+  containerName: "vaylet-issue416-w66-final4-20261115-pg17",
+  owner: "issue416-w66-final4-20261115",
+  port: "51669",
+  database: "valet_w66final4",
+  user: "valet_w66final4",
   flag: "ISSUE416_OPTION_C_AFTER",
-  flagValue: "W66_FINAL_DISPOSABLE_ONLY",
+  flagValue: "W66_FINAL4_DISPOSABLE_ONLY",
 };
 
 function docker(args: string[]): string {
@@ -97,7 +97,9 @@ async function assertOwnedPostgres17(target: OwnedTarget): Promise<void> {
       "npipe:////./pipe/docker_engine",
     ].includes(endpoint)
   ) {
-    throw new Error("Option C PG17 rejects remote or unrecognized Docker context.");
+    throw new Error(
+      "Option C PG17 rejects remote or unrecognized Docker context.",
+    );
   }
   const inspected = JSON.parse(docker(["inspect", containerName]));
   const container = inspected?.length === 1 ? inspected[0] : undefined;
