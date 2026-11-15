@@ -27,7 +27,7 @@ export const writerTableColumns = {
 async function revokeColumnGrants(client, exec, role, onlyStaffAuth) {
   const tables = await client.query(
     `SELECT cls.relname AS table_name,
-            array_agg(att.attname ORDER BY att.attnum) AS columns
+            array_agg(att.attname::text ORDER BY att.attnum) AS columns
        FROM pg_class cls JOIN pg_namespace ns ON ns.oid=cls.relnamespace
        JOIN pg_attribute att ON att.attrelid=cls.oid
          AND att.attnum>0 AND NOT att.attisdropped
