@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { generateKeyPairSync, sign, verify } from "node:crypto";
+import { Buffer } from "node:buffer";
+import { createHash, createPublicKey, generateKeyPairSync, sign, verify } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
 import test from "node:test";
 import { URL } from "node:url";
@@ -146,18 +147,34 @@ test("operator recovery signatures must use independent Ed25519 roots", () => {
   const body = fixtureCase().body;
   const message = canonicalCaseBytes(body);
   for (const algorithm of ["ec", "rsa"]) {
-    const options = algorithm === "ec" ? { namedCurve: "prime256v1" }
-      : { modulusLength: 1536 }; // Valid RSA signature fits 256-char bound.
-    const first = generateKeyPairSync(algorithm, options);
-    const second = generateKeyPairSync(algorithm, options);
-    const firstSignature = sign("sha256", message, first.privateKey);
-    const secondSignature = sign("sha256", message, second.privateKey);
+    let first, second, firstSignature, secondSignature;
     if (algorithm === "rsa") {
-      // Node verifies these genuine RSA signatures with algorithm=null. Without
-      // the explicit Ed25519-only key gate, this negative test would be bypassed.
+      // Pinned PUBLIC-KEY-ONLY negative vectors; the test never generates or
+      // retains a weak private RSA key. They are genuine 256-char signatures
+      // that pass Node verification, so the Ed25519-only rejection is reached.
+      const vectors = JSON.parse(readFileSync(new URL("./rsa-rejection-vectors.json",
+        import.meta.url), "utf8"));
+      assert.equal(vectors.canonicalMessageSha256,
+        createHash("sha256").update(message).digest("hex"));
+      assert.equal(vectors.cases.length, 2);
+      [first, second] = vectors.cases.map(({ publicKeyPem }) => ({
+        publicKey: createPublicKey(publicKeyPem),
+      }));
+      [firstSignature, secondSignature] = vectors.cases.map(({ base64Signature }) =>
+        Buffer.from(base64Signature, "base64"));
+      assert.equal(first.publicKey.asymmetricKeyDetails.modulusLength, 1536);
+      assert.equal(second.publicKey.asymmetricKeyDetails.modulusLength, 1536);
+      assert.notDeepEqual(first.publicKey.export({ type: "spki", format: "der" }),
+        second.publicKey.export({ type: "spki", format: "der" }));
       assert.equal(verify(null, message, first.publicKey, firstSignature), true);
       assert.equal(verify(null, message, second.publicKey, secondSignature), true);
       assert.equal(firstSignature.toString("base64").length, 256);
+      assert.equal(secondSignature.toString("base64").length, 256);
+    } else {
+      first = generateKeyPairSync("ec", { namedCurve: "prime256v1" });
+      second = generateKeyPairSync("ec", { namedCurve: "prime256v1" });
+      firstSignature = sign("sha256", message, first.privateKey);
+      secondSignature = sign("sha256", message, second.privateKey);
     }
     const envelope = { body, signatures: [
       { role: "CASE_VERIFIER", keyId: "one",
