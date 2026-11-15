@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { Buffer } from "node:buffer";
-import { lstatSync, readdirSync, readFileSync } from "node:fs";
+import { readdirSync } from "node:fs";
 import { URL, fileURLToPath } from "node:url";
 
 import {
@@ -11,6 +11,7 @@ import {
   REQUIRED_MIGRATIONS,
   verifyPinnedMigrationSources,
 } from "./race-migration-pins.mjs";
+import { readTrustedMigrationBytes } from "./pg17-acceptance-source-fd.mjs";
 
 const migrationsPath = fileURLToPath(
   new URL("../prisma/migrations/", import.meta.url),
@@ -65,14 +66,7 @@ function buildMigrationSourceChecksums() {
       `../prisma/migrations/${name}/migration.sql`,
       import.meta.url,
     );
-    const sourcePath = fileURLToPath(path);
-    if (
-      !lstatSync(sourcePath).isFile() ||
-      lstatSync(sourcePath).isSymbolicLink()
-    ) {
-      throw new Error("W30_PG17_MIGRATION_SOURCE_FILE_UNTRUSTED");
-    }
-    const bytes = readFileSync(sourcePath);
+    const bytes = readTrustedMigrationBytes(fileURLToPath(path));
     if (REQUIRED_MIGRATIONS.includes(name)) {
       assertPinnedMigrationBytes(name, bytes);
       result.set(name, new Set(approvedMigrationChecksums(name)));
