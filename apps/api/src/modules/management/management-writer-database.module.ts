@@ -108,8 +108,8 @@ export class ManagementWriterDatabaseLifecycle
         `SELECT role.rolname AS role, role.rolsuper, role.rolcreatedb,
                 role.rolcreaterole, role.rolreplication, role.rolbypassrls,
                 role.rolinherit,
-                EXISTS (SELECT 1 FROM pg_auth_members AS grant
-                        WHERE grant.member=role.oid) AS has_parent_role
+                EXISTS (SELECT 1 FROM pg_auth_members AS membership
+                        WHERE membership.member=role.oid) AS has_parent_role
          FROM pg_roles AS role WHERE role.rolname=current_user`,
       );
       const current = result.rows[0];
