@@ -3,13 +3,16 @@ import {
   verifyStaffManagementPrivileges,
 } from "./staff-management-runtime-privileges.mjs";
 
-export const runtimeStaffOnboardingFunctions = [
+// Activation belongs to the Staff Auth protected writer (S01/W57).
+export const runtimeStaffOnboardingFunctions = [];
+
+export const protectedStaffOnboardingFunctions = [
+  "public.staff_onboarding_activate(text,text,text)",
   "public.staff_onboarding_create(uuid,uuid,uuid,text,text,text,text,membership_role,uuid[],text)",
   "public.staff_onboarding_resend(uuid,uuid,uuid,uuid,text,text)",
 ];
 
 export const privateStaffOnboardingFunctions = [
-  "public.staff_onboarding_activate(text,text,text)",
   "public.staff_onboarding_proof_current(uuid)",
   "public.staff_onboarding_lock_identity(uuid,text)",
   "public.staff_onboarding_authorize_actor(uuid,uuid)",
@@ -49,7 +52,9 @@ export async function provisionStaffOnboardingPrivileges(
       name,
       runtimeRole,
     ]);
-    await executeFormatted(client, "GRANT EXECUTE ON FUNCTION %s TO %I", [
+  }
+  for (const name of protectedStaffOnboardingFunctions) {
+    await executeFormatted(client, "REVOKE ALL ON FUNCTION %s FROM %I", [
       name,
       runtimeRole,
     ]);
@@ -59,6 +64,7 @@ export async function provisionStaffOnboardingPrivileges(
 export async function verifyStaffOnboardingPrivileges(client, runtimeRole) {
   for (const [name, allowed] of [
     ...runtimeStaffOnboardingFunctions.map((name) => [name, true]),
+    ...protectedStaffOnboardingFunctions.map((name) => [name, false]),
     ...privateStaffOnboardingFunctions.map((name) => [name, false]),
   ]) {
     const result = await client.query(

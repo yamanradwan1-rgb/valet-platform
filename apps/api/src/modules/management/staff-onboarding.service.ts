@@ -15,8 +15,9 @@ import {
   type AntiAbuseReservation,
   type AntiAbuseReservationState,
 } from "../anti-abuse/anti-abuse.service";
-import { recordAdminActivityInTransaction } from "../auth/mfa/mfa-assurance-policy";
 import type { StaffSessionContext } from "../auth/staff-session-context";
+import type { ManagementCommandContext } from "./management-command-context";
+import { MANAGEMENT_POSTGRES_POOL } from "./management-writer-database.module";
 import { authorizeStaffManagement } from "./staff-management-authorization";
 import { StaffOnboardingRateLimitedError } from "./staff-onboarding-errors";
 import {
@@ -49,10 +50,12 @@ export class StaffOnboardingService {
   constructor(
     @Inject(RUNTIME_POSTGRES_POOL) private readonly pool: PostgresPool,
     private readonly antiAbuse: AntiAbuseService,
+    @Inject(MANAGEMENT_POSTGRES_POOL)
+    private readonly managementWriterPool: PostgresPool,
   ) {}
 
   async create(
-    context: StaffSessionContext,
+    context: ManagementCommandContext,
     organizationId: string,
     command: StaffOnboardingCreate,
   ): Promise<StaffOnboardingResult> {
@@ -68,7 +71,7 @@ export class StaffOnboardingService {
     let domainCallbackCompleted = false;
     try {
       const committed = await inPostgresTransaction(
-        this.pool,
+        this.managementWriterPool,
         async (transaction) => {
           await lockStaffOnboardingAccount(
             transaction,
@@ -83,7 +86,7 @@ export class StaffOnboardingService {
               assurance: "SENSITIVE",
             },
           );
-          const issued = await createStaffOnboarding(transaction, {
+          const issued = await createStaffOnboarding(transaction, context, {
             actorMembershipId: authority.membershipId,
             organizationId,
             operationId: command.operationId,
@@ -94,7 +97,6 @@ export class StaffOnboardingService {
             ),
             tokenHash: staffInvitationHash(token),
           });
-          await recordAdminActivityInTransaction(transaction, context);
           const response = this.result(issued, token);
           domainCallbackCompleted = true;
           return { changed: issued.changed, response };
@@ -116,7 +118,7 @@ export class StaffOnboardingService {
   }
 
   async resend(
-    context: StaffSessionContext,
+    context: ManagementCommandContext,
     organizationId: string,
     membershipId: string,
     command: StaffOnboardingResend,
@@ -134,7 +136,7 @@ export class StaffOnboardingService {
     let domainCallbackCompleted = false;
     try {
       const committed = await inPostgresTransaction(
-        this.pool,
+        this.managementWriterPool,
         async (transaction) => {
           const email = await staffOnboardingTargetEmail(
             transaction,
@@ -150,7 +152,7 @@ export class StaffOnboardingService {
               assurance: "SENSITIVE",
             },
           );
-          const issued = await resendStaffOnboarding(transaction, {
+          const issued = await resendStaffOnboarding(transaction, context, {
             actorMembershipId: authority.membershipId,
             organizationId,
             membershipId,
@@ -161,7 +163,6 @@ export class StaffOnboardingService {
             ),
             tokenHash: staffInvitationHash(token),
           });
-          await recordAdminActivityInTransaction(transaction, context);
           const response = this.result(issued, token);
           domainCallbackCompleted = true;
           return { changed: issued.changed, response };

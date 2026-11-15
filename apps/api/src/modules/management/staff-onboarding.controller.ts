@@ -31,6 +31,7 @@ import {
   requireSingleManagementAuthorization,
 } from "./staff-management-http";
 import { StaffOnboardingService } from "./staff-onboarding.service";
+import { managementCommandContext } from "./management-command-context";
 
 @Controller("v1/staff/management/organizations/:organizationId/staff")
 export class StaffOnboardingController {
@@ -58,7 +59,10 @@ export class StaffOnboardingController {
       if (!command.success) throw new ApiTransportValidationError();
       return staffOnboardingResultSchema.parse(
         await this.onboarding.create(
-          await this.sessions.resolve(authorization),
+          managementCommandContext(
+            await this.sessions.resolve(authorization),
+            authorization,
+          ),
           requireManagementUuid(organizationId),
           command.data,
         ),
@@ -84,7 +88,10 @@ export class StaffOnboardingController {
       if (!command.success) throw new ApiTransportValidationError();
       return staffOnboardingResultSchema.parse(
         await this.onboarding.resend(
-          await this.sessions.resolve(authorization),
+          managementCommandContext(
+            await this.sessions.resolve(authorization),
+            authorization,
+          ),
           requireManagementUuid(organizationId),
           requireManagementUuid(membershipId),
           command.data,

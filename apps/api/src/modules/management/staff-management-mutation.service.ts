@@ -6,11 +6,10 @@ import type {
 } from "@valet/contracts";
 import { Inject, Injectable } from "@nestjs/common";
 
-import type { PostgresPool } from "../../common/database/postgres";
+import type { PostgresPool, PostgresTransaction } from "../../common/database/postgres";
 import { inPostgresTransaction } from "../../common/database/postgres-transaction";
-import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
-import { recordAdminActivityInTransaction } from "../auth/mfa/mfa-assurance-policy";
-import type { StaffSessionContext } from "../auth/staff-session-context";
+import { MANAGEMENT_POSTGRES_POOL } from "./management-writer-database.module";
+import type { ManagementCommandContext } from "./management-command-context";
 import { appendStaffManagementAudit } from "./staff-management-audit";
 import {
   authorizeStaffManagement,
@@ -30,11 +29,11 @@ import {
 @Injectable()
 export class StaffManagementMutationService {
   constructor(
-    @Inject(RUNTIME_POSTGRES_POOL) private readonly pool: PostgresPool,
+    @Inject(MANAGEMENT_POSTGRES_POOL) private readonly pool: PostgresPool,
   ) {}
 
   role(
-    context: StaffSessionContext,
+    context: ManagementCommandContext,
     organizationId: string,
     membershipId: string,
     command: StaffRoleCommand,
@@ -51,7 +50,7 @@ export class StaffManagementMutationService {
         membershipId,
         true,
       );
-      const mutation = await setStaffRole(transaction, {
+      const mutation = await setStaffRole(transaction, context, {
         actorMembershipId: actor.membershipId,
         expectedVersion: command.expectedVersion,
         membershipId,
@@ -73,7 +72,6 @@ export class StaffManagementMutationService {
       }
       return this.finish(
         transaction,
-        context,
         actor,
         organizationId,
         membershipId,
@@ -82,7 +80,7 @@ export class StaffManagementMutationService {
   }
 
   status(
-    context: StaffSessionContext,
+    context: ManagementCommandContext,
     organizationId: string,
     membershipId: string,
     command: StaffStatusCommand,
@@ -100,7 +98,7 @@ export class StaffManagementMutationService {
         membershipId,
         true,
       );
-      const mutation = await setStaffStatus(transaction, {
+      const mutation = await setStaffStatus(transaction, context, {
         actorMembershipId: actor.membershipId,
         expectedVersion: command.expectedVersion,
         membershipId,
@@ -125,7 +123,6 @@ export class StaffManagementMutationService {
       }
       return this.finish(
         transaction,
-        context,
         actor,
         organizationId,
         membershipId,
@@ -134,7 +131,7 @@ export class StaffManagementMutationService {
   }
 
   locationAccess(
-    context: StaffSessionContext,
+    context: ManagementCommandContext,
     organizationId: string,
     membershipId: string,
     command: StaffLocationAccessCommand,
@@ -152,7 +149,7 @@ export class StaffManagementMutationService {
         membershipId,
         true,
       );
-      const mutation = await setStaffLocationAccess(transaction, {
+      const mutation = await setStaffLocationAccess(transaction, context, {
         ...command,
         actorMembershipId: actor.membershipId,
         granted,
@@ -175,7 +172,6 @@ export class StaffManagementMutationService {
       }
       return this.finish(
         transaction,
-        context,
         actor,
         organizationId,
         membershipId,
@@ -184,8 +180,7 @@ export class StaffManagementMutationService {
   }
 
   private async finish(
-    transaction: Parameters<typeof recordAdminActivityInTransaction>[0],
-    context: StaffSessionContext,
+    transaction: PostgresTransaction,
     authority: StaffManagementAuthority,
     organizationId: string,
     membershipId: string,
@@ -199,7 +194,6 @@ export class StaffManagementMutationService {
       membershipId,
     );
     const detail = await staffMembershipDetail(transaction, current);
-    await recordAdminActivityInTransaction(transaction, context);
     return detail;
   }
 }

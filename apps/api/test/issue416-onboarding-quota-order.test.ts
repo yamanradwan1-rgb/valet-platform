@@ -50,7 +50,10 @@ const key = {
   lockLow: 1,
 } as const;
 const reservation = { id: randomUUID(), key };
-const context = { userId } as StaffSessionContext;
+const context = {
+  userId,
+  rawAccessToken: "vsa1." + "A".repeat(43),
+} as StaffSessionContext & { readonly rawAccessToken: string };
 const command = {
   operationId: randomUUID(),
   email: "employee@example.test",
@@ -78,6 +81,7 @@ const abuse = {
 const service = new StaffOnboardingService(
   {} as PostgresPool,
   abuse as unknown as AntiAbuseService,
+  {} as PostgresPool,
 );
 const saved = {
   membership_id: membership,

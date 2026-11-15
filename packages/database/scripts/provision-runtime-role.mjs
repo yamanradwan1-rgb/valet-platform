@@ -17,6 +17,12 @@ import { verifyRuntimeTablePrivileges } from "./verify-runtime-table-privileges.
 import { assertLegacyRuntimeProvisioningAllowed } from "./vap1-security-privileges.mjs";
 import { assertOptionCProvisioningIsLegacy } from "./option-c-runtime-provision-guard.mjs";
 import { provisionS04RuntimePrivileges } from "./s04-runtime-privileges.mjs";
+import { verifyRuntimeRoleObjectSafety } from "./runtime-role-object-safety.mjs";
+import {
+  requireManagementWriterIdentity,
+  provisionManagementWriterPrivileges,
+  verifyManagementWriterPrivileges,
+} from "./management-writer-privileges.mjs";
 
 const { Client } = pg;
 
@@ -49,6 +55,11 @@ async function provisionRuntimeRole() {
   );
   const runtime = parseRuntimeDatabaseUrlForProvisioning(
     process.env.DATABASE_URL,
+  );
+  const managementWriter = requireManagementWriterIdentity(
+    process.env.MANAGEMENT_WRITER_DATABASE_URL,
+    migration,
+    runtime,
   );
   const migrationIdentity = decodedDatabaseIdentity(migration);
   const runtimeIdentity = decodedDatabaseIdentity(runtime);
@@ -210,6 +221,9 @@ async function provisionRuntimeRole() {
     );
 
     await provisionMfaPrivileges(client, executeFormatted, runtimeRole);
+    await provisionManagementWriterPrivileges(
+      client, executeFormatted, managementWriter, runtimeRole,
+    );
 
     await provisionS04RuntimePrivileges(client, executeFormatted, runtimeRole);
 
@@ -235,56 +249,11 @@ async function provisionRuntimeRole() {
     );
 
     await verifyRuntimeTablePrivileges(client, runtimeRole);
-
-    const roleSecurity = await client.query(
-      `SELECT rolsuper, rolcreatedb, rolcreaterole, rolreplication, rolbypassrls
-       FROM pg_roles WHERE rolname = $1`,
-      [runtimeRole],
+    await verifyManagementWriterPrivileges(
+      client, managementWriter.role, runtimeRole,
     );
-    const flags = roleSecurity.rows[0];
-    if (
-      flags === undefined ||
-      flags.rolsuper === true ||
-      flags.rolcreatedb === true ||
-      flags.rolcreaterole === true ||
-      flags.rolreplication === true ||
-      flags.rolbypassrls === true
-    ) {
-      throw new Error("Runtime database role has unsafe role attributes.");
-    }
 
-    const ownedObjects = await client.query(
-      `SELECT count(*)::integer AS count
-       FROM pg_class AS object
-       INNER JOIN pg_namespace AS namespace ON namespace.oid = object.relnamespace
-       INNER JOIN pg_roles AS owner ON owner.oid = object.relowner
-       WHERE namespace.nspname = 'public' AND owner.rolname = $1`,
-      [runtimeRole],
-    );
-    if (ownedObjects.rows[0]?.count !== 0) {
-      throw new Error("Runtime database role must not own schema objects.");
-    }
-
-    const ownedContainers = await client.query(
-      `SELECT
-         EXISTS (
-           SELECT 1
-           FROM pg_database AS database
-           INNER JOIN pg_roles AS owner ON owner.oid = database.datdba
-           WHERE database.datname = current_database() AND owner.rolname = $1
-         ) OR EXISTS (
-           SELECT 1
-           FROM pg_namespace AS namespace
-           INNER JOIN pg_roles AS owner ON owner.oid = namespace.nspowner
-           WHERE owner.rolname = $1
-         ) AS owns_container`,
-      [runtimeRole],
-    );
-    if (ownedContainers.rows[0]?.owns_container === true) {
-      throw new Error(
-        "Runtime database role must not own database containers.",
-      );
-    }
+    await verifyRuntimeRoleObjectSafety(client, runtimeRole);
 
     await client.query("COMMIT");
     console.log("VAYLET runtime database role provisioned.");

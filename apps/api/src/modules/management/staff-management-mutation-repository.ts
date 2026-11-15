@@ -5,6 +5,7 @@ import type {
 
 import { ApiTransportValidationError } from "../../common/http/api-errors";
 import type { PostgresTransaction } from "../../common/database/postgres";
+import type { ManagementCommandContext } from "./management-command-context";
 import { ManagementAccessDeniedError } from "./management-authorization";
 import { throwStaffManagementResult } from "./staff-management-errors";
 
@@ -50,6 +51,7 @@ async function execute(
 
 export function setStaffRole(
   transaction: PostgresTransaction,
+  context: ManagementCommandContext,
   input: {
     readonly actorMembershipId: string;
     readonly expectedVersion: number;
@@ -61,8 +63,13 @@ export function setStaffRole(
   return execute(
     transaction,
     `SELECT version, changed, result_code
-     FROM staff_management_set_role($1::uuid,$2::uuid,$3::uuid,$4::integer,$5::membership_role)`,
+     FROM staff_management_authorized_set_role(
+       $1::uuid,$2::uuid,$3::text,$4::uuid,$5::uuid,
+       $6::uuid,$7::integer,$8::membership_role)`,
     [
+      context.staffAuthSessionId,
+      context.userId,
+      context.rawAccessToken,
       input.actorMembershipId,
       input.organizationId,
       input.membershipId,
@@ -74,6 +81,7 @@ export function setStaffRole(
 
 export function setStaffStatus(
   transaction: PostgresTransaction,
+  context: ManagementCommandContext,
   input: {
     readonly actorMembershipId: string;
     readonly expectedVersion: number;
@@ -85,8 +93,13 @@ export function setStaffStatus(
   return execute(
     transaction,
     `SELECT version, changed, result_code
-     FROM staff_management_set_status($1::uuid,$2::uuid,$3::uuid,$4::integer,$5::membership_status)`,
+     FROM staff_management_authorized_set_status(
+       $1::uuid,$2::uuid,$3::text,$4::uuid,$5::uuid,
+       $6::uuid,$7::integer,$8::membership_status)`,
     [
+      context.staffAuthSessionId,
+      context.userId,
+      context.rawAccessToken,
       input.actorMembershipId,
       input.organizationId,
       input.membershipId,
@@ -98,6 +111,7 @@ export function setStaffStatus(
 
 export function setStaffLocationAccess(
   transaction: PostgresTransaction,
+  context: ManagementCommandContext,
   input: StaffLocationAccessCommand & {
     readonly actorMembershipId: string;
     readonly granted: boolean;
@@ -108,10 +122,13 @@ export function setStaffLocationAccess(
   return execute(
     transaction,
     `SELECT version, changed, result_code, affected_count
-     FROM staff_management_set_location_access(
-       $1::uuid,$2::uuid,$3::uuid,$4::integer,$5::uuid[],$6::boolean
-     )`,
+     FROM staff_management_authorized_set_location_access(
+       $1::uuid,$2::uuid,$3::text,$4::uuid,$5::uuid,
+       $6::uuid,$7::integer,$8::uuid[],$9::boolean)`,
     [
+      context.staffAuthSessionId,
+      context.userId,
+      context.rawAccessToken,
       input.actorMembershipId,
       input.organizationId,
       input.membershipId,

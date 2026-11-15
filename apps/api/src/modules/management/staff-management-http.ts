@@ -1,4 +1,5 @@
 import { UnauthorizedException } from "@nestjs/common";
+import { accessBearerPattern } from "../auth/staff-auth-credential";
 
 import { ApiTransportValidationError } from "../../common/http/api-errors";
 import type { ApiRequest } from "../../common/http/api-request";
@@ -15,6 +16,12 @@ export interface StaffManagementCommandSchema<T> {
 export function requireManagementUuid(value: string): string {
   if (!uuidPattern.test(value)) throw new ApiTransportValidationError();
   return value;
+}
+
+export function requireManagementBearer(value: string | undefined): string {
+  const match = typeof value === "string" ? accessBearerPattern.exec(value) : null;
+  if (!match?.[1]) throw new UnauthorizedException();
+  return match[1];
 }
 
 export function requireSingleManagementAuthorization(request: ApiRequest): void {

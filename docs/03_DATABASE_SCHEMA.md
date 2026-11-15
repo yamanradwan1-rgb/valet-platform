@@ -30,6 +30,30 @@ provisioning. Both API and migrator require the distinct secret
 Writer-role function grants and full mounted Staff/MFA/Guest qualification
 remain explicit release gates during coordinated Option C integration.
 
+## Option C S03 — Management writer authorization boundary
+
+Forward-only migration `20261115190000_option_c_management_writer` adds five
+purpose-specific Management writer entry functions for Staff role/status/
+LocationAccess and onboarding invitation issuance/reissue. They require the
+current Staff session ID, User and raw bearer possession proof (SHA-256 checked
+inside the definer function), and recheck an active
+TOTP factor, sensitive 5-minute assurance, 30-minute activity freshness,
+Company subscription, and exact active Organization/actor membership inside
+the same PostgreSQL transaction. Existing command functions retain their
+last-usable-admin, LM coverage, blocker and optimistic-version protections.
+Each command and its tenant audit commit before the wrapper updates the same
+session's `last_admin_activity_at`; failure rolls back the entire transaction.
+
+`MANAGEMENT_WRITER_DATABASE_URL` uses the exact `vaylet_management_writer`
+independent SQL login, used only for
+these commands, with access to five wrapper functions and narrowly limited
+read/audit permissions. It cannot write membership fields or MFA/session
+assertions directly. Ordinary `DATABASE_URL` cannot execute either the
+legacy actor-ID write functions or the new wrappers. Runtime reprovisioning
+must include the distinct Management writer credentials or fail before making
+database changes. Invitation activation belongs to the separate Staff Auth
+writer boundary.
+
 ## Issue #304 — optional Key Slot label and authoritative read projection
 
 Forward-only migration `20261020009700_issue304_key_slot_label` adds nullable

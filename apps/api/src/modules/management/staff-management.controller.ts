@@ -38,6 +38,10 @@ import {
   type StaffManagementCommandSchema,
 } from "./staff-management-http";
 import { StaffManagementMutationService } from "./staff-management-mutation.service";
+import {
+  managementCommandContext,
+  type ManagementCommandContext,
+} from "./management-command-context";
 
 @Controller("v1/staff/management/organizations/:organizationId/staff")
 export class StaffManagementController {
@@ -270,7 +274,7 @@ export class StaffManagementController {
     schema: StaffManagementCommandSchema<T>,
     response: HeaderResponse,
     action: (
-      context: StaffSessionContext,
+      context: ManagementCommandContext,
       organizationId: string,
       membershipId: string,
       command: T,
@@ -282,7 +286,10 @@ export class StaffManagementController {
       if (!parsed.success) throw new ApiTransportValidationError();
       return staffMembershipDetailSchema.parse(
         await action(
-          await this.context(request, authorization),
+          managementCommandContext(
+            await this.context(request, authorization),
+            authorization,
+          ),
           requireManagementUuid(organizationId),
           requireManagementUuid(membershipId),
           parsed.data,
