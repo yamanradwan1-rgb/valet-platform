@@ -3,6 +3,8 @@ import {
 } from "./option-c-protected-cutover-acl.mjs";
 import { verifyOptionCRoleIsolation } from "./option-c-protected-cutover-roles.mjs";
 import { optionCRoles } from "./option-c-protected-cutover-state.mjs";
+import { assertOptionCRevocationIsMonotonic } from "./option-c-protected-cutover-revocation.mjs";
+import { verifyManagementWriterPrivileges } from "./management-writer-privileges.mjs";
 
 const writerColumns = Object.freeze({
   [optionCRoles.staffAuthWriter]: {
@@ -102,7 +104,9 @@ async function assertPrivateKeysReady(client) {
 }
 
 export async function verifyOptionCProtectedReadiness(client, runtimeRole, migrationRole) {
+  await assertOptionCRevocationIsMonotonic(client, runtimeRole);
   await verifyOptionCRoleIsolation(client, runtimeRole, migrationRole);
+  await verifyManagementWriterPrivileges(client, optionCRoles.managementWriter, runtimeRole);
   for (const [role, tables] of Object.entries(writerColumns)) {
     for (const [table, privileges] of Object.entries(tables)) {
       for (const [privilege, columns] of Object.entries(privileges)) {
