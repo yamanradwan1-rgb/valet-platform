@@ -107,9 +107,11 @@ export async function provisionMfaPrivileges(
   executeFormatted,
   runtimeRole,
 ) {
+  // The runtime role receives its explicit SELECT/column grants below. PUBLIC
+  // must never inherit table-level access to bearer/session material.
   await client.query(
-    `REVOKE UPDATE, DELETE, TRUNCATE ON TABLE
-       staff_auth_sessions, staff_refresh_credentials FROM PUBLIC`,
+    `REVOKE ALL ON TABLE staff_auth_sessions, staff_refresh_credentials
+       FROM PUBLIC`,
   );
   await executeFormatted(
     client,

@@ -9,13 +9,13 @@ import {
 
 async function assertTablePrivileges(client, runtimeRole, table, expected) {
   const result = await client.query(
-    `SELECT has_table_privilege($1, $2, 'SELECT') AS can_select,
-            has_table_privilege($1, $2, 'INSERT') AS can_insert,
-            has_table_privilege($1, $2, 'UPDATE') AS can_update,
-            has_table_privilege($1, $2, 'DELETE') AS can_delete,
-            has_table_privilege($1, $2, 'TRUNCATE') AS can_truncate,
-            has_table_privilege($1, $2, 'REFERENCES') AS can_reference,
-            has_table_privilege($1, $2, 'TRIGGER') AS can_trigger`,
+    `SELECT pg_catalog.has_table_privilege($1, $2, 'SELECT') AS can_select,
+            pg_catalog.has_table_privilege($1, $2, 'INSERT') AS can_insert,
+            pg_catalog.has_table_privilege($1, $2, 'UPDATE') AS can_update,
+            pg_catalog.has_table_privilege($1, $2, 'DELETE') AS can_delete,
+            pg_catalog.has_table_privilege($1, $2, 'TRUNCATE') AS can_truncate,
+            pg_catalog.has_table_privilege($1, $2, 'REFERENCES') AS can_reference,
+            pg_catalog.has_table_privilege($1, $2, 'TRIGGER') AS can_trigger`,
     [runtimeRole, `public.${table}`],
   );
   const row = result.rows[0];
@@ -41,8 +41,8 @@ async function assertColumnPrivileges(
 ) {
   const columns = await client.query(
     `SELECT column_name,
-            has_column_privilege(
-              $1, format('public.%I', $2::text), column_name, $3::text
+            pg_catalog.has_column_privilege(
+              $1, pg_catalog.format('public.%I', $2::text), column_name, $3::text
             ) AS allowed
      FROM information_schema.columns
      WHERE table_schema = 'public' AND table_name = $2::text
@@ -63,21 +63,36 @@ async function assertColumnPrivileges(
 async function assertPublicDenied(client, table) {
   const result = await client.query(
     `SELECT NOT EXISTS (
-       SELECT 1 FROM pg_class AS relation
-       CROSS JOIN LATERAL aclexplode(
-         COALESCE(relation.relacl, acldefault('r', relation.relowner))
+       SELECT 1 FROM pg_catalog.pg_class AS relation
+       CROSS JOIN LATERAL pg_catalog.aclexplode(
+         COALESCE(relation.relacl, pg_catalog.acldefault('r', relation.relowner))
        ) AS privilege
-       WHERE relation.oid = format('public.%I', $1::text)::regclass
+       WHERE relation.oid =
+         pg_catalog.format('public.%I', $1::text)::pg_catalog.regclass
          AND privilege.grantee = 0
          AND privilege.privilege_type IN
            ('SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER')
      ) AND NOT EXISTS (
-       SELECT 1 FROM pg_attribute AS attribute
-       CROSS JOIN LATERAL aclexplode(attribute.attacl) AS privilege
-       WHERE attribute.attrelid = format('public.%I', $1::text)::regclass
+       SELECT 1 FROM pg_catalog.pg_attribute AS attribute
+       CROSS JOIN LATERAL pg_catalog.aclexplode(attribute.attacl) AS privilege
+       WHERE attribute.attrelid =
+         pg_catalog.format('public.%I', $1::text)::pg_catalog.regclass
          AND attribute.attnum > 0 AND NOT attribute.attisdropped
          AND privilege.grantee = 0
          AND privilege.privilege_type IN ('SELECT','INSERT','UPDATE','REFERENCES')
+     ) AND NOT EXISTS (
+       SELECT 1 FROM pg_catalog.pg_default_acl AS defaults
+       CROSS JOIN LATERAL pg_catalog.aclexplode(defaults.defaclacl) AS privilege
+       WHERE defaults.defaclobjtype = 'r'
+         AND defaults.defaclnamespace IN (
+           0, (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = 'public')
+         )
+         AND pg_catalog.has_schema_privilege(
+           defaults.defaclrole, 'public', 'CREATE'
+         )
+         AND privilege.grantee = 0
+         AND privilege.privilege_type IN
+           ('SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER')
      ) AS denied`,
     [table],
   );
@@ -100,6 +115,9 @@ export async function verifyMfaPrivileges(client, runtimeRole) {
       select: true,
     },
   );
+  for (const table of ["staff_auth_sessions", "staff_refresh_credentials"]) {
+    await assertPublicDenied(client, table);
+  }
   for (const table of ["user_mfa_totp_factors", "mfa_recovery_codes"]) {
     await assertTablePrivileges(client, runtimeRole, table, {
       insert: false,
@@ -169,15 +187,19 @@ export async function verifyMfaPrivileges(client, runtimeRole) {
     "public.mfa_recovery_code_guard()",
   ]) {
     const result = await client.query(
-      `SELECT has_function_privilege($1, $2, 'EXECUTE') AS runtime_allowed,
+      `SELECT pg_catalog.has_function_privilege($1, $2, 'EXECUTE') AS runtime_allowed,
               NOT EXISTS (
-                SELECT 1 FROM aclexplode(
-                  COALESCE(function.proacl, acldefault('f', function.proowner))
+                SELECT 1 FROM pg_catalog.aclexplode(
+                  COALESCE(
+                    function.proacl,
+                    pg_catalog.acldefault('f', function.proowner)
+                  )
                 ) AS privilege
                 WHERE privilege.grantee = 0
                   AND privilege.privilege_type = 'EXECUTE'
               ) AS public_denied
-       FROM pg_proc AS function WHERE function.oid = to_regprocedure($2)`,
+       FROM pg_catalog.pg_proc AS function
+       WHERE function.oid = pg_catalog.to_regprocedure($2)`,
       [runtimeRole, fn],
     );
     if (
