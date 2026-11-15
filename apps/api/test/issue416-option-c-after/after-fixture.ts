@@ -26,7 +26,7 @@ export class OptionCAfterFixture extends OptionCT5Fixture {
 
   override async start(): Promise<void> {
     const ownerUrl = process.env.TEST_DATABASE_URL;
-    if (!ownerUrl) throw new Error("W62 owner test URL is unavailable.");
+    if (!ownerUrl) throw new Error("W66 owner test URL is unavailable.");
     await ensureMigrationRole(ownerUrl, this.migrationPassword);
     process.env.STAFF_AUTH_TEST_MIGRATION_BASE_URL = migrationBaseUrl(
       ownerUrl,
@@ -64,13 +64,13 @@ export class OptionCAfterFixture extends OptionCT5Fixture {
 
   protected override async prepareMigrationDatabase(databaseName: string) {
     const ownerUrl = process.env.TEST_DATABASE_URL;
-    if (!ownerUrl) throw new Error("W62 owner test URL is unavailable.");
+    if (!ownerUrl) throw new Error("W66 owner test URL is unavailable.");
     await grantMigrationDatabase(ownerUrl, databaseName);
   }
 
   protected override async prepareRuntimeProvisioning(applicationUrl: string) {
     const ownerUrl = process.env.TEST_DATABASE_URL;
-    if (!ownerUrl) throw new Error("W62 owner test URL is unavailable.");
+    if (!ownerUrl) throw new Error("W66 owner test URL is unavailable.");
     await ensureRuntimeRoleByOwner(ownerUrl, applicationUrl);
     await runPnpm(
       ["--filter", "@valet/database", "exec", "node", "scripts/provision-s04-proof-key.mjs"],

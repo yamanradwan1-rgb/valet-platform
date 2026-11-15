@@ -1,6 +1,6 @@
 import { Pool } from "pg";
 
-export const optionCTestMigratorRole = "valet_w62_migrator";
+export const optionCTestMigratorRole = "valet_w66_migrator";
 
 async function executeFormatted(
   pool: Pool,
@@ -15,7 +15,7 @@ async function executeFormatted(
     [format, ...values],
   );
   const statement = built.rows[0]?.statement;
-  if (!statement) throw new Error("W62 migration topology SQL formatting failed.");
+  if (!statement) throw new Error("W66 migration topology SQL formatting failed.");
   await pool.query(statement);
 }
 
@@ -55,7 +55,7 @@ export async function ensureMigrationRole(
     if (!role?.rolcanlogin || role.rolinherit || role.rolsuper ||
         role.rolcreatedb || !role.rolcreaterole || role.rolreplication ||
         role.rolbypassrls) {
-      throw new Error("W62 existing migration role attributes are unsafe.");
+      throw new Error("W66 existing migration role attributes are unsafe.");
     }
     await executeFormatted(owner, "ALTER ROLE %I WITH PASSWORD %L", [
       optionCTestMigratorRole,
@@ -99,7 +99,7 @@ export async function ensureRuntimeRoleByOwner(
   const role = decodeURIComponent(runtime.username);
   const password = decodeURIComponent(runtime.password);
   if (!/^[a-z_][a-z0-9_]{0,62}$/.test(role) || !password) {
-    throw new Error("W62 runtime test role identity is unsafe.");
+    throw new Error("W66 runtime test role identity is unsafe.");
   }
   const owner = new Pool({ connectionString: ownerUrl, max: 1 });
   try {
@@ -107,7 +107,7 @@ export async function ensureRuntimeRoleByOwner(
       "SELECT 1 FROM pg_catalog.pg_roles WHERE rolname=$1",
       [role],
     );
-    if (found.rowCount !== 0) throw new Error("W62 runtime test role already exists.");
+    if (found.rowCount !== 0) throw new Error("W66 runtime test role already exists.");
     await executeFormatted(
       owner,
       "CREATE ROLE %I WITH LOGIN PASSWORD %L NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS",

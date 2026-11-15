@@ -24,13 +24,13 @@ const beforeTarget: OwnedTarget = {
 };
 
 const afterTarget: OwnedTarget = {
-  containerName: "vaylet-issue416-w62-final2-20261115-pg17",
-  owner: "issue416-w62-final2-20261115",
-  port: "51273",
-  database: "valet_w62final2",
-  user: "valet_w62final2",
+  containerName: "vaylet-issue416-w66-final-20261115-pg17",
+  owner: "issue416-w66-final-20261115",
+  port: "51666",
+  database: "valet_w66final",
+  user: "valet_w66final",
   flag: "ISSUE416_OPTION_C_AFTER",
-  flagValue: "W62_FINAL2_DISPOSABLE_ONLY",
+  flagValue: "W66_FINAL_DISPOSABLE_ONLY",
 };
 
 function docker(args: string[]): string {
@@ -67,12 +67,12 @@ async function assertOwnedPostgres17(target: OwnedTarget): Promise<void> {
     )
   ) {
     throw new Error(
-      "W37 T5 requires explicit local disposable test ownership.",
+      "Option C PG17 requires explicit local disposable test ownership.",
     );
   }
   const url = process.env.TEST_DATABASE_URL;
   if (!url || url !== process.env.MIGRATION_DATABASE_URL) {
-    throw new Error("W37 T5 requires one explicit admin test target.");
+    throw new Error("Option C PG17 requires one explicit admin test target.");
   }
   const targetUrl = new URL(url);
   if (
@@ -85,7 +85,7 @@ async function assertOwnedPostgres17(target: OwnedTarget): Promise<void> {
     targetUrl.search !== "" ||
     targetUrl.hash !== ""
   ) {
-    throw new Error("W37 T5 PostgreSQL URL is outside owned fixture.");
+    throw new Error("Option C PG17 PostgreSQL URL is outside owned fixture.");
   }
 
   const currentContext = docker(["context", "show"]);
@@ -97,7 +97,7 @@ async function assertOwnedPostgres17(target: OwnedTarget): Promise<void> {
       "npipe:////./pipe/docker_engine",
     ].includes(endpoint)
   ) {
-    throw new Error("W37 T5 rejects remote or unrecognized Docker context.");
+    throw new Error("Option C PG17 rejects remote or unrecognized Docker context.");
   }
   const inspected = JSON.parse(docker(["inspect", containerName]));
   const container = inspected?.length === 1 ? inspected[0] : undefined;
@@ -120,7 +120,7 @@ async function assertOwnedPostgres17(target: OwnedTarget): Promise<void> {
     ports[0]?.HostIp !== "127.0.0.1" ||
     ports[0]?.HostPort !== expectedPort
   ) {
-    throw new Error("W37 T5 Docker container identity mismatch.");
+    throw new Error("Option C PG17 Docker container identity mismatch.");
   }
 
   const id = container.Id as string;
@@ -137,7 +137,7 @@ async function assertOwnedPostgres17(target: OwnedTarget): Promise<void> {
     "SELECT system_identifier::text FROM pg_control_system()",
   ]);
   if (!/^\d{10,25}$/.test(inside)) {
-    throw new Error("W37 T5 container system identifier unavailable.");
+    throw new Error("Option C PG17 container system identifier unavailable.");
   }
 
   const client = new Client({
@@ -171,12 +171,12 @@ async function assertOwnedPostgres17(target: OwnedTarget): Promise<void> {
       !proof.create_db ||
       !proof.create_role
     ) {
-      throw new Error("W37 T5 host SQL/postmaster identity mismatch.");
+      throw new Error("Option C PG17 host SQL/postmaster identity mismatch.");
     }
     // Nothing about the exact system identifier is a secret, but do not log
     // environment variables, credential strings, or synthetic bearer hashes.
     console.info(
-      `W37 attested Docker ${id.slice(0, 12)}; PG17 system ${inside}`,
+      `${owner} attested Docker ${id.slice(0, 12)}; PG17 system ${inside}`,
     );
   } finally {
     await client.end().catch(() => undefined);
