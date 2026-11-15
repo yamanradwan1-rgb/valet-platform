@@ -135,7 +135,7 @@ export class StaffAuthNativeFixture {
     process.env.ANTI_ABUSE_HMAC_SECRET_B64URL =
       randomBytes(32).toString("base64url");
     process.env.ANTI_ABUSE_TRUSTED_PROXY_CIDRS = "";
-    this.app = await NestFactory.create(AppModule, { logger: false });
+    this.app = await NestFactory.create(AppModule, { logger: false, abortOnError: false });
     await this.app.listen(0, "127.0.0.1");
     const address = this.app.getHttpServer().address() as { port: number };
     this.baseUrl = `http://127.0.0.1:${address.port}`;

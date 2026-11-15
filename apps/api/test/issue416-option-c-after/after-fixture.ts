@@ -23,6 +23,7 @@ export class OptionCAfterFixture extends OptionCT5Fixture {
   private readonly priorS02 = process.env.ISSUE416_S02_PROTECTED_TEST;
   private readonly priorMigrationBase =
     process.env.STAFF_AUTH_TEST_MIGRATION_BASE_URL;
+  private readonly priorMigrationDatabase = process.env.MIGRATION_DATABASE_URL;
   private readonly migrationPassword = randomUUID();
 
   constructor() {
@@ -95,6 +96,7 @@ export class OptionCAfterFixture extends OptionCT5Fixture {
         ANTI_ABUSE_SQL_PROOF_SECRET_B64URL: this.proofKey,
       },
     );
+    process.env.MIGRATION_DATABASE_URL = this.migrationDatabaseUrl();
   }
 
   protected override async afterRuntimeProvisioning(
@@ -186,6 +188,9 @@ export class OptionCAfterFixture extends OptionCT5Fixture {
     } else {
       process.env.STAFF_AUTH_TEST_MIGRATION_BASE_URL = this.priorMigrationBase;
     }
+    if (this.priorMigrationDatabase === undefined) {
+      delete process.env.MIGRATION_DATABASE_URL;
+    } else process.env.MIGRATION_DATABASE_URL = this.priorMigrationDatabase;
   }
 }
 
