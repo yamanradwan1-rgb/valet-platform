@@ -87,9 +87,18 @@ export const safeOwnerMembership = () => [
   {
     granted_role: "vap1_proof_owner",
     member_role: "issue416_w38_migrator",
+    grantor_role: "issue416_w38_migrator",
     inherit_option: false,
     set_option: true,
     admin_option: false,
+  },
+  {
+    granted_role: "vap1_proof_owner",
+    member_role: "issue416_w38_migrator",
+    grantor_role: "issue416_w38_owner",
+    inherit_option: false,
+    set_option: false,
+    admin_option: true,
   },
 ];
 

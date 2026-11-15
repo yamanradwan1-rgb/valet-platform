@@ -48,13 +48,41 @@ FROM pg_roles WHERE rolname='vap1_proof_owner'`;
 
 export const OWNER_MEMBERSHIP_SQL = `
 SELECT parent.rolname AS granted_role, member.rolname AS member_role,
+       grantor.rolname AS grantor_role,
        m.inherit_option, m.set_option, m.admin_option
 FROM pg_auth_members m
 JOIN pg_roles parent ON parent.oid=m.roleid
 JOIN pg_roles member ON member.oid=m.member
+JOIN pg_roles grantor ON grantor.oid=m.grantor
 WHERE parent.rolname='vap1_proof_owner'
    OR member.rolname='vap1_proof_owner'
    OR parent.rolname=$1::name`;
+
+// PG17 records the creator's admin-only grant separately from the explicit
+// SET-only, NOINHERIT grant authored by migration113. Both grantors and both
+// option tuples must match the actual independently attested fixture.
+function exactProofOwnerMembership(rows, migrationOwner, databaseOwner) {
+  if (
+    !Array.isArray(rows) || rows.length !== 2 ||
+    migrationOwner === databaseOwner ||
+    ![migrationOwner, databaseOwner].every((role) =>
+      typeof role === "string" && role.length > 0)
+  ) return false;
+  const grants = new Map(rows.map((row) => [row?.grantor_role, row]));
+  if (grants.size !== 2) return false;
+  for (const [grantor, expected] of [
+    [migrationOwner, { inherit_option: false, set_option: true, admin_option: false }],
+    [databaseOwner, { inherit_option: false, set_option: false, admin_option: true }],
+  ]) {
+    const row = grants.get(grantor);
+    if (!row || row.granted_role !== "vap1_proof_owner" ||
+        row.member_role !== migrationOwner ||
+        Object.entries(expected).some(([key, value]) => row[key] !== value)) {
+      return false;
+    }
+  }
+  return true;
+}
 
 export function assertPrivateAcl(
   rows,
@@ -65,6 +93,7 @@ export function assertPrivateAcl(
   ownerMembership,
   migrationOwner = "issue416_w38_migrator",
   relationRows,
+  databaseOwner = "issue416_w38_owner",
 ) {
   const tables = new Set(
     Array.isArray(rows) ? rows.map((row) => row?.table_name) : [],
@@ -204,13 +233,7 @@ export function assertPrivateAcl(
       "rolreplication",
       "rolbypassrls",
     ].some((field) => ownerRole[0][field] !== false) ||
-    !Array.isArray(ownerMembership) ||
-    ownerMembership.length !== 1 ||
-    ownerMembership[0]?.granted_role !== "vap1_proof_owner" ||
-    ownerMembership[0]?.member_role !== migrationOwner ||
-    ownerMembership[0]?.inherit_option !== false ||
-    ownerMembership[0]?.set_option !== true ||
-    ownerMembership[0]?.admin_option !== false
+    !exactProofOwnerMembership(ownerMembership, migrationOwner, databaseOwner)
   ) {
     throw new Error("W30_PG17_PRIVATE_ACL_UNPROVEN");
   }

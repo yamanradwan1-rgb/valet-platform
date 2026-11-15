@@ -170,12 +170,39 @@ test("non-owner CREATE on either private namespace and unsafe owner memberships 
   }
   assert.match(OWNER_MEMBERSHIP_SQL, /OR member\.rolname='vap1_proof_owner'/);
   assert.match(OWNER_MEMBERSHIP_SQL, /OR parent\.rolname=\$1::name/);
+  assert.match(OWNER_MEMBERSHIP_SQL, /grantor\.rolname AS grantor_role/);
+  assert.equal(
+    assertSafeAcl(undefined, undefined, undefined, undefined, undefined,
+      safeOwnerMembership().reverse()),
+    true,
+    "two PG17 grantors may be returned in either order",
+  );
   for (const memberships of [
     [],
+    [safeOwnerMembership()[0]],
+    [safeOwnerMembership()[1]],
     [{ ...safeOwnerMembership()[0], set_option: false }],
     [{ ...safeOwnerMembership()[0], inherit_option: true }],
     [{ ...safeOwnerMembership()[0], admin_option: true }],
     [{ ...safeOwnerMembership()[0], member_role: "runtime" }],
+    safeOwnerMembership().map((row) => ({
+      ...row, grantor_role: "untrusted_owner",
+    })),
+    safeOwnerMembership().map((row, i) => i === 0 ? {
+      ...row, grantor_role: "issue416_w38_owner",
+    } : row),
+    safeOwnerMembership().map((row, i) => i === 0 ? {
+      ...row, set_option: false,
+    } : row),
+    safeOwnerMembership().map((row, i) => i === 1 ? {
+      ...row, admin_option: false,
+    } : row),
+    safeOwnerMembership().map((row, i) => i === 1 ? {
+      ...row, set_option: true,
+    } : row),
+    safeOwnerMembership().map((row, i) => i === 1 ? {
+      ...row, member_role: "issue416_w38_test",
+    } : row),
     [
       ...safeOwnerMembership(),
       { ...safeOwnerMembership()[0], member_role: "runtime" },

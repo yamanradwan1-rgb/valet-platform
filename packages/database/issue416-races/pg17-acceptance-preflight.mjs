@@ -72,6 +72,7 @@ export async function readOnlyPreflight(client, target) {
       ownerMembership,
       target.migrator,
       relationRows,
+      target.owner,
     );
     const triggers = (await client.query(PRIVATE_TRIGGER_SQL)).rows;
     assertPrivateTriggers(triggers);
