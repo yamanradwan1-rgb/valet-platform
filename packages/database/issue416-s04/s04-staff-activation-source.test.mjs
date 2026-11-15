@@ -6,15 +6,24 @@ import { resolve } from "node:path";
 
 const root = resolve(fileURLToPath(import.meta.url), "../../../../");
 const read = (name) => readFileSync(resolve(root, name), "utf8");
-const migration = read(
+function canonicalLf(contents) {
+  const remaining = contents.replace(/\r\n/g, "");
+  if (remaining.includes("\r") || (contents.includes("\r\n") && remaining.includes("\n"))) {
+    throw new Error("S04 migration has mixed or lone-CR line endings.");
+  }
+  return contents.replace(/\r\n/g, "\n");
+}
+const migration = canonicalLf(read(
   "packages/database/prisma/migrations/20261115235910_option_c_s04_staff_activation_success/migration.sql",
-);
+));
 const service = read("apps/api/src/modules/auth/staff-activation.service.ts");
 const grants = read("packages/database/scripts/staff-auth-writer-grants.mjs");
 const verifier = read("packages/database/scripts/verify-staff-auth-writer-grants.mjs");
 const acl = read("packages/database/scripts/option-c-protected-cutover-acl.mjs");
 
 test("activation S04 is a new forward-only migration, not a rewrite", () => {
+  assert.throws(() => canonicalLf("first\r\nsecond\n"), /mixed or lone-CR/);
+  assert.throws(() => canonicalLf("first\rsecond\n"), /mixed or lone-CR/);
   assert.match(migration, /^-- Option C \/ S04:/);
   assert.match(migration, /\nBEGIN;\n/);
   assert.match(migration, /\nCOMMIT;\s*$/);

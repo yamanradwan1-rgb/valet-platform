@@ -8,6 +8,13 @@ test("Staff Auth writer revokes all four column privileges on wide tables in bou
   const formatted = [];
   const client = {
     async query(sql, params = []) {
+      if (sql.includes("has_function_privilege($1,$3,'EXECUTE')")) {
+        assert.deepEqual(params, [
+          "vaylet_staff_auth_writer", "vaylet_runtime",
+          "public.s04_staff_activation_success(uuid,text,text,text)",
+        ]);
+        return { rowCount: 1, rows: [{ writer: true, ordinary_denied: true }] };
+      }
       if (sql.includes("array_agg(att.attname::text")) {
         return {
           rows: params[0]

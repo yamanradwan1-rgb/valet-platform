@@ -121,6 +121,8 @@ export async function verifyOptionCProtectedReadiness(client, runtimeRole, migra
     optionCRoles.staffAuthWriter, "search_path=pg_catalog, public");
   await assertFunctionReady(client, optionCFunctionContract.staffAuth[1],
     optionCRoles.staffAuthWriter, "search_path=pg_catalog");
+  await assertFunctionReady(client, optionCFunctionContract.staffAuth[2],
+    optionCRoles.staffAuthWriter, "search_path=pg_catalog");
   await assertFunctionReady(client, optionCFunctionContract.mfa[0],
     optionCRoles.mfaWriter, "search_path=pg_catalog");
   for (const signature of optionCFunctionContract.management) {

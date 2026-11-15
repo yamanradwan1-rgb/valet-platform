@@ -194,3 +194,10 @@ test("operator source never invokes broad legacy provisioning and legacy guard s
     legacy.indexOf("const existingRole = await client.query("));
   assert.match(source("./option-c-runtime-provision-guard.mjs"), /WHERE singleton FOR SHARE/);
 });
+
+test("cutover preflight includes the narrow Staff activation success definer", () => {
+  const readiness = source("./option-c-protected-cutover-readiness.mjs");
+  const acl = source("./option-c-protected-cutover-acl.mjs");
+  assert.match(acl, /public\.s04_staff_activation_success\(uuid,text,text,text\)/);
+  assert.match(readiness, /assertFunctionReady\(client, optionCFunctionContract\.staffAuth\[2\]/);
+});

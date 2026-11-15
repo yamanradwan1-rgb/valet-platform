@@ -20,6 +20,13 @@ test("S01 S03 runtime reprovision twice cannot restore activation of a PENDING a
   const client = {
     async query(sql, parameters) {
       statements.push({ sql, parameters, direct: true });
+      if (sql.includes("has_function_privilege($1,$3,'EXECUTE')")) {
+        assert.deepEqual(parameters, [
+          writerRole, runtimeRole,
+          "public.s04_staff_activation_success(uuid,text,text,text)",
+        ]);
+        return { rowCount: 1, rows: [{ writer: true, ordinary_denied: true }] };
+      }
       // Only mock catalog rows; the privileges are audited separately on PG17.
       return { rowCount: 0, rows: [] };
     },
