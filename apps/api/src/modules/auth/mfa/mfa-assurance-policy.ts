@@ -112,6 +112,17 @@ export async function requireMfaAssuranceInTransaction(
   context: StaffSessionContext,
   options: { readonly sensitive: boolean } = { sensitive: false },
 ): Promise<void> {
+  if (mfaProtectedWriterEnabled()) {
+    const current = await readAssurance(transaction, context);
+    if (localMfaBypassEnabled()) return;
+    if (
+      evaluateMfaAssurance(current.snapshot, current.now, options.sensitive) !==
+      "ASSURANCE_VALID"
+    ) {
+      throw new MfaStepUpRequiredError();
+    }
+    return;
+  }
   const session = await lockAndRecheckMfaSession(transaction, context);
   if (localMfaBypassEnabled()) return;
   const factorCurrent =

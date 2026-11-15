@@ -43,6 +43,11 @@ import {
 const CREATE_ISSUANCE_LIMIT = 20;
 const RESEND_ISSUANCE_LIMIT = 5;
 
+interface PreparedOnboardingOperation {
+  readonly actorMembershipId: string;
+  readonly reservation: AntiAbuseReservation | undefined;
+}
+
 @Injectable()
 export class StaffOnboardingService {
   private readonly logger = new Logger(StaffOnboardingService.name);
@@ -60,7 +65,7 @@ export class StaffOnboardingService {
     command: StaffOnboardingCreate,
   ): Promise<StaffOnboardingResult> {
     const token = generateStaffInvitationToken();
-    const reservation = await this.reserveFreshOperation(
+    const prepared = await this.reserveFreshOperation(
       context,
       organizationId,
       command.operationId,
@@ -68,6 +73,7 @@ export class StaffOnboardingService {
       organizationId,
       CREATE_ISSUANCE_LIMIT,
     );
+    const reservation = prepared.reservation;
     let domainCallbackCompleted = false;
     try {
       const committed = await inPostgresTransaction(
@@ -78,16 +84,8 @@ export class StaffOnboardingService {
             context.userId,
             command.email,
           );
-          const authority = await authorizeStaffManagement(
-            transaction,
-            context,
-            {
-              organizationId,
-              assurance: "SENSITIVE",
-            },
-          );
           const issued = await createStaffOnboarding(transaction, context, {
-            actorMembershipId: authority.membershipId,
+            actorMembershipId: prepared.actorMembershipId,
             organizationId,
             operationId: command.operationId,
             command,
@@ -124,7 +122,7 @@ export class StaffOnboardingService {
     command: StaffOnboardingResend,
   ): Promise<StaffOnboardingResult> {
     const token = generateStaffInvitationToken();
-    const reservation = await this.reserveFreshOperation(
+    const prepared = await this.reserveFreshOperation(
       context,
       organizationId,
       command.operationId,
@@ -133,6 +131,7 @@ export class StaffOnboardingService {
       RESEND_ISSUANCE_LIMIT,
       membershipId,
     );
+    const reservation = prepared.reservation;
     let domainCallbackCompleted = false;
     try {
       const committed = await inPostgresTransaction(
@@ -144,16 +143,8 @@ export class StaffOnboardingService {
             membershipId,
           );
           await lockStaffOnboardingAccount(transaction, context.userId, email);
-          const authority = await authorizeStaffManagement(
-            transaction,
-            context,
-            {
-              organizationId,
-              assurance: "SENSITIVE",
-            },
-          );
           const issued = await resendStaffOnboarding(transaction, context, {
-            actorMembershipId: authority.membershipId,
+            actorMembershipId: prepared.actorMembershipId,
             organizationId,
             membershipId,
             operationId: command.operationId,
@@ -189,13 +180,13 @@ export class StaffOnboardingService {
     keyValue: string,
     limit: number,
     targetMembershipId?: string,
-  ): Promise<AntiAbuseReservation | undefined> {
+  ): Promise<PreparedOnboardingOperation> {
     // Preflight lease ends BEFORE the independent durable limiter lease begins.
     // Domain authorization is repeated after acquiring the domain locks.
-    const alreadyIssued = await inPostgresTransaction(
+    const preflight = await inPostgresTransaction(
       this.pool,
       async (transaction) => {
-        await authorizeStaffManagement(transaction, context, {
+        const authority = await authorizeStaffManagement(transaction, context, {
           organizationId,
           assurance: "SENSITIVE",
         });
@@ -206,15 +197,21 @@ export class StaffOnboardingService {
             targetMembershipId,
           );
         }
-        return staffOnboardingOperationExists(
-          transaction,
-          organizationId,
-          operationId,
-        );
+        return {
+          actorMembershipId: authority.membershipId,
+          alreadyIssued: await staffOnboardingOperationExists(
+            transaction,
+            organizationId,
+            operationId,
+          ),
+        };
       },
     );
-    if (alreadyIssued) {
-      return undefined;
+    if (preflight.alreadyIssued) {
+      return {
+        actorMembershipId: preflight.actorMembershipId,
+        reservation: undefined,
+      };
     }
     const decision = await this.antiAbuse.reserve(
       this.antiAbuse.key(scope, keyValue),
@@ -223,7 +220,10 @@ export class StaffOnboardingService {
     if (!decision.allowed) {
       throw new StaffOnboardingRateLimitedError(decision.retryAfter);
     }
-    return decision.reservation;
+    return {
+      actorMembershipId: preflight.actorMembershipId,
+      reservation: decision.reservation,
+    };
   }
 
   private async finalizeConfirmedIssuance(
