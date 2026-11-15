@@ -63,6 +63,9 @@ export async function provisionConditionPhotoRuntimePrivileges(
   await client.query("REVOKE ALL ON TABLE public.vehicle_photos FROM PUBLIC");
   await revokeColumns(client, executeFormatted, "public.vehicle_photos", "PUBLIC");
   for (const functionRow of catalogFunctions) {
+    // The lock function has a separate NOLOGIN owner. Its exact ACL was
+    // granted under SET LOCAL ROLE by provisionManagementPhotoLockOwner.
+    if (lockIds.has(functionRow.oid)) continue;
     await executeFormatted(
       client,
       "REVOKE ALL ON FUNCTION %s FROM PUBLIC",
@@ -75,6 +78,7 @@ export async function provisionConditionPhotoRuntimePrivileges(
     );
   }
   for (const signature of photoRuntimeFunctions) {
+    if (signature === managementPhotoLockSignature) continue;
     await executeFormatted(client, "GRANT EXECUTE ON FUNCTION %s TO %I", [
       signature,
       runtimeRole,
