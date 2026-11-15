@@ -82,8 +82,9 @@ describe("append-only migration source history", () => {
       "20261115190000_option_c_management_writer",
       "20261115220000_issue416_s02_bound_admin_activity",
       "20261115235000_option_c_launch_writer_boundary",
+      "20261115235900_option_c_s03_raw_bearer_upgrade",
     ]);
-    expect(expectedCurrentMigrationDirectories).toHaveLength(145);
+    expect(expectedCurrentMigrationDirectories).toHaveLength(146);
     const migrationRoot = fileURLToPath(
       new URL("../prisma/migrations/", import.meta.url),
     );

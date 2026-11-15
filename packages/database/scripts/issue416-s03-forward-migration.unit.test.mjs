@@ -17,6 +17,14 @@ const repair = readFileSync(new URL(
   import.meta.url,
 ), "utf8");
 const sha256 = (text) => createHash("sha256").update(text).digest("hex");
+const exactLf = (bytes) => {
+  const withoutCrLf = bytes.replace(/\r\n/g, "");
+  if (withoutCrLf.includes("\r") ||
+      (bytes.includes("\r\n") && withoutCrLf.includes("\n"))) {
+    throw new Error("S03 migration contains mixed or lone CR line endings.");
+  }
+  return bytes.replace(/\r\n/g, "\n");
+};
 const migrated = [
   "public.staff_management_authorize_writer(uuid,uuid,text,uuid,uuid)",
   "public.staff_management_touch_writer_activity(uuid,uuid,text)",
@@ -24,13 +32,18 @@ const migrated = [
 ];
 
 test("historical migration is immutable; repair is a separate atomic step", () => {
-  assert.equal(sha256(old),
+  const sourceLf = exactLf(old);
+  const repairLf = exactLf(repair);
+  assert.equal(sha256(sourceLf),
     "d6d7e344b3015de55b719b6b84ffaadcbd6a93e451c97d39a3636247fd076796");
-  assert.equal(repair.split(old).length, 2, "seven original definitions copied once");
-  assert.match(repair, /^-- Option C S03 forward-only repair/);
-  assert.match(repair, /\nBEGIN;\n/);
-  assert.match(repair, /\nCOMMIT;\s*$/);
-  assert.doesNotMatch(repair, /\bCASCADE\b/);
+  assert.equal(sha256(repairLf),
+    "6d494d05a9ff9c1c6f7b34c2cc0009735fce355f6e8c807124e6190358cac0f6");
+  assert.equal(repairLf.split(sourceLf).length, 2, "seven original definitions copied once");
+  assert.throws(() => exactLf("first\nsecond\r\n"), /mixed or lone CR/);
+  assert.match(repairLf, /^-- Option C S03 forward-only repair/);
+  assert.match(repairLf, /\nBEGIN;\n/);
+  assert.match(repairLf, /\nCOMMIT;\s*$/);
+  assert.doesNotMatch(repairLf, /\bCASCADE\b/);
 });
 
 test("drops exactly seven affected signatures with RESTRICT before replacing", () => {
