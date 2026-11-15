@@ -89,7 +89,7 @@ test("cutover gates both phases on trigger and full Management writer effective 
     );
     assert.match(
       source,
-      /await verifyManagementWriterPrivileges\(client, optionCRoles\.managementWriter, runtimeRole\)/,
+      /await verifyManagementWriterPrivileges\(\s*client,\s*optionCRoles\.managementWriter,\s*runtimeRole,?\s*\)/,
     );
   }
 });

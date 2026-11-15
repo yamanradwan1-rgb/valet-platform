@@ -22,7 +22,8 @@ test("S01 S03 runtime reprovision twice cannot restore activation of a PENDING a
       statements.push({ sql, parameters, direct: true });
       if (sql.includes("has_function_privilege($1,$3,'EXECUTE')")) {
         assert.deepEqual(parameters, [
-          writerRole, runtimeRole,
+          writerRole,
+          runtimeRole,
           "public.s04_staff_activation_success(uuid,text,text,text)",
         ]);
         return { rowCount: 1, rows: [{ writer: true, ordinary_denied: true }] };
@@ -40,18 +41,25 @@ test("S01 S03 runtime reprovision twice cannot restore activation of a PENDING a
     await provisionStaffOnboardingPrivileges(client, exec, runtimeRole);
   }
 
-  const activationStatements = statements.filter(({ sql, parameters }) =>
-    sql.includes("staff_onboarding_activate") ||
-    parameters?.includes(activation));
+  const activationStatements = statements.filter(
+    ({ sql, parameters }) =>
+      sql.includes("staff_onboarding_activate") ||
+      parameters?.includes(activation),
+  );
   const activationGrants = activationStatements.filter(({ sql }) =>
-    sql.includes("GRANT EXECUTE"));
-  assert.deepEqual(activationGrants.map(({ parameters }) => parameters), [
-    [writerRole],
-  ]);
-  const deniedRuntime = activationStatements.filter(({ sql, parameters }) =>
-    sql.includes("REVOKE ALL") && parameters?.includes(runtimeRole));
+    sql.includes("GRANT EXECUTE"),
+  );
+  assert.deepEqual(
+    activationGrants.map(({ parameters }) => parameters),
+    [[writerRole]],
+  );
+  const deniedRuntime = activationStatements.filter(
+    ({ sql, parameters }) =>
+      sql.includes("REVOKE ALL") && parameters?.includes(runtimeRole),
+  );
   assert.equal(deniedRuntime.length, 3);
-  const deniedPublic = activationStatements.filter(({ sql }) =>
-    sql.includes("REVOKE ALL") && sql.includes("FROM PUBLIC"));
+  const deniedPublic = activationStatements.filter(
+    ({ sql }) => sql.includes("REVOKE ALL") && sql.includes("FROM PUBLIC"),
+  );
   assert.equal(deniedPublic.length, 3);
 });
