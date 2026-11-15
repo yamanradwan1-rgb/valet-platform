@@ -1,5 +1,7 @@
 import { randomBytes, randomUUID } from "node:crypto";
 
+import { Pool } from "pg";
+
 import { runPnpm } from "../staff-auth-native-run-pnpm";
 import { OptionCT5Fixture } from "../issue416-option-c-t5/probe-fixture";
 import { assertOwnedOptionCAfterPg17 } from "../issue416-option-c-t5/owned-target";
@@ -15,9 +17,11 @@ import {
 export class OptionCAfterFixture extends OptionCT5Fixture {
   private readonly proofKey = randomBytes(32).toString("base64url");
   private readonly writerPasswords = [randomUUID(), randomUUID(), randomUUID()];
-  private readonly priorProofKey = process.env.ANTI_ABUSE_SQL_PROOF_SECRET_B64URL;
+  private readonly priorProofKey =
+    process.env.ANTI_ABUSE_SQL_PROOF_SECRET_B64URL;
   private readonly priorS02 = process.env.ISSUE416_S02_PROTECTED_TEST;
-  private readonly priorMigrationBase = process.env.STAFF_AUTH_TEST_MIGRATION_BASE_URL;
+  private readonly priorMigrationBase =
+    process.env.STAFF_AUTH_TEST_MIGRATION_BASE_URL;
   private readonly migrationPassword = randomUUID();
 
   constructor() {
@@ -51,13 +55,16 @@ export class OptionCAfterFixture extends OptionCT5Fixture {
     };
     return {
       STAFF_AUTH_WRITER_DATABASE_URL: writer(
-        "vaylet_staff_auth_writer", this.writerPasswords[0]!,
+        "vaylet_staff_auth_writer",
+        this.writerPasswords[0]!,
       ),
       MFA_WRITER_DATABASE_URL: writer(
-        "vaylet_mfa_writer", this.writerPasswords[1]!,
+        "vaylet_mfa_writer",
+        this.writerPasswords[1]!,
       ),
       MANAGEMENT_WRITER_DATABASE_URL: writer(
-        "vaylet_management_writer", this.writerPasswords[2]!,
+        "vaylet_management_writer",
+        this.writerPasswords[2]!,
       ),
     };
   }
@@ -73,7 +80,13 @@ export class OptionCAfterFixture extends OptionCT5Fixture {
     if (!ownerUrl) throw new Error("W66 owner test URL is unavailable.");
     await ensureRuntimeRoleByOwner(ownerUrl, applicationUrl);
     await runPnpm(
-      ["--filter", "@valet/database", "exec", "node", "scripts/provision-s04-proof-key.mjs"],
+      [
+        "--filter",
+        "@valet/database",
+        "exec",
+        "node",
+        "scripts/provision-s04-proof-key.mjs",
+      ],
       {
         NODE_ENV: "test",
         DATABASE_URL: applicationUrl,
@@ -94,11 +107,59 @@ export class OptionCAfterFixture extends OptionCT5Fixture {
       ANTI_ABUSE_SQL_PROOF_SECRET_B64URL: this.proofKey,
       ...writers,
     };
-    await runPnpm(["--filter", "@valet/database", "staff-auth-writer:provision"], environment);
     await runPnpm(
-      ["--filter", "@valet/database", "exec", "node", "scripts/provision-option-c-protected-cutover.mjs"],
-      { ...environment, OPTION_C_PROTECTED_CUTOVER: "1" },
+      ["--filter", "@valet/database", "staff-auth-writer:provision"],
+      environment,
     );
+    await this.assertLegacyRuntimeDrained(applicationUrl);
+    await runPnpm(
+      [
+        "--filter",
+        "@valet/database",
+        "exec",
+        "node",
+        "scripts/provision-option-c-protected-cutover.mjs",
+      ],
+      {
+        ...environment,
+        OPTION_C_PROTECTED_CUTOVER: "1",
+        OPTION_C_LEGACY_WORKERS_DRAINED: "1",
+      },
+    );
+  }
+
+  private async assertLegacyRuntimeDrained(applicationUrl: string) {
+    const runtimeRole = decodeURIComponent(new URL(applicationUrl).username);
+    const pool = new Pool({
+      connectionString: this.migrationDatabaseUrl(),
+      max: 1,
+    });
+    try {
+      const activity = await pool.query<{ count: string }>(
+        `SELECT count(*)::text AS count FROM pg_catalog.pg_stat_activity
+           WHERE datname=pg_catalog.current_database() AND usename=$1`,
+        [runtimeRole],
+      );
+      const prepared = await pool.query<{ count: string }>(
+        `SELECT count(*)::text AS count FROM pg_catalog.pg_prepared_xacts
+           WHERE database=pg_catalog.current_database() AND owner=$1`,
+        [runtimeRole],
+      );
+      const migrations = await pool.query<{ count: string }>(
+        `SELECT count(*)::text AS count FROM public._prisma_migrations
+           WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL`,
+      );
+      if (activity.rows[0]?.count !== "0" || prepared.rows[0]?.count !== "0") {
+        throw new Error(
+          "W66 legacy runtime drain proof failed before protected cutover.",
+        );
+      }
+      console.info(
+        `W66 pre-cutover migrations=${migrations.rows[0]?.count ?? "unknown"} runtime_connections=0 prepared_xacts=0`,
+      );
+    } finally {
+      await pool.end();
+    }
   }
 
   override async stop(): Promise<void> {
@@ -110,9 +171,11 @@ export class OptionCAfterFixture extends OptionCT5Fixture {
   }
 
   private restoreOptionCEnvironment() {
-    if (this.priorProofKey === undefined) delete process.env.ANTI_ABUSE_SQL_PROOF_SECRET_B64URL;
+    if (this.priorProofKey === undefined)
+      delete process.env.ANTI_ABUSE_SQL_PROOF_SECRET_B64URL;
     else process.env.ANTI_ABUSE_SQL_PROOF_SECRET_B64URL = this.priorProofKey;
-    if (this.priorS02 === undefined) delete process.env.ISSUE416_S02_PROTECTED_TEST;
+    if (this.priorS02 === undefined)
+      delete process.env.ISSUE416_S02_PROTECTED_TEST;
     else process.env.ISSUE416_S02_PROTECTED_TEST = this.priorS02;
     if (this.priorMigrationBase === undefined) {
       delete process.env.STAFF_AUTH_TEST_MIGRATION_BASE_URL;
