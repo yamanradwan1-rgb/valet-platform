@@ -106,7 +106,12 @@ export async function applyStaffAuthWriterGrants(
 ) {
   await exec(client, "REVOKE ALL ON SCHEMA public FROM %I", [role]);
   await exec(client, "GRANT USAGE ON SCHEMA public TO %I", [role]);
-  for (const objectType of ["TABLES", "SEQUENCES", "FUNCTIONS"]) {
+  // Other protected functions may be owned by separate NOLOGIN roles (photo
+  // evidence, etc.). PostgreSQL rejects a schema-wide FUNCTION REVOKE by the
+  // migrator when it cannot administer one of those unrelated owners. Revoke
+  // our two exact functions below and fail closed on unexpected EXECUTE in the
+  // writer verifier instead of widening migrator SET/ownership privileges.
+  for (const objectType of ["TABLES", "SEQUENCES"]) {
     await exec(
       client,
       `REVOKE ALL ON ALL ${objectType} IN SCHEMA public FROM %I`,

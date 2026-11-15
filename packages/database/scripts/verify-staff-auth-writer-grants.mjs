@@ -182,6 +182,23 @@ export async function verifyStaffAuthWriterGrants(client, writer, runtime) {
   if (functions.rows.length !== 0) {
     throw new Error("Staff Auth writer can execute a privileged security-definer function.");
   }
+  const unexpectedDirectFunctions = await client.query(
+    `SELECT 1 FROM pg_catalog.pg_proc p
+       JOIN pg_catalog.pg_namespace ns ON ns.oid=p.pronamespace
+       CROSS JOIN LATERAL pg_catalog.aclexplode(COALESCE(
+         p.proacl, pg_catalog.acldefault('f',p.proowner))) acl
+       WHERE ns.nspname='public'
+         AND acl.grantee=(SELECT oid FROM pg_catalog.pg_roles WHERE rolname=$1)
+         AND acl.privilege_type='EXECUTE'
+         AND p.oid NOT IN (
+           'public.staff_onboarding_activate(text,text,text)'::regprocedure,
+           'public.s04_staff_login_success(uuid,text)'::regprocedure
+         )
+       LIMIT 1`, [writer],
+  );
+  if (unexpectedDirectFunctions.rowCount !== 0) {
+    throw new Error("Staff Auth writer has an unapproved direct function grant.");
+  }
   const activationAcl = await client.query(
     `SELECT has_function_privilege($1,
        'public.staff_onboarding_activate(text,text,text)', 'EXECUTE') AS writer,

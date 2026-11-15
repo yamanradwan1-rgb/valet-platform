@@ -32,6 +32,11 @@ test("Staff Auth writer revokes all four column privileges on wide tables in bou
     "vaylet_staff_auth_writer",
     "vaylet_runtime",
   );
+  assert.equal(
+    formatted.some(({ format }) => /REVOKE ALL ON ALL FUNCTIONS/.test(format)),
+    false,
+    "foreign-owner functions must not require broad migrator ACL authority",
+  );
   for (const [tableName, recipient] of [
     ["large_table", "vaylet_staff_auth_writer"],
     ["staff_auth_sessions", "PUBLIC"],
