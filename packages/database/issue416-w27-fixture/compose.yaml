@@ -1,0 +1,33 @@
+name: vaylet-issue416-w27
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: vaylet-issue416-w27-pg17
+    labels:
+      vaylet.environment: isolated-test
+      vaylet.issue: "416"
+      vaylet.owner: worker-27
+      vaylet.disposable: "true"
+    environment:
+      POSTGRES_USER: issue416_w27_owner
+      # Mandatory per-run synthetic test credential; never ship a default.
+      POSTGRES_PASSWORD: ${ISSUE416_W27_POSTGRES_OWNER_PASSWORD:?required for disposable fixture}
+      POSTGRES_DB: issue416_w27_db
+    ports:
+      - "127.0.0.1:55527:5432"
+    volumes:
+      - issue416_w27_pg_data:/var/lib/postgresql/data
+      - ./init-roles.sql:/docker-entrypoint-initdb.d/01-issue416-w27-roles.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U issue416_w27_owner -d issue416_w27_db"]
+      interval: 3s
+      timeout: 3s
+      retries: 15
+volumes:
+  issue416_w27_pg_data:
+    name: vaylet-issue416-w27-pg17-data
+    labels:
+      vaylet.environment: isolated-test
+      vaylet.issue: "416"
+      vaylet.owner: worker-27
+      vaylet.disposable: "true"

@@ -10,6 +10,7 @@ import {
   STAFF_SESSION_CONTEXT_RESOLVER,
   type StaffSessionContextResolver,
 } from "../staff-session-context";
+import { requireRequestBearerPossession } from "../staff-auth-vap1-bearer";
 import { MfaAntiAbuse } from "./mfa-anti-abuse";
 import { MfaVerificationFailedError } from "./mfa-errors";
 import {
@@ -26,27 +27,18 @@ import {
 import {
   generateRecoveryCodes,
   recoveryCodeSelector,
-  verifyRecoveryCodeVerifier,
 } from "./mfa-recovery-code";
-import { generateTotpSecret, verifyTotpCode } from "./mfa-totp";
+import { generateTotpSecret } from "./mfa-totp";
 import {
-  protectTotpSecret,
-  unprotectTotpSecret,
-} from "./mfa-secret-protection";
+  verifyLockedRecoveryReissue,
+  verifyLockedSelfRecoveryCode,
+} from "./mfa-vap1-ceremony-checks";
+import { preparePendingMfaMaterial } from "./mfa-vap1-pending-material";
 import type { MfaProvisioningData } from "./mfa-enrollment.service";
 
 interface RecoveryVerifierRow {
   readonly id: string;
   readonly verifier: string;
-}
-
-function priorStep(value: string | number | bigint | null): number | undefined {
-  if (value === null) return undefined;
-  const converted = Number(value);
-  if (!Number.isSafeInteger(converted) || converted < 0) {
-    throw new Error("MFA replay state is invalid.");
-  }
-  return converted;
 }
 
 @Injectable()
@@ -63,6 +55,7 @@ export class MfaRecoveryService {
     recoveryCode: string,
   ): Promise<MfaProvisioningData> {
     const context = await this.sessions.resolve(authorization);
+    requireRequestBearerPossession(authorization, context);
     const reservation = await this.antiAbuse.reserveRecovery(context.userId);
     try {
       return await inPostgresTransaction(this.pool, async (transaction) => {
@@ -86,12 +79,11 @@ export class MfaRecoveryService {
         if (
           codeResult.rowCount !== 1 ||
           stored === undefined ||
-          !verifyRecoveryCodeVerifier({
-            factorId: factor.id,
-            rawCode: recoveryCode,
-            setGeneration: factor.recovery_set_generation,
-            userId: factor.user_id,
-            verifier: stored.verifier,
+          !verifyLockedSelfRecoveryCode({
+            submittedCode: recoveryCode,
+            session,
+            factor,
+            storedVerifier: stored.verifier,
           })
         ) {
           throw new MfaVerificationFailedError();
@@ -105,12 +97,13 @@ export class MfaRecoveryService {
         await retireFactor(transaction, factor.id, session.now);
         const pendingFactorId = randomUUID();
         const secret = generateTotpSecret();
+        const material = preparePendingMfaMaterial(secret, {
+          factorId: pendingFactorId,
+          userId: session.user_id,
+        });
         await insertPendingFactor(transaction, {
           id: pendingFactorId,
-          protectedSecret: protectTotpSecret(secret, {
-            factorId: pendingFactorId,
-            userId: session.user_id,
-          }),
+          protectedSecret: material.protectedSecret,
           sessionId: session.id,
           userId: session.user_id,
         });
@@ -158,6 +151,7 @@ export class MfaRecoveryService {
     readonly recoveryCodes: readonly string[];
   }> {
     const context = await this.sessions.resolve(authorization);
+    requireRequestBearerPossession(authorization, context);
     const reservation = await this.antiAbuse.reserveTotp(context.userId);
     try {
       return await inPostgresTransaction(this.pool, async (transaction) => {
@@ -166,22 +160,11 @@ export class MfaRecoveryService {
         await requireManagementMfaEligibility(transaction, session.user_id);
         const factor = await lockCurrentFactor(transaction, session.user_id);
         if (factor?.state !== "ACTIVE") throw new MfaVerificationFailedError();
-        const secret = unprotectTotpSecret(factor.protected_secret, {
-          factorId: factor.id,
-          userId: factor.user_id,
-        });
-        const acceptedStep = await verifyTotpCode({
+        const acceptedStep = await verifyLockedRecoveryReissue(
           code,
-          ...(priorStep(factor.last_accepted_step) === undefined
-            ? {}
-            : {
-                lastAcceptedStep: priorStep(
-                  factor.last_accepted_step,
-                ) as number,
-              }),
-          now: session.now,
-          secret,
-        });
+          session,
+          factor,
+        );
         if (acceptedStep === undefined) throw new MfaVerificationFailedError();
         const nextGeneration = factor.recovery_set_generation + 1;
         const recoveryCodes = generateRecoveryCodes({

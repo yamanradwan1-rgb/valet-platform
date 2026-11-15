@@ -128,6 +128,10 @@ const statusByCode: Readonly<Record<string, number>> = {
   STAFF_AUTH_ORIGIN_NOT_ALLOWED: HttpStatus.FORBIDDEN,
   STAFF_ONBOARDING_UNAVAILABLE: HttpStatus.CONFLICT,
   STAFF_ONBOARDING_RATE_LIMITED: HttpStatus.TOO_MANY_REQUESTS,
+  STAFF_PASSWORD_RESET_CONFLICT: HttpStatus.CONFLICT,
+  STAFF_PASSWORD_RESET_INVALID: HttpStatus.UNAUTHORIZED,
+  STAFF_PASSWORD_RESET_RATE_LIMITED: HttpStatus.TOO_MANY_REQUESTS,
+  STAFF_PASSWORD_RESET_UNAVAILABLE: HttpStatus.SERVICE_UNAVAILABLE,
   STAFF_ACCESS_INVALID_STATE: HttpStatus.CONFLICT,
   STAFF_HANDOVER_REQUIRED: HttpStatus.CONFLICT,
   LAST_USABLE_ADMIN_REQUIRED: HttpStatus.CONFLICT,
@@ -196,6 +200,11 @@ const safeMessages: Readonly<Record<string, string>> = {
   STAFF_AUTH_ORIGIN_NOT_ALLOWED: "The request origin is not allowed.",
   STAFF_ONBOARDING_UNAVAILABLE: "Staff onboarding is not available.",
   STAFF_ONBOARDING_RATE_LIMITED: "Too many requests. Try again later.",
+  STAFF_PASSWORD_RESET_CONFLICT:
+    "The password reset request conflicts with a prior operation.",
+  STAFF_PASSWORD_RESET_INVALID: "The password reset link is invalid.",
+  STAFF_PASSWORD_RESET_RATE_LIMITED: "Too many requests. Try again later.",
+  STAFF_PASSWORD_RESET_UNAVAILABLE: "Service temporarily unavailable.",
   STAFF_ACCESS_INVALID_STATE:
     "The requested Staff access change is not valid now.",
   STAFF_HANDOVER_REQUIRED:

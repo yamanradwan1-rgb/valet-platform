@@ -21,7 +21,9 @@ describe("T05-C real two connection serialization", () => {
     const one = await fixture.actor();
     const two = await fixture.actor();
     const command = fixture.command(one.locationId);
-    const lock = await fixture.barrier(one.organizationId);
+    // Both tenants must reach the shared email lock before release; an
+    // Organization barrier cannot stop the other tenant proceeding first.
+    const lock = await fixture.emailBarrier(command.email);
     const firstRequest = fixture.create(one, command);
     await fixture.waitBlocked(1);
     const secondRequest = fixture.create(
@@ -62,7 +64,12 @@ describe("T05-C real two connection serialization", () => {
                 email: command.email.toUpperCase(),
               }
             : command;
-      const lock = await fixture.barrier(actor.organizationId);
+      // Different operation IDs for the same email must serialize on the
+      // account key. Existing identical/conflicting op IDs also test org scope.
+      const lock =
+        kind === "same-email"
+          ? await fixture.emailBarrier(command.email)
+          : await fixture.barrier(actor.organizationId);
       const firstRequest = fixture.create(actor, command);
       await fixture.waitBlocked(1);
       const secondRequest = fixture.create(actor, second);
