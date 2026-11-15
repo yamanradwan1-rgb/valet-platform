@@ -5,6 +5,7 @@ import { verifyOptionCRoleIsolation } from "./option-c-protected-cutover-roles.m
 import { optionCRoles } from "./option-c-protected-cutover-state.mjs";
 import { assertOptionCRevocationIsMonotonic } from "./option-c-protected-cutover-revocation.mjs";
 import { verifyManagementWriterPrivileges } from "./management-writer-privileges.mjs";
+import { verifyOptionCManagementBodies } from "./option-c-protected-cutover-management-bodies.mjs";
 
 const writerColumns = Object.freeze({
   [optionCRoles.staffAuthWriter]: {
@@ -104,6 +105,7 @@ async function assertPrivateKeysReady(client) {
 }
 
 export async function verifyOptionCProtectedReadiness(client, runtimeRole, migrationRole) {
+  await verifyOptionCManagementBodies(client);
   await assertOptionCRevocationIsMonotonic(client, runtimeRole);
   await verifyOptionCRoleIsolation(client, runtimeRole, migrationRole);
   await verifyManagementWriterPrivileges(client, optionCRoles.managementWriter, runtimeRole);

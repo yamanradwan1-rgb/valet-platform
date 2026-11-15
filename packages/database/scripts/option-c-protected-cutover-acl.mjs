@@ -1,6 +1,7 @@
 import { verifyS04RuntimePrivileges } from "./s04-runtime-privileges.mjs";
 import { assertOptionCRevocationIsMonotonic } from "./option-c-protected-cutover-revocation.mjs";
 import { verifyManagementWriterPrivileges } from "./management-writer-privileges.mjs";
+import { verifyOptionCManagementBodies } from "./option-c-protected-cutover-management-bodies.mjs";
 import { revokeUnexpectedFunctionExecutors } from "./option-c-protected-cutover-executor-revocation.mjs";
 import { verifyOptionCRoleIsolation } from "./option-c-protected-cutover-roles.mjs";
 import { optionCRoles } from "./option-c-protected-cutover-state.mjs";
@@ -201,6 +202,7 @@ async function assertFunction(client, signature, allowedRole, deniedRoles, path)
 }
 
 export async function verifyOptionCProtectedAcl(client, runtimeRole, migrationRole) {
+  await verifyOptionCManagementBodies(client);
   await assertOptionCRevocationIsMonotonic(client, runtimeRole);
   const roles = await verifyOptionCRoleIsolation(client, runtimeRole, migrationRole);
   await verifyManagementWriterPrivileges(client, optionCRoles.managementWriter, runtimeRole);
