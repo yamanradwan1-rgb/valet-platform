@@ -11,6 +11,12 @@ import {
   type AntiAbuseKey,
   type AntiAbuseScope,
 } from "./anti-abuse-key";
+import {
+  signS04Counted,
+  signS04Finalize,
+  signS04Reservation,
+} from "./s04-signed-sql-proof";
+import { antiAbuseRetryAfter } from "./anti-abuse-retry-after";
 
 export type AntiAbuseReservationState = "COUNTED" | "IGNORED";
 
@@ -44,10 +50,6 @@ interface CountRow {
 
 interface DecisionTimeRow {
   readonly decision_at: string;
-}
-
-interface RetryRow {
-  readonly retry_after: number;
 }
 
 interface IdRow {
@@ -137,37 +139,6 @@ export class AntiAbuseService {
     return count;
   }
 
-  private async retryAfter(
-    transaction: PostgresTransaction,
-    key: AntiAbuseKey,
-    decisionAt: string,
-    offset: number,
-  ): Promise<number> {
-    const result = await transaction.query<RetryRow>(
-      `SELECT GREATEST(
-                1,
-                LEAST(
-                  900,
-                  CEIL(EXTRACT(EPOCH FROM (
-                    occurred_at + INTERVAL '15 minutes' - $3::timestamptz
-                  )))::integer
-                )
-              ) AS retry_after
-       FROM anti_abuse_events
-       WHERE scope = $1
-         AND key_hash = $2
-         AND state IN ('PENDING', 'COUNTED')
-         AND occurred_at > $3::timestamptz - INTERVAL '15 minutes'
-       ORDER BY occurred_at ASC
-       OFFSET $4
-       LIMIT 1`,
-      [key.scope, key.keyHash, decisionAt, offset],
-    );
-    const retryAfter = result.rows[0]?.retry_after;
-    if (retryAfter === undefined) throw new AntiAbuseUnavailableError();
-    return retryAfter;
-  }
-
   private async decision(
     transaction: PostgresTransaction,
     key: AntiAbuseKey,
@@ -181,15 +152,11 @@ export class AntiAbuseService {
     if (decisionAt === undefined) throw new AntiAbuseUnavailableError();
     const count = await this.currentCount(transaction, key, decisionAt);
     if (count < threshold) return { allowed: true };
-    return {
-      allowed: false,
-      retryAfter: await this.retryAfter(
-        transaction,
-        key,
-        decisionAt,
-        count - threshold,
-      ),
-    };
+    const retryAfter = await antiAbuseRetryAfter(
+      transaction, key, decisionAt, count - threshold,
+    );
+    if (retryAfter === undefined) throw new AntiAbuseUnavailableError();
+    return { allowed: false, retryAfter };
   }
 
   async count(
@@ -210,10 +177,10 @@ export class AntiAbuseService {
   ): Promise<AntiAbuseDecision> {
     const decision = await this.decision(transaction, key, threshold);
     if (!decision.allowed) return decision;
+    const proof = signS04Counted(key);
     await transaction.query(
-      `INSERT INTO anti_abuse_events (scope, key_hash, state)
-       VALUES ($1, $2, 'COUNTED')`,
-      [key.scope, key.keyHash],
+      "SELECT public.s04_counted($1,$2,$3::uuid,$4::bigint,$5)",
+      [key.scope, key.keyHash, proof.nonce, proof.expiresMs, proof.mac],
     );
     return decision;
   }
@@ -234,11 +201,10 @@ export class AntiAbuseService {
     const result = await this.transaction(async (transaction) => {
       const decision = await this.decision(transaction, key, threshold);
       if (!decision.allowed) return decision;
+      const proof = signS04Reservation(key);
       const inserted = await transaction.query<IdRow>(
-        `INSERT INTO anti_abuse_events (scope, key_hash, state)
-         VALUES ($1, $2, 'PENDING')
-         RETURNING id::text`,
-        [key.scope, key.keyHash],
+        "SELECT public.s04_reserve($1,$2,$3::uuid,$4::bigint,$5) AS id",
+        [key.scope, key.keyHash, proof.nonce, proof.expiresMs, proof.mac],
       );
       const id = inserted.rows[0]?.id;
       if (id === undefined) throw new AntiAbuseUnavailableError();
@@ -286,15 +252,14 @@ export class AntiAbuseService {
       }
       return;
     }
-    const updated = await transaction.query(
-      `UPDATE anti_abuse_events
-       SET state = $1
-       WHERE id = $2
-         AND scope = $3
-         AND key_hash = $4
-         AND state = 'PENDING'`,
-      [state, reservation.id, reservation.key.scope, reservation.key.keyHash],
+    const proof = signS04Finalize(reservation.id, reservation.key, state);
+    const updated = await transaction.query<{ updated: number }>(
+      "SELECT public.s04_finalize($1::uuid,$2,$3,$4,$5::uuid,$6::bigint,$7) AS updated",
+      [
+        reservation.id, reservation.key.scope, reservation.key.keyHash, state,
+        proof.nonce, proof.expiresMs, proof.mac,
+      ],
     );
-    if (updated.rowCount !== 1) throw new AntiAbuseUnavailableError();
+    if (updated.rows[0]?.updated !== 1) throw new AntiAbuseUnavailableError();
   }
 }

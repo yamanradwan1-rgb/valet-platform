@@ -153,9 +153,10 @@ test("R03 stays denied while public anti-abuse COUNTED rows remain mutable by ru
     ) && /state IN \('PENDING', 'COUNTED'\)/.test(counter);
   assert.equal(
     publicQuotaMayDiscount,
-    true,
-    "verify this legacy source threat before any R03 activation",
+    false,
+    "S04 retirement must eliminate the legacy direct quota discount grant",
   );
+  assert.match(provisioner, /provisionS04RuntimePrivileges/);
   const deny = source("20261113013000_issue416_reset_commit_integrity");
   assert.match(deny, /CREATE TRIGGER issue416_reset_redeem_unproven_guard/);
   assert.match(deny, /VAP1_RESET_REDEEM_SIGNED_IDENTITY_UNAVAILABLE/);

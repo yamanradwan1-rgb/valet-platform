@@ -79,32 +79,28 @@ test("static PG17 ACL query examines SET ROLE closure and both global/schema def
   assert.match(state.queries[1], /'public\.anti_abuse_events','UPDATE'/);
 });
 
-test("legacy Staff Auth and Guest SQL still requires direct state/group UPDATE; no fake closure", () => {
+test("S04 Staff Auth and Guest SQL uses protected finalizers without runtime state/group UPDATE", () => {
   const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
-  assert.match(
-    read("./provision-runtime-role.mjs"),
-    /GRANT UPDATE \(state, group_key_hash\) ON TABLE anti_abuse_events TO %I/,
-  );
+  assert.match(read("./provision-runtime-role.mjs"), /provisionS04RuntimePrivileges/);
+  assert.doesNotMatch(read("./provision-runtime-role.mjs"), /GRANT UPDATE \(state, group_key_hash\)/);
+  assert.match(read("./s04-runtime-privileges.mjs"), /REVOKE UPDATE \(state,group_key_hash\)/);
   assert.match(
     read("../../../apps/api/src/modules/anti-abuse/anti-abuse.service.ts"),
-    /UPDATE anti_abuse_events\s+SET state = \$1/,
+    /public.s04_finalize/,
   );
   assert.match(
-    read("../../../apps/api/src/modules/auth/staff-auth.service.ts"),
-    /UPDATE anti_abuse_events\s+SET state = 'IGNORED'/,
+    read("../prisma/migrations/20261115016200_issue416_s04_signed_quota_guard/migration.sql"),
+    /CREATE FUNCTION public.s04_staff_login_success/,
   );
   assert.match(
-    read(
-      "../../../apps/api/src/modules/anti-abuse/classified-guest-counter.ts",
-    ),
-    /UPDATE anti_abuse_events SET group_key_hash=\$3/,
+    read("../../../apps/api/src/modules/anti-abuse/s04-guest-classified-counter.ts"),
+    /public.s04_guest_classified/,
   );
   const readiness = read(
     "../../../apps/api/src/common/database/runtime-database-readiness.ts",
   );
-  assert.match(readiness, /'state', 'UPDATE'/);
-  assert.match(readiness, /'group_key_hash', 'UPDATE'/);
-  assert.match(read("./guest-runtime-privileges.mjs"), /AS group_update/);
+  assert.match(readiness, /NOT has_any_column_privilege\(current_user,'public.anti_abuse_events','UPDATE'\)/);
+  assert.match(read("./guest-runtime-privileges.mjs"), /verifyS04RuntimePrivileges/);
 });
 
 test("LEGACY_COMPAT allows the original role provisioner, protected phases prohibit regrant", async () => {

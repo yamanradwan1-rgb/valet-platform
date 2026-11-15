@@ -16,6 +16,7 @@ import { provisionRuntimeTablePrivileges } from "./runtime-table-privileges.mjs"
 import { verifyRuntimeTablePrivileges } from "./verify-runtime-table-privileges.mjs";
 import { assertLegacyRuntimeProvisioningAllowed } from "./vap1-security-privileges.mjs";
 import { assertOptionCProvisioningIsLegacy } from "./option-c-runtime-provision-guard.mjs";
+import { provisionS04RuntimePrivileges } from "./s04-runtime-privileges.mjs";
 
 const { Client } = pg;
 
@@ -210,37 +211,7 @@ async function provisionRuntimeRole() {
 
     await provisionMfaPrivileges(client, executeFormatted, runtimeRole);
 
-    await client.query(
-      `REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON TABLE anti_abuse_events FROM PUBLIC`,
-    );
-    await executeFormatted(
-      client,
-      "REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON TABLE anti_abuse_events FROM %I",
-      [runtimeRole],
-    );
-    await executeFormatted(
-      client,
-      "GRANT SELECT ON TABLE anti_abuse_events TO %I",
-      [runtimeRole],
-    );
-    await executeFormatted(
-      client,
-      "GRANT INSERT (scope, key_hash, state, request_class, group_key_hash) ON TABLE anti_abuse_events TO %I",
-      [runtimeRole],
-    );
-    await executeFormatted(
-      client,
-      "GRANT UPDATE (state, group_key_hash) ON TABLE anti_abuse_events TO %I",
-      [runtimeRole],
-    );
-    await client.query(
-      `REVOKE ALL ON FUNCTION cleanup_expired_anti_abuse_events() FROM PUBLIC`,
-    );
-    await executeFormatted(
-      client,
-      "GRANT EXECUTE ON FUNCTION cleanup_expired_anti_abuse_events() TO %I",
-      [runtimeRole],
-    );
+    await provisionS04RuntimePrivileges(client, executeFormatted, runtimeRole);
 
     await executeFormatted(
       client,

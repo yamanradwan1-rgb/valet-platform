@@ -1,5 +1,35 @@
 # Database Schema — Logical Design
 
+## Issue #416 Option C S04 — protected ephemeral anti-abuse write boundary
+
+Migration `20261115016200_issue416_s04_signed_quota_guard` adds private
+`s04_quota_guard.proof_key` (one independently provisioned 32-byte key) and
+`s04_quota_guard.used_nonce` (single-use UUID with indexed expiry). Both
+relations are inaccessible to the ordinary runtime SQL principal. Existing
+`public.anti_abuse_events` rows and indexes are retained; no rolling-window
+counter reset or domain/tenant/location field is introduced.
+
+At runtime, direct `anti_abuse_events` INSERT/UPDATE is retired entirely.
+Fixed `SECURITY DEFINER` functions `s04_counted`, `s04_reserve`,
+`s04_finalize` and `s04_guest_classified` verify short-lived, operation-bound
+HMAC proofs against the private key and consume each nonce exactly once inside
+the same PostgreSQL transaction as the counter change. Guest classified
+group binding, class/aggregate/credential limits and 15-minute windows remain
+atomic. `s04_staff_login_success` and `s04_mfa_success` are restricted
+to independently provisioned protected writer principals, each with a fixed
+Staff/MFA scope; these functions run within their respective verified
+authentication transaction. No generic writer principal or inherited table
+write privilege is introduced. `s04_cleanup_nonces` deletes at most 1000
+nonces older than one hour per invocation, beyond the 30-second signed-proof
+validity ceiling. The cleanup and original bounded anti-abuse retention
+remain independent of operational/audit event history.
+
+The separate migrator must seed the proof key before runtime privilege
+provisioning. Both API and migrator require the distinct secret
+`ANTI_ABUSE_SQL_PROOF_SECRET_B64URL`; key mismatch fails closed.
+Writer-role function grants and full mounted Staff/MFA/Guest qualification
+remain explicit release gates during coordinated Option C integration.
+
 ## Issue #304 — optional Key Slot label and authoritative read projection
 
 Forward-only migration `20261020009700_issue304_key_slot_label` adds nullable

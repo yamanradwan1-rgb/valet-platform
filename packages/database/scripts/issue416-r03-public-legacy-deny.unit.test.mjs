@@ -54,7 +54,7 @@ test('additive constraint keeps all non-R03 Staff/Auth/Guest scopes untouched', 
   assert.match(sql, /^COMMIT;\s*$/m);
 });
 
-test('private R03 remains inaccessible; legacy runtime UPDATE cannot restore public scopes', () => {
+test('private R03 remains inaccessible; S04 provisioner refuses legacy quota writes', () => {
   const deny130 = migration('20261113013000_issue416_reset_commit_integrity');
   const private134 = migration('20261113013400_issue416_r03_private_attempt_guards');
   const sql = migration(new135);
@@ -62,7 +62,10 @@ test('private R03 remains inaccessible; legacy runtime UPDATE cannot restore pub
   assert.match(private134, /VAP1_R03_TRUSTED_BINDER_UNAVAILABLE/);
   assert.doesNotMatch(sql, /DROP TRIGGER|ALTER TABLE auth_proof_private|GRANT EXECUTE/);
   const provisioner = readFileSync(join(dbRoot, 'scripts', 'provision-runtime-role.mjs'), 'utf8');
-  assert.match(provisioner, /GRANT UPDATE \(state, group_key_hash\) ON TABLE anti_abuse_events/);
+  assert.doesNotMatch(provisioner, /GRANT UPDATE \(state, group_key_hash\) ON TABLE anti_abuse_events/);
+  assert.match(provisioner, /provisionS04RuntimePrivileges/);
+  const s04 = readFileSync(join(dbRoot, 'scripts', 's04-runtime-privileges.mjs'), 'utf8');
+  assert.match(s04, /REVOKE UPDATE \(state,group_key_hash\)/);
   const readiness = readFileSync(join(
     dbRoot, '..', '..', 'apps', 'api', 'src', 'common', 'database',
     'runtime-database-readiness.ts'), 'utf8');
