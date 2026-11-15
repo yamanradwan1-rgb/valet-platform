@@ -20,13 +20,18 @@ const expectedDenialSqlstates = new Set([
   "23503",
   "23505",
   "P0001",
+  "42883",
 ]);
 
 export class OptionCT5Fixture extends ManagementControlPlaneTestFixture {
   private started = false;
 
+  constructor(private readonly targetGuard = assertOwnedOptionCPg17) {
+    super();
+  }
+
   override async start(): Promise<void> {
-    await assertOwnedOptionCPg17();
+    await this.targetGuard();
     try {
       await super.start();
       this.started = true;
@@ -54,10 +59,19 @@ export class OptionCT5Fixture extends ManagementControlPlaneTestFixture {
         login: string;
         superuser: boolean;
         bypass_rls: boolean;
+        create_db: boolean;
         create_role: boolean;
+        can_login: boolean;
+        inherit: boolean;
+        replication: boolean;
+        parent_count: string;
       }>(`SELECT current_user AS principal, session_user AS login,
                 role.rolsuper AS superuser, role.rolbypassrls AS bypass_rls,
-                role.rolcreaterole AS create_role
+                role.rolcreatedb AS create_db, role.rolcreaterole AS create_role,
+                role.rolcanlogin AS can_login, role.rolinherit AS inherit,
+                role.rolreplication AS replication,
+                (SELECT count(*)::text FROM pg_auth_members AS member
+                 WHERE member.member=role.oid) AS parent_count
          FROM pg_roles AS role WHERE role.rolname = current_user`);
       const identity = attestedRole.rows[0];
       const expectedPrincipal = new URL(connectionString).username;
@@ -67,7 +81,12 @@ export class OptionCT5Fixture extends ManagementControlPlaneTestFixture {
         identity.login !== expectedPrincipal ||
         identity.superuser ||
         identity.bypass_rls ||
-        identity.create_role
+        identity.create_db ||
+        identity.create_role ||
+        !identity.can_login ||
+        identity.inherit ||
+        identity.replication ||
+        identity.parent_count !== "0"
       ) {
         throw new Error(
           "W37 T5 statement role is not the restricted runtime principal.",

@@ -95,6 +95,7 @@ export class StaffAuthNativeFixture {
   private databaseCreated = false;
   private roleCreated = false;
   private migrationUrl = "";
+  private readonly optionalWriterPrevious = new Map<string, string | undefined>();
   private readonly originalEnvironment = {
     antiAbuse: process.env.ANTI_ABUSE_HMAC_SECRET_B64URL,
     database: process.env.DATABASE_URL,
@@ -116,13 +117,19 @@ export class StaffAuthNativeFixture {
       MIGRATION_DATABASE_URL: this.migrationUrl,
       NODE_ENV: "test",
     });
+    const writers = this.protectedWriterTestEnvironment(applicationUrl);
     this.roleCreated = true;
     await runPnpm(["--filter", "@valet/database", "runtime:provision"], {
       DATABASE_URL: applicationUrl,
       MIGRATION_DATABASE_URL: this.migrationUrl,
+      ...writers,
       NODE_ENV: "test",
     });
     this.adminPool = new Pool({ connectionString: this.migrationUrl });
+    for (const [key, value] of Object.entries(writers)) {
+      this.optionalWriterPrevious.set(key, process.env[key]);
+      process.env[key] = value;
+    }
     process.env.DATABASE_URL = applicationUrl;
     process.env.STAFF_AUTH_ALLOWED_ORIGINS = allowedOrigin;
     process.env.ANTI_ABUSE_HMAC_SECRET_B64URL =
@@ -132,6 +139,11 @@ export class StaffAuthNativeFixture {
     await this.app.listen(0, "127.0.0.1");
     const address = this.app.getHttpServer().address() as { port: number };
     this.baseUrl = `http://127.0.0.1:${address.port}`;
+  }
+
+  protected protectedWriterTestEnvironment(applicationUrl: string): Record<string, string> {
+    void applicationUrl;
+    return {};
   }
 
   async resetLimits(): Promise<void> {
@@ -266,5 +278,6 @@ export class StaffAuthNativeFixture {
     restore("DATABASE_URL", this.originalEnvironment.database);
     restore("STAFF_AUTH_ALLOWED_ORIGINS", this.originalEnvironment.origins);
     restore("ANTI_ABUSE_TRUSTED_PROXY_CIDRS", this.originalEnvironment.proxies);
+    for (const [key, value] of this.optionalWriterPrevious) restore(key, value);
   }
 }

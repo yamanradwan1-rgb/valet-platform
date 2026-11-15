@@ -1,13 +1,37 @@
 import { execFileSync } from "node:child_process";
 import { Client } from "pg";
 
-// Deliberately bound to W37's independently owned disposable PostgreSQL 17.
-// This runs BEFORE the existing fixture can create a database or a role.
-const containerName = "vaylet-issue416-w37-option-c-20261115-pg17";
-const owner = "issue416-w37-option-c-20261115";
-const expectedPort = "51147";
-const expectedDatabase = "valet_w37oc";
-const expectedUser = "valet_w37oc";
+// These are fixed independently owned disposable PostgreSQL 17 targets. They
+// are checked BEFORE the fixtures can create databases, roles or run migrations.
+interface OwnedTarget {
+  readonly containerName: string;
+  readonly owner: string;
+  readonly port: string;
+  readonly database: string;
+  readonly user: string;
+  readonly flag: string;
+  readonly flagValue: string;
+}
+
+const beforeTarget: OwnedTarget = {
+  containerName: "vaylet-issue416-w37-option-c-20261115-pg17",
+  owner: "issue416-w37-option-c-20261115",
+  port: "51147",
+  database: "valet_w37oc",
+  user: "valet_w37oc",
+  flag: "ISSUE416_OPTION_C_T5",
+  flagValue: "W37_DISPOSABLE_ONLY",
+};
+
+const afterTarget: OwnedTarget = {
+  containerName: "vaylet-issue416-w37-after-20261115-pg17",
+  owner: "issue416-w37-after-20261115",
+  port: "51157",
+  database: "valet_w37after",
+  user: "valet_w37after",
+  flag: "ISSUE416_OPTION_C_AFTER",
+  flagValue: "W37_AFTER_DISPOSABLE_ONLY",
+};
 
 function docker(args: string[]): string {
   return execFileSync("docker", args, {
@@ -18,10 +42,24 @@ function docker(args: string[]): string {
   }).trim();
 }
 
-export async function assertOwnedOptionCPg17(): Promise<void> {
+export function assertOwnedOptionCPg17(): Promise<void> {
+  return assertOwnedPostgres17(beforeTarget);
+}
+
+export function assertOwnedOptionCAfterPg17(): Promise<void> {
+  return assertOwnedPostgres17(afterTarget);
+}
+
+async function assertOwnedPostgres17(target: OwnedTarget): Promise<void> {
+  const {
+    containerName,
+    owner,
+    port: expectedPort,
+    database: expectedDatabase,
+    user: expectedUser,
+  } = target;
   if (
-    process.env.ISSUE416_OPTION_C_T5 === undefined ||
-    process.env.ISSUE416_OPTION_C_T5 !== "W37_DISPOSABLE_ONLY" ||
+    process.env[target.flag] !== target.flagValue ||
     process.env.NODE_ENV !== "test" ||
     process.env.CI !== undefined ||
     ["DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_CONFIG"].some((name) =>
