@@ -24,6 +24,18 @@ nonces older than one hour per invocation, beyond the 30-second signed-proof
 validity ceiling. The cleanup and original bounded anti-abuse retention
 remain independent of operational/audit event history.
 
+Forward-only migration `20261115235910_option_c_s04_staff_activation_success`
+adds `public.s04_staff_activation_success(uuid,text,text,text)` to the dedicated
+Staff Auth writer boundary. It can change only a matching `PENDING` anti-abuse
+reservation to `IGNORED` for the two Staff activation scopes and only when an
+unrevoked, consumed invitation is linked to an ACTIVE user and membership with
+the exact immutable activation audit generation. The successful invitation
+activation, quota finalization and audit are committed in the same Staff Auth
+writer transaction. Ordinary runtime, PUBLIC and the other protected writers
+must not execute this helper; the Staff Auth writer retains no generic
+`s04_finalize` permission. Existing migrations and historical quota events
+remain unchanged. Actual mounted protected HTTP qualification is a release gate.
+
 The separate migrator must seed the proof key before runtime privilege
 provisioning. Both API and migrator require the distinct secret
 `ANTI_ABUSE_SQL_PROOF_SECRET_B64URL`; key mismatch fails closed.
