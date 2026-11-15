@@ -10,6 +10,7 @@ import {
   ensureRuntimeRoleByOwner,
   grantMigrationDatabase,
   migrationBaseUrl,
+  revokeRuntimeProvisioningAdmin,
 } from "./after-migration-topology";
 
 // AFTER tests use a second, named owner-only cluster. BEFORE .probe.ts suites
@@ -100,6 +101,9 @@ export class OptionCAfterFixture extends OptionCT5Fixture {
     applicationUrl: string,
     writers: Record<string, string>,
   ) {
+    const ownerUrl = process.env.TEST_DATABASE_URL;
+    if (!ownerUrl) throw new Error("W66 owner test URL is unavailable.");
+    await revokeRuntimeProvisioningAdmin(ownerUrl, applicationUrl);
     const environment = {
       NODE_ENV: "test",
       DATABASE_URL: applicationUrl,
