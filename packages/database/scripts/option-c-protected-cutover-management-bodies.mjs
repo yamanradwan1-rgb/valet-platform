@@ -4,11 +4,11 @@
 export const pinnedOptionCManagementBodies = Object.freeze([
   [
     "public.shift_presence_set_policy(uuid,uuid,uuid,text,uuid,uuid,text,text,boolean,integer,integer,uuid)",
-    "7e5b13ab27c90de3ac208139d64e1bbdc0ae51662b77b7b90a46537fbcfe800e",
+    "4ab2a2f06f3f3681388c39ee70f6cd9c7cf902e68a9a30b8edb3af85a1dd534b",
   ],
   [
     "public.staff_shift_force_end(uuid,uuid,text,uuid,uuid,uuid,text,text,text)",
-    "c5f177299e32b56166bbfcf626a6948847d5b868e334f0283e932830081d8fc7",
+    "daf7cad6aa9be5568274e21fe5c73f4ad6431607a3f57671ea2357dbfc607855",
   ],
   [
     "public.shift_presence_lock_management_entitlement(uuid,uuid,text,uuid)",

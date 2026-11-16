@@ -30,6 +30,13 @@ const runtimeBearerSql = readFileSync(
   ),
   "utf8",
 ).replace(/\r\n/g, "\n");
+const orderedRuntimeSql = readFileSync(
+  new URL(
+    "../prisma/migrations/20261116000320_option_c_runtime_bearer_lock_order/migration.sql",
+    import.meta.url,
+  ),
+  "utf8",
+).replace(/\r\n/g, "\n");
 
 test("S03 installed-function SHA pins match the reviewed raw-token SQL source", () => {
   assert.equal(pinnedOptionCManagementBodies.length, 10);
@@ -37,6 +44,10 @@ test("S03 installed-function SHA pins match the reviewed raw-token SQL source", 
     "shift_presence_set_policy",
     "staff_shift_force_end",
     "shift_presence_lock_management_entitlement",
+  ]);
+  const upgradedRuntimeLocks = new Set([
+    "shift_presence_set_policy",
+    "staff_shift_force_end",
   ]);
   for (const [signature, digest] of pinnedOptionCManagementBodies) {
     const name = signature.slice("public.".length, signature.indexOf("("));
@@ -46,7 +57,9 @@ test("S03 installed-function SHA pins match the reviewed raw-token SQL source", 
       "staff_management_authorized_onboarding_resend",
     ]);
     const reviewedSource = runtimeBearers.has(name)
-      ? runtimeBearerSql
+      ? upgradedRuntimeLocks.has(name)
+        ? orderedRuntimeSql
+        : runtimeBearerSql
       : lockOrderedNames.has(name)
         ? lockOrderedAuthorizationSql
         : sql;
@@ -68,6 +81,18 @@ test("S03 installed-function SHA pins match the reviewed raw-token SQL source", 
     if (runtimeBearers.has(name)) {
       assert.match(body, /pg_catalog\.sha256\(pg_catalog\.convert_to\(/);
       assert.match(body, /current_access_token_hash/);
+      if (upgradedRuntimeLocks.has(name)) {
+        const advisory = body.indexOf("staff-user-security:");
+        const row = body.indexOf("FOR UPDATE;", advisory);
+        const session = body.indexOf("FOR UPDATE OF session;", advisory);
+        assert.ok(advisory >= 0 && row > advisory);
+        assert.ok(
+          name === "shift_presence_set_policy"
+            ? body.indexOf("FROM public.staff_auth_sessions s", advisory) > row
+            : session > row,
+        );
+        assert.doesNotMatch(body, /FOR UPDATE OF (s,u|session,u)/);
+      }
     } else {
       assert.match(body, /p_access_token/);
       assert.doesNotMatch(body, /p_access_hash/);

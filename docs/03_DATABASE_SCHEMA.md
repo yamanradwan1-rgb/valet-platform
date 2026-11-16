@@ -38,6 +38,19 @@ session row locks. This aligns Staff status/onboarding mutations with auth and
 onboarding serialization and rechecks time-based session/MFA authority after
 the advisory lock is acquired.
 
+Forward-only migration
+`20261116000320_option_c_runtime_bearer_lock_order` hardens the existing
+Runtime-executable Shift Presence policy and Staff shift force-end
+`SECURITY DEFINER` functions without expanding their API or privileges.
+It checks the raw bearer against current session/User state before taking
+the canonical `staff-user-security` advisory lock, then locks the active
+User row before the exact Staff session row and revalidates the bearer,
+revocation and expiry under those transaction-held row locks. Shift Presence
+retains its established settings/Location advisory lock order; force-end
+retains the subsequent Management organization lock. The protected cutover
+pins the final installed bodies of both functions and the entitlement
+function, refusing legacy hash-as-bearer SQL during promotion or reprovision.
+
 ## Issue #416 Option C S04 — protected ephemeral anti-abuse write boundary
 
 Migration `20261115016200_issue416_s04_signed_quota_guard` adds private
@@ -79,7 +92,7 @@ are committed in the same Staff Auth writer transaction. Ordinary runtime,
 PUBLIC and the other protected writers must not execute this helper; the Staff
 Auth writer retains no generic `s04_finalize` permission. Existing migrations
 and historical quota events remain unchanged. The ordered source inventory
-now contains 152 migration directories. Actual mounted protected HTTP
+now contains 153 migration directories. Actual mounted protected HTTP
 qualification is a release gate. The signed SQL-level PG17 qualification is
 available through `pnpm --filter @valet/database s04:staff-activation:pg17`;
 it requires an individually attested disposable fixture as documented in

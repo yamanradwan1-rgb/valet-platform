@@ -84,6 +84,7 @@ export const optionCAppendedMigrationDirectories = [
   "20261116000210_option_c_staff_session_lock_function",
   "20261116000300_option_c_management_raw_bearer_authority",
   "20261116000310_option_c_management_user_security_lock_order",
+  "20261116000320_option_c_runtime_bearer_lock_order",
 ] as const;
 
 export const expectedCurrentMigrationDirectories = [
