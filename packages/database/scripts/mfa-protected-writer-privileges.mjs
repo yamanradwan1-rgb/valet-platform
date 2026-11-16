@@ -4,8 +4,24 @@ import {
   mfaRecoveryInsertColumns,
   provisionMfaPrivileges,
 } from "./mfa-runtime-privileges.mjs";
-
-const rolePattern = /^[a-z_][a-z0-9_]{0,62}$/;
+import {
+  mfaProtectedWriterFunctions,
+  mfaProtectedWriterSessionUpdateColumns,
+  mfaProtectedWriterSelectColumns,
+  mfaProtectedWriterTables,
+  mfaProtectedWriterUserLockColumn,
+} from "./mfa-protected-writer-contract.mjs";
+import { grantS04ProtectedWriterFunction } from "./s04-protected-writer-privileges.mjs";
+import { verifyMfaProtectedWriterPrivileges } from "./mfa-protected-writer-verification.mjs";
+import {
+  grantMfaColumns,
+  revokeAllTableColumnPrivileges,
+  revokeUnexpectedMfaExecutors,
+} from "./mfa-protected-writer-acl-provisioning.mjs";
+import {
+  mfaProtectedWriterRolePattern,
+  prepareMfaProtectedWriterRole,
+} from "./mfa-protected-writer-role-provisioning.mjs";
 
 export function mfaProtectedWriterConfig(environment = process.env) {
   const enabled = environment.MFA_PROTECTED_WRITER_ENABLED;
@@ -35,13 +51,16 @@ export function mfaProtectedWriterConfig(environment = process.env) {
   }
   if (
     !["postgres:", "postgresql:"].includes(writer.protocol) ||
-    writer.search !== "" || writer.hash !== "" ||
-    !rolePattern.test(writer.username) || !writer.password ||
+    writer.search !== "" ||
+    writer.hash !== "" ||
+    !mfaProtectedWriterRolePattern.test(writer.username) ||
+    !writer.password ||
     writer.username === runtime.username ||
     writer.password === runtime.password ||
-    writer.host !== runtime.host || writer.pathname !== runtime.pathname
-    || (environment.NODE_ENV === "production"
-      && writer.username !== "vaylet_mfa_writer")
+    writer.host !== runtime.host ||
+    writer.pathname !== runtime.pathname ||
+    (environment.NODE_ENV === "production" &&
+      writer.username !== "vaylet_mfa_writer")
   ) {
     throw new Error("Protected MFA writer must be an isolated same-DB role.");
   }
@@ -64,7 +83,10 @@ export function canonicalMfaActivityRoot(environment = process.env) {
 }
 
 export async function provisionMfaActivityRoot(
-  client, formatted, runtimeRole, root,
+  client,
+  formatted,
+  runtimeRole,
+  root,
 ) {
   const exists = await client.query(
     "SELECT 1 FROM pg_catalog.pg_namespace WHERE nspname='mfa_activity_private'",
@@ -74,7 +96,8 @@ export async function provisionMfaActivityRoot(
   }
   await client.query(
     `INSERT INTO mfa_activity_private.key_root(singleton,secret)
-      VALUES (true,$1) ON CONFLICT (singleton) DO NOTHING`, [root],
+      VALUES (true,$1) ON CONFLICT (singleton) DO NOTHING`,
+    [root],
   );
   const actual = await client.query(
     "SELECT secret=$1 AS matches FROM mfa_activity_private.key_root WHERE singleton",
@@ -83,132 +106,164 @@ export async function provisionMfaActivityRoot(
   if (actual.rowCount !== 1 || actual.rows[0]?.matches !== true) {
     throw new Error("MFA activity proof root mismatches protected database.");
   }
-  await formatted(client,
-    "GRANT USAGE ON SCHEMA mfa_activity_private TO %I",
-    [runtimeRole]);
-  await formatted(client,
+  await formatted(client, "GRANT USAGE ON SCHEMA mfa_activity_private TO %I", [
+    runtimeRole,
+  ]);
+  await formatted(
+    client,
     "GRANT EXECUTE ON FUNCTION mfa_activity_private.touch_admin_activity(uuid,uuid,text,uuid,integer,text,bigint,bytea) TO %I",
-    [runtimeRole]);
-}
-
-async function grantColumns(client, formatted, role, privilege, table, columns) {
-  for (const column of columns) {
-    await formatted(client, `GRANT ${privilege} (%I) ON TABLE %I TO %I`, [
-      column, table, role,
-    ]);
-  }
+    [runtimeRole],
+  );
 }
 
 export async function provisionMfaProtectedWriter(
-  client, formatted, writer, runtimeRole, migrationRole,
+  client,
+  formatted,
+  writer,
+  runtimeRole,
+  migrationRole,
 ) {
-  if (
-    writer.role === runtimeRole || writer.role === migrationRole ||
-    !rolePattern.test(writer.role) || !writer.password
-  ) throw new Error("MFA protected writer identity is unsafe.");
-  const role = await client.query(
-    `SELECT rolcanlogin,rolinherit,rolsuper,rolcreatedb,rolcreaterole,
-            rolreplication,rolbypassrls
-     FROM pg_catalog.pg_roles WHERE rolname=$1`,
-    [writer.role],
+  await prepareMfaProtectedWriterRole(
+    client,
+    formatted,
+    writer,
+    runtimeRole,
+    migrationRole,
   );
-  if (role.rowCount === 0) {
-    await formatted(client,
-      "CREATE ROLE %I WITH LOGIN PASSWORD %L NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS",
-      [writer.role, writer.password]);
-  } else {
-    const flags = role.rows[0];
-    if (
-      !flags || flags.rolsuper || flags.rolcreatedb || flags.rolcreaterole ||
-      flags.rolreplication || flags.rolbypassrls
-    ) throw new Error("Existing MFA writer role has unsafe attributes.");
-    await formatted(client, "ALTER ROLE %I WITH LOGIN PASSWORD %L NOINHERIT", [
-      writer.role, writer.password,
-    ]);
+  for (const table of mfaProtectedWriterTables) {
+    await formatted(
+      client,
+      "REVOKE ALL PRIVILEGES ON TABLE public.%I FROM PUBLIC",
+      [table],
+    );
+    await revokeAllTableColumnPrivileges(
+      client,
+      formatted,
+      "PUBLIC",
+      "public",
+      table,
+    );
   }
-  const inherited = await client.query(
-    `SELECT parent.rolname FROM pg_catalog.pg_auth_members membership
-     JOIN pg_catalog.pg_roles parent ON parent.oid=membership.roleid
-     JOIN pg_catalog.pg_roles child ON child.oid=membership.member
-     WHERE child.rolname=$1`,
-    [writer.role],
-  );
-  for (const { rolname } of inherited.rows) {
-    await formatted(client, "REVOKE %I FROM %I", [rolname, writer.role]);
+  for (const [table, columns] of Object.entries(
+    mfaProtectedWriterSelectColumns,
+  )) {
+    await grantMfaColumns(
+      client,
+      formatted,
+      writer.role,
+      "SELECT",
+      table,
+      columns,
+    );
   }
-  // Revoke BOTH directions: runtime could otherwise SET ROLE to a privileged
-  // MFA writer through an old outbound grant even when the writer NOINHERIT.
-  const delegated = await client.query(
-    `SELECT member.rolname FROM pg_catalog.pg_auth_members membership
-     JOIN pg_catalog.pg_roles writer ON writer.oid=membership.roleid
-     JOIN pg_catalog.pg_roles member ON member.oid=membership.member
-     WHERE writer.rolname=$1`,
-    [writer.role],
-  );
-  for (const { rolname } of delegated.rows) {
-    await formatted(client, "REVOKE %I FROM %I", [writer.role, rolname]);
-  }
-  const database = (await client.query("SELECT current_database() AS db")).rows[0].db;
-  await formatted(client, "GRANT CONNECT ON DATABASE %I TO %I", [
-    database, writer.role,
-  ]);
-  await formatted(client, "REVOKE CREATE, TEMPORARY ON DATABASE %I FROM %I", [
-    database, writer.role,
-  ]);
-  await formatted(client, "REVOKE ALL ON SCHEMA public FROM %I", [writer.role]);
-  await formatted(client, "GRANT USAGE ON SCHEMA public TO %I", [writer.role]);
-  await formatted(client,
-    "REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM %I",
-    [writer.role]);
-  for (const table of [
-    "users", "organizations", "organization_memberships",
-    "staff_auth_sessions", "user_mfa_totp_factors", "mfa_recovery_codes",
-    "anti_abuse_events",
-  ]) {
-    await formatted(client, "GRANT SELECT ON TABLE %I TO %I", [
-      table, writer.role,
-    ]);
-  }
-  await grantColumns(client, formatted, writer.role, "UPDATE",
-    "staff_auth_sessions",
-    ["mfa_authenticated_at", "mfa_factor_id", "last_admin_activity_at"]);
-  // The existing session verifier locks User FOR UPDATE to fence disable
-  // concurrently with verified MFA. A narrowly scoped telemetry column gives
-  // the protected writer row-lock authority without password/status writes.
-  await formatted(client, "GRANT UPDATE (last_login_at) ON TABLE users TO %I", [
+  await grantMfaColumns(
+    client,
+    formatted,
     writer.role,
-  ]);
-  await grantColumns(client, formatted, writer.role, "INSERT",
-    "user_mfa_totp_factors", mfaFactorInsertColumns);
-  await grantColumns(client, formatted, writer.role, "UPDATE",
-    "user_mfa_totp_factors", mfaFactorUpdateColumns);
-  await grantColumns(client, formatted, writer.role, "INSERT",
-    "mfa_recovery_codes", mfaRecoveryInsertColumns);
-  await formatted(client,
-    "GRANT UPDATE (consumed_at) ON TABLE mfa_recovery_codes TO %I",
-    [writer.role]);
-  await formatted(client,
-    "GRANT EXECUTE ON FUNCTION public.s04_mfa_success(uuid,text,text) TO %I",
-    [writer.role]);
-  await formatted(client,
-    "GRANT EXECUTE ON FUNCTION append_runtime_account_security_audit_event(uuid,text,uuid,account_security_actor_type,uuid,timestamptz) TO %I",
-    [writer.role]);
+    "UPDATE",
+    "staff_auth_sessions",
+    mfaProtectedWriterSessionUpdateColumns,
+  );
+  // PostgreSQL requires UPDATE on at least one User column for
+  // SELECT ... FOR UPDATE OF staff_user. This inert lock-version column is the
+  // only User mutation authority held by the protected MFA writer.
+  await formatted(
+    client,
+    `GRANT UPDATE (${mfaProtectedWriterUserLockColumn}) ON TABLE public.users TO %I`,
+    [writer.role],
+  );
+  await grantMfaColumns(
+    client,
+    formatted,
+    writer.role,
+    "INSERT",
+    "user_mfa_totp_factors",
+    mfaFactorInsertColumns,
+  );
+  await grantMfaColumns(
+    client,
+    formatted,
+    writer.role,
+    "UPDATE",
+    "user_mfa_totp_factors",
+    mfaFactorUpdateColumns,
+  );
+  await grantMfaColumns(
+    client,
+    formatted,
+    writer.role,
+    "INSERT",
+    "mfa_recovery_codes",
+    mfaRecoveryInsertColumns,
+  );
+  await formatted(
+    client,
+    "GRANT UPDATE (consumed_at) ON TABLE public.mfa_recovery_codes TO %I",
+    [writer.role],
+  );
+  await grantS04ProtectedWriterFunction(
+    client,
+    formatted,
+    "mfa",
+    writer.role,
+    runtimeRole,
+  );
+  await formatted(
+    client,
+    `REVOKE ALL ON FUNCTION ${mfaProtectedWriterFunctions.accountSecurityAudit} FROM PUBLIC`,
+  );
+  await formatted(
+    client,
+    `GRANT EXECUTE ON FUNCTION ${mfaProtectedWriterFunctions.accountSecurityAudit} TO %I`,
+    [writer.role],
+  );
+  await revokeUnexpectedMfaExecutors(
+    client,
+    formatted,
+    mfaProtectedWriterFunctions.quotaSuccess,
+    [writer.role],
+  );
+  await revokeUnexpectedMfaExecutors(
+    client,
+    formatted,
+    mfaProtectedWriterFunctions.accountSecurityAudit,
+    [writer.role, runtimeRole],
+  );
 }
 
 export async function provisionOptionCMfaBoundary(
-  client, formatted, runtimeRole, migrationRole,
+  client,
+  formatted,
+  runtimeRole,
+  migrationRole,
 ) {
   const writer = mfaProtectedWriterConfig();
   await provisionMfaPrivileges(
-    client, formatted, runtimeRole, writer !== null,
+    client,
+    formatted,
+    runtimeRole,
+    writer !== null,
     Boolean(process.env.STAFF_AUTH_WRITER_DATABASE_URL),
   );
   if (writer) {
     await provisionMfaProtectedWriter(
-      client, formatted, writer, runtimeRole, migrationRole,
+      client,
+      formatted,
+      writer,
+      runtimeRole,
+      migrationRole,
     );
     await provisionMfaActivityRoot(
-      client, formatted, runtimeRole, canonicalMfaActivityRoot(),
+      client,
+      formatted,
+      runtimeRole,
+      canonicalMfaActivityRoot(),
+    );
+    await verifyMfaProtectedWriterPrivileges(
+      client,
+      runtimeRole,
+      migrationRole,
+      writer.role,
     );
   }
 }
