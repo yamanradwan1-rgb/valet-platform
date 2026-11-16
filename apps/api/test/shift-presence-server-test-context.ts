@@ -102,7 +102,6 @@ export class PresenceServerTestContext extends ShiftTestContext {
     const context: ManagementCommandContext = {
       userId,
       staffAuthSessionId: id,
-      accessTokenHash: hash,
       rawAccessToken: token,
       createdAt: row.rows[0]!.created_at,
     };

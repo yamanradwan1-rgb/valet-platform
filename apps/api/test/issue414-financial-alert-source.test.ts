@@ -28,7 +28,7 @@ const valetSessionId = "ffffffff-ffff-4fff-8fff-ffffffffffff";
 
 const input: FinancialAlertReaderInput = {
   context: {
-    accessTokenHash: "test-hash",
+    rawAccessToken: "vsa1." + "A".repeat(43),
     createdAt: new Date("2026-11-04T00:00:00.000Z"),
     staffAuthSessionId: "test-staff-session",
     userId: "test-user",

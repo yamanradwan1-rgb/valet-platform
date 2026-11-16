@@ -28,7 +28,7 @@ const sourceId = "11111111-1111-4111-8111-111111111111";
 const input: RetrievalPhaseAlertInput & { readonly alt01GraceSeconds: number } = {
   context: {
     userId: "current-user", staffAuthSessionId: "session-token",
-    accessTokenHash: "protected-hash", createdAt: new Date("2026-11-04"),
+    rawAccessToken: "vsa1." + "A".repeat(43), createdAt: new Date("2026-11-04"),
   },
   scope: { organizationId: "org", locationId: "location", membershipId: "lm" },
   limit: 21, delaySeconds: 300, alt01GraceSeconds: 0,

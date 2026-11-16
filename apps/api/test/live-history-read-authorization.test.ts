@@ -15,7 +15,7 @@ const createdAt = new Date("2026-10-09T14:00:00.000Z");
 const now = new Date("2026-10-09T14:05:00.000Z");
 
 const context: StaffSessionContext = {
-  accessTokenHash: "a".repeat(64),
+  rawAccessToken: "vsa1." + "A".repeat(43),
   createdAt,
   staffAuthSessionId: sessionId,
   userId,

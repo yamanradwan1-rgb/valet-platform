@@ -67,7 +67,7 @@ const params = {
   recordManagementActivity: false,
 };
 const staffContext = {
-  accessTokenHash: "token-315",
+  rawAccessToken: "vsa1." + "A".repeat(43),
   createdAt: new Date("2026-07-10T00:00:00.000Z"),
   staffAuthSessionId: "session-315",
   userId: params.authenticatedUserId,

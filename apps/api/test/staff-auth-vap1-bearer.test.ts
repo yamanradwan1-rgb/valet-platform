@@ -9,9 +9,9 @@ import { requireRequestBearerPossession } from "../src/modules/auth/staff-auth-v
 describe("VAP1 Staff request raw bearer possession precondition", () => {
   const raw = generateStaffCredential("vsa1.");
   const authorization = `Bearer ${raw}`;
-  const context = { accessTokenHash: staffCredentialHash("access", raw) };
+  const context = { rawAccessToken: raw };
 
-  it("matches a genuine submitted credential with the exact context digest", () => {
+  it("matches a genuine submitted credential with the exact resolver bearer", () => {
     expect(() =>
       requireRequestBearerPossession(authorization, context),
     ).not.toThrow();
@@ -21,7 +21,7 @@ describe("VAP1 Staff request raw bearer possession precondition", () => {
     for (const supplied of [
       undefined,
       "",
-      context.accessTokenHash,
+      staffCredentialHash("access", raw),
       "Bearer user-id",
     ]) {
       expect(() => requireRequestBearerPossession(supplied, context)).toThrow();
@@ -30,14 +30,15 @@ describe("VAP1 Staff request raw bearer possession precondition", () => {
 
   it("rejects stale or synthetic context even with a valid Bearer", () => {
     const other = generateStaffCredential("vsa1.");
-    for (const observedHash of [
+    for (const observedRaw of [
+      other,
+      generateStaffCredential("vsr1."),
       staffCredentialHash("access", other),
-      staffCredentialHash("refresh", other),
-      "0".repeat(64),
+      "vsa1.invalid",
     ]) {
       expect(() =>
         requireRequestBearerPossession(authorization, {
-          accessTokenHash: observedHash,
+          rawAccessToken: observedRaw,
         }),
       ).toThrow();
     }
@@ -56,10 +57,7 @@ describe("VAP1 Staff request raw bearer possession precondition", () => {
 
   it("never includes a submitted secret or stored hash in a failure message", () => {
     const staleContext = {
-      accessTokenHash: staffCredentialHash(
-        "access",
-        generateStaffCredential("vsa1."),
-      ),
+      rawAccessToken: generateStaffCredential("vsa1."),
     };
     try {
       requireRequestBearerPossession(authorization, staleContext);
@@ -67,7 +65,7 @@ describe("VAP1 Staff request raw bearer possession precondition", () => {
     } catch (error) {
       expect((error as Error).message).not.toContain(raw);
       expect((error as Error).message).not.toContain(
-        staleContext.accessTokenHash,
+        staleContext.rawAccessToken,
       );
     }
   });

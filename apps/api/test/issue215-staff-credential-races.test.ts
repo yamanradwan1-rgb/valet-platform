@@ -91,7 +91,7 @@ async function createCredential(ctx: RaceContext, scope: Scope) {
   const credential: StaffSessionContext = {
     userId: scope.userId,
     staffAuthSessionId: sessionId,
-    accessTokenHash: staffCredentialHash("access", accessToken),
+    rawAccessToken: accessToken,
     createdAt: inserted.rows[0]!.created_at,
   };
   return { credential, refreshToken };
@@ -190,7 +190,7 @@ describe("Issue #283 real StaffAuthSession T1/T2 credential races", () => {
       const rotated = await refresh;
       await mustReject;
       expect(await committedEvidence(ctx, lease)).toEqual({ selected: "0", audit_count: "0" });
-      const current = { ...credential, accessTokenHash: staffCredentialHash("access", rotated.accessToken) };
+      const current = { ...credential, rawAccessToken: rotated.accessToken };
       await finalizeConditionPhoto(ctx.pool, current, scope.sessionId, lease, facts);
       expect(await committedEvidence(ctx, lease)).toEqual({ selected: "1", audit_count: "1" });
     } finally { gate.release(); await refresh.catch(() => undefined); }

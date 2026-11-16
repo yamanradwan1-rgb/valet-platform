@@ -31,7 +31,8 @@ describe("#416 X01 exact Shift projection regression (not VAP1 authorization pro
     const transaction = { query } as unknown as PostgresTransaction;
     const context = {
       userId: randomUUID(), staffAuthSessionId: randomUUID(),
-      accessTokenHash: "not-authorization-evidence",
+      rawAccessToken: "vsa1." + "A".repeat(43),
+      createdAt: new Date(),
     } as StaffSessionContext;
     const result = await forceEndStaffShift(
       transaction, context, organizationId, shiftId, command,

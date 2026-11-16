@@ -5,7 +5,6 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import type { PostgresTransaction } from "../src/common/database/postgres";
 import { recordAdminActivityInTransaction } from "../src/modules/auth/mfa/mfa-assurance-policy";
-import { staffCredentialHash } from "../src/modules/auth/staff-auth-credential";
 import { StaffMfaTestFixture } from "./staff-mfa-test-fixture";
 
 const fixture = new StaffMfaTestFixture();
@@ -51,7 +50,7 @@ async function enroll() {
     admin,
     auth,
     context: {
-      accessTokenHash: staffCredentialHash("access", auth.accessToken),
+      rawAccessToken: auth.accessToken,
       createdAt: created.rows[0]!.created_at,
       staffAuthSessionId: auth.sessionId,
       userId: admin.userId,

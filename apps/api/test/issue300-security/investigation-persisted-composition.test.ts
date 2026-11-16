@@ -28,7 +28,7 @@ vi.mock("../../src/modules/management/management-authorization", () => ({
 const commercial = vi.mocked(hasManagementCommercialAccess);
 const mfa = vi.mocked(requireMfaAssuranceInTransaction);
 const context: StaffSessionContext = {
-  accessTokenHash: "token-hash",
+  rawAccessToken: "vsa1." + "A".repeat(43),
   createdAt: new Date("2026-10-17T10:00:00Z"),
   staffAuthSessionId: "exact-session",
   userId: "current-user",

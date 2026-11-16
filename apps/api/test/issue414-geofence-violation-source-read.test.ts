@@ -24,7 +24,7 @@ const scope = {
 const context = {
   userId: "00000000-0000-4000-8000-000000000004",
   staffAuthSessionId: "00000000-0000-4000-8000-000000000005",
-  accessTokenHash: "test-token-hash",
+  rawAccessToken: "vsa1." + "A".repeat(43),
   createdAt: new Date("2026-11-04T10:00:00Z"),
 };
 const eventId = "00000000-0000-4000-8000-000000000006";

@@ -1,6 +1,5 @@
 import { expect } from "vitest";
 
-import { staffCredentialHash } from "../src/modules/auth/staff-auth-credential";
 import type { StaffSessionContext } from "../src/modules/auth/staff-session-context";
 import { ManagementControlPlaneTestFixture } from "./management-control-plane-test-fixture";
 
@@ -50,7 +49,7 @@ export class ManagementAlertMfaFixture extends ManagementControlPlaneTestFixture
       [sessionId],
     );
     return {
-      accessTokenHash: staffCredentialHash("access", accessToken),
+      rawAccessToken: accessToken,
       createdAt: session.rows[0]!.created_at,
       staffAuthSessionId: sessionId,
       userId,

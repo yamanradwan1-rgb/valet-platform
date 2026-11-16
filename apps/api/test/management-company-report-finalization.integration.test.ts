@@ -38,9 +38,7 @@ async function context(
     [auth.sessionId],
   );
   return {
-    accessTokenHash: `staff-access-sha256:v1:${createHash("sha256")
-      .update(auth.accessToken)
-      .digest("hex")}`,
+    rawAccessToken: auth.accessToken,
     createdAt: session.rows[0]!.created_at,
     staffAuthSessionId: auth.sessionId,
     userId,

@@ -22,7 +22,7 @@ const ids = {
 const staffSessionContext = {
   userId: ids.actor,
   staffAuthSessionId: ids.session,
-  accessTokenHash: "hash",
+  rawAccessToken: "vsa1." + "A".repeat(43),
   createdAt: new Date("2026-10-29T12:00:00Z"),
 } satisfies StaffSessionContext;
 const taskAuthority = {

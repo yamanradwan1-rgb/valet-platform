@@ -1,7 +1,6 @@
 import { Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { PostgresTransaction } from "../src/common/database/postgres";
-import { staffCredentialHash } from "../src/modules/auth/staff-auth-credential";
 import { authorizeLiveHistoryLocation } from "../src/modules/dashboard/live-history-read-authorization";
 import { ManagementControlPlaneTestFixture } from "./management-control-plane-test-fixture";
 import { isolatedLiveHistoryLabConfigured } from "./live-history-owned-lab";
@@ -190,7 +189,7 @@ describe.runIf(isolatedLiveHistoryLabConfigured())(
       const scope = await authorizeLiveHistoryLocation(reader as PostgresTransaction, {
         authenticatedUserId: manager.user.id,
         staffSessionContext: {
-          accessTokenHash: staffCredentialHash("access", manager.auth.accessToken),
+          rawAccessToken: manager.auth.accessToken,
           createdAt: session.rows[0]!.created_at,
           staffAuthSessionId: manager.auth.sessionId,
           userId: manager.user.id,

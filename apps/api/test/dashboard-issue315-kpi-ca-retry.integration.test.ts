@@ -1,7 +1,6 @@
 import { Pool, type PoolClient } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { staffCredentialHash } from "../src/modules/auth/staff-auth-credential";
 import type { StaffSessionContext } from "../src/modules/auth/staff-session-context";
 import type { PostgresPool } from "../src/common/database/postgres";
 import { locationKpiAnalytics } from "../src/modules/dashboard/analytics-kpi-query";
@@ -43,7 +42,7 @@ async function authority(role: "LOCATION_MANAGER" | "ORG_ADMIN") {
   const context: StaffSessionContext = {
     userId: user.id, staffAuthSessionId: login.sessionId,
     createdAt: created.rows[0]!.created_at,
-    accessTokenHash: staffCredentialHash("access", login.accessToken),
+    rawAccessToken: login.accessToken,
   };
   return { userId: user.id, locationId: location.locationId, context };
 }

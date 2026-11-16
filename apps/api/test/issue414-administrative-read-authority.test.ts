@@ -13,7 +13,7 @@ const userId = "44444444-4444-4444-8444-444444444444";
 const context = {
   userId,
   staffAuthSessionId: "55555555-5555-4555-8555-555555555555",
-  accessTokenHash: "staff-access-sha256:v1:test",
+  rawAccessToken: "vsa1." + "A".repeat(43),
   createdAt: new Date("2026-11-04T00:00:00Z"),
 };
 type Role = "ORG_ADMIN" | "LOCATION_MANAGER" | "VALET_SUPERVISOR";

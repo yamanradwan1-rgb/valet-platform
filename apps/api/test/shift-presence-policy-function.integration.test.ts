@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { StaffSessionContext } from "../src/modules/auth/staff-session-context";
+import { staffCredentialHash } from "../src/modules/auth/staff-auth-credential";
 import { PresenceServerTestContext } from "./shift-presence-server-test-context";
 import type { ShiftFixture } from "./shift-test-context";
 
@@ -34,7 +35,7 @@ async function setPolicy(
       actor.userId,
       actor.membershipId,
       actor.context.staffAuthSessionId,
-      actor.context.accessTokenHash,
+      staffCredentialHash("access", actor.context.rawAccessToken ?? ""),
       fixture.organizationId,
       input.locationId ?? null,
       input.value,

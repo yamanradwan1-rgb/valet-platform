@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   generateStaffCredential,
-  staffCredentialHash,
 } from "../src/modules/auth/staff-auth-credential";
 import type { StaffSessionContextResolver } from "../src/modules/auth/staff-session-context";
 import { MfaAntiAbuse } from "../src/modules/auth/mfa/mfa-anti-abuse";
@@ -15,10 +14,7 @@ describe("VAP1 MFA entrypoints do not trust a resolver context without raw Beare
   it("denies a forged context across all five MFA write paths before DB/limiter use", async () => {
     const actualAuthorization = `Bearer ${generateStaffCredential("vsa1.")}`;
     const fakeContext = {
-      accessTokenHash: staffCredentialHash(
-        "access",
-        generateStaffCredential("vsa1."),
-      ),
+      rawAccessToken: generateStaffCredential("vsa1."),
       createdAt: new Date(),
       staffAuthSessionId: "00000000-0000-4000-8000-000000000002",
       userId: "00000000-0000-4000-8000-000000000001",

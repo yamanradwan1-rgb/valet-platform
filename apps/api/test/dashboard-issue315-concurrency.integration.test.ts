@@ -1,7 +1,6 @@
 import { Pool, type PoolClient } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { staffCredentialHash } from "../src/modules/auth/staff-auth-credential";
 import type { StaffSessionContext } from "../src/modules/auth/staff-session-context";
 import { authorizeDashboardReadLocation } from "../src/modules/dashboard/dashboard-read-authorization";
 import { ManagementControlPlaneTestFixture } from "./management-control-plane-test-fixture";
@@ -83,7 +82,7 @@ async function createScenario(): Promise<Scenario> {
   return {
     adminMembershipId,
     context: {
-      accessTokenHash: staffCredentialHash("access", auth.accessToken),
+      rawAccessToken: auth.accessToken,
       createdAt: session.rows[0]!.created_at,
       staffAuthSessionId: auth.sessionId,
       userId: actor.id,
@@ -269,7 +268,7 @@ describe.runIf(labEnabled)("Issue #315 isolated PG grant/read race", () => {
     const second = { ...actor, userId: sibling.id, membershipId, sessionId: session.sessionId,
       context: { userId: sibling.id, staffAuthSessionId: session.sessionId,
         createdAt: created.rows[0]!.created_at,
-        accessTokenHash: staffCredentialHash("access", session.accessToken) } };
+        rawAccessToken: session.accessToken } };
     const [first, other, writer] = await Promise.all([getClient(), getClient(), getClient()]);
     try {
       expect(await read(first, actor)).toEqual(scope(actor));

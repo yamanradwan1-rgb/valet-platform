@@ -19,7 +19,7 @@ const sourceId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const sessionId = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 const input: ManagementAlertExactReaderInput = {
   context: {
-    accessTokenHash: "token-hash",
+    rawAccessToken: "vsa1." + "A".repeat(43),
     createdAt: new Date("2026-11-03T00:00:00Z"),
     staffAuthSessionId: "auth-session",
     userId: "user",

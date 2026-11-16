@@ -13,7 +13,7 @@ const request = {
 const credential: StaffSessionContext = {
   userId: request.authenticatedUserId,
   staffAuthSessionId: "33333333-3333-4333-8333-333333333333",
-  accessTokenHash: "for-test-only-hash",
+  rawAccessToken: "vsa1." + "A".repeat(43),
   createdAt: new Date("2026-10-15T00:00:00.000Z"),
 };
 

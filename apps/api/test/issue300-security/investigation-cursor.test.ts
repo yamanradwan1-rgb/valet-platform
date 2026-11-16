@@ -29,7 +29,7 @@ const scope = {
 const context: StaffSessionContext = {
   staffAuthSessionId: "01000000-0000-4000-a000-000000000004",
   userId: "01000000-0000-4000-a000-000000000005",
-  accessTokenHash: "private-test-hash",
+  rawAccessToken: "vsa1." + "A".repeat(43),
   createdAt: new Date("2026-10-17T10:00:00.000Z"),
 };
 const now = new Date("2026-10-17T12:00:00.000Z");

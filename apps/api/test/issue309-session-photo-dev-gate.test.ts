@@ -20,7 +20,7 @@ const input: DashboardSessionPhotoViewInput = {
   targetSessionId: "visit-A",
   staffSessionContext: {
     userId: "user-A", staffAuthSessionId: "staff-session-A",
-    accessTokenHash: "token-hash-A",
+    rawAccessToken: "vsa1." + "A".repeat(43),
     createdAt: new Date("2026-10-21T00:00:00Z"),
   },
 };

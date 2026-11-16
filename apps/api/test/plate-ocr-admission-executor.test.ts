@@ -23,7 +23,7 @@ const ids = {
 const context: StaffSessionContext = {
   staffAuthSessionId: ids.session,
   userId: ids.user,
-  accessTokenHash: "test-token-hash",
+  rawAccessToken: "vsa1." + "A".repeat(43),
   createdAt: new Date("2026-01-01T00:00:00.000Z"),
 };
 

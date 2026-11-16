@@ -17,7 +17,7 @@ vi.mock("../src/modules/auth/staff-session-revalidation", () => ({
 
 const input: ManagementAlertReaderInput = {
   context: {
-    accessTokenHash: "test-token-hash",
+    rawAccessToken: "vsa1." + "A".repeat(43),
     createdAt: new Date("2026-11-04T00:00:00.000Z"),
     staffAuthSessionId: "staff-session",
     userId: "current-user",

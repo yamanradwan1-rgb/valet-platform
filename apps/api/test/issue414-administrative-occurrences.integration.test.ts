@@ -1,4 +1,4 @@
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Pool } from "pg";
 import { inPostgresTransaction } from "../src/common/database/postgres-transaction";
@@ -212,7 +212,7 @@ describe("Issue 414 P3 source-backed administrative OCCURRENCES", () => {
     const lmContext: StaffSessionContext = {
       userId: lmUser.id,
       staffAuthSessionId: lmAuth.sessionId,
-      accessTokenHash: `staff-access-sha256:v1:${createHash("sha256").update(lmAuth.accessToken).digest("hex")}`,
+      rawAccessToken: lmAuth.accessToken,
       createdAt: lmSession.rows[0]!.createdAt,
     };
     await expect(readSecurity(s, lmContext)).rejects.toBeInstanceOf(

@@ -11,7 +11,7 @@ import type {
 const localDatabase =
   "postgresql://runtime:local-password@localhost:5432/valet";
 const sessionContext: StaffSessionContext = {
-  accessTokenHash: "staff-access-sha256:v1:test",
+  rawAccessToken: "vsa1." + "A".repeat(43),
   createdAt: new Date("2026-09-25T00:00:00.000Z"),
   staffAuthSessionId: "00000000-0000-4000-8000-000000000001",
   userId: "00000000-0000-4000-8000-000000000002",

@@ -17,7 +17,7 @@ describe("Issue416 reset cannot use the development MFA bypass", () => {
     await expect(preflightPasswordResetTarget(
       transaction as never,
       {
-        accessTokenHash: "synthetic",
+        rawAccessToken: "vsa1." + "A".repeat(43),
         staffAuthSessionId: randomUUID(),
         userId: randomUUID(),
         createdAt: new Date(),

@@ -20,7 +20,7 @@ const actor = randomUUID();
 const targetUser = randomUUID();
 const targetMembership = randomUUID();
 const context: StaffSessionContext = {
-  accessTokenHash: "not-a-bearer-proof",
+  rawAccessToken: "vsa1." + "A".repeat(43),
   createdAt: new Date(),
   staffAuthSessionId: randomUUID(),
   userId: actor,

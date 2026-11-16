@@ -20,7 +20,7 @@ vi.mock("../../src/modules/management/management-authorization", () => ({
 
 const underlying = vi.mocked(authorizeManagementAuditLocation);
 const credential: StaffSessionContext = {
-  accessTokenHash: "server-derived-token-hash",
+  rawAccessToken: "vsa1." + "A".repeat(43),
   createdAt: new Date("2026-10-17T00:00:00Z"),
   staffAuthSessionId: "staff-session-1",
   userId: "user-1",

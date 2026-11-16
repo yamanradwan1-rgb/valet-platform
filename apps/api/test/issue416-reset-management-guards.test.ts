@@ -20,7 +20,7 @@ const organizationId = randomUUID();
 const membershipId = randomUUID();
 const targetUserId = randomUUID();
 const context: StaffSessionContext = {
-  accessTokenHash: "hash-only-preflight",
+  rawAccessToken: "vsa1." + "A".repeat(43),
   createdAt: new Date(),
   staffAuthSessionId: randomUUID(),
   userId: randomUUID(),

@@ -1,7 +1,6 @@
 import { Pool, type PoolClient } from "pg";
 import { expect } from "vitest";
 
-import { staffCredentialHash } from "../src/modules/auth/staff-auth-credential";
 import type { StaffSessionContext } from "../src/modules/auth/staff-session-context";
 import { authorizeLiveHistoryLocation } from "../src/modules/dashboard/live-history-read-authorization";
 import { ManagementControlPlaneTestFixture } from "./management-control-plane-test-fixture";
@@ -242,7 +241,7 @@ export class LiveHistoryAuthorizationRaceFixture {
       [auth.sessionId],
     );
     return {
-      accessTokenHash: staffCredentialHash("access", auth.accessToken),
+      rawAccessToken: auth.accessToken,
       createdAt: session.rows[0]!.created_at,
       staffAuthSessionId: auth.sessionId,
       userId,

@@ -47,7 +47,7 @@ describe("Issue416 P0-C: source credential helpers are NOT signer capabilities",
 
   it("a matching bearer/hash pair does not establish DB session authority", () => {
     const raw = `vsa1.${Buffer.alloc(32, 0x7d).toString("base64url")}`;
-    const context = { accessTokenHash: staffCredentialHash("access", raw) };
+    const context = { rawAccessToken: raw };
     expect(() =>
       requireRequestBearerPossession(`Bearer ${raw}`, context),
     ).not.toThrow();

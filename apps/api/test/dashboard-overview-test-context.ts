@@ -1,4 +1,5 @@
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
+import { generateStaffCredential, staffCredentialHash } from "../src/modules/auth/staff-auth-credential";
 
 import type { StaffSessionContext } from "../src/modules/auth/staff-session-context";
 
@@ -23,9 +24,8 @@ export class DashboardOverviewTestContext extends DashboardTestContext {
 
   async staffSessionContext(userId: string): Promise<StaffSessionContext> {
     const sessionId = randomUUID();
-    const accessTokenHash = `staff-access-sha256:v1:${createHash("sha256")
-      .update(randomUUID())
-      .digest("hex")}`;
+    const rawAccessToken = generateStaffCredential("vsa1.");
+    const accessTokenHash = staffCredentialHash("access", rawAccessToken);
     const inserted = await this.adminPool.query<{ readonly created_at: Date }>(
       `WITH decision AS (SELECT clock_timestamp() AS now)
        INSERT INTO staff_auth_sessions
@@ -41,7 +41,7 @@ export class DashboardOverviewTestContext extends DashboardTestContext {
     if (createdAt === undefined)
       throw new Error("Staff test session was not created.");
     return {
-      accessTokenHash,
+      rawAccessToken,
       createdAt,
       staffAuthSessionId: sessionId,
       userId,

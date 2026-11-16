@@ -5,17 +5,14 @@ vi.mock("../src/modules/management/issue416-password-reset-authority", () => ({
   preflightPasswordResetTarget: vi.fn(),
 }));
 
-import {
-  generateStaffCredential,
-  staffCredentialHash,
-} from "../src/modules/auth/staff-auth-credential";
+import { generateStaffCredential } from "../src/modules/auth/staff-auth-credential";
 import { preflightPasswordResetTarget } from "../src/modules/management/issue416-password-reset-authority";
 import { resolveIssue416ResetCaller } from "../src/modules/management/issue416-password-reset-caller";
 
 const bearer = generateStaffCredential("vsa1.");
 const authorization = `Bearer ${bearer}`;
 const context = {
-  accessTokenHash: staffCredentialHash("access", bearer),
+  rawAccessToken: bearer,
   createdAt: new Date(),
   staffAuthSessionId: randomUUID(),
   userId: randomUUID(),
@@ -48,10 +45,10 @@ describe("Issue416 genuine bearer-bound management preflight", () => {
     expect(pool.connect).not.toHaveBeenCalled();
   });
 
-  it("denies a forged context hash despite the resolver claiming an active session", async () => {
+  it("denies a forged context bearer despite the resolver claiming an active session", async () => {
     const { sessions, pool } = setup({
       ...context,
-      accessTokenHash: staffCredentialHash("access", generateStaffCredential("vsa1.")),
+      rawAccessToken: generateStaffCredential("vsa1."),
     });
     await expect(resolveIssue416ResetCaller(
       pool as never, sessions as never, authorization, organizationId, membershipId,
