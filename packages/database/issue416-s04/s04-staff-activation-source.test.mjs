@@ -37,8 +37,11 @@ const grants = read("packages/database/scripts/staff-auth-writer-grants.mjs");
 const verifier = read(
   "packages/database/scripts/verify-staff-auth-writer-grants.mjs",
 );
-const acl = read(
-  "packages/database/scripts/option-c-protected-cutover-acl.mjs",
+const aclContract = read(
+  "packages/database/scripts/option-c-protected-cutover-acl-contract.mjs",
+);
+const aclRetirement = read(
+  "packages/database/scripts/option-c-protected-cutover-acl-retirement.mjs",
 );
 
 test("activation S04 is a new forward-only migration, not a rewrite", () => {
@@ -109,16 +112,17 @@ test("same verified invite and Argon2 path, same protected transaction, no gener
 });
 
 test("protected writer alone can finalize activation; writer verifiers fence all others", () => {
-  assert.match(grants, /"staffActivation", role, runtimeRole/);
+  // A line wrap must not weaken the exact protected-writer grant argument order.
+  assert.match(grants, /"staffActivation",\s*role,\s*runtimeRole/);
   assert.match(
     verifier,
     /public\.s04_staff_activation_success\(uuid,text,text,text,xid8,uuid,bigint,text\)/,
   );
   assert.match(
-    acl,
+    aclContract,
     /"public\.s04_staff_activation_success\(uuid,text,text,text,xid8,uuid,bigint,text\)"/,
   );
-  assert.match(acl, /optionCFunctionContract\.staffAuth\[2\]/);
+  assert.match(aclRetirement, /optionCFunctionContract\.staffAuth\[2\]/);
   assert.doesNotMatch(grants, /GRANT EXECUTE ON FUNCTION public\.s04_finalize/);
   assert.match(signer, /signS04StaffActivationSuccess/);
   assert.match(signer, /STAFF_ACTIVATION/);

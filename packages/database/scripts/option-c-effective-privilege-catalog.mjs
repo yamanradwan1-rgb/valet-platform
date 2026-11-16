@@ -8,8 +8,11 @@ export const catalogQueries = {
   roles: `SELECT r.rolname AS role, r.rolcanlogin AS login, r.rolinherit AS inherit,
     r.rolsuper AS superuser, r.rolcreatedb AS create_database,
     r.rolcreaterole AS create_role, r.rolreplication AS replication,
-    r.rolbypassrls AS bypass_rls
-    FROM pg_catalog.pg_roles r WHERE r.rolname = ANY($1::text[])`,
+    r.rolbypassrls AS bypass_rls, database_owner.rolname AS database_owner
+    FROM pg_catalog.pg_roles r
+    JOIN pg_catalog.pg_database db ON db.datname=pg_catalog.current_database()
+    JOIN pg_catalog.pg_roles database_owner ON database_owner.oid=db.datdba
+    WHERE r.rolname = ANY($1::text[])`,
   memberships: `${roleCross} SELECT r.rolname AS role, parent.rolname AS object,
     pg_catalog.pg_has_role(r.oid, parent.oid, 'MEMBER') AS member,
     pg_catalog.pg_has_role(r.oid, parent.oid, 'USAGE') AS effective_inherit,
@@ -55,7 +58,7 @@ export const catalogQueries = {
     JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
     JOIN pg_catalog.pg_roles owner ON owner.oid=c.relowner
     CROSS JOIN (VALUES ('SELECT'),('INSERT'),('UPDATE'),('DELETE'),
-      ('TRUNCATE'),('REFERENCES'),('TRIGGER')) p(privilege)
+      ('TRUNCATE'),('REFERENCES'),('TRIGGER'),('MAINTAIN')) p(privilege)
     LEFT JOIN LATERAL (SELECT jsonb_agg(jsonb_build_object(
       'grantee', CASE WHEN x.grantee=0 THEN 'PUBLIC' ELSE x.grantee::pg_catalog.regrole::text END,
       'grantor', x.grantor::pg_catalog.regrole::text,
