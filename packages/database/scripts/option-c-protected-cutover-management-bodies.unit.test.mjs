@@ -23,9 +23,21 @@ const lockOrderedAuthorizationSql = readFileSync(
   ),
   "utf8",
 ).replace(/\r\n/g, "\n");
+const runtimeBearerSql = readFileSync(
+  new URL(
+    "../prisma/migrations/20261116000300_option_c_management_raw_bearer_authority/migration.sql",
+    import.meta.url,
+  ),
+  "utf8",
+).replace(/\r\n/g, "\n");
 
 test("S03 installed-function SHA pins match the reviewed raw-token SQL source", () => {
-  assert.equal(pinnedOptionCManagementBodies.length, 7);
+  assert.equal(pinnedOptionCManagementBodies.length, 10);
+  const runtimeBearers = new Set([
+    "shift_presence_set_policy",
+    "staff_shift_force_end",
+    "shift_presence_lock_management_entitlement",
+  ]);
   for (const [signature, digest] of pinnedOptionCManagementBodies) {
     const name = signature.slice("public.".length, signature.indexOf("("));
     const lockOrderedNames = new Set([
@@ -33,20 +45,33 @@ test("S03 installed-function SHA pins match the reviewed raw-token SQL source", 
       "staff_management_authorized_onboarding_create",
       "staff_management_authorized_onboarding_resend",
     ]);
-    const reviewedSource = lockOrderedNames.has(name)
-      ? lockOrderedAuthorizationSql
-      : sql;
-    const create = lockOrderedNames.has(name)
-      ? `CREATE OR REPLACE FUNCTION public.${name}(`
-      : `CREATE FUNCTION public.${name}(`;
+    const reviewedSource = runtimeBearers.has(name)
+      ? runtimeBearerSql
+      : lockOrderedNames.has(name)
+        ? lockOrderedAuthorizationSql
+        : sql;
+    const create =
+      runtimeBearers.has(name) || lockOrderedNames.has(name)
+        ? `CREATE OR REPLACE FUNCTION public.${name}(`
+        : `CREATE FUNCTION public.${name}(`;
     const start = reviewedSource.indexOf(create);
     assert.ok(start >= 0, name);
-    const bodyStart = reviewedSource.indexOf("AS $$", start) + 5;
-    const bodyEnd = reviewedSource.indexOf("$$;", bodyStart);
-    assert.ok(bodyStart >= start + 5 && bodyEnd > bodyStart);
+    const quote =
+      name === "shift_presence_lock_management_entitlement"
+        ? "$presence_entitlement$"
+        : "$$";
+    const opening = reviewedSource.indexOf(`AS ${quote}`, start);
+    const bodyStart = opening + 3 + quote.length;
+    const bodyEnd = reviewedSource.indexOf(`${quote};`, bodyStart);
+    assert.ok(opening >= start && bodyStart > opening && bodyEnd > bodyStart);
     const body = reviewedSource.slice(bodyStart, bodyEnd);
-    assert.match(body, /p_access_token/);
-    assert.doesNotMatch(body, /p_access_hash/);
+    if (runtimeBearers.has(name)) {
+      assert.match(body, /pg_catalog\.sha256\(pg_catalog\.convert_to\(/);
+      assert.match(body, /current_access_token_hash/);
+    } else {
+      assert.match(body, /p_access_token/);
+      assert.doesNotMatch(body, /p_access_hash/);
+    }
     assert.equal(createHash("sha256").update(body).digest("hex"), digest, name);
   }
   const advisory = lockOrderedAuthorizationSql.indexOf("staff-user-security:");
@@ -92,6 +117,13 @@ test("S03 cutover rejects old installed SQL even when migration was marked appli
   await assert.rejects(
     verifyOptionCManagementBodies(client),
     /installed function differs/,
+  );
+  good.set(first, pinnedOptionCManagementBodies[0][1]);
+  const presencePolicy = pinnedOptionCManagementBodies[1][0];
+  good.set(presencePolicy, "0".repeat(64));
+  await assert.rejects(
+    verifyOptionCManagementBodies(client),
+    /installed function differs.*staff_shift_force_end/,
   );
 });
 

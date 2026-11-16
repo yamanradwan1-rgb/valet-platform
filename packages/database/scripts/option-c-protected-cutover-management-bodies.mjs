@@ -1,7 +1,19 @@
-// Canonical LF SHA-256 of each exact S03 PL/pgSQL body. A previously applied
+// Canonical LF SHA-256 of each exact bearer-bound PL/pgSQL body. A previously applied
 // migration with stale hash-based bearer authorization must never be admitted
 // by a protected cutover merely because Prisma reports its name as applied.
 export const pinnedOptionCManagementBodies = Object.freeze([
+  [
+    "public.shift_presence_set_policy(uuid,uuid,uuid,text,uuid,uuid,text,text,boolean,integer,integer,uuid)",
+    "7e5b13ab27c90de3ac208139d64e1bbdc0ae51662b77b7b90a46537fbcfe800e",
+  ],
+  [
+    "public.staff_shift_force_end(uuid,uuid,text,uuid,uuid,uuid,text,text,text)",
+    "c5f177299e32b56166bbfcf626a6948847d5b868e334f0283e932830081d8fc7",
+  ],
+  [
+    "public.shift_presence_lock_management_entitlement(uuid,uuid,text,uuid)",
+    "b60638608469027c85952df5bf66ed58aeb490faff355385d4817ae6b94e060f",
+  ],
   [
     "public.staff_management_authorize_writer(uuid,uuid,text,uuid,uuid)",
     "2269c88c2103fa518d6baa0f2466396e7db5cb350ef01e59b2e653d7fd240b06",
@@ -45,7 +57,7 @@ export async function verifyOptionCManagementBodies(client) {
     );
     if (result.rowCount !== 1 || result.rows[0]?.body_sha256 !== expected) {
       throw new Error(
-        `Option C S03 installed function differs from approved bearer contract: ${signature}.`,
+        `Option C installed function differs from approved bearer contract: ${signature}.`,
       );
     }
   }
