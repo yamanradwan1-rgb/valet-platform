@@ -3,7 +3,11 @@ import { verifyOptionCRoleIsolation } from "./option-c-protected-cutover-roles.m
 import { optionCRoles } from "./option-c-protected-cutover-state.mjs";
 import { assertOptionCRevocationIsMonotonic } from "./option-c-protected-cutover-revocation.mjs";
 import { verifyManagementWriterPrivileges } from "./management-writer-privileges.mjs";
+import { verifyManagementWriterFunctionInventory } from "./management-writer-function-inventory.mjs";
+import { verifyStaffAuthWriterGrants } from "./verify-staff-auth-writer-grants.mjs";
 import { verifyOptionCManagementBodies } from "./option-c-protected-cutover-management-bodies.mjs";
+import { verifyS04RuntimePrivileges } from "./s04-runtime-privileges.mjs";
+import { assertOptionCFunctionReady } from "./option-c-protected-function-readiness.mjs";
 
 const writerColumns = Object.freeze({
   [optionCRoles.staffAuthWriter]: {
@@ -88,46 +92,20 @@ async function assertColumns(client, role, table, privilege, columns) {
   }
 }
 
-async function assertFunctionReady(client, signature, role, expectedPath) {
-  const result = await client.query(
-    `SELECT function.prosecdef,owner.rolname AS owner,function.proconfig,
-            pg_catalog.has_function_privilege($2,function.oid,'EXECUTE') AS allowed,
-            NOT EXISTS (
-              SELECT 1 FROM pg_catalog.aclexplode(COALESCE(
-                function.proacl,pg_catalog.acldefault('f',function.proowner))) acl
-              WHERE acl.grantee=0 AND acl.privilege_type='EXECUTE'
-            ) AS public_denied,
-            NOT EXISTS (
-              SELECT 1 FROM pg_catalog.aclexplode(COALESCE(
-                function.proacl,pg_catalog.acldefault('f',function.proowner))) acl
-              WHERE acl.privilege_type='EXECUTE' AND acl.grantee<>function.proowner
-                AND acl.is_grantable
-            ) AS grant_option_denied
-       FROM pg_catalog.pg_proc function
-       JOIN pg_catalog.pg_roles owner ON owner.oid=function.proowner
-       WHERE function.oid=pg_catalog.to_regprocedure($1)`,
-    [signature, role],
-  );
-  const row = result.rows[0];
-  if (
-    result.rowCount !== 1 ||
-    row?.prosecdef !== true ||
-    row.allowed !== true ||
-    row.public_denied !== true ||
-    row.grant_option_denied !== true ||
-    row.owner === role ||
-    !Array.isArray(row.proconfig) ||
-    !row.proconfig.includes(expectedPath)
-  ) {
-    throw new Error(`Option C protected function ${signature} is not ready.`);
-  }
-}
-
-async function assertRetiredTargetsExist(client) {
+async function assertRetiredTargetsExist(client, expectedOwner) {
   for (const signature of optionCFunctionContract.retiredManagement) {
     const result = await client.query(
-      `SELECT function.prosecdef,function.proconfig
+      `SELECT function.prosecdef,function.proconfig,owner.rolname AS owner,
+              owner.rolinherit AS owner_inherit,
+              owner.rolsuper AS owner_superuser,
+              owner.rolcreatedb AS owner_create_db,
+              owner.rolcreaterole AS owner_create_role,
+              owner.rolreplication AS owner_replication,
+              owner.rolbypassrls AS owner_bypass_rls,
+              pg_catalog.has_database_privilege(owner.oid,pg_catalog.current_database(),'CREATE') AS owner_database_create,
+              pg_catalog.has_schema_privilege(owner.oid,'public','CREATE') AS owner_public_create
          FROM pg_catalog.pg_proc function
+         JOIN pg_catalog.pg_roles owner ON owner.oid=function.proowner
          WHERE function.oid=pg_catalog.to_regprocedure($1)`,
       [signature],
     );
@@ -135,6 +113,15 @@ async function assertRetiredTargetsExist(client) {
     if (
       result.rowCount !== 1 ||
       row?.prosecdef !== true ||
+      row.owner !== expectedOwner ||
+      row.owner_inherit !== false ||
+      row.owner_superuser !== false ||
+      row.owner_create_db !== false ||
+      row.owner_create_role !== false ||
+      row.owner_replication !== false ||
+      row.owner_bypass_rls !== false ||
+      row.owner_database_create !== false ||
+      row.owner_public_create !== false ||
       !Array.isArray(row.proconfig) ||
       !row.proconfig.includes("search_path=pg_catalog, public")
     ) {
@@ -142,6 +129,15 @@ async function assertRetiredTargetsExist(client) {
         `Option C retirement target ${signature} is missing or unsafe.`,
       );
     }
+  }
+  const unsignedS04 = await client.query(
+    "SELECT pg_catalog.to_regprocedure($1) IS NULL AS absent",
+    ["public.s04_staff_activation_success(uuid,text,text,text)"],
+  );
+  if (unsignedS04.rowCount !== 1 || unsignedS04.rows[0]?.absent !== true) {
+    throw new Error(
+      "Option C unsigned S04 activation overload remains installed.",
+    );
   }
 }
 
@@ -168,11 +164,45 @@ export async function verifyOptionCProtectedReadiness(
   await verifyOptionCManagementBodies(client);
   await assertOptionCRevocationIsMonotonic(client, runtimeRole);
   await verifyOptionCRoleIsolation(client, runtimeRole, migrationRole);
+  await verifyS04RuntimePrivileges(client, runtimeRole, migrationRole, {
+    requireTrustedOwnerAttributes: true,
+  });
   await verifyManagementWriterPrivileges(
     client,
     optionCRoles.managementWriter,
     runtimeRole,
+    migrationRole,
   );
+  await verifyManagementWriterFunctionInventory(
+    client,
+    optionCRoles.managementWriter,
+    migrationRole,
+  );
+  await verifyStaffAuthWriterGrants(
+    client,
+    optionCRoles.staffAuthWriter,
+    runtimeRole,
+    migrationRole,
+  );
+  // These independently owned verification modules become available when the
+  // W73 session-lock and W74 MFA SQL/ACL branches are integrated. Missing
+  // modules fail the cutover closed until that integration is complete.
+  const { verifyMfaProtectedWriterPrivileges } =
+    await import("./mfa-protected-writer-verification.mjs");
+  await verifyMfaProtectedWriterPrivileges(
+    client,
+    runtimeRole,
+    migrationRole,
+    optionCRoles.mfaWriter,
+  );
+  const { verifyStaffSessionLockAcl } =
+    await import("./option-c-staff-session-lock-acl.mjs");
+  await verifyStaffSessionLockAcl(client, runtimeRole, migrationRole, [
+    runtimeRole,
+    optionCRoles.staffAuthWriter,
+    optionCRoles.mfaWriter,
+    optionCRoles.managementWriter,
+  ]);
   for (const [role, tables] of Object.entries(writerColumns)) {
     for (const [table, privileges] of Object.entries(tables)) {
       for (const [privilege, columns] of Object.entries(privileges)) {
@@ -181,44 +211,50 @@ export async function verifyOptionCProtectedReadiness(
     }
   }
 
-  await assertFunctionReady(
+  await assertOptionCFunctionReady(
     client,
     optionCFunctionContract.staffAuth[0],
     optionCRoles.staffAuthWriter,
     "search_path=pg_catalog, public",
+    migrationRole,
   );
-  await assertFunctionReady(
+  await assertOptionCFunctionReady(
     client,
     optionCFunctionContract.staffAuth[1],
     optionCRoles.staffAuthWriter,
     "search_path=pg_catalog",
+    migrationRole,
   );
-  await assertFunctionReady(
+  await assertOptionCFunctionReady(
     client,
     optionCFunctionContract.staffAuth[2],
     optionCRoles.staffAuthWriter,
     "search_path=pg_catalog",
+    migrationRole,
   );
-  await assertFunctionReady(
+  await assertOptionCFunctionReady(
     client,
     optionCFunctionContract.mfa[0],
     optionCRoles.mfaWriter,
     "search_path=pg_catalog",
+    migrationRole,
   );
   for (const signature of optionCFunctionContract.management) {
-    await assertFunctionReady(
+    await assertOptionCFunctionReady(
       client,
       signature,
       optionCRoles.managementWriter,
       "search_path=pg_catalog, public",
+      migrationRole,
     );
   }
-  await assertFunctionReady(
+  await assertOptionCFunctionReady(
     client,
     optionCFunctionContract.mfaActivity,
     runtimeRole,
     "search_path=pg_catalog",
+    migrationRole,
   );
-  await assertRetiredTargetsExist(client);
+  await assertRetiredTargetsExist(client, migrationRole);
   await assertPrivateKeysReady(client);
 }

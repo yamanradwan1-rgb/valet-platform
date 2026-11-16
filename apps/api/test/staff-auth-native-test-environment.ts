@@ -1,6 +1,18 @@
-import { randomBytes } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 
-type RunPnpm = (args: string[], environment: NodeJS.ProcessEnv) => Promise<void>;
+type RunPnpm = (
+  args: string[],
+  environment: NodeJS.ProcessEnv,
+) => Promise<void>;
+
+export function createFixtureStaffAuthWriterIdentity(applicationUrl: string) {
+  const suffix = `${process.pid}_${randomBytes(4).toString("hex")}`;
+  const role = `vaylet_staff_auth_writer_${suffix}`;
+  const url = new URL(applicationUrl);
+  url.username = role;
+  url.password = `staff-writer-${randomUUID()}`;
+  return { role, url: url.toString() };
+}
 
 export class StaffAuthNativeProofKeys {
   readonly antiAbuseHmac = randomBytes(32).toString("base64url");
@@ -23,7 +35,13 @@ export class StaffAuthNativeProofKeys {
     applicationUrl: string,
   ): Promise<void> {
     await runPnpm(
-      ["--filter", "@valet/database", "exec", "node", "scripts/provision-s04-proof-key.mjs"],
+      [
+        "--filter",
+        "@valet/database",
+        "exec",
+        "node",
+        "scripts/provision-s04-proof-key.mjs",
+      ],
       {
         ...this.environment(),
         DATABASE_URL: applicationUrl,
@@ -54,9 +72,10 @@ export function resolveProtectedWriterEnvironment(
   requestedProtectedMode: string | undefined,
   activityRoot: string,
 ) {
-  const protectedMode = requestedProtectedMode === "1" ||
+  const protectedMode =
+    requestedProtectedMode === "1" ||
     explicit.MFA_PROTECTED_WRITER_ENABLED === "true";
-  const writers = {
+  const writers: Record<string, string> = {
     ...explicit,
     MFA_PROTECTED_WRITER_ENABLED: protectedMode ? "true" : "false",
     ...(protectedMode
@@ -67,6 +86,25 @@ export function resolveProtectedWriterEnvironment(
         }
       : {}),
   };
+  const staffWriterUrl = writers.STAFF_AUTH_WRITER_DATABASE_URL;
+  if (!staffWriterUrl) {
+    throw new Error(
+      "Staff Auth native fixture requires a dedicated writer URL.",
+    );
+  }
+  const staffAuthWriterRole = decodeURIComponent(
+    new URL(staffWriterUrl).username,
+  );
+  if (
+    !/^[a-z_][a-z0-9_]{0,62}$/.test(staffAuthWriterRole) ||
+    (explicit.STAFF_AUTH_WRITER_ROLE !== undefined &&
+      explicit.STAFF_AUTH_WRITER_ROLE !== staffAuthWriterRole)
+  ) {
+    throw new Error(
+      "Staff Auth native fixture writer role does not match its URL.",
+    );
+  }
+  writers.STAFF_AUTH_WRITER_ROLE = staffAuthWriterRole;
   const protectedMfaRole = protectedMode
     ? decodeURIComponent(new URL(writers.MFA_WRITER_DATABASE_URL!).username)
     : undefined;
@@ -80,11 +118,23 @@ export async function provisionStaffAuthWriter(
   writers: Record<string, string>,
 ): Promise<void> {
   const writerUrl = writers.STAFF_AUTH_WRITER_DATABASE_URL;
-  if (!writerUrl) return;
-  await runPnpm(["--filter", "@valet/database", "staff-auth-writer:provision"], {
-    DATABASE_URL: applicationUrl,
-    MIGRATION_DATABASE_URL: migrationUrl,
-    STAFF_AUTH_WRITER_DATABASE_URL: writerUrl,
-    NODE_ENV: "test",
-  });
+  if (!writerUrl) {
+    throw new Error("Staff Auth writer provisioning requires a dedicated URL.");
+  }
+  const role = decodeURIComponent(new URL(writerUrl).username);
+  if (writers.STAFF_AUTH_WRITER_ROLE !== role) {
+    throw new Error(
+      "Staff Auth writer provisioning role does not match its URL.",
+    );
+  }
+  await runPnpm(
+    ["--filter", "@valet/database", "staff-auth-writer:provision"],
+    {
+      DATABASE_URL: applicationUrl,
+      MIGRATION_DATABASE_URL: migrationUrl,
+      STAFF_AUTH_WRITER_DATABASE_URL: writerUrl,
+      STAFF_AUTH_WRITER_ROLE: role,
+      NODE_ENV: "test",
+    },
+  );
 }

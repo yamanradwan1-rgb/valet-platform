@@ -1,4 +1,5 @@
 // Staff session issuance belongs exclusively to the dedicated Auth writer.
+import { runtimeStaffSessionReadColumns } from "./staff-auth-writer-grants.mjs";
 export const mfaSessionInsertColumns = [];
 
 export const mfaSessionUpdateColumns = [
@@ -33,8 +34,13 @@ export const mfaRecoveryInsertColumns = [
 export const mfaRefreshUpdateColumns = [];
 
 const sessionColumns = [
-  "id", "user_id", "current_access_token_hash", "access_expires_at",
-  "absolute_expires_at", "created_at", "last_rotated_at",
+  "id",
+  "user_id",
+  "current_access_token_hash",
+  "access_expires_at",
+  "absolute_expires_at",
+  "created_at",
+  "last_rotated_at",
   ...mfaSessionUpdateColumns,
 ];
 const refreshColumns = [
@@ -132,35 +138,53 @@ export async function provisionMfaPrivileges(
     );
   }
 
-  await executeFormatted(
-    client,
-    "GRANT SELECT ON TABLE staff_auth_sessions TO %I",
-    [runtimeRole],
-  );
+  if (staffAuthProtected) {
+    for (const [table, columns] of Object.entries(
+      runtimeStaffSessionReadColumns,
+    )) {
+      await grantColumns(
+        client,
+        executeFormatted,
+        runtimeRole,
+        "SELECT",
+        table,
+        columns,
+      );
+    }
+  } else {
+    await executeFormatted(
+      client,
+      "GRANT SELECT ON TABLE staff_auth_sessions TO %I",
+      [runtimeRole],
+    );
+    await executeFormatted(
+      client,
+      "GRANT SELECT ON TABLE staff_refresh_credentials TO %I",
+      [runtimeRole],
+    );
+  }
   await grantColumns(
     client,
     executeFormatted,
     runtimeRole,
     "UPDATE",
     "staff_auth_sessions",
-    protectedEnabled || staffAuthProtected
-      ? mfaSessionUpdateColumns.filter((column) =>
-          ![
-            ...(protectedEnabled
-              ? ["mfa_authenticated_at", "mfa_factor_id",
-                "last_admin_activity_at"]
-              : []),
-            ...(staffAuthProtected
-              ? ["current_access_token_hash", "access_expires_at",
-                "last_rotated_at"]
-              : []),
-          ].includes(column))
-      : mfaSessionUpdateColumns,
-  );
-  await executeFormatted(
-    client,
-    "GRANT SELECT ON TABLE staff_refresh_credentials TO %I",
-    [runtimeRole],
+    staffAuthProtected
+      ? []
+      : protectedEnabled
+        ? mfaSessionUpdateColumns.filter(
+            (column) =>
+              ![
+                ...(protectedEnabled
+                  ? [
+                      "mfa_authenticated_at",
+                      "mfa_factor_id",
+                      "last_admin_activity_at",
+                    ]
+                  : []),
+              ].includes(column),
+          )
+        : mfaSessionUpdateColumns,
   );
 
   for (const table of ["user_mfa_totp_factors", "mfa_recovery_codes"]) {
@@ -171,16 +195,28 @@ export async function provisionMfaPrivileges(
   }
   if (!protectedEnabled) {
     await grantColumns(
-      client, executeFormatted, runtimeRole, "INSERT",
-      "user_mfa_totp_factors", mfaFactorInsertColumns,
+      client,
+      executeFormatted,
+      runtimeRole,
+      "INSERT",
+      "user_mfa_totp_factors",
+      mfaFactorInsertColumns,
     );
     await grantColumns(
-      client, executeFormatted, runtimeRole, "UPDATE",
-      "user_mfa_totp_factors", mfaFactorUpdateColumns,
+      client,
+      executeFormatted,
+      runtimeRole,
+      "UPDATE",
+      "user_mfa_totp_factors",
+      mfaFactorUpdateColumns,
     );
     await grantColumns(
-      client, executeFormatted, runtimeRole, "INSERT",
-      "mfa_recovery_codes", mfaRecoveryInsertColumns,
+      client,
+      executeFormatted,
+      runtimeRole,
+      "INSERT",
+      "mfa_recovery_codes",
+      mfaRecoveryInsertColumns,
     );
     await executeFormatted(
       client,

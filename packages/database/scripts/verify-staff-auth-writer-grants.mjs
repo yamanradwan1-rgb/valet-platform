@@ -1,19 +1,40 @@
 import { writerTableColumns } from "./staff-auth-writer-grants.mjs";
 import { verifyStaffAuthWriterMembership } from "./staff-auth-writer-membership.mjs";
+import { verifyStaffAuthWriterFunctionOwners } from "./verify-staff-auth-writer-function-owners.mjs";
+import { verifyStaffAuthRuntimeReadGrants } from "./verify-staff-auth-runtime-read-grants.mjs";
 
 const deniedTable = ["DELETE", "TRUNCATE", "REFERENCES", "TRIGGER"];
 const columnsPrivileges = ["SELECT", "INSERT", "UPDATE", "REFERENCES"];
 
-export async function verifyStaffAuthWriterGrants(client, writer, runtime) {
+export async function verifyStaffAuthWriterGrants(
+  client,
+  writer,
+  runtime,
+  migrationRole,
+) {
+  if (typeof migrationRole !== "string" || migrationRole.length === 0) {
+    throw new Error(
+      "Staff Auth writer verifier requires the trusted migration owner.",
+    );
+  }
+  await verifyStaffAuthWriterFunctionOwners(client, migrationRole);
+  await verifyStaffAuthRuntimeReadGrants(client, runtime);
   const identity = await client.query(
     `SELECT rolcanlogin, rolinherit, rolsuper, rolcreatedb, rolcreaterole,
             rolreplication, rolbypassrls FROM pg_roles WHERE rolname=$1`,
     [writer],
   );
   const role = identity.rows[0];
-  if (identity.rowCount !== 1 || role?.rolcanlogin !== true ||
-      role.rolinherit !== false || role.rolsuper || role.rolcreatedb ||
-      role.rolcreaterole || role.rolreplication || role.rolbypassrls) {
+  if (
+    identity.rowCount !== 1 ||
+    role?.rolcanlogin !== true ||
+    role.rolinherit !== false ||
+    role.rolsuper ||
+    role.rolcreatedb ||
+    role.rolcreaterole ||
+    role.rolreplication ||
+    role.rolbypassrls
+  ) {
     throw new Error("Staff Auth writer role attributes are unsafe.");
   }
   const authorities = await client.query(
@@ -42,9 +63,14 @@ export async function verifyStaffAuthWriterGrants(client, writer, runtime) {
          AND nspname NOT LIKE 'pg_temp_%'`,
     [writer],
   );
-  if (externalNamespaces.rows.some((namespace) =>
-    namespace.can_use || namespace.can_create)) {
-    throw new Error("Staff Auth writer can access an unapproved private schema.");
+  if (
+    externalNamespaces.rows.some(
+      (namespace) => namespace.can_use || namespace.can_create,
+    )
+  ) {
+    throw new Error(
+      "Staff Auth writer can access an unapproved private schema.",
+    );
   }
   const inheritedDefaults = await client.query(
     `SELECT d.defaclobjtype, ns.nspname, acl.privilege_type
@@ -60,7 +86,9 @@ export async function verifyStaffAuthWriterGrants(client, writer, runtime) {
     [writer],
   );
   if (inheritedDefaults.rows.length !== 0) {
-    throw new Error("Staff Auth writer may inherit prohibited default object grants.");
+    throw new Error(
+      "Staff Auth writer may inherit prohibited default object grants.",
+    );
   }
   const tablePrivileges = await client.query(
     `SELECT cls.relname AS table_name, att.attname AS column_name,
@@ -77,7 +105,8 @@ export async function verifyStaffAuthWriterGrants(client, writer, runtime) {
     foundTables.add(row.table_name);
   }
   for (const table of Object.keys(writerTableColumns)) {
-    if (!foundTables.has(table)) throw new Error(`Staff Auth writer missing required table ${table}.`);
+    if (!foundTables.has(table))
+      throw new Error(`Staff Auth writer missing required table ${table}.`);
   }
   const sequences = await client.query(
     `SELECT cls.oid::regclass::text AS relation FROM pg_class cls
@@ -85,7 +114,7 @@ export async function verifyStaffAuthWriterGrants(client, writer, runtime) {
        WHERE ns.nspname='public' AND cls.relkind='S'`,
   );
   for (const sequence of sequences.rows) {
-    for (const privilege of ['USAGE','SELECT','UPDATE']) {
+    for (const privilege of ["USAGE", "SELECT", "UPDATE"]) {
       const result = await client.query(
         "SELECT has_sequence_privilege($1,$2,$3) AS allowed",
         [writer, sequence.relation, privilege],
@@ -102,7 +131,9 @@ export async function verifyStaffAuthWriterGrants(client, writer, runtime) {
         [writer, `public.${table}`, privilege],
       );
       if (result.rows[0]?.allowed !== false) {
-        throw new Error(`Staff Auth writer table-level ${table} ${privilege} privilege is unsafe.`);
+        throw new Error(
+          `Staff Auth writer table-level ${table} ${privilege} privilege is unsafe.`,
+        );
       }
     }
   }
@@ -113,10 +144,13 @@ export async function verifyStaffAuthWriterGrants(client, writer, runtime) {
         "SELECT has_column_privilege($1,$2,$3,$4) AS allowed",
         [writer, row.relation, row.column_name, privilege],
       );
-      const expected = (writerTableColumns[row.table_name]?.[privilege] ?? [])
-        .includes(row.column_name);
+      const expected = (
+        writerTableColumns[row.table_name]?.[privilege] ?? []
+      ).includes(row.column_name);
       if (result.rows[0]?.allowed !== expected) {
-        throw new Error(`Staff Auth writer ${row.table_name}.${row.column_name} ${privilege} unsafe.`);
+        throw new Error(
+          `Staff Auth writer ${row.table_name}.${row.column_name} ${privilege} unsafe.`,
+        );
       }
     }
   }
@@ -141,7 +175,9 @@ export async function verifyStaffAuthWriterGrants(client, writer, runtime) {
           [runtime, row.relation, row.column_name, privilege],
         );
         if (found.rows[0]?.allowed !== false) {
-          throw new Error(`Ordinary runtime ${table}.${row.column_name} ${privilege} unsafe.`);
+          throw new Error(
+            `Ordinary runtime ${table}.${row.column_name} ${privilege} unsafe.`,
+          );
         }
       }
     }
@@ -177,7 +213,9 @@ export async function verifyStaffAuthWriterGrants(client, writer, runtime) {
     [writer],
   );
   if (functions.rows.length !== 0) {
-    throw new Error("Staff Auth writer can execute a privileged security-definer function.");
+    throw new Error(
+      "Staff Auth writer can execute a privileged security-definer function.",
+    );
   }
   const unexpectedDirectFunctions = await client.query(
     `SELECT 1 FROM pg_catalog.pg_proc p
@@ -192,10 +230,13 @@ export async function verifyStaffAuthWriterGrants(client, writer, runtime) {
            'public.s04_staff_login_success(uuid,text)'::regprocedure,
            'public.s04_staff_activation_success(uuid,text,text,text,xid8,uuid,bigint,text)'::regprocedure
          )
-       LIMIT 1`, [writer],
+       LIMIT 1`,
+    [writer],
   );
   if (unexpectedDirectFunctions.rowCount !== 0) {
-    throw new Error("Staff Auth writer has an unapproved direct function grant.");
+    throw new Error(
+      "Staff Auth writer has an unapproved direct function grant.",
+    );
   }
   const activationAcl = await client.query(
     `SELECT has_function_privilege($1,
@@ -204,8 +245,10 @@ export async function verifyStaffAuthWriterGrants(client, writer, runtime) {
        'public.staff_onboarding_activate(text,text,text)', 'EXECUTE') AS runtime`,
     [writer, runtime],
   );
-  if (activationAcl.rows[0]?.writer !== true ||
-      activationAcl.rows[0]?.runtime !== false) {
+  if (
+    activationAcl.rows[0]?.writer !== true ||
+    activationAcl.rows[0]?.runtime !== false
+  ) {
     throw new Error("Staff activation function authority is unsafe.");
   }
   const limiterAcl = await client.query(
@@ -215,8 +258,10 @@ export async function verifyStaffAuthWriterGrants(client, writer, runtime) {
        'public.s04_staff_login_success(uuid,text)', 'EXECUTE') AS runtime`,
     [writer, runtime],
   );
-  if (limiterAcl.rows[0]?.writer !== true ||
-      limiterAcl.rows[0]?.runtime !== false) {
+  if (
+    limiterAcl.rows[0]?.writer !== true ||
+    limiterAcl.rows[0]?.runtime !== false
+  ) {
     throw new Error("Signed S04 Staff login finalizer authority is unsafe.");
   }
   const activationLimiterAcl = await client.query(
@@ -235,9 +280,11 @@ export async function verifyStaffAuthWriterGrants(client, writer, runtime) {
        ) AS public_execute`,
     [writer, runtime],
   );
-  if (activationLimiterAcl.rows[0]?.writer !== true ||
-      activationLimiterAcl.rows[0]?.runtime !== false ||
-      activationLimiterAcl.rows[0]?.public_execute !== false) {
+  if (
+    activationLimiterAcl.rows[0]?.writer !== true ||
+    activationLimiterAcl.rows[0]?.runtime !== false ||
+    activationLimiterAcl.rows[0]?.public_execute !== false
+  ) {
     throw new Error("S04 Staff activation finalizer authority is unsafe.");
   }
 }

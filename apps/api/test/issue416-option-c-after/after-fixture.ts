@@ -3,6 +3,12 @@ import { randomUUID } from "node:crypto";
 import { Pool } from "pg";
 
 import { runPnpm } from "../staff-auth-native-run-pnpm";
+import {
+  captureFixtureWriterRoleBaseline,
+  captureFixtureWriterRolePostState,
+  restoreFixtureWriterRoles,
+  type FixtureWriterRoleSnapshot,
+} from "../staff-auth-native-writer-role-lifecycle";
 import { OptionCT5Fixture } from "../issue416-option-c-t5/probe-fixture";
 import { assertOwnedOptionCAfterPg17 } from "../issue416-option-c-t5/owned-target";
 import {
@@ -25,6 +31,7 @@ export class OptionCAfterFixture extends OptionCT5Fixture {
     process.env.STAFF_AUTH_TEST_MIGRATION_BASE_URL;
   private readonly priorMigrationDatabase = process.env.MIGRATION_DATABASE_URL;
   private readonly migrationPassword = randomUUID();
+  private migrationRoleSnapshots: FixtureWriterRoleSnapshot[] = [];
 
   constructor() {
     super(assertOwnedOptionCAfterPg17);
@@ -33,17 +40,41 @@ export class OptionCAfterFixture extends OptionCT5Fixture {
   override async start(): Promise<void> {
     const ownerUrl = process.env.TEST_DATABASE_URL;
     if (!ownerUrl) throw new Error("W66 owner test URL is unavailable.");
-    await ensureMigrationRole(ownerUrl, this.migrationPassword);
-    process.env.STAFF_AUTH_TEST_MIGRATION_BASE_URL = migrationBaseUrl(
-      ownerUrl,
-      this.migrationPassword,
-    );
-    process.env.ISSUE416_S02_PROTECTED_TEST = "1";
-    process.env.ANTI_ABUSE_SQL_PROOF_SECRET_B64URL = this.proofKey;
+    const owner = new Pool({ connectionString: ownerUrl, max: 1 });
     try {
+      this.migrationRoleSnapshots = await captureFixtureWriterRoleBaseline(
+        owner,
+        {
+          MFA_WRITER_DATABASE_URL: migrationBaseUrl(
+            ownerUrl,
+            this.migrationPassword,
+          ),
+        },
+      );
+    } finally {
+      await owner.end();
+    }
+    try {
+      await ensureMigrationRole(ownerUrl, this.migrationPassword);
+      const after = new Pool({ connectionString: ownerUrl, max: 1 });
+      try {
+        this.migrationRoleSnapshots = await captureFixtureWriterRolePostState(
+          after,
+          this.migrationRoleSnapshots,
+        );
+      } finally {
+        await after.end();
+      }
+      process.env.STAFF_AUTH_TEST_MIGRATION_BASE_URL = migrationBaseUrl(
+        ownerUrl,
+        this.migrationPassword,
+      );
+      process.env.ISSUE416_S02_PROTECTED_TEST = "1";
+      process.env.ANTI_ABUSE_SQL_PROOF_SECRET_B64URL = this.proofKey;
       await super.start();
     } catch (error) {
       this.restoreOptionCEnvironment();
+      await this.restoreMigrationRole();
       throw error;
     }
   }
@@ -154,6 +185,21 @@ export class OptionCAfterFixture extends OptionCT5Fixture {
       await super.stop();
     } finally {
       this.restoreOptionCEnvironment();
+      await this.restoreMigrationRole();
+    }
+  }
+
+  private async restoreMigrationRole(): Promise<void> {
+    if (this.migrationRoleSnapshots.length === 0) return;
+    const ownerUrl = process.env.TEST_DATABASE_URL;
+    if (!ownerUrl)
+      throw new Error("W66 owner test URL is unavailable for cleanup.");
+    const owner = new Pool({ connectionString: ownerUrl, max: 1 });
+    try {
+      await restoreFixtureWriterRoles(owner, this.migrationRoleSnapshots);
+      this.migrationRoleSnapshots = [];
+    } finally {
+      await owner.end();
     }
   }
 

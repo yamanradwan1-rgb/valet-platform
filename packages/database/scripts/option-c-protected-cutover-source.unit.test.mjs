@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
+import { URL } from "node:url";
 
 const source = (name) => readFileSync(new URL(name, import.meta.url), "utf8");
 
@@ -37,6 +38,36 @@ test("cutover preflight includes the narrow Staff activation success definer", (
   );
   assert.match(
     readiness,
-    /assertFunctionReady\(\s*client,\s*optionCFunctionContract\.staffAuth\[2\]/,
+    /assertOptionCFunctionReady\(\s*client,\s*optionCFunctionContract\.staffAuth\[2\]/,
   );
+  const ownerReadiness = source("./option-c-protected-function-readiness.mjs");
+  assert.match(ownerReadiness, /row\.owner !== expectedOwner/);
+  assert.match(readiness, /assertRetiredTargetsExist\(client, migrationRole\)/);
+  assert.match(ownerReadiness, /expectedOwnerAttributes/);
+  assert.match(readiness, /requireTrustedOwnerAttributes: true/);
+});
+
+test("cutover readiness executes full StaffAuth and Management privilege verifiers", () => {
+  const readiness = source("./option-c-protected-cutover-readiness.mjs");
+  assert.match(
+    readiness,
+    /await verifyStaffAuthWriterGrants\(\s*client,\s*optionCRoles\.staffAuthWriter,\s*runtimeRole,\s*migrationRole/,
+  );
+  assert.match(
+    readiness,
+    /await verifyManagementWriterPrivileges\(\s*client,\s*optionCRoles\.managementWriter,\s*runtimeRole,\s*migrationRole/,
+  );
+  assert.match(
+    readiness,
+    /await verifyManagementWriterFunctionInventory\(\s*client,\s*optionCRoles\.managementWriter,\s*migrationRole/,
+  );
+  assert.match(
+    readiness,
+    /await verifyMfaProtectedWriterPrivileges\(\s*client,\s*runtimeRole,\s*migrationRole,\s*optionCRoles\.mfaWriter/,
+  );
+  assert.match(
+    readiness,
+    /await verifyStaffSessionLockAcl\(client, runtimeRole, migrationRole, \[/,
+  );
+  assert.match(readiness, /optionCRoles\.managementWriter,\s*\]\)/);
 });

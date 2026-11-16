@@ -102,11 +102,14 @@ async function assertPublicDenied(client, table) {
 }
 
 export async function verifyMfaPrivileges(
-  client, runtimeRole, protectedEnabled = false, staffAuthProtected = false,
+  client,
+  runtimeRole,
+  protectedEnabled = false,
+  staffAuthProtected = false,
 ) {
   await assertTablePrivileges(client, runtimeRole, "staff_auth_sessions", {
     insert: false,
-    select: true,
+    select: !staffAuthProtected,
   });
   await assertTablePrivileges(
     client,
@@ -114,7 +117,7 @@ export async function verifyMfaPrivileges(
     "staff_refresh_credentials",
     {
       insert: false,
-      select: true,
+      select: !staffAuthProtected,
     },
   );
   for (const table of ["staff_auth_sessions", "staff_refresh_credentials"]) {
@@ -139,19 +142,22 @@ export async function verifyMfaPrivileges(
     runtimeRole,
     "staff_auth_sessions",
     "UPDATE",
-    protectedEnabled || staffAuthProtected
-      ? mfaSessionUpdateColumns.filter((column) =>
-          ![
-            ...(protectedEnabled
-              ? ["mfa_authenticated_at", "mfa_factor_id",
-                "last_admin_activity_at"]
-              : []),
-            ...(staffAuthProtected
-              ? ["current_access_token_hash", "access_expires_at",
-                "last_rotated_at"]
-              : []),
-          ].includes(column))
-      : mfaSessionUpdateColumns,
+    staffAuthProtected
+      ? []
+      : protectedEnabled
+        ? mfaSessionUpdateColumns.filter(
+            (column) =>
+              ![
+                ...(protectedEnabled
+                  ? [
+                      "mfa_authenticated_at",
+                      "mfa_factor_id",
+                      "last_admin_activity_at",
+                    ]
+                  : []),
+              ].includes(column),
+          )
+        : mfaSessionUpdateColumns,
   );
   await assertColumnPrivileges(
     client,

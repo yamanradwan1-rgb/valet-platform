@@ -62,6 +62,31 @@ export const writerTableColumns = {
   },
 };
 
+// Runtime may inspect session metadata; bearer verifier hashes stay exclusively
+// inside the authenticated writer / protected resolver boundary.
+export const runtimeStaffSessionReadColumns = Object.freeze({
+  staff_auth_sessions: [
+    "id",
+    "user_id",
+    "created_at",
+    "last_rotated_at",
+    "access_expires_at",
+    "absolute_expires_at",
+    "revoked_at",
+    "mfa_authenticated_at",
+    "mfa_factor_id",
+    "last_admin_activity_at",
+  ],
+  staff_refresh_credentials: [
+    "id",
+    "session_id",
+    "generation",
+    "expires_at",
+    "consumed_at",
+    "replaced_by_credential_id",
+  ],
+});
+
 async function revokeColumnGrants(client, exec, role, onlyStaffAuth) {
   const tables = await client.query(
     `SELECT cls.relname AS table_name,
@@ -169,14 +194,22 @@ export async function applyStaffAuthWriterGrants(
     [role],
   );
   await grantS04ProtectedWriterFunction(
-    client, exec, "staffActivation", role, runtimeRole,
-  );
-  // Ordinary readers retain precisely the MFA assurance/logout compatibility.
-  await exec(
     client,
-    "GRANT SELECT ON TABLE public.staff_auth_sessions, public.staff_refresh_credentials TO %I",
-    [runtimeRole],
+    exec,
+    "staffActivation",
+    role,
+    runtimeRole,
   );
+  // No table-wide SELECT: it would expose current_access_token_hash and token_hash.
+  for (const [table, columns] of Object.entries(
+    runtimeStaffSessionReadColumns,
+  )) {
+    await exec(
+      client,
+      `GRANT SELECT (${columns.map(() => "%I").join(", ")}) ON TABLE public.%I TO %I`,
+      [...columns, table, runtimeRole],
+    );
+  }
   // Logout commits through the dedicated Staff Auth writer transaction, so
   // ordinary runtime remains read-only for Staff Auth session state.
 }
