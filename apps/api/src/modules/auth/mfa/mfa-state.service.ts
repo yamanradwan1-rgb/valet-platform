@@ -11,7 +11,7 @@ import { localMfaBypassEnabled } from "./local-mfa-bypass";
 import { MfaAssurancePolicy } from "./mfa-assurance-policy";
 import { lockCurrentFactor } from "./mfa-factor-repository";
 import {
-  lockAndRecheckMfaSession,
+  lockAndRecheckMfaSessionInWriter,
   requireManagementMfaEligibility,
 } from "./mfa-session-repository";
 
@@ -35,7 +35,10 @@ export class MfaStateService {
     const factorState = await inPostgresTransaction(
       this.pool,
       async (transaction) => {
-        const session = await lockAndRecheckMfaSession(transaction, context);
+        const session = await lockAndRecheckMfaSessionInWriter(
+          transaction,
+          context,
+        );
         await requireManagementMfaEligibility(transaction, session.user_id);
         if (bypassEnabled) return "LOCAL_BYPASS" as const;
         return (await lockCurrentFactor(transaction, session.user_id))?.state;

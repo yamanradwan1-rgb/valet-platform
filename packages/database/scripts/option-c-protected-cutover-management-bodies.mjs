@@ -4,7 +4,7 @@
 export const pinnedOptionCManagementBodies = Object.freeze([
   [
     "public.staff_management_authorize_writer(uuid,uuid,text,uuid,uuid)",
-    "5d8cc0f3dfd483f67fef5dc8bb03085c4c10afbda15168938c775502f91e0a3f",
+    "2269c88c2103fa518d6baa0f2466396e7db5cb350ef01e59b2e653d7fd240b06",
   ],
   [
     "public.staff_management_touch_writer_activity(uuid,uuid,text)",
@@ -24,11 +24,11 @@ export const pinnedOptionCManagementBodies = Object.freeze([
   ],
   [
     "public.staff_management_authorized_onboarding_create(uuid,uuid,text,uuid,uuid,uuid,text,text,text,text,public.membership_role,uuid[],text)",
-    "fc0c5c856215383fff10bd9feb0c1966d7f32a9c4e6979d14001978132bf5be9",
+    "41133ba9dc91ab9c6d2bc6d4632c60e3c5e85a16ede85992f66856e14e45451c",
   ],
   [
     "public.staff_management_authorized_onboarding_resend(uuid,uuid,text,uuid,uuid,uuid,uuid,text,text)",
-    "4716521d120f7b7c8f5e091daafbad9c758fd770c592de5a7eb1c84e7473bcf5",
+    "f7054c69846bb573eda3f613e55e0f3ad63673fd9f03592f0f66e3e8567cb846",
   ],
 ]);
 

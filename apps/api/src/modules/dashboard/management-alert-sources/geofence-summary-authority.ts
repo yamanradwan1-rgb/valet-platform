@@ -44,7 +44,7 @@ export async function requireGeofenceSummaryScope(
          membership.role = 'ORG_ADMIN'
          OR (membership.role = 'LOCATION_MANAGER' AND access.location_id IS NOT NULL)
        )
-     FOR SHARE OF membership, actor, organization, location`,
+     FOR SHARE OF membership, organization, location`,
     [
       scope.organizationId,
       scope.locationId,

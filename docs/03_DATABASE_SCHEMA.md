@@ -1,5 +1,43 @@
 # Database Schema — Logical Design
 
+## Issue #416 Option C — Staff session lock boundary
+
+Forward-only migrations `20261116000200_option_c_staff_session_lock_owner` and
+`20261116000210_option_c_staff_session_lock_function` add inert
+`runtime_lock_version bigint NOT NULL DEFAULT 0` columns to `users` and
+`staff_auth_sessions`, plus the NOLOGIN/NOINHERIT
+`vaylet_staff_session_lock_owner`. The owner has only the exact User/session
+read columns required to authenticate and lock a Staff session, and UPDATE only
+on the two inert lock-version columns so PostgreSQL can take row locks without
+granting mutation authority over protected session or User state. In
+particular, the owner cannot read `users.password_hash`.
+
+`public.staff_auth_lock_current_session(uuid,uuid,text,timestamptz,text)` is a
+`SECURITY DEFINER` authority for ordinary Runtime only. Initial resolution uses
+`NULL,NULL,<raw bearer>,NULL,'SHARED'`; exact rechecks use the resolved
+session/User/creation tuple and `SHARED` or `EXCLUSIVE`. The function derives
+the stored access-token verifier internally, rejects revoked/expired/inactive
+or cross-identity credentials, acquires the canonical `staff-user-security`
+transaction advisory lock, then locks the User row before the Staff session
+row. PUBLIC and the protected writer roles do not execute it, and ordinary
+Runtime does not receive SELECT on `current_access_token_hash` or UPDATE on
+protected session columns.
+
+Forward-only migration `20261116000300_option_c_management_raw_bearer_authority`
+keeps the existing Shift Presence/force-end function signatures while treating
+their historical TEXT verifier parameters as raw Staff bearers and hashing
+inside the definer. The same cutover preserves the existing entitlement
+function with raw-bearer verification. No new generic Management writer entry
+point is introduced.
+
+Forward-only migration
+`20261116000310_option_c_management_user_security_lock_order` preserves the
+existing Management writer authorization ABI while acquiring the canonical
+`staff-user-security:<User>` transaction advisory lock before User and Staff
+session row locks. This aligns Staff status/onboarding mutations with auth and
+onboarding serialization and rechecks time-based session/MFA authority after
+the advisory lock is acquired.
+
 ## Issue #416 Option C S04 — protected ephemeral anti-abuse write boundary
 
 Migration `20261115016200_issue416_s04_signed_quota_guard` adds private
@@ -41,7 +79,7 @@ are committed in the same Staff Auth writer transaction. Ordinary runtime,
 PUBLIC and the other protected writers must not execute this helper; the Staff
 Auth writer retains no generic `s04_finalize` permission. Existing migrations
 and historical quota events remain unchanged. The ordered source inventory
-now contains 148 migration directories. Actual mounted protected HTTP
+now contains 152 migration directories. Actual mounted protected HTTP
 qualification is a release gate. The signed SQL-level PG17 qualification is
 available through `pnpm --filter @valet/database s04:staff-activation:pg17`;
 it requires an individually attested disposable fixture as documented in

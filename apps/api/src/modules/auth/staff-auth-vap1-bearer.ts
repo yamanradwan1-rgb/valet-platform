@@ -5,11 +5,8 @@ import { UnauthorizedException } from "@nestjs/common";
 import {
   accessBearerPattern,
   accessTokenPattern,
-  staffCredentialHash,
 } from "./staff-auth-credential";
 import type { StaffSessionContext } from "./staff-session-context";
-
-const accessHashPattern = /^staff-access-sha256:v1:[0-9a-f]{64}$/;
 
 /**
  * Only a submitted raw Bearer can witness possession of this context's hash.
@@ -18,7 +15,7 @@ const accessHashPattern = /^staff-access-sha256:v1:[0-9a-f]{64}$/;
  */
 export function requireRequestBearerPossession(
   authorization: string | undefined,
-  context: Pick<StaffSessionContext, "accessTokenHash">,
+  context: Pick<StaffSessionContext, "rawAccessToken">,
 ): void {
   const raw =
     typeof authorization === "string"
@@ -27,12 +24,12 @@ export function requireRequestBearerPossession(
   if (!raw || !accessTokenPattern.test(raw)) {
     throw new UnauthorizedException();
   }
-  const expectedHash = context.accessTokenHash;
-  if (!accessHashPattern.test(expectedHash)) {
+  const expectedRaw = context.rawAccessToken;
+  if (expectedRaw === undefined || !accessTokenPattern.test(expectedRaw)) {
     throw new UnauthorizedException();
   }
-  const actual = Buffer.from(staffCredentialHash("access", raw), "ascii");
-  const expected = Buffer.from(expectedHash, "ascii");
+  const actual = Buffer.from(raw, "ascii");
+  const expected = Buffer.from(expectedRaw, "ascii");
   if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) {
     throw new UnauthorizedException();
   }

@@ -85,8 +85,12 @@ describe("append-only migration source history", () => {
       "20261115235900_option_c_s03_raw_bearer_upgrade",
       "20261115235910_option_c_s04_staff_activation_success",
       "20261116000100_option_c_s04_signed_staff_activation_success",
+      "20261116000200_option_c_staff_session_lock_owner",
+      "20261116000210_option_c_staff_session_lock_function",
+      "20261116000300_option_c_management_raw_bearer_authority",
+      "20261116000310_option_c_management_user_security_lock_order",
     ]);
-    expect(expectedCurrentMigrationDirectories).toHaveLength(148);
+    expect(expectedCurrentMigrationDirectories).toHaveLength(152);
     const migrationRoot = fileURLToPath(
       new URL("../prisma/migrations/", import.meta.url),
     );

@@ -7,6 +7,7 @@ import type {
 } from "@valet/contracts";
 
 import type { PostgresTransaction } from "../../common/database/postgres";
+import { lockStaffUserSecurityBoundaryShared } from "../auth/staff-user-security-lock";
 import {
   allocatePresenceChallenge,
   lockPresenceChallenge,
@@ -238,6 +239,7 @@ async function requireActiveExceptionRequester(
   transaction: PostgresTransaction,
   input: PresenceShiftAttempt,
 ) {
+  await lockStaffUserSecurityBoundaryShared(transaction, input.userId);
   const current = await transaction.query(
     `SELECT m.id FROM organization_memberships m
     JOIN users u ON u.id=m.user_id AND u.status='ACTIVE'
@@ -245,7 +247,7 @@ async function requireActiveExceptionRequester(
     JOIN locations l ON l.organization_id=o.id AND l.id=$3 AND l.status='ACTIVE'
     JOIN membership_location_access a ON a.organization_id=m.organization_id AND a.membership_id=m.id AND a.location_id=l.id
     WHERE m.id=$1 AND m.user_id=$2 AND m.organization_id=$4 AND m.status='ACTIVE'
-      AND m.role IN ('VALET_EMPLOYEE','VALET_SUPERVISOR') FOR SHARE OF m,u,o,l,a`,
+      AND m.role IN ('VALET_EMPLOYEE','VALET_SUPERVISOR') FOR SHARE OF m,o,l,a`,
     [input.membershipId, input.userId, input.locationId, input.organizationId],
   );
   if (current.rowCount !== 1)

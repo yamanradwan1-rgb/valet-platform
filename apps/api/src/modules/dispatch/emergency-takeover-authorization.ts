@@ -68,7 +68,7 @@ export async function requireEmergencyTakeoverActor(
       `SELECT factor.id FROM user_mfa_totp_factors AS factor
        JOIN staff_auth_sessions AS session ON session.mfa_factor_id=factor.id
        WHERE session.id=$1 AND factor.user_id=$2 AND factor.state='ACTIVE'
-       FOR SHARE OF factor`,
+     `,
       [context.staffAuthSessionId, context.userId],
     );
     if (factor.rowCount !== 1) throw new MfaStepUpRequiredError();

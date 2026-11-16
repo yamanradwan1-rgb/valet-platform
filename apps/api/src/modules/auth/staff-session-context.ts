@@ -5,8 +5,8 @@ import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.mo
 import {
   accessBearerPattern,
   accessTokenPattern,
-  staffCredentialHash,
 } from "./staff-auth-credential";
+import { resolveStaffSessionWithBearer } from "./staff-session-lock";
 import {
   type StaffPrincipal,
   type StaffPrincipalResolver,
@@ -17,20 +17,14 @@ export const STAFF_SESSION_CONTEXT_RESOLVER = Symbol(
 );
 
 export interface StaffSessionContext {
-  readonly accessTokenHash: string;
   readonly createdAt: Date;
+  readonly rawAccessToken?: string;
   readonly staffAuthSessionId: string;
   readonly userId: string;
 }
 
 export interface StaffSessionContextResolver {
   resolve(authorization: string | undefined): Promise<StaffSessionContext>;
-}
-
-interface StaffSessionContextRow {
-  readonly created_at: Date;
-  readonly id: string;
-  readonly user_id: string;
 }
 
 @Injectable()
@@ -50,28 +44,20 @@ export class DatabaseStaffSessionContextResolver implements StaffSessionContextR
     if (accessToken === undefined || !accessTokenPattern.test(accessToken)) {
       throw new UnauthorizedException();
     }
-    const accessTokenHash = staffCredentialHash("access", accessToken);
-    const result = await this.pool.query<StaffSessionContextRow>(
-      `SELECT session.id, session.user_id, session.created_at
-       FROM staff_auth_sessions AS session
-       INNER JOIN users AS staff_user ON staff_user.id = session.user_id
-       WHERE session.current_access_token_hash = $1
-         AND session.revoked_at IS NULL
-         AND clock_timestamp() < session.access_expires_at
-         AND clock_timestamp() < session.absolute_expires_at
-         AND staff_user.status = 'ACTIVE'`,
-      [accessTokenHash],
-    );
-    const row = result.rows[0];
-    if (result.rowCount !== 1 || row === undefined) {
-      throw new UnauthorizedException();
-    }
-    return {
-      accessTokenHash,
+    const row = await resolveStaffSessionWithBearer(this.pool, accessToken);
+    if (row === undefined) throw new UnauthorizedException();
+    const context = {
       createdAt: row.created_at,
       staffAuthSessionId: row.id,
       userId: row.user_id,
-    };
+    } as StaffSessionContext;
+    Object.defineProperty(context, "rawAccessToken", {
+      configurable: false,
+      enumerable: false,
+      value: accessToken,
+      writable: false,
+    });
+    return context;
   }
 }
 

@@ -17,6 +17,31 @@ export function lockStaffUserSecurityBoundary(
   );
 }
 
+export function lockStaffUserSecurityBoundaryShared(
+  transaction: PostgresTransaction,
+  userId: string,
+): Promise<unknown> {
+  return transaction.query(
+    `SELECT pg_advisory_xact_lock_shared(
+       hashtextextended('staff-user-security:' || $1::text, 0)
+     )`,
+    [userId],
+  );
+}
+
+export async function tryLockStaffUserSecurityBoundaryShared(
+  transaction: PostgresTransaction,
+  userId: string,
+): Promise<boolean> {
+  const result = await transaction.query<{ readonly acquired: boolean }>(
+    `SELECT pg_try_advisory_xact_lock_shared(
+       hashtextextended('staff-user-security:' || $1::text, 0)
+     ) AS acquired`,
+    [userId],
+  );
+  return result.rows[0]?.acquired === true;
+}
+
 export async function lockAndRecheckStaffLoginUser(
   transaction: PostgresTransaction,
   userId: string,

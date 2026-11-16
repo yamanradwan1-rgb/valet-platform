@@ -1,5 +1,6 @@
 import { lockLocationLifecycle } from "../../common/database/location-lifecycle-lock";
 import type { PostgresTransaction } from "../../common/database/postgres";
+import { lockStaffUserSecurityBoundaryShared } from "../auth/staff-user-security-lock";
 import { lockShiftOperationalEligibility } from "../shifts/shift-operational-eligibility";
 
 export async function authorizeTaskRouteHistory(
@@ -16,6 +17,7 @@ export async function authorizeTaskRouteHistory(
   const locationId = target.rows[0]?.location_id;
   if (locationId === undefined) return null;
   await lockLocationLifecycle(transaction, locationId, "SHARED");
+  await lockStaffUserSecurityBoundaryShared(transaction, authenticatedUserId);
   const result = await transaction.query<{
     organization_id: string;
     location_id: string;
@@ -47,7 +49,7 @@ export async function authorizeTaskRouteHistory(
       AND access.location_id = task.location_id
      WHERE task.id = $2 AND actor.id = $1 AND task.location_id = $3
        AND task.status = 'COMPLETED' AND task.task_type IN ('PARKING', 'RETRIEVAL')
-     FOR SHARE OF session, task, organization, location, membership, actor, access`,
+     FOR SHARE OF session, task, organization, location, membership, access`,
     [authenticatedUserId, taskId, locationId],
   );
   const scope = result.rows[0];

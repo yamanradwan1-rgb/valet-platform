@@ -9,7 +9,6 @@ import {
 
 import type { PostgresTransaction } from "../../common/database/postgres";
 import type { StaffSessionContext } from "../auth/staff-session-context";
-import { requireMfaAssuranceInTransaction } from "../auth/mfa/mfa-assurance-policy";
 import type { PresenceManagementActor } from "./presence-management-authority";
 import {
   presenceCompanyPolicy,
@@ -62,16 +61,15 @@ async function writePolicy(
   );
   if (duplicate.rowCount !== 0)
     throw new PresenceManagementError("PRESENCE_MUTATION_CONFLICT");
-  await requireMfaAssuranceInTransaction(transaction, context, {
-    sensitive: true,
-  });
+  // The SECURITY DEFINER command locks the exact session/User and validates
+  // fresh MFA assurance after its established settings/location lock order.
   await transaction.query(
     `SELECT shift_presence_set_policy($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
     [
       actor.userId,
       actor.membershipId,
       context.staffAuthSessionId,
-      context.accessTokenHash,
+      context.rawAccessToken ?? "",
       actor.organizationId,
       actor.locationId,
       command.field,

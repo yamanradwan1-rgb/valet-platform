@@ -1,5 +1,6 @@
 import type { PostgresTransaction } from "../../../common/database/postgres";
 import type { StaffSessionContext } from "../../auth/staff-session-context";
+import { lockStaffSessionWithBearer } from "../../auth/staff-session-lock";
 import { evaluateMfaAssurance } from "../../auth/mfa/mfa-assurance-policy";
 import { localMfaBypassEnabled } from "../../auth/mfa/local-mfa-bypass";
 import { isCompanyAdminManagementCapability } from "../../management/management-capabilities";
@@ -42,14 +43,6 @@ export function requireAdministrativeAlertQuery(
   }
 }
 
-interface ProtectedSessionRow {
-  readonly factorCurrent: boolean;
-  readonly lastAdminActivityAt: Date | null;
-  readonly mfaAuthenticatedAt: Date | null;
-  readonly mfaFactorId: string | null;
-  readonly now: Date;
-}
-
 /** Share-lock Staff session and User before the SHARED Organization fence.
  * Read-only alert tabs never acquire a command-grade exclusive session lock.
  */
@@ -57,45 +50,33 @@ async function requireProtectedReadSession(
   transaction: PostgresTransaction,
   context: StaffSessionContext,
 ): Promise<void> {
-  const result = await transaction.query<ProtectedSessionRow>(
-    `SELECT session.mfa_authenticated_at AS "mfaAuthenticatedAt",
-            session.mfa_factor_id::text AS "mfaFactorId",
-            session.last_admin_activity_at AS "lastAdminActivityAt",
-            clock_timestamp() AS now,
-            EXISTS (SELECT 1 FROM user_mfa_totp_factors AS factor
-              WHERE factor.id=session.mfa_factor_id
-                AND factor.user_id=session.user_id AND factor.state='ACTIVE')
-              AS "factorCurrent"
-     FROM staff_auth_sessions AS session
-     INNER JOIN users AS actor ON actor.id=session.user_id AND actor.status='ACTIVE'
-     WHERE session.id=$1::uuid AND session.user_id=$2::uuid
-       AND session.current_access_token_hash=$3
-       AND session.created_at=$4::timestamptz
-       AND session.revoked_at IS NULL
-       AND clock_timestamp()<session.access_expires_at
-       AND clock_timestamp()<session.absolute_expires_at
-     FOR SHARE OF session, actor`,
-    [
-      context.staffAuthSessionId,
-      context.userId,
-      context.accessTokenHash,
-      context.createdAt,
-    ],
+  const session = await lockStaffSessionWithBearer(
+    transaction,
+    context,
+    "SHARED",
   );
-  const row = result.rows[0];
-  if (result.rowCount !== 1 || row === undefined) {
+  if (session === undefined) {
     throw new ManagementAccessDeniedError();
   }
+  const factorCurrent =
+    session.mfa_factor_id !== null &&
+    (
+      await transaction.query(
+        `SELECT 1 FROM user_mfa_totp_factors AS factor
+       WHERE factor.id=$1 AND factor.user_id=$2 AND factor.state='ACTIVE'`,
+        [session.mfa_factor_id, context.userId],
+      )
+    ).rowCount === 1;
   if (
     !localMfaBypassEnabled() &&
     evaluateMfaAssurance(
       {
-        factorCurrent: row.factorCurrent,
-        lastAdminActivityAt: row.lastAdminActivityAt,
-        mfaAuthenticatedAt: row.mfaAuthenticatedAt,
-        mfaFactorId: row.mfaFactorId,
+        factorCurrent,
+        lastAdminActivityAt: session.last_admin_activity_at,
+        mfaAuthenticatedAt: session.mfa_authenticated_at,
+        mfaFactorId: session.mfa_factor_id,
       },
-      row.now,
+      session.checked_at,
       false,
     ) !== "ASSURANCE_VALID"
   ) {
@@ -169,7 +150,7 @@ async function requireSourceRole(
        AND membership.organization_id=$2::uuid
        AND membership.status='ACTIVE'
        AND membership.role=ANY($3::membership_role[])
-     FOR SHARE OF membership, actor, organization`,
+     FOR SHARE OF membership, organization`,
     [input.context.userId, input.organizationId, roles],
   );
   const row = current.rows[0];

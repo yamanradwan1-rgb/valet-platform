@@ -23,7 +23,7 @@ import {
 } from "./mfa-factor-repository";
 import {
   establishMfaAssurance,
-  lockAndRecheckMfaSession,
+  lockAndRecheckMfaSessionInWriter,
   lockMfaUser,
   requireManagementMfaEligibility,
 } from "./mfa-session-repository";
@@ -61,7 +61,10 @@ export class MfaEnrollmentService {
     const context = await this.sessions.resolve(authorization);
     requireRequestBearerPossession(authorization, context);
     return inPostgresTransaction(this.pool, async (transaction) => {
-      const session = await lockAndRecheckMfaSession(transaction, context);
+      const session = await lockAndRecheckMfaSessionInWriter(
+        transaction,
+        context,
+      );
       await lockMfaUser(transaction, session.user_id);
       await requireManagementMfaEligibility(transaction, session.user_id);
       const current = await lockCurrentFactor(transaction, session.user_id);
@@ -104,7 +107,10 @@ export class MfaEnrollmentService {
     const reservation = await this.antiAbuse.reserveTotp(context.userId);
     try {
       return await inPostgresTransaction(this.pool, async (transaction) => {
-        const session = await lockAndRecheckMfaSession(transaction, context);
+        const session = await lockAndRecheckMfaSessionInWriter(
+          transaction,
+          context,
+        );
         await lockMfaUser(transaction, session.user_id);
         await requireManagementMfaEligibility(transaction, session.user_id);
         const factor = await lockFactorById(

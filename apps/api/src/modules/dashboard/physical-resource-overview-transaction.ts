@@ -1,4 +1,7 @@
-import type { PostgresPool, PostgresTransaction } from "../../common/database/postgres";
+import type {
+  PostgresPool,
+  PostgresTransaction,
+} from "../../common/database/postgres";
 import {
   beginTransactionOutcomes,
   finishTransactionOutcomes,
@@ -42,13 +45,17 @@ export async function inAuthorizedPhysicalResourceOverview<T>(
   for (let attempt = 1; attempt <= 5; attempt += 1) {
     try {
       return await inAuthorizedPhysicalResourceOverviewAttempt(
-        pool, context, locationId, action,
+        pool,
+        context,
+        locationId,
+        action,
       );
     } catch (error) {
       if (
         (error as { readonly code?: unknown }).code !== "40001" ||
         attempt === 5
-      ) throw error;
+      )
+        throw error;
     }
   }
   throw new Error("Physical overview serialization retry exhausted.");
@@ -86,7 +93,10 @@ async function inAuthorizedPhysicalResourceOverviewAttempt<T>(
 
     // Autocommit hint before RR exists. Recheck inside RR AFTER the lock.
     const managerHint = await authorizeDashboardLocation(
-      client, context.userId, locationId, "DASHBOARD_ACCESS",
+      client,
+      context.userId,
+      locationId,
+      "DASHBOARD_ACCESS",
     );
     if (managerHint !== null) {
       advisoryOrganizationId = managerHint.organizationId;
@@ -157,10 +167,9 @@ async function inAuthorizedPhysicalResourceOverviewAttempt<T>(
           AND factor.user_id = session.user_id
          WHERE session.id = $1
            AND session.user_id = $2
-           AND session.current_access_token_hash = $3
            AND factor.state = 'ACTIVE'
-         FOR SHARE OF factor`,
-        [context.staffAuthSessionId, context.userId, context.accessTokenHash],
+         `,
+        [context.staffAuthSessionId, context.userId],
       );
       if (factor.rowCount !== 1) throw new MfaStepUpRequiredError();
     }
@@ -178,7 +187,10 @@ async function inAuthorizedPhysicalResourceOverviewAttempt<T>(
     if (transactionStarted) {
       try {
         await client.query("ROLLBACK");
-        finishTransactionOutcomes(client, committing ? "UNAVAILABLE" : "ROLLED_BACK");
+        finishTransactionOutcomes(
+          client,
+          committing ? "UNAVAILABLE" : "ROLLED_BACK",
+        );
         transactionStarted = false;
       } catch {
         unusable = true;

@@ -13,7 +13,7 @@ import { MfaVerificationFailedError } from "./mfa-errors";
 import { lockCurrentFactor } from "./mfa-factor-repository";
 import {
   establishMfaAssurance,
-  lockAndRecheckMfaSession,
+  lockAndRecheckMfaSessionInWriter,
   lockMfaUser,
   requireManagementMfaEligibility,
 } from "./mfa-session-repository";
@@ -37,7 +37,10 @@ export class MfaStepUpService {
     const reservation = await this.antiAbuse.reserveTotp(context.userId);
     try {
       return await inPostgresTransaction(this.pool, async (transaction) => {
-        const session = await lockAndRecheckMfaSession(transaction, context);
+        const session = await lockAndRecheckMfaSessionInWriter(
+          transaction,
+          context,
+        );
         await lockMfaUser(transaction, session.user_id);
         await requireManagementMfaEligibility(transaction, session.user_id);
         const factor = await lockCurrentFactor(transaction, session.user_id);

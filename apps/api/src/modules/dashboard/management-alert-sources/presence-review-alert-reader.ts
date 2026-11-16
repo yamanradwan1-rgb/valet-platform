@@ -26,7 +26,7 @@ async function sourceCandidates(
     [
       input.context.userId,
       input.context.staffAuthSessionId,
-      input.context.accessTokenHash,
+      input.context.rawAccessToken ?? "",
       scope.organizationId,
     ],
   );

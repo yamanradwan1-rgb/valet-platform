@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 
 import type { PostgresTransaction } from "../../common/database/postgres";
 import type { StaffSessionContext } from "../auth/staff-session-context";
+import { lockStaffSessionWithBearer } from "../auth/staff-session-lock";
 import { requireMfaAssuranceInTransaction } from "../auth/mfa/mfa-assurance-policy";
 import { hasManagementCommercialAccess } from "./management-commercial-access-policy";
 import {
@@ -39,30 +40,22 @@ async function currentRole(
   context: StaffSessionContext,
   organizationId: string,
 ): Promise<string | null> {
+  if (
+    (await lockStaffSessionWithBearer(transaction, context, "EXCLUSIVE")) ===
+    undefined
+  ) {
+    return null;
+  }
   const result = await transaction.query<RoleRow>(
     `SELECT membership.role::text AS role
-     FROM staff_auth_sessions AS session
-     INNER JOIN users AS actor
-       ON actor.id = session.user_id AND actor.status = 'ACTIVE'
-     INNER JOIN organization_memberships AS membership
-       ON membership.user_id = actor.id
-      AND membership.organization_id = $4
-      AND membership.status = 'ACTIVE'
+     FROM organization_memberships AS membership
      INNER JOIN organizations AS organization
        ON organization.id = membership.organization_id
       AND organization.status = 'ACTIVE'
-     WHERE session.id = $1
-       AND session.user_id = $2
-       AND session.current_access_token_hash = $3
-       AND session.revoked_at IS NULL
-       AND clock_timestamp() < session.access_expires_at
-       AND clock_timestamp() < session.absolute_expires_at`,
-    [
-      context.staffAuthSessionId,
-      context.userId,
-      context.accessTokenHash,
-      organizationId,
-    ],
+     WHERE membership.user_id = $1
+       AND membership.organization_id = $2
+       AND membership.status = 'ACTIVE'`,
+    [context.userId, organizationId],
   );
   return result.rows[0]?.role ?? null;
 }
@@ -77,6 +70,13 @@ async function authorizeLocationManager(
     await requireMfaAssuranceInTransaction(transaction, context, {
       sensitive: true,
     });
+  } else {
+    if (
+      (await lockStaffSessionWithBearer(transaction, context, "SHARED")) ===
+      undefined
+    ) {
+      return deny();
+    }
   }
   await transaction.query(
     `SELECT pg_advisory_xact_lock(

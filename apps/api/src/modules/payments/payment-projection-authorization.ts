@@ -1,4 +1,5 @@
 import type { PostgresTransaction } from "../../common/database/postgres";
+import { lockStaffUserSecurityBoundaryShared } from "../auth/staff-user-security-lock";
 import { lockShiftOperationalEligibility } from "../shifts/shift-operational-eligibility";
 import { FinancialMutationError } from "./payment-mutation-errors";
 import type { ProjectionScope } from "./payment-projection-types";
@@ -16,6 +17,7 @@ export async function authorizeStaffPaymentProjection(
   authenticatedUserId: string,
   valetSessionId: string,
 ): Promise<ProjectionScope> {
+  await lockStaffUserSecurityBoundaryShared(transaction, authenticatedUserId);
   const result = await transaction.query<AuthorizationRow>(
     `SELECT session.id::text AS valet_session_id,
             session.organization_id::text, session.location_id::text,
@@ -39,7 +41,7 @@ export async function authorizeStaffPaymentProjection(
       AND access.membership_id = membership.id
       AND access.location_id = location.id
      WHERE session.id = $2 AND actor.id = $1
-     FOR SHARE OF session, location, organization, membership, actor, access`,
+     FOR SHARE OF session, location, organization, membership, access`,
     [authenticatedUserId, valetSessionId],
   );
   const row = result.rows[0];

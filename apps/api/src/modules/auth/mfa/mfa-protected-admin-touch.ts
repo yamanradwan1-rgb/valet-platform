@@ -1,6 +1,7 @@
 import { createHmac, randomUUID } from "node:crypto";
 
 import type { PostgresTransaction } from "../../../common/database/postgres";
+import { accessTokenPattern } from "../staff-auth-credential";
 import type { StaffSessionContext } from "../staff-session-context";
 import { MfaStepUpRequiredError } from "./mfa-errors";
 
@@ -32,6 +33,10 @@ export async function registerProtectedAdminActivity(
   transaction: PostgresTransaction,
   context: StaffSessionContext,
 ): Promise<void> {
+  const bearer = context.rawAccessToken;
+  if (bearer === undefined || !accessTokenPattern.test(bearer)) {
+    throw new MfaStepUpRequiredError();
+  }
   const meta = await transaction.query<ContextRow>(
     `SELECT pg_catalog.current_database() AS db,
             pg_catalog.pg_backend_pid() AS pid,
@@ -43,20 +48,33 @@ export async function registerProtectedAdminActivity(
   if (!row || meta.rowCount !== 1) throw new MfaStepUpRequiredError();
   const nonce = randomUUID();
   const message = [
-    "MFA_ADMIN_ACTIVITY/v1", row.db, context.staffAuthSessionId,
-    context.userId, context.accessTokenHash, nonce, String(row.pid),
-    row.xid, row.ms,
+    "MFA_ADMIN_ACTIVITY/v1",
+    row.db,
+    context.staffAuthSessionId,
+    context.userId,
+    bearer,
+    nonce,
+    String(row.pid),
+    row.xid,
+    row.ms,
   ].join("|");
   const mac = createHmac("sha256", activitySecret())
-    .update(message, "utf8").digest();
+    .update(message, "utf8")
+    .digest();
   try {
     const applied = await transaction.query<{ applied: number }>(
       `SELECT mfa_activity_private.touch_admin_activity(
          $1::uuid,$2::uuid,$3::text,$4::uuid,$5::integer,
          $6::text,$7::bigint,$8::bytea) AS applied`,
       [
-        context.staffAuthSessionId, context.userId, context.accessTokenHash,
-        nonce, row.pid, row.xid, row.ms, mac,
+        context.staffAuthSessionId,
+        context.userId,
+        bearer,
+        nonce,
+        row.pid,
+        row.xid,
+        row.ms,
+        mac,
       ],
     );
     if (applied.rows[0]?.applied !== 1 || applied.rowCount !== 1) {

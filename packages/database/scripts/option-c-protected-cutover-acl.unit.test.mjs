@@ -164,20 +164,30 @@ function retirementClient({ rogueRole = null } = {}) {
   return { client, direct, formatted, executeFormatted };
 }
 
-test("retirement is REVOKE-only, revokes runtime revoked_at, and closes protected EXECUTE", async () => {
+test("retirement grants only the narrow Runtime session lock authority", async () => {
   const fixture = retirementClient();
   await retireOptionCLegacyAcl(
     fixture.client,
     fixture.executeFormatted,
     runtime,
   );
-  const allSql = [
-    ...fixture.direct.map(({ sql }) => sql),
-    ...fixture.formatted.map(({ format }) => format),
-  ];
+  const grants = fixture.formatted.filter(({ format }) =>
+    /\bGRANT\b/.test(format),
+  );
+  assert.equal(grants.length, 11);
   assert.equal(
-    allSql.some((sql) => /\bGRANT\b/.test(sql)),
-    false,
+    grants.filter(
+      ({ format }) =>
+        format ===
+        "GRANT SELECT (%I) ON TABLE public.staff_auth_sessions TO %I",
+    ).length,
+    10,
+  );
+  assert.equal(
+    grants.filter(({ format }) =>
+      format.startsWith("GRANT EXECUTE ON FUNCTION "),
+    ).length,
+    1,
   );
   assert.equal(
     fixture.formatted.some(
@@ -235,6 +245,7 @@ test("cutover revokes unknown LOGIN role EXECUTE, not merely runtime or named wr
     ...optionCFunctionContract.staffAuth,
     ...optionCFunctionContract.mfa,
     optionCFunctionContract.mfaActivity,
+    optionCFunctionContract.runtimeSessionLock,
   ]) {
     assert.equal(
       fixture.formatted.some(

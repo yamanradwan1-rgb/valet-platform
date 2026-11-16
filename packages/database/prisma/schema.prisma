@@ -821,6 +821,7 @@ model User {
   createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
   lastLoginAt  DateTime?  @map("last_login_at") @db.Timestamptz(3)
+  runtimeLockVersion BigInt @default(0) @map("runtime_lock_version")
 
   memberships                  OrganizationMembership[]
   conditionPhotoUploadAdmission ConditionPhotoUploadAdmission?
@@ -844,6 +845,7 @@ model StaffAuthSession {
   mfaAuthenticatedAt     DateTime? @map("mfa_authenticated_at") @db.Timestamptz(3)
   mfaFactorId            String?   @map("mfa_factor_id") @db.Uuid
   lastAdminActivityAt    DateTime? @map("last_admin_activity_at") @db.Timestamptz(3)
+  runtimeLockVersion     BigInt    @default(0) @map("runtime_lock_version")
 
   user               User                     @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   mfaFactor          UserMfaTotpFactor?       @relation(fields: [userId, mfaFactorId], references: [userId, id], onDelete: Restrict, onUpdate: Restrict, map: "staff_auth_sessions_user_mfa_factor_id_fkey")

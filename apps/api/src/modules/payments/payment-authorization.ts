@@ -1,4 +1,5 @@
 import type { PostgresTransaction } from "../../common/database/postgres";
+import { lockStaffUserSecurityBoundaryShared } from "../auth/staff-user-security-lock";
 import { FinancialMutationError } from "./payment-mutation-errors";
 import type { FinancialActor, PaymentScope } from "./payment-mutation-types";
 
@@ -7,6 +8,7 @@ export async function authorizeManagerFinancialMutation(
   authenticatedUserId: string,
   valetSessionId: string,
 ): Promise<{ readonly actor: FinancialActor; readonly scope: PaymentScope }> {
+  await lockStaffUserSecurityBoundaryShared(transaction, authenticatedUserId);
   const result = await transaction.query<{
     location_id: string;
     membership_id: string;
@@ -34,7 +36,7 @@ export async function authorizeManagerFinancialMutation(
       AND access.membership_id = membership.id
       AND access.location_id = location.id
      WHERE session.id = $2 AND actor.id = $1
-     FOR SHARE OF session, location, organization, membership, actor, access`,
+     FOR SHARE OF session, location, organization, membership, access`,
     [authenticatedUserId, valetSessionId],
   );
   const row = result.rows[0];
