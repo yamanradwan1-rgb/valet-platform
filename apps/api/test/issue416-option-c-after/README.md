@@ -1,6 +1,6 @@
-# Option C W37 — independently attested AFTER writer acceptance gates
+# Option C — independently attested AFTER writer acceptance gates
 
-**Pinned source baseline:** `1fbf95c58089b7689d77230b2a730f6e51a92580`.
+**Historical W37 source baseline:** `1fbf95c58089b7689d77230b2a730f6e51a92580`.
 **Scope:** test-only security evidence, not a writer implementation, grant change,
 Password Reset activation, rollout approval or production security clearance.
 
@@ -41,30 +41,46 @@ separately checked. A failed privilege query is never reported as denied access.
 
 ### Safety and reproducibility
 
-The AFTER/BEFORE-onboarding fixtures require the separately attested **W37-only**
-local Docker container `vaylet-issue416-w37-after-20261115-pg17`, image
-`postgres:17-alpine`, loopback port `127.0.0.1:51157`, database/admin role
-`valet_w37after`, labels `vaylet.owner=issue416-w37-after-20261115`,
-`vaylet.issue=416`, `vaylet.environment=isolated-test`,
-`vaylet.disposable=true`, with no bind mounts. They reject CI, host/context
-environment overrides, remote or unrecognized Docker contexts, wrong role/DB,
-PostgreSQL versions outside 17 and differing host/container PostgreSQL
-`pg_control_system().system_identifier`. Every suite checks ownership **before
-creating its random test database/role**. No W9, Prime, shared or production
-container/volume/SQL instance is permitted.
+The AFTER suite is pinned to a dedicated local Docker target that must be
+provisioned and independently attested before execution:
+`vaylet-issue416-option-c-final-20261116-pg17`, image `postgres:17-alpine`,
+loopback port `127.0.0.1:51800`, bootstrap database/user `postgres`, test
+database/admin role `valet_w66final4`, and named volume
+`vaylet_optionc_final_pg17_data`. Required labels are
+`vaylet.owner=issue416-option-c-final-20261116`, `vaylet.issue=416`,
+`vaylet.environment=isolated-test`, and `vaylet.disposable=true`. The container
+must have restart policy `no`, exactly that one named volume and no bind mounts.
+The test owner is non-superuser with `CREATEDB` and `CREATEROLE`, `NOINHERIT`,
+no replication or `BYPASSRLS`, and only the `pg_monitor` parent membership with
+`INHERIT TRUE`, `SET FALSE`, `ADMIN FALSE`. `owned-target.ts` verifies these
+properties before any test database/role is created, including matching the
+host/container `pg_control_system().system_identifier`.
+
+The optional historical BEFORE-onboarding suite uses a separate W37 target
+`vaylet-issue416-w37-option-c-20261115-pg17`, loopback port `127.0.0.1:51147`,
+database/admin role `valet_w37oc`, and owner label
+`vaylet.owner=issue416-w37-option-c-20261115`. It is not the AFTER target.
+Both targets reject CI, host/context environment overrides, remote or
+unrecognized Docker contexts, wrong role/DB, PostgreSQL versions outside 17
+and differing host/container system identifiers. No W9, Prime, shared or
+production container/volume/SQL instance is permitted.
 
 Once the disposable fixture has been independently attested, run from
 `apps/api` with the real fixture password supplied locally (never commit it):
 
 ```powershell
 $env:NODE_ENV = 'test'
-$env:ISSUE416_OPTION_C_AFTER = 'W37_AFTER_DISPOSABLE_ONLY'
-$env:TEST_DATABASE_URL = 'postgresql://valet_w37after:<fixture-password>@127.0.0.1:51157/valet_w37after'
+$env:ISSUE416_OPTION_C_AFTER = 'OPTION_C_FINAL_DISPOSABLE_ONLY'
+$env:TEST_DATABASE_URL = 'postgresql://valet_w66final4:<fixture-password>@127.0.0.1:51800/valet_w66final4'
 $env:MIGRATION_DATABASE_URL = $env:TEST_DATABASE_URL
 $env:DATABASE_URL = $env:TEST_DATABASE_URL
-pnpm exec vitest run --config vitest.option-c-before-onboarding.config.mjs
 pnpm exec vitest run --config vitest.option-c-after.config.mjs
 ```
+
+To run the optional original BEFORE onboarding evidence, switch to the separate
+W37 target and set `ISSUE416_OPTION_C_T5='W37_DISPOSABLE_ONLY'` with
+`TEST_DATABASE_URL`/`MIGRATION_DATABASE_URL` pointing to
+`postgresql://valet_w37oc:<fixture-password>@127.0.0.1:51147/valet_w37oc`.
 
 The fixture itself runs official fresh migrations and initial runtime
 provisioning; the AFTER provisioner test then executes `runtime:provision`

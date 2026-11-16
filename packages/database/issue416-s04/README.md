@@ -3,14 +3,16 @@
 Run the isolated signed-activation SQL qualification with:
 
 ```powershell
-$env:S04_W67_PG17_FIXTURE_URL = "postgresql://w67_owner:<password>@127.0.0.1:51667/s04_w67_disposable"
-$env:S04_W67_PG17_SUPERUSER_URL = "postgresql://postgres:<bootstrap-password>@127.0.0.1:51667/s04_w67_disposable"
+$env:S04_W67_PG17_PORT = "51800"
+$env:S04_W67_PG17_FIXTURE_URL = "postgresql://w67_owner:<password>@127.0.0.1:51800/s04_w67_disposable"
+$env:S04_W67_PG17_SUPERUSER_URL = "postgresql://postgres:<bootstrap-password>@127.0.0.1:51800/s04_w67_disposable"
 $env:S04_W67_PG17_SYSTEM_ID = "<system_identifier from pg_control_system()>"
 pnpm --filter @valet/database s04:staff-activation:pg17
 ```
 
 The target must be a dedicated disposable PostgreSQL 17 instance bound only to
-`127.0.0.1:51667`. Its `w67_owner` migration identity must be **non-superuser**
+`127.0.0.1` on the exact port specified by `S04_W67_PG17_PORT`. Its `w67_owner`
+migration identity must be **non-superuser**
 with `CREATEDB`, `CREATEROLE`, and `pg_monitor` visibility; the tests assert
 those role attributes and the exact postmaster system identifier. The first
 test provisions the S04 proof key and isolated runtime/Staff/MFA roles. The

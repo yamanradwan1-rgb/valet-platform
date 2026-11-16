@@ -16,6 +16,7 @@ import { provisionS04ProofKey } from "../scripts/provision-s04-proof-key.mjs";
 const fixtureUrl = process.env.S04_W67_PG17_FIXTURE_URL;
 const superuserUrl = process.env.S04_W67_PG17_SUPERUSER_URL;
 const identifier = process.env.S04_W67_PG17_SYSTEM_ID;
+const fixturePort = process.env.S04_W67_PG17_PORT;
 const repo = resolve(fileURLToPath(import.meta.url), "../../../../");
 const migration = readFileSync(
   resolve(
@@ -26,7 +27,7 @@ const migration = readFileSync(
 );
 
 export const s04FixtureAvailable = Boolean(
-  fixtureUrl && superuserUrl && identifier,
+  fixtureUrl && superuserUrl && identifier && fixturePort,
 );
 export const scope = "v1:guest-token";
 const secret = Buffer.alloc(32, 0x54);
@@ -73,7 +74,8 @@ export async function createS04Fixture() {
   for (const target of [url, bootstrapUrl]) {
     assert.equal(target.protocol, "postgresql:");
     assert.equal(target.hostname, "127.0.0.1");
-    assert.equal(target.port, "51667");
+    assert.match(fixturePort ?? "", /^\d{1,5}$/);
+    assert.equal(target.port, fixturePort);
     assert.equal(target.pathname, "/s04_w67_disposable");
     assert.equal(target.search, "");
     assert.equal(target.hash, "");

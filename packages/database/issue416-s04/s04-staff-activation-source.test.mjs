@@ -23,8 +23,15 @@ const migration = canonicalLf(
 );
 const service = read("apps/api/src/modules/auth/staff-activation.service.ts");
 const signer = read("apps/api/src/modules/anti-abuse/s04-signed-sql-proof.ts");
-const pg17 = read("packages/database/issue416-s04/s04-staff-activation-pg17.integration.mjs");
-const pg17Runner = read("packages/database/scripts/run-s04-staff-activation-pg17.mjs");
+const pg17 = read(
+  "packages/database/issue416-s04/s04-staff-activation-pg17.integration.mjs",
+);
+const pg17Support = read(
+  "packages/database/issue416-s04/s04-staff-activation-pg17-support.mjs",
+);
+const pg17Runner = read(
+  "packages/database/scripts/run-s04-staff-activation-pg17.mjs",
+);
 const databasePackage = JSON.parse(read("packages/database/package.json"));
 const grants = read("packages/database/scripts/staff-auth-writer-grants.mjs");
 const verifier = read(
@@ -117,15 +124,20 @@ test("protected writer alone can finalize activation; writer verifiers fence all
   assert.match(signer, /STAFF_ACTIVATION/);
   assert.match(signer, /transactionId/);
   assert.doesNotMatch(signer, /export function signAction/);
-  assert.match(pg17, /signedMigration/);
-  assert.match(pg17, /proof\("STAFF_ACTIVATION"/);
+  assert.match(pg17Support, /signedMigration/);
+  assert.match(pg17Support, /proof\("STAFF_ACTIVATION"/);
   assert.match(pg17, /wrongXidMac/);
   assert.match(pg17, /mismatchedXidParameter/);
-  assert.match(pg17, /proofFor:events\[0\]/);
+  assert.match(pg17, /proofFor: events\[0\]/);
   assert.match(pg17, /rollbackProofs/);
-  assert.match(pg17, /to_regprocedure\('public\.s04_staff_activation_success\(uuid,text,text,text\)'\)/);
+  assert.match(
+    pg17Support,
+    /to_regprocedure\('public\.s04_staff_activation_success\(uuid,text,text,text\)'\)/,
+  );
   assert.match(pg17Runner, /S04_W67_PG17_FIXTURE_URL/);
   assert.match(pg17Runner, /S04_W67_PG17_SUPERUSER_URL/);
+  assert.match(pg17Runner, /S04_W67_PG17_PORT/);
+  assert.match(pg17, /S04_W67_PG17_PORT/);
   assert.equal(
     databasePackage.scripts["s04:staff-activation:pg17"],
     "node scripts/run-s04-staff-activation-pg17.mjs",

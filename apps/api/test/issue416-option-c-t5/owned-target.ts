@@ -9,6 +9,10 @@ interface OwnedTarget {
   readonly port: string;
   readonly database: string;
   readonly user: string;
+  readonly bootstrapDatabase?: string;
+  readonly bootstrapUser?: string;
+  readonly volumeName?: string;
+  readonly allowedParentRoles: readonly string[];
   readonly flag: string;
   readonly flagValue: string;
 }
@@ -19,18 +23,23 @@ const beforeTarget: OwnedTarget = {
   port: "51147",
   database: "valet_w37oc",
   user: "valet_w37oc",
+  allowedParentRoles: ["pg_monitor"],
   flag: "ISSUE416_OPTION_C_T5",
   flagValue: "W37_DISPOSABLE_ONLY",
 };
 
 const afterTarget: OwnedTarget = {
-  containerName: "vaylet-issue416-w66-final4-20261115-pg17",
-  owner: "issue416-w66-final4-20261115",
-  port: "51669",
+  containerName: "vaylet-issue416-option-c-final-20261116-pg17",
+  owner: "issue416-option-c-final-20261116",
+  port: "51800",
   database: "valet_w66final4",
   user: "valet_w66final4",
+  bootstrapDatabase: "postgres",
+  bootstrapUser: "postgres",
+  volumeName: "vaylet_optionc_final_pg17_data",
+  allowedParentRoles: ["pg_monitor"],
   flag: "ISSUE416_OPTION_C_AFTER",
-  flagValue: "W66_FINAL4_DISPOSABLE_ONLY",
+  flagValue: "OPTION_C_FINAL_DISPOSABLE_ONLY",
 };
 
 function docker(args: string[]): string {
@@ -57,6 +66,9 @@ async function assertOwnedPostgres17(target: OwnedTarget): Promise<void> {
     port: expectedPort,
     database: expectedDatabase,
     user: expectedUser,
+    bootstrapDatabase = expectedDatabase,
+    bootstrapUser = expectedUser,
+    volumeName,
   } = target;
   if (
     process.env[target.flag] !== target.flagValue ||
@@ -112,11 +124,16 @@ async function assertOwnedPostgres17(target: OwnedTarget): Promise<void> {
     container?.Config?.Labels?.["vaylet.environment"] !== "isolated-test" ||
     container?.Config?.Labels?.["vaylet.disposable"] !== "true" ||
     container?.Config?.Labels?.["vaylet.issue"] !== "416" ||
-    !container?.Config?.Env?.includes(`POSTGRES_DB=${expectedDatabase}`) ||
-    !container?.Config?.Env?.includes(`POSTGRES_USER=${expectedUser}`) ||
+    !container?.Config?.Env?.includes(`POSTGRES_DB=${bootstrapDatabase}`) ||
+    !container?.Config?.Env?.includes(`POSTGRES_USER=${bootstrapUser}`) ||
+    container?.HostConfig?.RestartPolicy?.Name !== "no" ||
     container?.Mounts?.some(
       (mount: { Type: string }) => mount.Type === "bind",
     ) ||
+    (volumeName !== undefined &&
+      (container?.Mounts?.length !== 1 ||
+        container.Mounts[0]?.Type !== "volume" ||
+        container.Mounts[0]?.Name !== volumeName)) ||
     !Array.isArray(ports) ||
     ports.length !== 1 ||
     ports[0]?.HostIp !== "127.0.0.1" ||
@@ -154,13 +171,30 @@ async function assertOwnedPostgres17(target: OwnedTarget): Promise<void> {
       principal: string;
       version: number;
       recovery: boolean;
+      superuser: boolean;
       create_db: boolean;
       create_role: boolean;
+      replication: boolean;
+      bypass_rls: boolean;
+      inherit: boolean;
+      parent_roles: string[];
+      membership_options_valid: boolean;
     }>(`SELECT system_identifier::text, current_database() AS database,
                current_user AS principal, current_setting('server_version_num')::int AS version,
-               pg_is_in_recovery() AS recovery, role.rolcreatedb AS create_db,
-               role.rolcreaterole AS create_role
-        FROM pg_control_system() CROSS JOIN pg_roles AS role WHERE role.rolname=current_user`);
+               pg_is_in_recovery() AS recovery, role.rolsuper AS superuser,
+               role.rolcreatedb AS create_db, role.rolcreaterole AS create_role,
+               role.rolreplication AS replication, role.rolbypassrls AS bypass_rls,
+               role.rolinherit AS inherit,
+               coalesce(array_agg(parent.rolname ORDER BY parent.rolname)
+                 FILTER (WHERE parent.oid IS NOT NULL), ARRAY[]::name[]) AS parent_roles,
+               coalesce(bool_and(NOT membership.admin_option AND
+                 membership.inherit_option AND NOT membership.set_option), true)
+                 AS membership_options_valid
+        FROM pg_control_system() CROSS JOIN pg_roles AS role
+        LEFT JOIN pg_auth_members AS membership ON membership.member=role.oid
+        LEFT JOIN pg_roles AS parent ON parent.oid=membership.roleid
+        WHERE role.rolname=current_user
+        GROUP BY role.oid`);
     const proof = result.rows[0];
     if (
       result.rowCount !== 1 ||
@@ -170,8 +204,15 @@ async function assertOwnedPostgres17(target: OwnedTarget): Promise<void> {
       proof.version < 170000 ||
       proof.version >= 180000 ||
       proof.recovery ||
+      proof.superuser ||
       !proof.create_db ||
-      !proof.create_role
+      !proof.create_role ||
+      proof.replication ||
+      proof.bypass_rls ||
+      proof.inherit ||
+      !proof.membership_options_valid ||
+      JSON.stringify(proof.parent_roles) !==
+        JSON.stringify([...target.allowedParentRoles].sort())
     ) {
       throw new Error("Option C PG17 host SQL/postmaster identity mismatch.");
     }
