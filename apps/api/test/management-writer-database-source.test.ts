@@ -26,14 +26,30 @@ describe("management writer database bootstrap SQL", () => {
     const managementAuthorization = read(
       "apps/api/src/modules/management/management-authorization.ts",
     );
-    const preflightStart = preflight.indexOf("const result = preflightOnly");
-    const preflightEnd = preflight.indexOf(
-      ": await transaction.query",
-      preflightStart,
+    const currentRoleStart = preflight.indexOf("async function currentRole");
+    const currentRoleEnd = preflight.indexOf(
+      "async function authorizeLocationManager",
+      currentRoleStart,
     );
-    expect(preflightStart).toBeGreaterThanOrEqual(0);
-    expect(preflightEnd).toBeGreaterThan(preflightStart);
-    const preflightQuery = preflight.slice(preflightStart, preflightEnd);
+    expect(currentRoleStart).toBeGreaterThanOrEqual(0);
+    expect(currentRoleEnd).toBeGreaterThan(currentRoleStart);
+    const currentRole = preflight.slice(currentRoleStart, currentRoleEnd);
+    expect(currentRole).toContain("!preflightOnly &&");
+    expect(currentRole).toContain(
+      'lockStaffSessionWithBearer(transaction, context, "EXCLUSIVE")',
+    );
+    const preflightQueryStart = currentRole.indexOf(
+      "const result = await transaction.query<RoleRow>",
+    );
+    const preflightQueryEnd = currentRole.indexOf(
+      "return result.rows[0]?.role",
+    );
+    expect(preflightQueryStart).toBeGreaterThanOrEqual(0);
+    expect(preflightQueryEnd).toBeGreaterThan(preflightQueryStart);
+    const preflightQuery = currentRole.slice(
+      preflightQueryStart,
+      preflightQueryEnd,
+    );
     expect(preflightQuery).not.toMatch(
       /staff_auth_sessions|current_access_token_hash|created_at|FOR UPDATE|FOR SHARE|pg_advisory_xact_lock/,
     );
@@ -141,6 +157,13 @@ describe("management writer database bootstrap SQL", () => {
       ),
       "utf8",
     );
+    const aclVerification = readFileSync(
+      resolve(
+        root,
+        "packages/database/scripts/option-c-protected-cutover-acl-verification.mjs",
+      ),
+      "utf8",
+    );
     const readiness = readFileSync(
       resolve(
         root,
@@ -173,7 +196,10 @@ describe("management writer database bootstrap SQL", () => {
     expect(forbiddenColumns).toContain('["locations", "updated_at", "UPDATE"]');
     expect(forbiddenColumns).toContain('["users", "updated_at", "UPDATE"]');
     expect(mutationInventory).not.toContain("attribute.attname='updated_at'");
-    expect(aclCutover).toContain("await verifyManagementWriterPrivileges");
+    expect(aclCutover).toContain(
+      'export { verifyOptionCProtectedAcl } from "./option-c-protected-cutover-acl-verification.mjs"',
+    );
+    expect(aclVerification).toContain("await verifyManagementWriterPrivileges");
     expect(readiness).toContain("await verifyManagementWriterPrivileges");
   });
 });

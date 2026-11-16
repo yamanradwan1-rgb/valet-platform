@@ -13,10 +13,11 @@ const sessionId = "55555555-5555-4555-8555-555555555555";
 const factorId = "66666666-6666-4666-8666-666666666666";
 const createdAt = new Date("2026-10-09T14:00:00.000Z");
 const now = new Date("2026-10-09T14:05:00.000Z");
+const rawAccessToken = `vsa1.${"F".repeat(43)}`;
 
 const context: StaffSessionContext = {
-  rawAccessToken: "vsa1." + "A".repeat(43),
   createdAt,
+  rawAccessToken,
   staffAuthSessionId: sessionId,
   userId,
 };
@@ -36,17 +37,23 @@ function fakeTransaction(input: {
   const transaction = {
     query: async (sql: string, parameters: readonly unknown[] = []) => {
       calls.push({ parameters, sql });
-      if (sql.includes("staff-user-security:"))
-        return { rowCount: 1, rows: [{}] };
-      if (
-        sql.includes("FROM staff_auth_sessions AS session") &&
-        sql.includes("session.created_at")
-      ) {
+      if (sql.includes("staff_auth_lock_current_session")) {
         return input.sessionPresent === false
           ? { rowCount: 0, rows: [] }
           : {
               rowCount: 1,
-              rows: [{ created_at: createdAt, id: sessionId, user_id: userId }],
+              rows: [
+                {
+                  absolute_expires_at: new Date("2026-10-10T14:00:00.000Z"),
+                  checked_at: now,
+                  created_at: createdAt,
+                  id: sessionId,
+                  last_admin_activity_at: now,
+                  mfa_authenticated_at: now,
+                  mfa_factor_id: factorId,
+                  user_id: userId,
+                },
+              ],
             };
       }
       if (
@@ -56,25 +63,6 @@ function fakeTransaction(input: {
         return {
           rowCount: 1,
           rows: [{ organizationId, role: input.role }],
-        };
-      }
-      if (
-        sql.includes("FROM staff_auth_sessions AS session") &&
-        sql.includes("session.mfa_authenticated_at")
-      ) {
-        return {
-          rowCount: 1,
-          rows: [
-            {
-              absolute_expires_at: new Date("2026-10-10T14:00:00.000Z"),
-              id: sessionId,
-              last_admin_activity_at: now,
-              mfa_authenticated_at: now,
-              mfa_factor_id: factorId,
-              now,
-              user_id: userId,
-            },
-          ],
         };
       }
       if (sql.includes("FROM user_mfa_totp_factors AS factor")) {
@@ -122,8 +110,7 @@ describe("DEC-102 Live history read authorization", () => {
       }),
     ).resolves.toEqual({ locationId, membershipId, organizationId });
 
-    const userBoundary = callIndex(calls, "staff-user-security:");
-    const exactSession = callIndex(calls, "session.created_at");
+    const exactSession = callIndex(calls, "staff_auth_lock_current_session");
     const roleHint = callIndex(calls, "membership.role::text AS role");
     const organizationBoundary = callIndex(calls, "staff-management-org:");
     expect(calls[organizationBoundary]?.sql).toContain(
@@ -134,12 +121,17 @@ describe("DEC-102 Live history read authorization", () => {
       "organization_subscriptions AS subscription",
     );
     const entitlementGuard = callIndex(
-      calls, "shift_presence_lock_management_entitlement(",
+      calls,
+      "shift_presence_lock_management_entitlement(",
     );
-    expect(userBoundary).toBeGreaterThanOrEqual(0);
-    expect(calls[userBoundary]?.sql).toContain("pg_advisory_xact_lock_shared");
-    expect(exactSession).toBeGreaterThan(userBoundary);
-    expect(calls[exactSession]?.sql).toContain("FOR SHARE OF session");
+    expect(exactSession).toBe(0);
+    expect(calls[exactSession]?.parameters).toEqual([
+      sessionId,
+      userId,
+      rawAccessToken,
+      createdAt,
+      "SHARED",
+    ]);
     expect(roleHint).toBeGreaterThan(exactSession);
     expect(organizationBoundary).toBeGreaterThan(roleHint);
     expect(entitlementGuard).toBeGreaterThan(organizationBoundary);
@@ -158,7 +150,7 @@ describe("DEC-102 Live history read authorization", () => {
       "FOR SHARE OF organization, location, access",
     );
     expect(
-      calls.some((call) => call.sql.includes("mfa_authenticated_at")),
+      calls.some((call) => call.sql.includes("user_mfa_totp_factors")),
     ).toBe(false);
     expect(
       calls.every((call) => call.sql.trimStart().startsWith("SELECT")),
@@ -175,18 +167,17 @@ describe("DEC-102 Live history read authorization", () => {
       }),
     ).resolves.toEqual({ locationId, membershipId, organizationId });
 
-    const exactSession = callIndex(calls, "session.created_at");
-    const mfaSession = callIndex(calls, "session.mfa_authenticated_at");
-    expect(calls[mfaSession]?.sql).toContain("FOR SHARE OF session, staff_user");
+    const exactSession = callIndex(calls, "staff_auth_lock_current_session");
     const mfaFactor = callIndex(calls, "FROM user_mfa_totp_factors AS factor");
-    expect(calls[mfaFactor]?.sql).toContain("FOR SHARE OF factor");
+    expect(calls[mfaFactor]?.sql).toContain("factor.state = 'ACTIVE'");
+    expect(calls[mfaFactor]?.sql).not.toContain("FOR UPDATE");
     const organizationBoundary = callIndex(calls, "staff-management-org:");
     const lockedAuthority = callIndex(
       calls,
       "organization_subscriptions AS subscription",
     );
-    expect(mfaSession).toBeGreaterThan(exactSession);
-    expect(organizationBoundary).toBeGreaterThan(mfaSession);
+    expect(mfaFactor).toBeGreaterThan(exactSession);
+    expect(organizationBoundary).toBeGreaterThan(mfaFactor);
     expect(lockedAuthority).toBeGreaterThan(organizationBoundary);
     expect(calls[lockedAuthority]!.sql).not.toContain(
       "membership_location_access AS access",

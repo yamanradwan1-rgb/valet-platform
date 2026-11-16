@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { PostgresPool, PostgresTransaction } from "../src/common/database/postgres";
+import type {
+  PostgresPool,
+  PostgresTransaction,
+} from "../src/common/database/postgres";
 import { authorizeDashboardLocation } from "../src/modules/dashboard/dashboard-location-authorization";
 import { locationKpiAnalytics } from "../src/modules/dashboard/analytics-kpi-query";
 import { requireMfaAssuranceInTransaction } from "../src/modules/auth/mfa/mfa-assurance-policy";
@@ -23,30 +26,40 @@ vi.mock("../src/modules/auth/mfa/mfa-assurance-policy", () => ({
   requireMfaAssuranceInTransaction: vi.fn(),
 }));
 vi.mock("../src/modules/dashboard/analytics-period", async (original) => ({
-  ...(await original<typeof import("../src/modules/dashboard/analytics-period")>()),
+  ...(await original<
+    typeof import("../src/modules/dashboard/analytics-period")
+  >()),
   resolveAnalyticsTimezone: vi.fn().mockResolvedValue("Asia/Amman"),
 }));
 vi.mock("../src/modules/dashboard/analytics-kpi-sla-query", () => ({
   querySlaCompliance: vi.fn(async (transaction: object) => {
     expect(isolationAtQuery.get(transaction)).toBe("repeatable read");
     return {
-      denominator: 0, numerator: 0, missingTargetCount: 0,
-      invalidOrMissingIntervalCount: 0, percentage: null,
+      denominator: 0,
+      numerator: 0,
+      missingTargetCount: 0,
+      invalidOrMissingIntervalCount: 0,
+      percentage: null,
     };
   }),
 }));
 vi.mock("../src/modules/dashboard/analytics-kpi-workforce-query", () => ({
   queryCarsPerActiveEmployee: vi.fn().mockResolvedValue({
-    denominator: 0, numerator: 0, value: null,
+    denominator: 0,
+    numerator: 0,
+    value: null,
   }),
   queryHandoffSummary: vi.fn().mockResolvedValue({
-    attributedCount: 0, employeeCount: 0, missingAttributionCount: 0,
+    attributedCount: 0,
+    employeeCount: 0,
+    missingAttributionCount: 0,
   }),
   queryHandoffEmployees: vi.fn().mockResolvedValue({ rows: [] }),
 }));
 vi.mock("../src/modules/dashboard/analytics-kpi-key-exceptions-query", () => ({
   queryKeyExceptions: vi.fn().mockResolvedValue({
-    byType: [], total: 0,
+    byType: [],
+    total: 0,
   }),
 }));
 
@@ -66,14 +79,17 @@ const params = {
   period,
   recordManagementActivity: false,
 };
+const rawAccessToken = `vsa1.${"H".repeat(43)}`;
 const staffContext = {
-  rawAccessToken: "vsa1." + "A".repeat(43),
   createdAt: new Date("2026-07-10T00:00:00.000Z"),
+  rawAccessToken,
   staffAuthSessionId: "session-315",
   userId: params.authenticatedUserId,
 };
 
-function simulatedPostgres({ factorActive = true }: { factorActive?: boolean } = {}) {
+function simulatedPostgres({
+  factorActive = true,
+}: { factorActive?: boolean } = {}) {
   const events: string[] = [];
   const transactions: Array<{ isolation: string }> = [];
   const pool = {
@@ -86,14 +102,21 @@ function simulatedPostgres({ factorActive = true }: { factorActive?: boolean } =
         query: vi.fn(async (sql: string, values?: unknown[]) => {
           if (sql.includes("INNER JOIN user_mfa_totp_factors AS factor")) {
             expect(inTransaction).toBe(true);
-            expect(sql).toContain("FOR SHARE OF factor");
-            expect(values).toEqual(["session-315", "user-315", "token-315"]);
-            events.push("mfa-factor-share-lock");
+            expect(sql).toContain("factor.state = 'ACTIVE'");
+            expect(sql).not.toContain("FOR UPDATE");
+            expect(values).toEqual([
+              "session-315",
+              "user-315",
+              staffContext.createdAt,
+            ]);
+            events.push("mfa-factor-current-check");
             return {
               rowCount: factorActive ? 1 : 0,
               rows: factorActive ? [{ id: "factor-315" }] : [],
             };
-          } else if (sql.startsWith("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ")) {
+          } else if (
+            sql.startsWith("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ")
+          ) {
             expect(inTransaction).toBe(true);
             state.isolation = "repeatable read";
             isolationAtQuery.set(connection, state.isolation);
@@ -113,7 +136,10 @@ function simulatedPostgres({ factorActive = true }: { factorActive?: boolean } =
           } else if (sql.includes("pg_advisory_xact_lock_shared")) {
             events.push("transaction-shared-lock");
             expect(values).toEqual([lmScope.organizationId]);
-            return { rowCount: 1, rows: [{ readCommitted: state.isolation === "read committed" }] };
+            return {
+              rowCount: 1,
+              rows: [{ readCommitted: state.isolation === "read committed" }],
+            };
           } else if (sql === "BEGIN") {
             inTransaction = true;
             state.isolation = "read committed";
@@ -148,43 +174,61 @@ describe("#315 KPI REPEATABLE READ LM regression contract", () => {
       authorizeDashboardReadLocation: (
         transaction: PostgresTransaction,
         input: { authenticatedUserId: string; targetLocationId: string },
-      ) => authorizeDashboardLocation(
-        transaction, input.authenticatedUserId, input.targetLocationId, "DASHBOARD_ACCESS",
-      ),
+      ) =>
+        authorizeDashboardLocation(
+          transaction,
+          input.authenticatedUserId,
+          input.targetLocationId,
+          "DASHBOARD_ACCESS",
+        ),
     }));
-    vi.doMock("../src/modules/dashboard/analytics-kpi-snapshot-transaction", () => ({
-      inAuthorizedKpiSnapshot: async (
-        pool: PostgresPool,
-        input: typeof params,
-        project: (transaction: PostgresTransaction, scope: typeof lmScope) => Promise<unknown>,
-      ) => {
-        const conn = await pool.connect();
-        try {
-          await conn.query("BEGIN");
-          await conn.query("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ");
-          const scope = await authorizeDashboardLocation(
-            conn, input.authenticatedUserId, input.locationId, "DASHBOARD_ACCESS",
-          );
-          if (scope === null) throw new Error("Baseline LM not authorized");
-          const value = await project(conn, scope);
-          await conn.query("COMMIT");
-          return value;
-        } finally { conn.release(); }
-      },
-    }));
+    vi.doMock(
+      "../src/modules/dashboard/analytics-kpi-snapshot-transaction",
+      () => ({
+        inAuthorizedKpiSnapshot: async (
+          pool: PostgresPool,
+          input: typeof params,
+          project: (
+            transaction: PostgresTransaction,
+            scope: typeof lmScope,
+          ) => Promise<unknown>,
+        ) => {
+          const conn = await pool.connect();
+          try {
+            await conn.query("BEGIN");
+            await conn.query("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ");
+            const scope = await authorizeDashboardLocation(
+              conn,
+              input.authenticatedUserId,
+              input.locationId,
+              "DASHBOARD_ACCESS",
+            );
+            if (scope === null) throw new Error("Baseline LM not authorized");
+            const value = await project(conn, scope);
+            await conn.query("COMMIT");
+            return value;
+          } finally {
+            conn.release();
+          }
+        },
+      }),
+    );
     vi.resetModules();
     try {
-      const { locationKpiAnalytics: historicalKpi } = await import(
-        "../src/modules/dashboard/analytics-kpi-query"
-      );
+      const { locationKpiAnalytics: historicalKpi } =
+        await import("../src/modules/dashboard/analytics-kpi-query");
       const db = simulatedPostgres();
-      expect((await historicalKpi(db.pool, params)).locationId).toBe(lmScope.locationId);
+      expect((await historicalKpi(db.pool, params)).locationId).toBe(
+        lmScope.locationId,
+      );
       expect(db.events).toContain("repeatable-read");
       expect(db.events).toContain("commit");
       expect(db.events).not.toContain("shared-org-lock");
     } finally {
       vi.doUnmock("../src/modules/dashboard/dashboard-read-authorization");
-      vi.doUnmock("../src/modules/dashboard/analytics-kpi-snapshot-transaction");
+      vi.doUnmock(
+        "../src/modules/dashboard/analytics-kpi-snapshot-transaction",
+      );
       vi.resetModules();
     }
   });
@@ -196,11 +240,20 @@ describe("#315 KPI REPEATABLE READ LM regression contract", () => {
     expect(db.events).toContain("repeatable-read");
     expect(db.events).toContain("shared-org-lock");
     expect(db.events).toContain("commit");
-    expect(db.events.slice(0, 3)).toEqual(["shared-org-lock", "begin", "repeatable-read"]);
+    expect(db.events.slice(0, 3)).toEqual([
+      "shared-org-lock",
+      "begin",
+      "repeatable-read",
+    ]);
     expect(db.events.slice(-2)).toEqual(["commit", "shared-org-unlock"]);
-    expect(db.transactions.some((state) => state.isolation === "repeatable read")).toBe(true);
+    expect(
+      db.transactions.some((state) => state.isolation === "repeatable read"),
+    ).toBe(true);
     expect(lm).toHaveBeenCalledWith(
-      expect.anything(), "user-315", "loc-315", "DASHBOARD_ACCESS",
+      expect.anything(),
+      "user-315",
+      "loc-315",
+      "DASHBOARD_ACCESS",
     );
   });
 
@@ -229,7 +282,7 @@ describe("#315 KPI REPEATABLE READ LM regression contract", () => {
     expect(result.locationId).toBe(lmScope.locationId);
     expect(mfa).toHaveBeenCalledTimes(1);
     expect(ca).toHaveBeenCalledTimes(1);
-    expect(db.events).toContain("mfa-factor-share-lock");
+    expect(db.events).toContain("mfa-factor-current-check");
     expect(db.events).not.toContain("shared-org-lock");
     expect(db.events).not.toContain("shared-org-unlock");
     expect(db.events).toContain("repeatable-read");
@@ -243,11 +296,13 @@ describe("#315 KPI REPEATABLE READ LM regression contract", () => {
       membershipId: "ca-315",
     } as Awaited<ReturnType<typeof authorizeCompanyAdminManagement>>);
     const db = simulatedPostgres({ factorActive: false });
-    await expect(locationKpiAnalytics(db.pool, {
-      ...params,
-      staffSessionContext: staffContext,
-    })).rejects.toMatchObject({ code: "MFA_STEP_UP_REQUIRED" });
-    expect(db.events).toContain("mfa-factor-share-lock");
+    await expect(
+      locationKpiAnalytics(db.pool, {
+        ...params,
+        staffSessionContext: staffContext,
+      }),
+    ).rejects.toMatchObject({ code: "MFA_STEP_UP_REQUIRED" });
+    expect(db.events).toContain("mfa-factor-current-check");
     expect(db.events).toContain("rollback");
     expect(db.events).not.toContain("commit");
   });

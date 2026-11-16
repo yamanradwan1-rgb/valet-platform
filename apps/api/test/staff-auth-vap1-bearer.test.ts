@@ -11,7 +11,7 @@ describe("VAP1 Staff request raw bearer possession precondition", () => {
   const authorization = `Bearer ${raw}`;
   const context = { rawAccessToken: raw };
 
-  it("matches a genuine submitted credential with the exact resolver bearer", () => {
+  it("matches a genuine submitted credential with the exact context bearer", () => {
     expect(() =>
       requireRequestBearerPossession(authorization, context),
     ).not.toThrow();
@@ -30,15 +30,16 @@ describe("VAP1 Staff request raw bearer possession precondition", () => {
 
   it("rejects stale or synthetic context even with a valid Bearer", () => {
     const other = generateStaffCredential("vsa1.");
-    for (const observedRaw of [
+    for (const observedBearer of [
       other,
       generateStaffCredential("vsr1."),
       staffCredentialHash("access", other),
       "vsa1.invalid",
+      "0".repeat(64),
     ]) {
       expect(() =>
         requireRequestBearerPossession(authorization, {
-          rawAccessToken: observedRaw,
+          rawAccessToken: observedBearer,
         }),
       ).toThrow();
     }
@@ -56,17 +57,16 @@ describe("VAP1 Staff request raw bearer possession precondition", () => {
   });
 
   it("never includes a submitted secret or stored hash in a failure message", () => {
-    const staleContext = {
-      rawAccessToken: generateStaffCredential("vsa1."),
-    };
+    const staleRaw = generateStaffCredential("vsa1.");
+    const staleHash = staffCredentialHash("access", staleRaw);
+    const staleContext = { rawAccessToken: staleRaw };
     try {
       requireRequestBearerPossession(authorization, staleContext);
       throw new Error("Unexpected bearer acceptance");
     } catch (error) {
       expect((error as Error).message).not.toContain(raw);
-      expect((error as Error).message).not.toContain(
-        staleContext.rawAccessToken,
-      );
+      expect((error as Error).message).not.toContain(staleRaw);
+      expect((error as Error).message).not.toContain(staleHash);
     }
   });
 });

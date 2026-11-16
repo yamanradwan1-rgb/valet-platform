@@ -10,16 +10,23 @@ import type {
 
 const localDatabase =
   "postgresql://runtime:local-password@localhost:5432/valet";
-const sessionContext: StaffSessionContext = {
-  rawAccessToken: "vsa1." + "A".repeat(43),
-  createdAt: new Date("2026-09-25T00:00:00.000Z"),
-  staffAuthSessionId: "00000000-0000-4000-8000-000000000001",
-  userId: "00000000-0000-4000-8000-000000000002",
-};
+const rawAccessToken = `vsa1.${"B".repeat(43)}`;
+const sessionContext = Object.defineProperty(
+  {
+    createdAt: new Date("2026-09-25T00:00:00.000Z"),
+    staffAuthSessionId: "00000000-0000-4000-8000-000000000001",
+    userId: "00000000-0000-4000-8000-000000000002",
+  },
+  "rawAccessToken",
+  {
+    configurable: false,
+    enumerable: false,
+    value: rawAccessToken,
+    writable: false,
+  },
+) as StaffSessionContext;
 
-function environment(
-  overrides: NodeJS.ProcessEnv = {},
-): NodeJS.ProcessEnv {
+function environment(overrides: NodeJS.ProcessEnv = {}): NodeJS.ProcessEnv {
   return {
     DATABASE_URL: localDatabase,
     NODE_ENV: "development",
@@ -33,9 +40,8 @@ describe("local development MFA bypass policy", () => {
   it("is disabled when absent, empty, or exactly false", () => {
     expect(readLocalMfaBypassPolicy(environment()).enabled).toBe(false);
     expect(
-      readLocalMfaBypassPolicy(
-        environment({ VAYLET_LOCAL_DISABLE_MFA: "" }),
-      ).enabled,
+      readLocalMfaBypassPolicy(environment({ VAYLET_LOCAL_DISABLE_MFA: "" }))
+        .enabled,
     ).toBe(false);
     expect(
       readLocalMfaBypassPolicy(
@@ -47,8 +53,7 @@ describe("local development MFA bypass policy", () => {
   it.each(["localhost", "LOCALHOST", "127.0.0.1", "[::1]"])(
     "enables only a development PostgreSQL URL on %s",
     (host) => {
-      const databaseUrl =
-        `postgresql://runtime:local-password@${host}:5432/valet`;
+      const databaseUrl = `postgresql://runtime:local-password@${host}:5432/valet`;
       expect(
         readLocalMfaBypassPolicy(
           environment({
@@ -114,8 +119,7 @@ describe("local development MFA bypass policy", () => {
     try {
       readLocalMfaBypassPolicy(
         environment({
-          DATABASE_URL:
-            `postgresql://runtime:${secret}@remote.example.com:5432/valet`,
+          DATABASE_URL: `postgresql://runtime:${secret}@remote.example.com:5432/valet`,
           VAYLET_LOCAL_DISABLE_MFA: "true",
         }),
       );
@@ -129,24 +133,44 @@ describe("local development MFA bypass policy", () => {
     vi.stubEnv("NODE_ENV", "development");
     vi.stubEnv("DATABASE_URL", localDatabase);
     vi.stubEnv("VAYLET_LOCAL_DISABLE_MFA", "true");
-    const query = vi.fn().mockResolvedValue({
-      rowCount: 1,
-      rows: [{
-        factor_current: false,
-        last_admin_activity_at: null,
-        mfa_authenticated_at: null,
-        mfa_factor_id: null,
-        now: new Date("2026-09-25T00:01:00.000Z"),
-      }],
-    });
+    const query = vi.fn(
+      async (sql: string, parameters?: readonly unknown[]) => {
+        expect(sql).toContain("public.staff_auth_lock_current_session");
+        expect(parameters).toEqual([
+          sessionContext.staffAuthSessionId,
+          sessionContext.userId,
+          rawAccessToken,
+          sessionContext.createdAt,
+          "EXCLUSIVE",
+        ]);
+        return {
+          rowCount: 1,
+          rows: [
+            {
+              absolute_expires_at: new Date("2026-09-26T00:00:00.000Z"),
+              checked_at: new Date("2026-09-25T00:01:00.000Z"),
+              created_at: sessionContext.createdAt,
+              id: sessionContext.staffAuthSessionId,
+              last_admin_activity_at: null,
+              mfa_authenticated_at: null,
+              mfa_factor_id: null,
+              user_id: sessionContext.userId,
+            },
+          ],
+        };
+      },
+    );
     const resolve = vi.fn().mockResolvedValue(sessionContext);
     const policy = new MfaAssurancePolicy(
       { query } as unknown as PostgresPool,
       { resolve } as StaffSessionContextResolver,
     );
 
-    await expect(policy.require("Bearer valid")).resolves.toEqual(sessionContext);
-    await expect(policy.assess("Bearer valid")).resolves.toBe("ASSURANCE_VALID");
+    const authorization = `Bearer ${rawAccessToken}`;
+    await expect(policy.require(authorization)).resolves.toEqual(
+      sessionContext,
+    );
+    await expect(policy.assess(authorization)).resolves.toBe("ASSURANCE_VALID");
     expect(resolve).toHaveBeenCalledTimes(2);
     expect(query).toHaveBeenCalledTimes(2);
   });

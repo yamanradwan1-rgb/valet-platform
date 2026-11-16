@@ -45,7 +45,7 @@ describe("Issue416 P0-C: source credential helpers are NOT signer capabilities",
     // Only the private, locked credential lineage can prove issuance/currentness.
   });
 
-  it("a matching bearer/hash pair does not establish DB session authority", () => {
+  it("a matching bearer/context pair does not establish DB session authority", () => {
     const raw = `vsa1.${Buffer.alloc(32, 0x7d).toString("base64url")}`;
     const context = { rawAccessToken: raw };
     expect(() =>
