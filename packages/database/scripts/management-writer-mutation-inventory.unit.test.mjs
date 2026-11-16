@@ -34,9 +34,9 @@ test("Management writer verifies all current/future public DML columns and seque
   assert.match(allowed.queries[0], /namespace\.nspname='public'/);
   assert.match(allowed.queries[0], /relation\.relkind IN/);
   assert.doesNotMatch(allowed.queries[0], /WHERE relation\.relname=ANY/);
-  assert.match(
+  assert.doesNotMatch(
     allowed.queries[0],
-    /attribute\.attname='last_admin_activity_at'/,
+    /attribute\.attname='updated_at'|attribute\.attname='last_admin_activity_at'/,
   );
   assert.match(allowed.queries[0], /has_table_privilege/);
   assert.match(allowed.queries[1], /has_sequence_privilege/);

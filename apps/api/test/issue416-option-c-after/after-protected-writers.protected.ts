@@ -4,6 +4,14 @@ import {
   staffDirectoryPath,
   staffRolePath,
 } from "../issue416-option-c-t5/probe-fixture";
+import {
+  assertConcurrentActorRoleMutation,
+  assertConcurrentLogoutFencesMutation,
+  assertInvalidDisabledForgedAndCrossCompany,
+  assertStatusAndLocationWrappers,
+} from "./after-management-writer-cases";
+import { assertOnboardingWrappersAndAudit } from "./after-management-writer-onboarding-cases";
+import { assertLocationManagerScope } from "./after-management-writer-location-manager-cases";
 import { runLegacyRuntimeProvisioner } from "./after-provisioner-runner";
 import { OptionCAfterProtectedFixture } from "./after-protected-fixture";
 
@@ -61,14 +69,73 @@ describe("Option C protected writer integration / strict writer principals", () 
     }
   }, 90_000);
 
-  it("management writer cannot directly read a stored Staff access verifier", async () => {
+  it("management writer cannot read session credentials or mutate preflight rows", async () => {
     const admin = await fixture.onboardingAdmin();
-    const query = await fixture.managementWriterSql(
+    const effective = await fixture.managementWriterSql(
+      `SELECT has_table_privilege(current_user,'staff_auth_sessions','SELECT') AS table_select,
+              has_column_privilege(current_user,'staff_auth_sessions',
+                'id','SELECT') AS session_id_select,
+              has_column_privilege(current_user,'staff_auth_sessions',
+                'current_access_token_hash','SELECT') AS verifier_select,
+              has_column_privilege(current_user,'staff_auth_sessions',
+                'last_admin_activity_at','SELECT') AS activity_select,
+              has_column_privilege(current_user,'staff_auth_sessions',
+                'last_admin_activity_at','UPDATE') AS activity_update,
+              has_column_privilege(current_user,'users',
+                'updated_at','UPDATE') AS users_update,
+              has_column_privilege(current_user,'organization_memberships',
+                'updated_at','UPDATE') AS memberships_update,
+              has_column_privilege(current_user,'locations',
+                'updated_at','UPDATE') AS locations_update`,
+    );
+    expect(effective.allowed).toBe(true);
+    expect(effective.result).toEqual({
+      table_select: false,
+      session_id_select: false,
+      verifier_select: false,
+      activity_select: false,
+      activity_update: false,
+      users_update: false,
+      memberships_update: false,
+      locations_update: false,
+    });
+    const verifier = await fixture.managementWriterSql(
       `SELECT current_access_token_hash FROM staff_auth_sessions WHERE id=$1`,
       [admin.auth.sessionId],
     );
-    expect(query.allowed).toBe(false);
-    if (!query.allowed) expect(query.sqlstate).toBe("42501");
+    expect(verifier.allowed).toBe(false);
+    if (!verifier.allowed) expect(verifier.sqlstate).toBe("42501");
+    const sessionIdRead = await fixture.managementWriterSql(
+      `SELECT id FROM staff_auth_sessions WHERE id=$1`,
+      [admin.auth.sessionId],
+    );
+    expect(sessionIdRead.allowed).toBe(false);
+    if (!sessionIdRead.allowed) expect(sessionIdRead.sqlstate).toBe("42501");
+    const activity = await fixture.managementWriterSql(
+      `SELECT last_admin_activity_at FROM staff_auth_sessions WHERE id=$1`,
+      [admin.auth.sessionId],
+    );
+    expect(activity.allowed).toBe(false);
+    if (!activity.allowed) expect(activity.sqlstate).toBe("42501");
+    const update = await fixture.managementWriterSql(
+      `UPDATE staff_auth_sessions SET last_admin_activity_at=clock_timestamp()
+       WHERE id=$1`,
+      [admin.auth.sessionId],
+    );
+    expect(update.allowed).toBe(false);
+    if (!update.allowed) expect(update.sqlstate).toBe("42501");
+    for (const [table, id] of [
+      ["users", admin.user.id],
+      ["organization_memberships", admin.membership.membershipId],
+      ["locations", admin.locationId],
+    ] as const) {
+      const result = await fixture.managementWriterSql(
+        `UPDATE ${table} SET updated_at=clock_timestamp() WHERE id=$1`,
+        [id],
+      );
+      expect(result.allowed).toBe(false);
+      if (!result.allowed) expect(result.sqlstate).toBe("42501");
+    }
   });
 
   it("a copied verifier is not a raw-bearer proof for protected Management mutation", async () => {
@@ -113,14 +180,49 @@ describe("Option C protected writer integration / strict writer principals", () 
     expect(real.body).toMatchObject({ role: "VALET_SUPERVISOR", version: 2 });
   });
 
-  it("old bearer/hash cannot be replayed after refresh or logout", async () => {
+  it("uses bearer-bound wrappers for status and location access mutations", async () => {
+    await assertStatusAndLocationWrappers(fixture);
+  });
+
+  it("uses the two protected onboarding wrappers and attributes both audit events", async () => {
+    await assertOnboardingWrappersAndAudit(fixture);
+  });
+
+  it("preserves Location Manager scope through protected status and access wrappers", async () => {
+    await assertLocationManagerScope(fixture);
+  });
+
+  it("rejects invalid, disabled, forged-actor and cross-company bearer-bound writes", async () => {
+    await assertInvalidDisabledForgedAndCrossCompany(fixture);
+  });
+
+  it("serializes actor role revocation against an in-flight Management mutation", async () => {
+    await assertConcurrentActorRoleMutation(fixture);
+  });
+
+  it("serializes logout against an in-flight Management mutation and preserves audit attribution", async () => {
+    await assertConcurrentLogoutFencesMutation(fixture);
+  });
+
+  it("old bearer cannot be replayed after refresh or logout", async () => {
     const admin = await fixture.onboardingAdmin();
-    const oldHash = await fixture.query<{ current_access_token_hash: string }>(
-      `SELECT current_access_token_hash FROM staff_auth_sessions WHERE id=$1`,
-      [admin.auth.sessionId],
-    );
     const refresh = await fixture.refresh(admin.auth.refreshToken);
     expect(refresh.status).toBe(200);
+    const oldBearerMutation = await fixture.managementWriterSql(
+      `SELECT * FROM public.staff_management_authorized_set_role(
+        $1::uuid,$2::uuid,$3::text,$4::uuid,$5::uuid,$6::uuid,$7::integer,$8::membership_role)`,
+      [
+        admin.auth.sessionId,
+        admin.user.id,
+        admin.auth.accessToken,
+        admin.membership.membershipId,
+        admin.membership.organizationId,
+        (await fixture.employee(admin.membership.organizationId)).membershipId,
+        1,
+        "VALET_SUPERVISOR",
+      ],
+    );
+    expect(oldBearerMutation.allowed).toBe(false);
     const oldAccess = await fixture.managementGet(
       staffDirectoryPath(admin.membership.organizationId),
       admin.auth.accessToken,
@@ -131,18 +233,22 @@ describe("Option C protected writer integration / strict writer principals", () 
       String(refresh.body?.accessToken),
     );
     expect(beforeLogout.status).toBe(200);
-    const query = await fixture.managementWriterSql(
-      `SELECT * FROM public.staff_management_authorize_writer(
-        $1::uuid,$2::uuid,$3::text,$4::uuid,$5::uuid)`,
+    const target = await fixture.employee(admin.membership.organizationId);
+    const afterLogout = await fixture.managementWriterSql(
+      `SELECT * FROM public.staff_management_authorized_set_role(
+        $1::uuid,$2::uuid,$3::text,$4::uuid,$5::uuid,$6::uuid,$7::integer,$8::membership_role)`,
       [
         admin.auth.sessionId,
         admin.user.id,
-        oldHash.rows[0]!.current_access_token_hash,
+        String(refresh.body?.accessToken),
         admin.membership.membershipId,
         admin.membership.organizationId,
+        target.membershipId,
+        1,
+        "VALET_SUPERVISOR",
       ],
     );
-    expect(query.allowed).toBe(false);
+    expect(afterLogout.allowed).toBe(false);
     expect(
       (await fixture.logout(String(refresh.body?.refreshToken))).status,
     ).toBe(204);

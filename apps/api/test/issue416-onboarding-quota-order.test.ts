@@ -6,16 +6,13 @@ import type {
   PostgresTransaction,
 } from "../src/common/database/postgres";
 import { inPostgresTransaction } from "../src/common/database/postgres-transaction";
-import { authorizeStaffManagement } from "../src/modules/management/staff-management-authorization";
+import { authorizeStaffManagementPreflight } from "../src/modules/management/staff-management-authorization";
 import {
   createStaffOnboarding,
   resendStaffOnboarding,
   staffOnboardingOperationExists,
 } from "../src/modules/management/staff-onboarding-repository";
-import {
-  lockStaffOnboardingAccount,
-  staffOnboardingTargetEmail,
-} from "../src/modules/management/staff-onboarding-account-lock";
+import { staffOnboardingTargetEmail } from "../src/modules/management/staff-onboarding-account-lock";
 import { recordAdminActivityInTransaction } from "../src/modules/auth/mfa/mfa-assurance-policy";
 import { StaffOnboardingService } from "../src/modules/management/staff-onboarding.service";
 import type { AntiAbuseService } from "../src/modules/anti-abuse/anti-abuse.service";
@@ -25,7 +22,7 @@ vi.mock("../src/common/database/postgres-transaction", () => ({
   inPostgresTransaction: vi.fn(),
 }));
 vi.mock("../src/modules/management/staff-management-authorization", () => ({
-  authorizeStaffManagement: vi.fn(),
+  authorizeStaffManagementPreflight: vi.fn(),
 }));
 vi.mock("../src/modules/management/staff-onboarding-repository", () => ({
   createStaffOnboarding: vi.fn(),
@@ -33,7 +30,6 @@ vi.mock("../src/modules/management/staff-onboarding-repository", () => ({
   staffOnboardingOperationExists: vi.fn(),
 }));
 vi.mock("../src/modules/management/staff-onboarding-account-lock", () => ({
-  lockStaffOnboardingAccount: vi.fn(),
   staffOnboardingTargetEmail: vi.fn(),
 }));
 vi.mock("../src/modules/auth/mfa/mfa-assurance-policy", () => ({
@@ -112,7 +108,7 @@ beforeEach(() => {
       held--;
     }
   });
-  vi.mocked(authorizeStaffManagement).mockResolvedValue({
+  vi.mocked(authorizeStaffManagementPreflight).mockResolvedValue({
     kind: "COMPANY_ADMIN",
     organizationId: org,
     membershipId: membership,
@@ -120,10 +116,15 @@ beforeEach(() => {
     scopeFingerprint: "test",
   });
   vi.mocked(staffOnboardingOperationExists).mockResolvedValue(false);
-  vi.mocked(createStaffOnboarding).mockResolvedValue(saved);
-  vi.mocked(resendStaffOnboarding).mockResolvedValue(saved);
+  vi.mocked(createStaffOnboarding).mockImplementation(async () => {
+    flow.push("protected-wrapper");
+    return saved;
+  });
+  vi.mocked(resendStaffOnboarding).mockImplementation(async () => {
+    flow.push("protected-wrapper");
+    return saved;
+  });
   vi.mocked(staffOnboardingTargetEmail).mockResolvedValue(command.email);
-  vi.mocked(lockStaffOnboardingAccount).mockResolvedValue(undefined);
   vi.mocked(recordAdminActivityInTransaction).mockResolvedValue(undefined);
 });
 
@@ -142,28 +143,35 @@ describe("#416 onboarding quota lease isolation", () => {
       "release",
       "reserve",
       "begin",
+      "protected-wrapper",
       "release",
       "finalize:COUNTED",
     ]);
-    expect(vi.mocked(authorizeStaffManagement)).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(authorizeStaffManagementPreflight)).toHaveBeenCalledTimes(
+      1,
+    );
+    expect(vi.mocked(createStaffOnboarding)).toHaveBeenCalledTimes(1);
     expect(abuse.finalize).toHaveBeenCalledWith(reservation, "COUNTED");
   });
 
   it("does not reserve on an authorized committed-operation replay", async () => {
     vi.mocked(staffOnboardingOperationExists).mockResolvedValue(true);
-    vi.mocked(createStaffOnboarding).mockResolvedValue({
-      ...saved,
-      changed: false,
+    vi.mocked(createStaffOnboarding).mockImplementationOnce(async () => {
+      flow.push("protected-wrapper");
+      return { ...saved, changed: false };
     });
     const response = await service.create(context, org, command);
     expect(response.outcome).toBe("INVITE_PENDING_LINK_UNAVAILABLE");
     expect(abuse.reserve).not.toHaveBeenCalled();
     expect(abuse.finalize).not.toHaveBeenCalled();
-    expect(vi.mocked(authorizeStaffManagement)).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(authorizeStaffManagementPreflight)).toHaveBeenCalledTimes(
+      1,
+    );
+    expect(vi.mocked(createStaffOnboarding)).toHaveBeenCalledTimes(1);
   });
 
-  it("does not reserve before current MFA and membership authorization", async () => {
-    vi.mocked(authorizeStaffManagement).mockRejectedValueOnce(
+  it("does not reserve before the membership preflight rejects", async () => {
+    vi.mocked(authorizeStaffManagementPreflight).mockRejectedValueOnce(
       new Error("DENIED"),
     );
     await expect(service.create(context, org, command)).rejects.toThrow(
@@ -215,6 +223,7 @@ describe("#416 onboarding quota lease isolation", () => {
       "release",
       "reserve",
       "begin",
+      "protected-wrapper",
       "release",
       "finalize:COUNTED",
     ]);
@@ -257,9 +266,9 @@ describe("#416 onboarding quota lease isolation", () => {
   });
 
   it("resend also reserves outside the domain lease and ignores unchanged issuance", async () => {
-    vi.mocked(resendStaffOnboarding).mockResolvedValue({
-      ...saved,
-      changed: false,
+    vi.mocked(resendStaffOnboarding).mockImplementationOnce(async () => {
+      flow.push("protected-wrapper");
+      return { ...saved, changed: false };
     });
     const response = await service.resend(context, org, membership, {
       operationId: randomUUID(),
@@ -270,9 +279,10 @@ describe("#416 onboarding quota lease isolation", () => {
       "release",
       "reserve",
       "begin",
+      "protected-wrapper",
       "release",
       "finalize:IGNORED",
     ]);
-    expect(vi.mocked(staffOnboardingTargetEmail)).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(staffOnboardingTargetEmail)).toHaveBeenCalledTimes(1);
   });
 });

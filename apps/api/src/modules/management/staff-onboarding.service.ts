@@ -18,16 +18,13 @@ import {
 import type { StaffSessionContext } from "../auth/staff-session-context";
 import type { ManagementCommandContext } from "./management-command-context";
 import { MANAGEMENT_POSTGRES_POOL } from "./management-writer-database.module";
-import { authorizeStaffManagement } from "./staff-management-authorization";
+import { authorizeStaffManagementPreflight } from "./staff-management-authorization";
 import { StaffOnboardingRateLimitedError } from "./staff-onboarding-errors";
 import {
   generateStaffInvitationToken,
   staffInvitationHash,
 } from "./staff-invitation-credential";
-import {
-  lockStaffOnboardingAccount,
-  staffOnboardingTargetEmail,
-} from "./staff-onboarding-account-lock";
+import { staffOnboardingTargetEmail } from "./staff-onboarding-account-lock";
 import {
   staffActivationLink,
   staffOnboardingCreateFingerprint,
@@ -79,11 +76,6 @@ export class StaffOnboardingService {
       const committed = await inPostgresTransaction(
         this.managementWriterPool,
         async (transaction) => {
-          await lockStaffOnboardingAccount(
-            transaction,
-            context.userId,
-            command.email,
-          );
           const issued = await createStaffOnboarding(transaction, context, {
             actorMembershipId: prepared.actorMembershipId,
             organizationId,
@@ -137,12 +129,6 @@ export class StaffOnboardingService {
       const committed = await inPostgresTransaction(
         this.managementWriterPool,
         async (transaction) => {
-          const email = await staffOnboardingTargetEmail(
-            transaction,
-            organizationId,
-            membershipId,
-          );
-          await lockStaffOnboardingAccount(transaction, context.userId, email);
           const issued = await resendStaffOnboarding(transaction, context, {
             actorMembershipId: prepared.actorMembershipId,
             organizationId,
@@ -181,15 +167,17 @@ export class StaffOnboardingService {
     limit: number,
     targetMembershipId?: string,
   ): Promise<PreparedOnboardingOperation> {
-    // Preflight lease ends BEFORE the independent durable limiter lease begins.
-    // Domain authorization is repeated after acquiring the domain locks.
+    // Preflight lease ends before the independent durable limiter lease begins.
+    // The protected raw-bearer wrapper rechecks session, MFA, actor and tenant
+    // authority after the domain locks are acquired in the writer transaction.
     const preflight = await inPostgresTransaction(
       this.pool,
       async (transaction) => {
-        const authority = await authorizeStaffManagement(transaction, context, {
-          organizationId,
-          assurance: "SENSITIVE",
-        });
+        const authority = await authorizeStaffManagementPreflight(
+          transaction,
+          context,
+          { organizationId },
+        );
         if (targetMembershipId !== undefined) {
           await staffOnboardingTargetEmail(
             transaction,

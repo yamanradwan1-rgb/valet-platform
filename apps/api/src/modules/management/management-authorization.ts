@@ -77,17 +77,20 @@ export async function eligibleCompanyAdminLocationOrganization(
   return result.rows[0]?.organizationId ?? null;
 }
 
-export async function authorizeCompanyAdminManagement(
+interface CompanyAdminManagementInput {
+  readonly assurance?: ManagementAssuranceRequirement;
+  readonly capability: ManagementCapability;
+  readonly commercialRequirement?: ManagementCommercialRequirement | null;
+  readonly organizationId: string;
+  readonly requireActiveLocation?: boolean;
+  readonly targetLocationId?: string;
+}
+
+async function authorizeCompanyAdminManagementInternal(
   transaction: PostgresTransaction,
   context: StaffSessionContext,
-  input: {
-    readonly assurance?: ManagementAssuranceRequirement;
-    readonly capability: ManagementCapability;
-    readonly commercialRequirement?: ManagementCommercialRequirement | null;
-    readonly organizationId: string;
-    readonly requireActiveLocation?: boolean;
-    readonly targetLocationId?: string;
-  },
+  input: CompanyAdminManagementInput,
+  requireSessionAssurance: boolean,
 ): Promise<ManagementAuthorityScope> {
   if (!isCompanyAdminManagementCapability(input.capability)) {
     throw new ManagementAccessDeniedError();
@@ -105,15 +108,19 @@ export async function authorizeCompanyAdminManagement(
     [context.userId, input.organizationId],
   );
   if (eligible.rowCount !== 1) throw new ManagementAccessDeniedError();
-  await requireMfaAssuranceInTransaction(transaction, context, {
-    sensitive: input.assurance === "SENSITIVE",
-  });
-  await transaction.query(
-    `SELECT pg_advisory_xact_lock(
-       hashtextextended('staff-management-org:' || $1::text, 0)
-     )`,
-    [input.organizationId],
-  );
+  if (requireSessionAssurance) {
+    await requireMfaAssuranceInTransaction(transaction, context, {
+      sensitive: input.assurance === "SENSITIVE",
+    });
+  }
+  if (requireSessionAssurance) {
+    await transaction.query(
+      `SELECT pg_advisory_xact_lock(
+         hashtextextended('staff-management-org:' || $1::text, 0)
+       )`,
+      [input.organizationId],
+    );
+  }
   const organization = await transaction.query(
     `SELECT id FROM organizations
      WHERE id = $1 AND status = 'ACTIVE'`,
@@ -128,7 +135,7 @@ export async function authorizeCompanyAdminManagement(
        AND membership.organization_id = $2
        AND membership.status = 'ACTIVE'
        AND membership.role = 'ORG_ADMIN'
-     FOR UPDATE OF membership`,
+     ${requireSessionAssurance ? "FOR UPDATE OF membership" : ""}`,
     [context.userId, input.organizationId],
   );
   const row = membership.rows[0];
@@ -143,7 +150,7 @@ export async function authorizeCompanyAdminManagement(
        WHERE location.id = $1
          AND location.organization_id = $2
          ${input.requireActiveLocation === true ? "AND location.status = 'ACTIVE'" : ""}
-       FOR UPDATE`,
+       ${requireSessionAssurance ? "FOR UPDATE" : ""}`,
       [input.targetLocationId, row.organizationId],
     );
     locationId = location.rows[0]?.locationId ?? null;
@@ -172,4 +179,33 @@ export async function authorizeCompanyAdminManagement(
     staffAuthSessionId: context.staffAuthSessionId,
     userId: context.userId,
   };
+}
+
+export function authorizeCompanyAdminManagement(
+  transaction: PostgresTransaction,
+  context: StaffSessionContext,
+  input: CompanyAdminManagementInput,
+): Promise<ManagementAuthorityScope> {
+  return authorizeCompanyAdminManagementInternal(
+    transaction,
+    context,
+    input,
+    true,
+  );
+}
+
+// This resolves current tenant scope for a protected Management Writer
+// preflight. The caller must still execute a bearer-bound SQL wrapper in the
+// same mutation transaction; this function does not authenticate a session.
+export function authorizeCompanyAdminManagementPreflight(
+  transaction: PostgresTransaction,
+  context: StaffSessionContext,
+  input: CompanyAdminManagementInput,
+): Promise<ManagementAuthorityScope> {
+  return authorizeCompanyAdminManagementInternal(
+    transaction,
+    context,
+    input,
+    false,
+  );
 }

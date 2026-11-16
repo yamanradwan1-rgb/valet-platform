@@ -21,12 +21,7 @@ export async function verifyManagementWriterMutationInventory(client, role) {
            OR (attribute.attnum IS NOT NULL AND (
              pg_catalog.has_column_privilege($1,relation.oid,attribute.attnum,'INSERT')
                IS DISTINCT FROM (relation.relname='audit_events')
-             OR pg_catalog.has_column_privilege($1,relation.oid,attribute.attnum,'UPDATE')
-               IS DISTINCT FROM (
-                 (relation.relname='users' AND attribute.attname='updated_at') OR
-                 (relation.relname='organization_memberships' AND attribute.attname='updated_at') OR
-                 (relation.relname='locations' AND attribute.attname='updated_at') OR
-                 (relation.relname='staff_auth_sessions' AND attribute.attname='last_admin_activity_at'))
+             OR pg_catalog.has_column_privilege($1,relation.oid,attribute.attnum,'UPDATE') IS TRUE
              OR pg_catalog.has_column_privilege($1,relation.oid,attribute.attnum,'REFERENCES')
            ))
          ) LIMIT 1`,

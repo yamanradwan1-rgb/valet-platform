@@ -7,6 +7,7 @@ import { requireMfaAssuranceInTransaction } from "../auth/mfa/mfa-assurance-poli
 import { hasManagementCommercialAccess } from "./management-commercial-access-policy";
 import {
   authorizeCompanyAdminManagement,
+  authorizeCompanyAdminManagementPreflight,
   ManagementAccessDeniedError,
   type ManagementAssuranceRequirement,
 } from "./management-authorization";
@@ -39,16 +40,22 @@ async function currentRole(
   transaction: PostgresTransaction,
   context: StaffSessionContext,
   organizationId: string,
+  preflightOnly: boolean,
 ): Promise<string | null> {
+  // A non-authoritative preflight may read actor scope only; the protected
+  // writer rechecks bearer, MFA and tenancy inside the mutation transaction.
   if (
+    !preflightOnly &&
     (await lockStaffSessionWithBearer(transaction, context, "EXCLUSIVE")) ===
-    undefined
+      undefined
   ) {
     return null;
   }
   const result = await transaction.query<RoleRow>(
     `SELECT membership.role::text AS role
      FROM organization_memberships AS membership
+     INNER JOIN users AS actor
+       ON actor.id = membership.user_id AND actor.status = 'ACTIVE'
      INNER JOIN organizations AS organization
        ON organization.id = membership.organization_id
       AND organization.status = 'ACTIVE'
@@ -65,12 +72,13 @@ async function authorizeLocationManager(
   context: StaffSessionContext,
   organizationId: string,
   assurance: ManagementAssuranceRequirement | undefined,
+  preflightOnly: boolean,
 ): Promise<StaffManagementAuthority> {
-  if (assurance === "SENSITIVE") {
+  if (!preflightOnly && assurance === "SENSITIVE") {
     await requireMfaAssuranceInTransaction(transaction, context, {
       sensitive: true,
     });
-  } else {
+  } else if (!preflightOnly) {
     if (
       (await lockStaffSessionWithBearer(transaction, context, "SHARED")) ===
       undefined
@@ -78,12 +86,14 @@ async function authorizeLocationManager(
       return deny();
     }
   }
-  await transaction.query(
-    `SELECT pg_advisory_xact_lock(
-       hashtextextended('staff-management-org:' || $1::text, 0)
-     )`,
-    [organizationId],
-  );
+  if (!preflightOnly) {
+    await transaction.query(
+      `SELECT pg_advisory_xact_lock(
+         hashtextextended('staff-management-org:' || $1::text, 0)
+       )`,
+      [organizationId],
+    );
+  }
   const actor = await transaction.query<MembershipRow>(
     `SELECT membership.id::text AS "membershipId"
      FROM organization_memberships AS membership
@@ -96,7 +106,7 @@ async function authorizeLocationManager(
        AND membership.organization_id = $2
        AND membership.status = 'ACTIVE'
        AND membership.role = 'LOCATION_MANAGER'
-     FOR UPDATE OF membership`,
+     ${preflightOnly ? "" : "FOR UPDATE OF membership"}`,
     [context.userId, organizationId],
   );
   const membershipId = actor.rows[0]?.membershipId;
@@ -120,7 +130,7 @@ async function authorizeLocationManager(
      WHERE access.organization_id = $1
        AND access.membership_id = $2
      ORDER BY location.id
-     FOR SHARE OF location`,
+     ${preflightOnly ? "" : "FOR SHARE OF location"}`,
     [organizationId, membershipId],
   );
   const activeLocationIds = grants.rows.map((row) => row.locationId);
@@ -138,18 +148,29 @@ async function authorizeLocationManager(
   };
 }
 
-export async function authorizeStaffManagement(
+interface StaffManagementAuthorizationInput {
+  readonly assurance?: ManagementAssuranceRequirement;
+  readonly organizationId: string;
+  readonly targetLocationId?: string;
+}
+
+async function resolveStaffManagementAuthority(
   transaction: PostgresTransaction,
   context: StaffSessionContext,
-  input: {
-    readonly assurance?: ManagementAssuranceRequirement;
-    readonly organizationId: string;
-    readonly targetLocationId?: string;
-  },
+  input: StaffManagementAuthorizationInput,
+  preflightOnly: boolean,
 ): Promise<StaffManagementAuthority> {
-  const role = await currentRole(transaction, context, input.organizationId);
+  const role = await currentRole(
+    transaction,
+    context,
+    input.organizationId,
+    preflightOnly,
+  );
   if (role === "ORG_ADMIN") {
-    const actor = await authorizeCompanyAdminManagement(transaction, context, {
+    const authorizeCompanyAdmin = preflightOnly
+      ? authorizeCompanyAdminManagementPreflight
+      : authorizeCompanyAdminManagement;
+    const actor = await authorizeCompanyAdmin(transaction, context, {
       ...(input.assurance === undefined ? {} : { assurance: input.assurance }),
       capability: "STAFF_MANAGE_ELIGIBLE",
       organizationId: input.organizationId,
@@ -174,9 +195,33 @@ export async function authorizeStaffManagement(
       context,
       input.organizationId,
       input.assurance,
+      preflightOnly,
     );
   }
   return deny();
+}
+
+export function authorizeStaffManagement(
+  transaction: PostgresTransaction,
+  context: StaffSessionContext,
+  input: StaffManagementAuthorizationInput,
+): Promise<StaffManagementAuthority> {
+  return resolveStaffManagementAuthority(transaction, context, input, false);
+}
+
+// The Management Writer has no session-table read privilege. This preflight
+// resolves current actor/tenant scope for projections and audit attribution;
+// one of the five protected SQL wrappers must revalidate the raw bearer, MFA,
+// actor membership and tenant before any mutation can commit.
+export function authorizeStaffManagementPreflight(
+  transaction: PostgresTransaction,
+  context: StaffSessionContext,
+  input: Pick<
+    StaffManagementAuthorizationInput,
+    "organizationId" | "targetLocationId"
+  >,
+): Promise<StaffManagementAuthority> {
+  return resolveStaffManagementAuthority(transaction, context, input, true);
 }
 
 export async function authorizeStaffTarget(

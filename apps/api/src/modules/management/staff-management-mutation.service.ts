@@ -6,13 +6,16 @@ import type {
 } from "@valet/contracts";
 import { Inject, Injectable } from "@nestjs/common";
 
-import type { PostgresPool, PostgresTransaction } from "../../common/database/postgres";
+import type {
+  PostgresPool,
+  PostgresTransaction,
+} from "../../common/database/postgres";
 import { inPostgresTransaction } from "../../common/database/postgres-transaction";
 import { MANAGEMENT_POSTGRES_POOL } from "./management-writer-database.module";
 import type { ManagementCommandContext } from "./management-command-context";
 import { appendStaffManagementAudit } from "./staff-management-audit";
 import {
-  authorizeStaffManagement,
+  authorizeStaffManagementPreflight,
   authorizeStaffTarget,
   type StaffManagementAuthority,
 } from "./staff-management-authorization";
@@ -39,16 +42,18 @@ export class StaffManagementMutationService {
     command: StaffRoleCommand,
   ): Promise<StaffMembershipDetail> {
     return inPostgresTransaction(this.pool, async (transaction) => {
-      const actor = await authorizeStaffManagement(transaction, context, {
-        assurance: "SENSITIVE",
-        organizationId,
-      });
-      await authorizeStaffTarget(transaction, actor, membershipId, true);
+      const actor = await authorizeStaffManagementPreflight(
+        transaction,
+        context,
+        {
+          organizationId,
+        },
+      );
+      await authorizeStaffTarget(transaction, actor, membershipId);
       const before = await loadStaffMembership(
         transaction,
         organizationId,
         membershipId,
-        true,
       );
       const mutation = await setStaffRole(transaction, context, {
         actorMembershipId: actor.membershipId,
@@ -70,12 +75,7 @@ export class StaffManagementMutationService {
           organizationId,
         });
       }
-      return this.finish(
-        transaction,
-        actor,
-        organizationId,
-        membershipId,
-      );
+      return this.finish(transaction, actor, organizationId, membershipId);
     });
   }
 
@@ -87,16 +87,18 @@ export class StaffManagementMutationService {
     desiredStatus: "ACTIVE" | "INACTIVE",
   ): Promise<StaffMembershipDetail> {
     return inPostgresTransaction(this.pool, async (transaction) => {
-      const actor = await authorizeStaffManagement(transaction, context, {
-        assurance: "SENSITIVE",
-        organizationId,
-      });
-      await authorizeStaffTarget(transaction, actor, membershipId, true);
+      const actor = await authorizeStaffManagementPreflight(
+        transaction,
+        context,
+        {
+          organizationId,
+        },
+      );
+      await authorizeStaffTarget(transaction, actor, membershipId);
       const before = await loadStaffMembership(
         transaction,
         organizationId,
         membershipId,
-        true,
       );
       const mutation = await setStaffStatus(transaction, context, {
         actorMembershipId: actor.membershipId,
@@ -121,12 +123,7 @@ export class StaffManagementMutationService {
           organizationId,
         });
       }
-      return this.finish(
-        transaction,
-        actor,
-        organizationId,
-        membershipId,
-      );
+      return this.finish(transaction, actor, organizationId, membershipId);
     });
   }
 
@@ -138,17 +135,15 @@ export class StaffManagementMutationService {
     granted: boolean,
   ): Promise<StaffMembershipDetail> {
     return inPostgresTransaction(this.pool, async (transaction) => {
-      const actor = await authorizeStaffManagement(transaction, context, {
-        assurance: "SENSITIVE",
-        organizationId,
-      });
-      await authorizeStaffTarget(transaction, actor, membershipId, true);
-      await loadStaffMembership(
+      const actor = await authorizeStaffManagementPreflight(
         transaction,
-        organizationId,
-        membershipId,
-        true,
+        context,
+        {
+          organizationId,
+        },
       );
+      await authorizeStaffTarget(transaction, actor, membershipId);
+      await loadStaffMembership(transaction, organizationId, membershipId);
       const mutation = await setStaffLocationAccess(transaction, context, {
         ...command,
         actorMembershipId: actor.membershipId,
@@ -170,12 +165,7 @@ export class StaffManagementMutationService {
           organizationId,
         });
       }
-      return this.finish(
-        transaction,
-        actor,
-        organizationId,
-        membershipId,
-      );
+      return this.finish(transaction, actor, organizationId, membershipId);
     });
   }
 

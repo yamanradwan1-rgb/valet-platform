@@ -1,3 +1,5 @@
+/* global URL */
+
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
@@ -35,10 +37,14 @@ const writerUrl =
 const writer = requireManagementWriterIdentity(writerUrl, migration, runtime);
 const fixture = {
   query: async (sql) => {
-    if (sql === "REVOKE ALL ON FUNCTION public.staff_onboarding_activate(text,text,text) FROM PUBLIC") {
+    if (
+      sql ===
+      "REVOKE ALL ON FUNCTION public.staff_onboarding_activate(text,text,text) FROM PUBLIC"
+    ) {
       return { rowCount: 0, rows: [] };
     }
-    if (sql.includes("FROM pg_roles WHERE rolname")) return { rowCount: 0, rows: [] };
+    if (sql.includes("FROM pg_roles WHERE rolname"))
+      return { rowCount: 0, rows: [] };
     if (sql.includes("FROM pg_auth_members")) return { rowCount: 0, rows: [] };
     if (sql.includes("pg_catalog.pg_attribute")) {
       return {
@@ -67,7 +73,9 @@ test("writer login requires distinct role, password, server, and database", () =
     "postgresql://vaylet_management_writer:private-management-secret@localhost:5432/isolated_fixture",
     "postgresql://another_writer:private-management-secret@127.0.0.1:5432/isolated_fixture",
   ]) {
-    assert.throws(() => requireManagementWriterIdentity(invalid, migration, runtime));
+    assert.throws(() =>
+      requireManagementWriterIdentity(invalid, migration, runtime),
+    );
   }
 });
 
@@ -81,36 +89,70 @@ test("repeated normal grants never restore SQL actor-ID management authority", a
     ...runtimeStaffManagementFunctions,
     ...protectedStaffOnboardingFunctions,
   ]) {
-    const affected = statements.filter(([, args]) => args.includes(oldFunction));
+    const affected = statements.filter(([, args]) =>
+      args.includes(oldFunction),
+    );
     assert.equal(affected.length, 2);
     assert(affected.every(([sql]) => sql.startsWith("REVOKE ALL ON FUNCTION")));
   }
-  assert(!statements.some(([sql, args]) =>
-    sql.startsWith("GRANT EXECUTE") &&
-    args.some((arg) => runtimeStaffManagementFunctions.includes(arg) ||
-      protectedStaffOnboardingFunctions.includes(arg))));
+  assert(
+    !statements.some(
+      ([sql, args]) =>
+        sql.startsWith("GRANT EXECUTE") &&
+        args.some(
+          (arg) =>
+            runtimeStaffManagementFunctions.includes(arg) ||
+            protectedStaffOnboardingFunctions.includes(arg),
+        ),
+    ),
+  );
   await provisionStaffManagementPrivileges(fixture, format, "ordinary");
 });
 
-test("writer provisioning twice grants exactly dedicated functions and read-only MFA facts", async () => {
+test("writer provisioning twice grants exactly five wrappers and no session reads or writes", async () => {
   const statements = [];
   let roleExists = false;
   const repeatedFixture = {
-    async query(sql) {
+    async query(sql, args) {
       if (sql.includes("FROM pg_roles WHERE rolname")) {
         return roleExists
-          ? { rowCount: 1, rows: [{
-            rolsuper: false, rolcreatedb: false, rolcreaterole: false,
-            rolreplication: false, rolbypassrls: false, rolinherit: false,
-          }] }
+          ? {
+              rowCount: 1,
+              rows: [
+                {
+                  rolsuper: false,
+                  rolcreatedb: false,
+                  rolcreaterole: false,
+                  rolreplication: false,
+                  rolbypassrls: false,
+                  rolinherit: false,
+                },
+              ],
+            }
           : { rowCount: 0, rows: [] };
       }
-      if (sql.includes("FROM pg_auth_members")) return { rowCount: 0, rows: [] };
+      if (sql.includes("FROM pg_auth_members"))
+        return { rowCount: 0, rows: [] };
       if (sql.includes("pg_catalog.pg_attribute")) {
-        return { rowCount: 3, rows: [
-          { column_sql: '"id"' }, { column_sql: '"user_id"' },
-          { column_sql: '"updated_at"' },
-        ] };
+        if (args[0] === "public.staff_auth_sessions") {
+          return {
+            rowCount: 4,
+            rows: [
+              { column_sql: '"id"' },
+              { column_sql: '"current_access_token_hash"' },
+              { column_sql: '"last_admin_activity_at"' },
+              { column_sql: '"mfa_authenticated_at"' },
+            ],
+          };
+        }
+        return {
+          rowCount: 3,
+          rows: [
+            { column_sql: '"id"' },
+            { column_sql: '"user_id"' },
+            { column_sql: '"updated_at"' },
+          ],
+        };
       }
       throw new Error("Unexpected repeated-provision catalog query");
     },
@@ -121,23 +163,70 @@ test("writer provisioning twice grants exactly dedicated functions and read-only
   };
   for (let iteration = 0; iteration < 2; iteration++) {
     await provisionManagementWriterPrivileges(
-      repeatedFixture, format, writer, "ordinary",
+      repeatedFixture,
+      format,
+      writer,
+      "ordinary",
     );
   }
-  const executions = statements.filter(([sql]) => sql.startsWith("GRANT EXECUTE"));
-  assert.equal(executions.length, managementWriterSecurityDefinerAllowlist.length * 2);
+  const executions = statements.filter(([sql]) =>
+    sql.startsWith("GRANT EXECUTE"),
+  );
+  assert.equal(managementWriterSecurityDefinerAllowlist.length, 5);
+  assert.equal(
+    executions.length,
+    managementWriterSecurityDefinerAllowlist.length * 2,
+  );
   for (const signature of managementWriterSecurityDefinerAllowlist) {
-    assert.equal(executions.filter(([, args]) => args[0] === signature).length, 2);
+    assert.equal(
+      executions.filter(([, args]) => args[0] === signature).length,
+      2,
+    );
   }
-  assert(executions.every(([, args]) => args[1] === "vaylet_management_writer"));
-  assert(!statements.some(([sql]) => /GRANT EXECUTE ON ALL FUNCTIONS/i.test(sql)));
-  const sensitive = statements.filter(([, args]) =>
-    args.includes("user_mfa_totp_factors") || args.includes("staff_auth_sessions"));
+  assert(
+    executions.every(([, args]) => args[1] === "vaylet_management_writer"),
+  );
+  assert(
+    !statements.some(([sql]) => /GRANT EXECUTE ON ALL FUNCTIONS/i.test(sql)),
+  );
+  const sensitive = statements.filter(
+    ([, args]) =>
+      args.includes("user_mfa_totp_factors") ||
+      args.includes("staff_auth_sessions") ||
+      args.includes("staff_onboarding_invitations"),
+  );
   assert(!sensitive.some(([sql]) => sql.startsWith("GRANT SELECT ON TABLE")));
-  assert(sensitive.some(([sql, args]) =>
-    sql.startsWith("GRANT UPDATE") && args.includes("last_admin_activity_at")));
-  assert(statements.some(([sql]) =>
-    sql.includes("NOINHERIT NOREPLICATION NOBYPASSRLS")));
+  assert(!sensitive.some(([sql]) => sql.startsWith("GRANT SELECT (")));
+  assert(
+    !sensitive.some(
+      ([sql, args]) =>
+        sql.startsWith("GRANT SELECT") &&
+        args.includes("current_access_token_hash"),
+    ),
+  );
+  assert(
+    !sensitive.some(
+      ([sql, args]) =>
+        sql.startsWith("GRANT UPDATE") &&
+        args.includes("last_admin_activity_at"),
+    ),
+  );
+  assert(!statements.some(([sql]) => sql.startsWith("GRANT UPDATE")));
+  assert.equal(
+    statements.filter(
+      ([sql, args]) =>
+        sql.startsWith("REVOKE SELECT") &&
+        args[4] === "staff_auth_sessions" &&
+        args[0].includes('"current_access_token_hash"') &&
+        args[0].includes('"last_admin_activity_at"'),
+    ).length,
+    2,
+  );
+  assert(
+    statements.some(([sql]) =>
+      sql.includes("NOINHERIT NOREPLICATION NOBYPASSRLS"),
+    ),
+  );
 });
 
 test("verifier rejects omitted protected function EXECUTE permissions", async () => {
@@ -152,25 +241,38 @@ test("verifier rejects omitted protected function EXECUTE permissions", async ()
         };
       }
       assert(sql.includes("has_function_privilege"));
-      return { rows: [{
-        writer_allowed: false,
-        runtime_allowed: false,
-        definer: true,
-        safe_path: true,
-        acl_safe: true,
-      }] };
+      return {
+        rows: [
+          {
+            writer_allowed: false,
+            runtime_allowed: false,
+            definer: true,
+            safe_path: true,
+            acl_safe: true,
+          },
+        ],
+      };
     },
   };
   await assert.rejects(
-    verifyManagementWriterPrivileges(badClient, "vaylet_management_writer", "ordinary"),
+    verifyManagementWriterPrivileges(
+      badClient,
+      "vaylet_management_writer",
+      "ordinary",
+    ),
     /ACL check failed/,
   );
 });
 
 test("protected wrappers recheck current session/MFA and touch only admin activity", () => {
-  const sql = source("../prisma/migrations/20261115190000_option_c_management_writer/migration.sql");
+  const sql = source(
+    "../prisma/migrations/20261115235900_option_c_s03_raw_bearer_upgrade/migration.sql",
+  );
   assert.match(sql, /current_access_token_hash = 'staff-access-sha256:v1:'/);
-  assert.match(sql, /pg_catalog\.sha256\(pg_catalog\.convert_to\(p_access_token, 'UTF8'\)\)/);
+  assert.match(
+    sql,
+    /pg_catalog\.sha256\(pg_catalog\.convert_to\(p_access_token, 'UTF8'\)\)/,
+  );
   assert.doesNotMatch(sql, /current_access_token_hash = p_access_token/);
   assert.match(sql, /factor.state = 'ACTIVE'/);
   assert.match(sql, /session.mfa_authenticated_at \+ INTERVAL '5 minutes'/);
@@ -187,8 +289,10 @@ test("protected wrappers recheck current session/MFA and touch only admin activi
   }
   for (const hidden of privateStaffManagementFunctions) {
     if (!hidden.includes("writer") && !hidden.includes("activity")) continue;
-    assert(sql.includes("REVOKE ALL ON FUNCTION " + hidden.replace(
-      /^public\./, "public.",
-    )));
+    assert(
+      sql.includes(
+        "REVOKE ALL ON FUNCTION " + hidden.replace(/^public\./, "public."),
+      ),
+    );
   }
 });
