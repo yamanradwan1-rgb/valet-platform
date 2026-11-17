@@ -79,6 +79,25 @@ test("valid bounded matrix verifies, including lock ownership and exact columns"
   assert.equal(snapshot.roles.runtime, "runtime");
 });
 
+test("protected private relations reject operational and PUBLIC grants", async () => {
+  const evidence = [
+    ...matrix(),
+    {
+      kind: "table",
+      schema: "s04_quota_guard",
+      object: "s04_quota_guard.proof_key",
+      role: names.mfaWriter,
+      privilege: "SELECT",
+      effective: true,
+      grants: [{ grantee: "PUBLIC" }],
+    },
+  ];
+  await assert.rejects(
+    verifyOptionCEffectivePrivileges(fixtureClient(evidence).client, roles),
+    /Private table s04_quota_guard\.proof_key SELECT/,
+  );
+});
+
 test("effective audit accepts only the exact runtime row-lock/default-sequence contracts", async () => {
   const evidence = matrix();
   evidence.push(

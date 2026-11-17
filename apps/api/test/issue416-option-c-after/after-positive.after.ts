@@ -15,31 +15,62 @@ describe("Option C AFTER / real mounted Staff, MFA and onboarding positive contr
     const actor = await fixture.onboardingAdmin();
     const command = fixture.newInvitation(actor.locationId);
     const issued = await fixture.createViaHttp(
-      actor.membership.organizationId, actor.auth.accessToken, command,
+      actor.membership.organizationId,
+      actor.auth.accessToken,
+      command,
     );
     expect(issued.status).toBe(201);
     expect(issued.body?.outcome).toBe("INVITE_ISSUED");
     const memberId = String(issued.body?.membershipId);
     expect(await fixture.pendingSnapshot(memberId)).toMatchObject({
-      member_status: "PENDING", user_status: "PENDING", password_hash: null,
-      count: "1", consumed: "0",
+      member_status: "PENDING",
+      user_status: "PENDING",
+      password_hash: null,
+      count: "1",
+      consumed: "0",
     });
 
     const resent = await fixture.resendViaHttp(
-      actor.membership.organizationId, memberId, actor.auth.accessToken,
+      actor.membership.organizationId,
+      memberId,
+      actor.auth.accessToken,
     );
     expect(resent.status).toBe(201);
     expect(resent.body?.outcome).toBe("INVITE_ISSUED");
-    expect((await fixture.activateViaHttp(
-      invitationToken(String(issued.body?.activationLink)),
-    )).status).not.toBe(200);
+    expect(
+      (
+        await fixture.activateViaHttp(
+          invitationToken(String(issued.body?.activationLink)),
+        )
+      ).status,
+    ).not.toBe(200);
+    const admissionStart = await fixture.query<{ started: Date }>(
+      "SELECT clock_timestamp() AS started",
+    );
     const activation = await fixture.activateViaHttp(
       invitationToken(String(resent.body?.activationLink)),
     );
-    expect(activation).toMatchObject({ status: 200, body: { outcome: "ACTIVATED" } });
-    expect(await fixture.pendingSnapshot(memberId)).toMatchObject({
-      member_status: "ACTIVE", user_status: "ACTIVE", count: "2", consumed: "1",
+    expect(activation).toMatchObject({
+      status: 200,
+      body: { outcome: "ACTIVATED" },
     });
+    expect(await fixture.pendingSnapshot(memberId)).toMatchObject({
+      member_status: "ACTIVE",
+      user_status: "ACTIVE",
+      count: "2",
+      consumed: "1",
+    });
+    const settlement = await fixture.query<{ scope: string; state: string }>(
+      `SELECT scope, state FROM public.anti_abuse_events
+       WHERE occurred_at >= $1 AND scope IN (
+         'v1:staff-activation-client-address', 'v1:staff-activation-credential'
+       ) ORDER BY scope`,
+      [admissionStart.rows[0]!.started],
+    );
+    expect(settlement.rows).toEqual([
+      { scope: "v1:staff-activation-client-address", state: "IGNORED" },
+      { scope: "v1:staff-activation-credential", state: "IGNORED" },
+    ]);
     const login = await fixture.request("/v1/staff/auth/native/login", {
       body: { email: command.email, password: activationPassword },
     });
@@ -56,13 +87,26 @@ describe("Option C AFTER / real mounted Staff, MFA and onboarding positive contr
     const path = `/v1/staff/management/organizations/${memberA.organizationId}/staff`;
 
     expect((await fixture.request(path, { body: command })).status).toBe(401);
-    expect((await fixture.managementPost(path, authA.accessToken, command)).status).toBe(403);
-    expect((await fixture.managementPost(path, orgB.auth.accessToken, command)).status).toBe(404);
+    expect(
+      (await fixture.managementPost(path, authA.accessToken, command)).status,
+    ).toBe(403);
+    expect(
+      (await fixture.managementPost(path, orgB.auth.accessToken, command))
+        .status,
+    ).toBe(404);
     await fixture.enrollAndAssure(authA);
-    expect((await fixture.managementPost(path, authA.accessToken, command)).status).toBe(201);
+    expect(
+      (await fixture.managementPost(path, authA.accessToken, command)).status,
+    ).toBe(201);
     expect((await fixture.logout(authA.refreshToken)).status).toBe(204);
-    expect((await fixture.managementPost(path, authA.accessToken,
-      fixture.newInvitation(location.locationId),
-    )).status).toBe(401);
+    expect(
+      (
+        await fixture.managementPost(
+          path,
+          authA.accessToken,
+          fixture.newInvitation(location.locationId),
+        )
+      ).status,
+    ).toBe(401);
   });
 });

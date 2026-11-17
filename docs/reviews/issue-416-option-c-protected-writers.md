@@ -21,6 +21,12 @@ migrator is a trusted administrative principal. Protected NOLOGIN owners own
 their designated objects. Runtime and operational Writers have no membership
 path to administrative or ownership roles.
 
+Before protected promotion the operator verifies that the supplied Runtime and
+all three Writer credentials can connect to the intended primary and that
+each connection resolves to the expected login. A credential failure leaves
+the boundary in its current phase. Production probes use the same verified TLS
+settings as the migration connection.
+
 ## Transaction and authorization properties
 
 1. Preserve all existing RowLock/credential recheck/tenant/audit/limiter contracts as **one backend transaction per operation**. Never send one atomic command through multiple pools/connections or commit a privileged write before its audit/required settlement is durable.

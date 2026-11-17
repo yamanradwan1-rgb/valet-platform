@@ -3,6 +3,10 @@
 const roleCross = `WITH requested AS (
   SELECT oid, rolname FROM pg_catalog.pg_roles WHERE rolname = ANY($1::text[])
 )`;
+const userSchema = `n.nspname NOT IN ('pg_catalog', 'information_schema')
+  AND n.nspname NOT LIKE 'pg_toast%' AND n.nspname NOT LIKE 'pg_temp_%'`;
+const relationName = `CASE WHEN n.nspname = 'public' THEN c.relname::text
+  ELSE pg_catalog.format('%I.%I', n.nspname, c.relname) END`;
 
 export const catalogQueries = {
   roles: `SELECT r.rolname AS role, r.rolcanlogin AS login, r.rolinherit AS inherit,
@@ -51,8 +55,9 @@ export const catalogQueries = {
       'grantOption', x.is_grantable) ORDER BY x.grantee,x.grantor) grants
       FROM pg_catalog.aclexplode(COALESCE(n.nspacl, pg_catalog.acldefault('n',n.nspowner))) x
       WHERE x.privilege_type=p.privilege) a ON true
-    WHERE n.nspname='public'`,
-  tables: `${roleCross} SELECT r.rolname AS role, c.relname AS object,
+    WHERE ${userSchema}`,
+  tables: `${roleCross} SELECT r.rolname AS role, ${relationName} AS object,
+    n.nspname AS schema,
     p.privilege AS privilege,
     pg_catalog.has_table_privilege(r.oid,c.oid,p.privilege) AS effective,
     pg_catalog.has_table_privilege(r.oid,c.oid,p.privilege || ' WITH GRANT OPTION') AS grant_option,
@@ -68,8 +73,9 @@ export const catalogQueries = {
       'grantOption', x.is_grantable) ORDER BY x.grantee,x.grantor) grants
       FROM pg_catalog.aclexplode(COALESCE(c.relacl,pg_catalog.acldefault('r',c.relowner))) x
       WHERE x.privilege_type=p.privilege) a ON true
-    WHERE n.nspname='public' AND c.relkind IN ('r','p','v','m','f')`,
-  columns: `${roleCross} SELECT r.rolname AS role, c.relname AS object,
+    WHERE ${userSchema} AND c.relkind IN ('r','p','v','m','f')`,
+  columns: `${roleCross} SELECT r.rolname AS role, ${relationName} AS object,
+    n.nspname AS schema,
     att.attname AS column, p.privilege AS privilege,
     pg_catalog.has_column_privilege(r.oid,c.oid,att.attnum,p.privilege) AS effective,
     pg_catalog.has_column_privilege(r.oid,c.oid,att.attnum,p.privilege || ' WITH GRANT OPTION') AS grant_option,
@@ -83,8 +89,9 @@ export const catalogQueries = {
       'grantor', x.grantor::pg_catalog.regrole::text,
       'grantOption', x.is_grantable) ORDER BY x.grantee,x.grantor) grants
       FROM pg_catalog.aclexplode(att.attacl) x WHERE x.privilege_type=p.privilege) a ON true
-    WHERE n.nspname='public' AND c.relkind IN ('r','p','v','m','f')`,
-  sequences: `${roleCross} SELECT r.rolname AS role, c.relname AS object,
+    WHERE ${userSchema} AND c.relkind IN ('r','p','v','m','f')`,
+  sequences: `${roleCross} SELECT r.rolname AS role, ${relationName} AS object,
+    n.nspname AS schema,
     p.privilege AS privilege,
     pg_catalog.has_sequence_privilege(r.oid,c.oid,p.privilege) AS effective,
     pg_catalog.has_sequence_privilege(r.oid,c.oid,p.privilege || ' WITH GRANT OPTION') AS grant_option,
@@ -99,7 +106,7 @@ export const catalogQueries = {
       'grantOption', x.is_grantable) ORDER BY x.grantee,x.grantor) grants
       FROM pg_catalog.aclexplode(COALESCE(c.relacl,pg_catalog.acldefault('S',c.relowner))) x
       WHERE x.privilege_type=p.privilege) a ON true
-    WHERE n.nspname='public' AND c.relkind='S'`,
+    WHERE ${userSchema} AND c.relkind='S'`,
   functions: `${roleCross} SELECT r.rolname AS role,
     pg_catalog.format('%I.%I(%s)', n.nspname, p.proname,
       (SELECT string_agg(CASE WHEN tn.nspname='public'
@@ -126,7 +133,7 @@ export const catalogQueries = {
       'grantOption', x.is_grantable) ORDER BY x.grantee,x.grantor) grants
       FROM pg_catalog.aclexplode(COALESCE(p.proacl,pg_catalog.acldefault('f',p.proowner))) x
       WHERE x.privilege_type='EXECUTE') a ON true
-    WHERE n.nspname NOT IN ('pg_catalog','information_schema') AND n.nspname NOT LIKE 'pg_toast%'`,
+    WHERE ${userSchema}`,
   defaults: `SELECT owner.rolname AS role, COALESCE(n.nspname,'*') AS object,
     d.defaclobjtype AS object_type,
     CASE WHEN x.grantee=0 THEN 'PUBLIC' ELSE x.grantee::pg_catalog.regrole::text END AS grantee,
@@ -136,5 +143,5 @@ export const catalogQueries = {
     JOIN pg_catalog.pg_roles owner ON owner.oid=d.defaclrole
     LEFT JOIN pg_catalog.pg_namespace n ON n.oid=d.defaclnamespace
     CROSS JOIN LATERAL pg_catalog.aclexplode(d.defaclacl) x
-    WHERE d.defaclnamespace=0 OR n.nspname='public'`,
+    WHERE d.defaclnamespace=0 OR (${userSchema})`,
 };

@@ -1,3 +1,9 @@
+const protectedPrivateSchemas = new Set([
+  "auth_proof_private",
+  "mfa_activity_private",
+  "s04_quota_guard",
+]);
+
 export function inspectOptionCPrivilegeRows(matrix, roles, inventory) {
   const {
     staffSessionLockOwnerColumns,
@@ -8,6 +14,18 @@ export function inspectOptionCPrivilegeRows(matrix, roles, inventory) {
   } = inventory;
   const failures = [];
   for (const row of matrix) {
+    const privateRelation =
+      protectedPrivateSchemas.has(row.schema) &&
+      ["table", "column", "sequence"].includes(row.kind);
+    if (
+      privateRelation &&
+      ((row.effective && row.role !== roles.migrationRole) ||
+        row.grants?.some((grant) => grant.grantee === "PUBLIC"))
+    ) {
+      failures.push(
+        `Private ${row.kind} ${row.object} ${row.privilege} for ${row.role}`,
+      );
+    }
     if (
       row.kind === "table" &&
       [

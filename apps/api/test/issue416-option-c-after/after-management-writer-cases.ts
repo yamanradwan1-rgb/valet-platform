@@ -228,7 +228,7 @@ export async function assertStatusAndLocationWrappers(
     { expectedVersion: 1, locationIds: [location.locationId] },
   );
   expect(grant.status).toBe(201);
-  expect(grant.body).toMatchObject({ locationAccessCount: 1, version: 2 });
+  expect(grant.body).toMatchObject({ locationAccessCount: 2, version: 2 });
   const deactivate = await fixture.managementPost(
     `${base}/deactivate`,
     admin.auth.accessToken,
@@ -249,7 +249,13 @@ export async function assertStatusAndLocationWrappers(
     { expectedVersion: 4, locationIds: [location.locationId] },
   );
   expect(revoke.status).toBe(201);
-  expect(revoke.body).toMatchObject({ locationAccessCount: 0, version: 5 });
+  expect(revoke.body).toMatchObject({ locationAccessCount: 1, version: 5 });
+  const grants = await fixture.query<{ location_id: string }>(
+    `SELECT location_id::text FROM membership_location_access
+     WHERE organization_id=$1 AND membership_id=$2`,
+    [admin.membership.organizationId, target.membershipId],
+  );
+  expect(grants.rows).toEqual([{ location_id: target.location.locationId }]);
   const audit = await fixture.query<{ actor_membership_id: string }>(
     `SELECT actor_membership_id::text FROM audit_events
      WHERE organization_id=$1 AND entity_id=$2

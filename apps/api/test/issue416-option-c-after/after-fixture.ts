@@ -2,7 +2,6 @@ import { randomUUID } from "node:crypto";
 
 import { Client, Pool } from "pg";
 
-import { runPnpm } from "../staff-auth-native-run-pnpm";
 import {
   captureFixtureWriterRoleBaseline,
   captureFixtureWriterRolePostState,
@@ -11,6 +10,7 @@ import {
 } from "../staff-auth-native-writer-role-lifecycle";
 import { OptionCT5Fixture } from "../issue416-option-c-t5/probe-fixture";
 import { assertOwnedOptionCAfterPg17 } from "../issue416-option-c-t5/owned-target";
+import { rehearseProtectedCutover } from "./after-cutover-rehearsal";
 import {
   ensureMigrationRole,
   findAbsentMigrationOwnedRoles,
@@ -143,24 +143,13 @@ export class OptionCAfterFixture extends OptionCT5Fixture {
       NODE_ENV: "test",
       DATABASE_URL: applicationUrl,
       MIGRATION_DATABASE_URL: this.migrationDatabaseUrl(),
-      ANTI_ABUSE_SQL_PROOF_SECRET_B64URL: this.proofKey,
+      ...this.proofKeys.environment(),
       ...writers,
+      OPTION_C_PROTECTED_CUTOVER: "1",
+      OPTION_C_LEGACY_WORKERS_DRAINED: "1",
     };
     await this.assertLegacyRuntimeDrained(applicationUrl);
-    await runPnpm(
-      [
-        "--filter",
-        "@valet/database",
-        "exec",
-        "node",
-        "scripts/provision-option-c-protected-cutover.mjs",
-      ],
-      {
-        ...environment,
-        OPTION_C_PROTECTED_CUTOVER: "1",
-        OPTION_C_LEGACY_WORKERS_DRAINED: "1",
-      },
-    );
+    await rehearseProtectedCutover(this.migrationDatabaseUrl(), environment);
   }
 
   private async assertLegacyRuntimeDrained(applicationUrl: string) {
