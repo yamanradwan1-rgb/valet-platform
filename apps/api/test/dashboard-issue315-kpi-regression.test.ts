@@ -18,6 +18,9 @@ import {
   eligibleCompanyAdminLocationOrganization,
 } from "../src/modules/management/management-authorization";
 
+type AnalyticsPeriodModule =
+  typeof import("../src/modules/dashboard/analytics-period");
+
 vi.mock("../src/modules/dashboard/dashboard-location-authorization", () => ({
   authorizeDashboardLocation: vi.fn(),
 }));
@@ -30,9 +33,7 @@ vi.mock("../src/modules/auth/mfa/mfa-assurance-policy", () => ({
   requireMfaAssuranceInTransaction: vi.fn(),
 }));
 vi.mock("../src/modules/dashboard/analytics-period", async (original) => ({
-  ...(await original<
-    typeof import("../src/modules/dashboard/analytics-period")
-  >()),
+  ...(await original<AnalyticsPeriodModule>()),
   resolveAnalyticsTimezone: vi.fn().mockResolvedValue("Asia/Amman"),
 }));
 vi.mock("../src/modules/dashboard/analytics-kpi-sla-query", () => ({

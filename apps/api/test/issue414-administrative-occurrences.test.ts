@@ -7,12 +7,13 @@ import {
   findForcedShiftEndOccurrence,
 } from "../src/modules/dashboard/management-alert-sources/force-ended-shift-occurrence-reader";
 
+type AdministrativeOccurrenceAuthorityModule =
+  typeof import("../src/modules/dashboard/management-alert-sources/administrative-occurrence-authority");
+
 vi.mock(
   "../src/modules/dashboard/management-alert-sources/administrative-occurrence-authority",
   async (importOriginal) => ({
-    ...(await importOriginal<
-      typeof import("../src/modules/dashboard/management-alert-sources/administrative-occurrence-authority")
-    >()),
+    ...(await importOriginal<AdministrativeOccurrenceAuthorityModule>()),
     authorizeForceEndedShiftAlert: vi.fn(),
   }),
 );

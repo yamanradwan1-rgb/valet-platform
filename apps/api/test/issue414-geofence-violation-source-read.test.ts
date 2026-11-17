@@ -6,12 +6,13 @@ import {
 } from "../src/modules/dashboard/management-alert-sources/geofence-violation-alert-reader";
 
 const { authorizeScope } = vi.hoisted(() => ({ authorizeScope: vi.fn() }));
+type ManagementAlertSourceContractModule =
+  typeof import("../src/modules/dashboard/management-alert-sources/management-alert-source-contract");
+
 vi.mock(
   "../src/modules/dashboard/management-alert-sources/management-alert-source-contract",
   async (importOriginal) => ({
-    ...(await importOriginal<
-      typeof import("../src/modules/dashboard/management-alert-sources/management-alert-source-contract")
-    >()),
+    ...(await importOriginal<ManagementAlertSourceContractModule>()),
     requireManagementAlertSourceScope: authorizeScope,
   }),
 );

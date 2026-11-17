@@ -8,13 +8,13 @@ import {
 } from "../src/modules/dashboard/management-alert-sources/financial-alert-source-query";
 import type { FinancialAlertReaderInput } from "../src/modules/dashboard/management-alert-sources/financial-alert-source-types";
 
+type ManagementAlertSourceContractModule =
+  typeof import("../src/modules/dashboard/management-alert-sources/management-alert-source-contract");
+
 vi.mock(
   "../src/modules/dashboard/management-alert-sources/management-alert-source-contract",
   async (importOriginal) => {
-    const actual =
-      await importOriginal<
-        typeof import("../src/modules/dashboard/management-alert-sources/management-alert-source-contract")
-      >();
+    const actual = await importOriginal<ManagementAlertSourceContractModule>();
     return { ...actual, requireManagementAlertSourceScope: vi.fn() };
   },
 );
