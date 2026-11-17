@@ -1,6 +1,11 @@
 import { execFileSync } from "node:child_process";
 import { Client } from "pg";
 
+import {
+  ownedTargetMembershipsAreSafe,
+  type OwnedTargetMembership,
+} from "./owned-target-memberships";
+
 // These are fixed independently owned disposable PostgreSQL 17 targets. They
 // are checked BEFORE the fixtures can create databases, roles or run migrations.
 interface OwnedTarget {
@@ -13,6 +18,7 @@ interface OwnedTarget {
   readonly bootstrapUser?: string;
   readonly volumeName?: string;
   readonly allowedParentRoles: readonly string[];
+  readonly allowedCreatorAdminParentRoles?: readonly string[];
   readonly flag: string;
   readonly flagValue: string;
 }
@@ -38,8 +44,24 @@ const afterTarget: OwnedTarget = {
   bootstrapUser: "postgres",
   volumeName: "vaylet_optionc_final_pg17_data",
   allowedParentRoles: ["pg_monitor"],
+  allowedCreatorAdminParentRoles: ["valet_w66_migrator"],
   flag: "ISSUE416_OPTION_C_AFTER",
   flagValue: "OPTION_C_FINAL_DISPOSABLE_ONLY",
+};
+
+const finalHttpTarget: OwnedTarget = {
+  containerName: "vaylet-option-c-final-http-20261117-pg17",
+  owner: "option-c-final-http-20261117",
+  port: "52717",
+  database: "valet_optionc_http",
+  user: "valet_optionc_http",
+  bootstrapDatabase: "postgres",
+  bootstrapUser: "postgres",
+  volumeName: "vaylet-option-c-final-http-20261117-data",
+  allowedParentRoles: ["pg_monitor"],
+  allowedCreatorAdminParentRoles: ["valet_w66_migrator"],
+  flag: "ISSUE416_OPTION_C_FINAL_HTTP",
+  flagValue: "OPTION_C_FINAL_HTTP_DISPOSABLE_ONLY",
 };
 
 function docker(args: string[]): string {
@@ -56,7 +78,18 @@ export function assertOwnedOptionCPg17(): Promise<void> {
 }
 
 export function assertOwnedOptionCAfterPg17(): Promise<void> {
-  return assertOwnedPostgres17(afterTarget);
+  const historicalAfter =
+    process.env[afterTarget.flag] === afterTarget.flagValue;
+  const finalHttp =
+    process.env[finalHttpTarget.flag] === finalHttpTarget.flagValue;
+  if (historicalAfter === finalHttp) {
+    return Promise.reject(
+      new Error(
+        "Option C AFTER requires exactly one hard-coded disposable target.",
+      ),
+    );
+  }
+  return assertOwnedPostgres17(finalHttp ? finalHttpTarget : afterTarget);
 }
 
 async function assertOwnedPostgres17(target: OwnedTarget): Promise<void> {
@@ -177,24 +210,27 @@ async function assertOwnedPostgres17(target: OwnedTarget): Promise<void> {
       replication: boolean;
       bypass_rls: boolean;
       inherit: boolean;
-      parent_roles: string[];
-      membership_options_valid: boolean;
-    }>(`SELECT system_identifier::text, current_database() AS database,
+      memberships: OwnedTargetMembership[];
+    }>(`SELECT (SELECT system_identifier::text FROM pg_control_system()) AS system_identifier,
+               current_database() AS database,
                current_user AS principal, current_setting('server_version_num')::int AS version,
                pg_is_in_recovery() AS recovery, role.rolsuper AS superuser,
                role.rolcreatedb AS create_db, role.rolcreaterole AS create_role,
                role.rolreplication AS replication, role.rolbypassrls AS bypass_rls,
                role.rolinherit AS inherit,
-               coalesce(array_agg(parent.rolname ORDER BY parent.rolname)
-                 FILTER (WHERE parent.oid IS NOT NULL), ARRAY[]::name[]) AS parent_roles,
-               coalesce(bool_and(NOT membership.admin_option AND
-                 membership.inherit_option AND NOT membership.set_option), true)
-                 AS membership_options_valid
-        FROM pg_control_system() CROSS JOIN pg_roles AS role
-        LEFT JOIN pg_auth_members AS membership ON membership.member=role.oid
-        LEFT JOIN pg_roles AS parent ON parent.oid=membership.roleid
-        WHERE role.rolname=current_user
-        GROUP BY role.oid`);
+               coalesce((SELECT jsonb_agg(jsonb_build_object(
+                   'parent',parent.rolname::text,
+                   'grantor_superuser',grantor.rolsuper,
+                   'inherit_option',membership.inherit_option,
+                   'set_option',membership.set_option,
+                   'admin_option',membership.admin_option
+                 ) ORDER BY parent.rolname,grantor.rolname)
+                 FROM pg_auth_members AS membership
+                 JOIN pg_roles AS parent ON parent.oid=membership.roleid
+                 JOIN pg_roles AS grantor ON grantor.oid=membership.grantor
+                 WHERE membership.member=role.oid), '[]'::jsonb) AS memberships
+        FROM pg_roles AS role
+        WHERE role.rolname=current_user`);
     const proof = result.rows[0];
     if (
       result.rowCount !== 1 ||
@@ -210,9 +246,11 @@ async function assertOwnedPostgres17(target: OwnedTarget): Promise<void> {
       proof.replication ||
       proof.bypass_rls ||
       proof.inherit ||
-      !proof.membership_options_valid ||
-      JSON.stringify(proof.parent_roles) !==
-        JSON.stringify([...target.allowedParentRoles].sort())
+      !ownedTargetMembershipsAreSafe(
+        proof.memberships,
+        target.allowedParentRoles,
+        target.allowedCreatorAdminParentRoles,
+      )
     ) {
       throw new Error("Option C PG17 host SQL/postmaster identity mismatch.");
     }

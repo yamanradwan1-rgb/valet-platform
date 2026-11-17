@@ -143,18 +143,13 @@ describe("native fixture protected writer role lifecycle", () => {
     await restoreFixtureWriterRoles(cleanup, after);
 
     expect(cleanup.formatted).toEqual([
-      { format: "DROP OWNED BY %I", values: [staffRole] },
       { format: "DROP ROLE %I", values: [staffRole] },
       {
         format: "ALTER ROLE %I WITH PASSWORD %L INHERIT",
         values: [managementRole, original.password],
       },
     ]);
-    expect(cleanup.executed).toEqual([
-      "FORMATTED_1",
-      "FORMATTED_2",
-      "FORMATTED_3",
-    ]);
+    expect(cleanup.executed).toEqual(["FORMATTED_1", "FORMATTED_2"]);
     expect(cleanup.roles.has(staffRole)).toBe(false);
   });
 
@@ -275,7 +270,6 @@ describe("native fixture protected writer role lifecycle", () => {
     });
     await restoreFixtureWriterRoles(cleanup, baseline);
     expect(cleanup.formatted).toEqual([
-      { format: "DROP OWNED BY %I", values: [staffRole] },
       { format: "DROP ROLE %I", values: [staffRole] },
     ]);
     expect(cleanup.roles.has(staffRole)).toBe(false);

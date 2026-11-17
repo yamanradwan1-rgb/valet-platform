@@ -1,6 +1,37 @@
-import { Pool } from "pg";
+import { Client, Pool } from "pg";
+
+import { dropFixtureCreatedRole } from "../staff-auth-native-writer-role-lifecycle";
 
 export const optionCTestMigratorRole = "valet_w66_migrator";
+
+const migrationOwnedRoles = [
+  "vap1_proof_owner",
+  "valet_photo_evidence_lock_owner",
+];
+
+export async function findAbsentMigrationOwnedRoles(
+  client: Client,
+): Promise<string[]> {
+  const existing = await client.query<{ rolname: string }>(
+    "SELECT rolname FROM pg_catalog.pg_roles WHERE rolname = ANY($1::text[])",
+    [migrationOwnedRoles],
+  );
+  const present = new Set(existing.rows.map(({ rolname }) => rolname));
+  return migrationOwnedRoles.filter((role) => !present.has(role));
+}
+
+export async function restoreMigrationOwnedRoles(
+  connectionString: string,
+  newRoles: string[],
+): Promise<void> {
+  const client = new Client({ connectionString });
+  try {
+    await client.connect();
+    for (const role of newRoles) await dropFixtureCreatedRole(client, role);
+  } finally {
+    await client.end();
+  }
+}
 
 async function executeFormatted(
   pool: Pool,
@@ -79,7 +110,12 @@ export async function ensureMigrationRole(
 export async function grantMigrationDatabase(
   ownerUrl: string,
   databaseName: string,
+  migrationPassword: string,
 ): Promise<void> {
+  const ownerRole = decodeURIComponent(new URL(ownerUrl).username);
+  if (!/^[a-z_][a-z0-9_]{0,62}$/.test(ownerRole)) {
+    throw new Error("W66 fixture owner role identity is unsafe.");
+  }
   const owner = new Pool({ connectionString: ownerUrl, max: 1 });
   try {
     await executeFormatted(
@@ -89,114 +125,69 @@ export async function grantMigrationDatabase(
     );
     await executeFormatted(
       owner,
-      "GRANT CONNECT, CREATE, TEMPORARY ON DATABASE %I TO %I WITH GRANT OPTION",
-      [databaseName, optionCTestMigratorRole],
+      "GRANT %I TO %I WITH INHERIT FALSE, SET TRUE",
+      [optionCTestMigratorRole, ownerRole],
     );
+    const memberships = await owner.query<{
+      admin_option: boolean;
+      grantor_role: string;
+      grantor_superuser: boolean;
+      inherit_option: boolean;
+      set_option: boolean;
+    }>(
+      `SELECT membership.inherit_option,membership.set_option,
+              membership.admin_option,grantor.rolname AS grantor_role,
+              grantor.rolsuper AS grantor_superuser
+         FROM pg_catalog.pg_auth_members membership
+         JOIN pg_catalog.pg_roles parent ON parent.oid=membership.roleid
+         JOIN pg_catalog.pg_roles member ON member.oid=membership.member
+         JOIN pg_catalog.pg_roles grantor ON grantor.oid=membership.grantor
+        WHERE parent.rolname=$1 AND member.rolname=$2
+        ORDER BY grantor.rolname`,
+      [optionCTestMigratorRole, ownerRole],
+    );
+    const creatorAdmin = memberships.rows.filter(
+      (row) =>
+        row.admin_option === true &&
+        row.set_option === false &&
+        row.inherit_option === false &&
+        row.grantor_superuser === true,
+    );
+    const cleanupSet = memberships.rows.filter(
+      (row) =>
+        row.admin_option === false &&
+        row.set_option === true &&
+        row.inherit_option === false &&
+        row.grantor_role === ownerRole,
+    );
+    if (
+      memberships.rowCount !== 2 ||
+      creatorAdmin.length !== 1 ||
+      cleanupSet.length !== 1
+    ) {
+      throw new Error(
+        "W66 fixture owner-to-migrator administrative memberships are unsafe.",
+      );
+    }
+    await executeFormatted(owner, "ALTER DATABASE %I OWNER TO %I", [
+      databaseName,
+      optionCTestMigratorRole,
+    ]);
   } finally {
     await owner.end();
   }
-  const databaseUrl = new URL(ownerUrl);
+  const databaseUrl = new URL(migrationBaseUrl(ownerUrl, migrationPassword));
   databaseUrl.pathname = `/${databaseName}`;
   const database = new Pool({
     connectionString: databaseUrl.toString(),
     max: 1,
   });
   try {
-    await executeFormatted(
-      database,
-      "GRANT USAGE, CREATE ON SCHEMA public TO %I WITH GRANT OPTION",
-      [optionCTestMigratorRole],
-    );
-  } finally {
-    await database.end();
-  }
-}
-
-export async function ensureRuntimeRoleByOwner(
-  ownerUrl: string,
-  runtimeUrl: string,
-): Promise<void> {
-  const runtime = new URL(runtimeUrl);
-  const role = decodeURIComponent(runtime.username);
-  const password = decodeURIComponent(runtime.password);
-  if (!/^[a-z_][a-z0-9_]{0,62}$/.test(role) || !password) {
-    throw new Error("W66 runtime test role identity is unsafe.");
-  }
-  const owner = new Pool({ connectionString: ownerUrl, max: 1 });
-  try {
-    const found = await owner.query(
-      "SELECT 1 FROM pg_catalog.pg_roles WHERE rolname=$1",
-      [role],
-    );
-    if (found.rowCount !== 0)
-      throw new Error("W66 runtime test role already exists.");
-    await executeFormatted(
-      owner,
-      "CREATE ROLE %I WITH LOGIN PASSWORD %L NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS",
-      [role, password],
-    );
-    await executeFormatted(
-      owner,
-      "GRANT %I TO %I WITH INHERIT FALSE, SET FALSE, ADMIN TRUE",
-      [role, optionCTestMigratorRole],
-    );
-    const membership = await owner.query<{
-      admin_option: boolean;
-      inherit_option: boolean;
-      set_option: boolean;
-    }>(
-      `SELECT membership.inherit_option,membership.set_option,membership.admin_option
-         FROM pg_catalog.pg_auth_members membership
-         JOIN pg_catalog.pg_roles parent ON parent.oid=membership.roleid
-         JOIN pg_catalog.pg_roles member ON member.oid=membership.member
-        WHERE parent.rolname=$1 AND member.rolname=$2`,
-      [role, optionCTestMigratorRole],
-    );
-    const current = membership.rows[0];
-    if (
-      membership.rowCount !== 1 ||
-      current?.admin_option !== true ||
-      current.inherit_option !== false ||
-      current.set_option !== false
-    ) {
-      throw new Error("W66 runtime provisioning ADMIN membership is unsafe.");
-    }
-    console.info(
-      "W66 runtime provisioning membership admin=true set=false inherit=false",
-    );
-  } finally {
-    await owner.end();
-  }
-}
-
-export async function revokeRuntimeProvisioningAdmin(
-  ownerUrl: string,
-  runtimeUrl: string,
-): Promise<void> {
-  const role = decodeURIComponent(new URL(runtimeUrl).username);
-  if (!/^[a-z_][a-z0-9_]{0,62}$/.test(role)) {
-    throw new Error("W66 runtime test role identity is unsafe.");
-  }
-  const owner = new Pool({ connectionString: ownerUrl, max: 1 });
-  try {
-    await executeFormatted(owner, "REVOKE %I FROM %I CASCADE", [
-      role,
+    await executeFormatted(database, "ALTER SCHEMA public OWNER TO %I", [
       optionCTestMigratorRole,
     ]);
-    const remaining = await owner.query(
-      `SELECT 1 FROM pg_catalog.pg_auth_members membership
-         JOIN pg_catalog.pg_roles parent ON parent.oid=membership.roleid
-         JOIN pg_catalog.pg_roles member ON member.oid=membership.member
-        WHERE parent.rolname=$1 AND member.rolname=$2`,
-      [role, optionCTestMigratorRole],
-    );
-    if (remaining.rowCount !== 0) {
-      throw new Error(
-        "W66 runtime provisioning ADMIN membership was not revoked.",
-      );
-    }
-    console.info("W66 runtime provisioning membership revoked before cutover");
+    await database.query("REVOKE CREATE ON SCHEMA public FROM PUBLIC");
   } finally {
-    await owner.end();
+    await database.end();
   }
 }

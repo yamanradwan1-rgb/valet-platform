@@ -1,3 +1,7 @@
+import { mkdir, writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
+import type { PoolClient } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { OptionCAfterFixture, runtimeBoolean } from "./after-fixture";
@@ -37,6 +41,59 @@ const legacyFunctions = [
 ] as const;
 
 describe("Option C AFTER / effective runtime SQL privilege closure", () => {
+  it("validates the installed effective ACL matrix after protected cutover", async () => {
+    const auditUrl = pathToFileURL(
+      resolve(
+        process.cwd(),
+        "../../packages/database/scripts/option-c-effective-privilege-audit.mjs",
+      ),
+    );
+    type AuditSnapshot = { matrix: unknown[] };
+    const {
+      serializeOptionCPrivilegeSnapshot,
+      verifyOptionCEffectivePrivileges,
+    } = (await import(auditUrl.href)) as {
+      serializeOptionCPrivilegeSnapshot(snapshot: AuditSnapshot): string;
+      verifyOptionCEffectivePrivileges(
+        client: PoolClient,
+        roles: Record<string, string>,
+      ): Promise<AuditSnapshot>;
+    };
+    const client = await fixture.databasePool().connect();
+    try {
+      await client.query("BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY");
+      const snapshot = await verifyOptionCEffectivePrivileges(client, {
+        runtime: new URL(fixture.runtimeDatabaseUrl()).username,
+        migrationRole: new URL(fixture.migrationDatabaseUrl()).username,
+        staffAuthWriter: "vaylet_staff_auth_writer",
+        mfaWriter: "vaylet_mfa_writer",
+        managementWriter: "vaylet_management_writer",
+      }).catch((error: Error) => {
+        // The verifier also attaches a full catalog to errors. Report only
+        // its policy violations in the test output.
+        throw new Error(error.message);
+      });
+      expect(snapshot.matrix.length).toBeGreaterThan(0);
+      if (process.env.OPTION_C_RECORD_ACL_MATRIX === "1") {
+        const evidenceDirectory = resolve(process.cwd(), "../../tmp");
+        await mkdir(evidenceDirectory, { recursive: true });
+        await writeFile(
+          resolve(evidenceDirectory, "option-c-effective-acl.json"),
+          serializeOptionCPrivilegeSnapshot(snapshot),
+        );
+      }
+      console.info(
+        `Option C effective ACL matrix rows=${snapshot.matrix.length}`,
+      );
+    } finally {
+      try {
+        await client.query("ROLLBACK");
+      } finally {
+        client.release();
+      }
+    }
+  });
+
   it("denies every session, refresh, MFA factor and recovery write column", async () => {
     for (const [table, column, privilege] of blockedColumns) {
       const allowed = await runtimeBoolean(
@@ -77,7 +134,8 @@ describe("Option C AFTER / effective runtime SQL privilege closure", () => {
                   WHERE fn.oid=to_regprocedure($1)),false) AS public_allowed`,
         [signature],
       );
-      if (!queried.allowed) throw new Error(`W37 ACL query was denied: ${signature}`);
+      if (!queried.allowed)
+        throw new Error(`W37 ACL query was denied: ${signature}`);
       expect(queried.result?.allowed, signature).toBe(false);
       expect(queried.result?.public_allowed, `${signature} PUBLIC`).toBe(false);
     }
@@ -94,7 +152,8 @@ describe("Option C AFTER / effective runtime SQL privilege closure", () => {
                       WHERE memberships.member=role.oid) AS has_parent
        FROM pg_roles AS role WHERE role.rolname=current_user`,
     );
-    if (!result.allowed) throw new Error("W37 role attestation query was denied.");
+    if (!result.allowed)
+      throw new Error("W37 role attestation query was denied.");
     expect(result.result).toMatchObject({
       same_principal: true,
       login: true,

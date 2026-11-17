@@ -38,7 +38,14 @@ export class OptionCT5Fixture extends ManagementControlPlaneTestFixture {
     } catch (error) {
       // An interrupted migration/provision step must not strand a synthetic
       // role/database on the separately attested W37 container.
-      await super.stop().catch(() => undefined);
+      try {
+        await super.stop();
+      } catch (cleanupError) {
+        throw new AggregateError(
+          [error, cleanupError],
+          "Option C fixture setup and cleanup both failed.",
+        );
+      }
       throw error;
     }
   }

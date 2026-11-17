@@ -187,15 +187,12 @@ export async function dropFixtureCreatedRole(
     [role],
   );
   if (exists.rowCount === 0) return;
-  const memberships = await readWriterRoleMemberships(client, [role]);
-  for (const membership of memberships) {
-    await executeFormatted(client, "REVOKE %I FROM %I GRANTED BY %I", [
-      membership.parent,
-      membership.member,
-      membership.grantor,
-    ]);
-  }
-  await executeFormatted(client, "DROP OWNED BY %I", [role]);
+  // PostgreSQL 17 gives CREATEROLE creators an ADMIN-only edge GRANTED BY the
+  // bootstrap superuser. A non-superuser fixture owner cannot REVOKE that
+  // grant via GRANTED BY postgres, and has no SET permission for DROP OWNED.
+  // DROP ROLE removes *all* memberships in the dropped role atomically. It
+  // also fails closed on remaining object dependencies: do not erase unknown
+  // objects or grants with DROP OWNED to force a successful teardown.
   await executeFormatted(client, "DROP ROLE %I", [role]);
   const remaining = await client.query(
     "SELECT 1 FROM pg_catalog.pg_roles WHERE rolname=$1",

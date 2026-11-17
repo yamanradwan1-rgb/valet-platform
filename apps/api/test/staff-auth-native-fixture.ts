@@ -234,18 +234,24 @@ export class StaffAuthNativeFixture {
 
   async stop(): Promise<void> {
     try {
+      const databaseOwnerRole = this.cleanupDatabaseOwnerRole();
       await cleanupStaffAuthNativeFixture({
         app: this.app,
         pool: this.adminPool,
         adminDatabaseUrl,
         databaseCreated: this.databaseCreated,
         databaseName: this.databaseName,
+        ...(databaseOwnerRole === undefined ? {} : { databaseOwnerRole }),
         ...(this.roleCreated ? { runtimeRole: this.runtimeRole } : {}),
         writerRoleSnapshots: this.writerRoleSnapshots,
       });
     } finally {
       this.restoreEnvironment();
     }
+  }
+
+  protected cleanupDatabaseOwnerRole(): string | undefined {
+    return undefined;
   }
 
   private restoreEnvironment(): void {

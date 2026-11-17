@@ -28,9 +28,6 @@ function client(
       if (sql.includes("FROM pg_catalog.pg_roles WHERE rolname=$1")) {
         return { rowCount: existing.has(String(args[0])) ? 1 : 0, rows: [] };
       }
-      if (sql.includes("FROM pg_catalog.pg_auth_members")) {
-        return { rows: memberships, rowCount: memberships.length };
-      }
       if (sql.startsWith("SELECT pg_catalog.format")) {
         const format = String(args[0]);
         statements.push(format);
@@ -38,12 +35,12 @@ function client(
       }
       if (sql.startsWith("SQL_")) {
         const statement = statements[Number(sql.slice(4)) - 1];
-        if (statement === "REVOKE %I FROM %I GRANTED BY %I") {
-          memberships.pop();
-        }
         if (statement === "DROP ROLE %I") {
           if (options.failDrop) throw new Error("drop role failed");
-          if (!options.refuseRemoval) existing.delete(role);
+          if (!options.refuseRemoval) {
+            existing.delete(role);
+            memberships.pop();
+          }
         }
         return { rows: [], rowCount: 0 };
       }
@@ -53,14 +50,10 @@ function client(
 }
 
 describe("fixture-owned role cleanup", () => {
-  it("revokes memberships and DROP OWNED before dropping created role", async () => {
+  it("uses PG17 atomic DROP ROLE to remove creator memberships without SET/GRANTED BY postgres", async () => {
     const state = client();
     await dropFixtureCreatedRole(state, role);
-    expect(state.statements).toEqual([
-      "REVOKE %I FROM %I GRANTED BY %I",
-      "DROP OWNED BY %I",
-      "DROP ROLE %I",
-    ]);
+    expect(state.statements).toEqual(["DROP ROLE %I"]);
     expect(state.memberships).toHaveLength(0);
     expect(state.existing.has(role)).toBe(false);
     expect(state.existing.has("valet_w66_migrator")).toBe(true);

@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { Pool } from "pg";
+import { Client, Pool } from "pg";
 
 import { runPnpm } from "../staff-auth-native-run-pnpm";
 import {
@@ -13,10 +13,11 @@ import { OptionCT5Fixture } from "../issue416-option-c-t5/probe-fixture";
 import { assertOwnedOptionCAfterPg17 } from "../issue416-option-c-t5/owned-target";
 import {
   ensureMigrationRole,
-  ensureRuntimeRoleByOwner,
+  findAbsentMigrationOwnedRoles,
   grantMigrationDatabase,
   migrationBaseUrl,
-  revokeRuntimeProvisioningAdmin,
+  optionCTestMigratorRole,
+  restoreMigrationOwnedRoles,
 } from "./after-migration-topology";
 
 // AFTER tests use a second, named owner-only cluster. BEFORE .probe.ts suites
@@ -32,6 +33,9 @@ export class OptionCAfterFixture extends OptionCT5Fixture {
   private readonly priorMigrationDatabase = process.env.MIGRATION_DATABASE_URL;
   private readonly migrationPassword = randomUUID();
   private migrationRoleSnapshots: FixtureWriterRoleSnapshot[] = [];
+  private fixtureLease: Client | undefined;
+  private newMigrationOwnedRoles: string[] = [];
+  private fixtureMigrationBaseUrl: string | undefined;
 
   constructor() {
     super(assertOwnedOptionCAfterPg17);
@@ -40,8 +44,18 @@ export class OptionCAfterFixture extends OptionCT5Fixture {
   override async start(): Promise<void> {
     const ownerUrl = process.env.TEST_DATABASE_URL;
     if (!ownerUrl) throw new Error("W66 owner test URL is unavailable.");
-    const owner = new Pool({ connectionString: ownerUrl, max: 1 });
+    await assertOwnedOptionCAfterPg17();
+    const owner = new Client({ connectionString: ownerUrl });
     try {
+      await owner.connect();
+      const lease = await owner.query<{ acquired: boolean }>(
+        "SELECT pg_catalog.pg_try_advisory_lock(416, 66) AS acquired",
+      );
+      if (lease.rows[0]?.acquired !== true) {
+        throw new Error("W66 disposable PostgreSQL fixture is already in use.");
+      }
+      this.fixtureLease = owner;
+      this.newMigrationOwnedRoles = await findAbsentMigrationOwnedRoles(owner);
       this.migrationRoleSnapshots = await captureFixtureWriterRoleBaseline(
         owner,
         {
@@ -51,30 +65,30 @@ export class OptionCAfterFixture extends OptionCT5Fixture {
           ),
         },
       );
-    } finally {
-      await owner.end();
-    }
-    try {
       await ensureMigrationRole(ownerUrl, this.migrationPassword);
-      const after = new Pool({ connectionString: ownerUrl, max: 1 });
-      try {
-        this.migrationRoleSnapshots = await captureFixtureWriterRolePostState(
-          after,
-          this.migrationRoleSnapshots,
-        );
-      } finally {
-        await after.end();
-      }
-      process.env.STAFF_AUTH_TEST_MIGRATION_BASE_URL = migrationBaseUrl(
+      this.fixtureMigrationBaseUrl = migrationBaseUrl(
         ownerUrl,
         this.migrationPassword,
       );
+      await this.captureMigrationRolePostState();
+      process.env.STAFF_AUTH_TEST_MIGRATION_BASE_URL =
+        this.fixtureMigrationBaseUrl;
       process.env.ISSUE416_S02_PROTECTED_TEST = "1";
       process.env.ANTI_ABUSE_SQL_PROOF_SECRET_B64URL = this.proofKey;
       await super.start();
     } catch (error) {
       this.restoreOptionCEnvironment();
-      await this.restoreMigrationRole();
+      try {
+        await this.restoreMigrationRole();
+      } catch (cleanupError) {
+        throw new AggregateError(
+          [error, cleanupError],
+          "W66 fixture setup and cleanup both failed.",
+        );
+      } finally {
+        this.fixtureLease = undefined;
+        await owner.end();
+      }
       throw error;
     }
   }
@@ -105,23 +119,26 @@ export class OptionCAfterFixture extends OptionCT5Fixture {
   protected override async prepareMigrationDatabase(databaseName: string) {
     const ownerUrl = process.env.TEST_DATABASE_URL;
     if (!ownerUrl) throw new Error("W66 owner test URL is unavailable.");
-    await grantMigrationDatabase(ownerUrl, databaseName);
+    try {
+      await grantMigrationDatabase(
+        ownerUrl,
+        databaseName,
+        this.migrationPassword,
+      );
+    } finally {
+      await this.captureMigrationRolePostState();
+    }
   }
 
-  protected override async prepareRuntimeProvisioning(applicationUrl: string) {
-    const ownerUrl = process.env.TEST_DATABASE_URL;
-    if (!ownerUrl) throw new Error("W66 owner test URL is unavailable.");
-    await ensureRuntimeRoleByOwner(ownerUrl, applicationUrl);
-    process.env.MIGRATION_DATABASE_URL = this.migrationDatabaseUrl();
+  protected override cleanupDatabaseOwnerRole(): string {
+    return optionCTestMigratorRole;
   }
 
   protected override async afterRuntimeProvisioning(
     applicationUrl: string,
     writers: Record<string, string>,
   ) {
-    const ownerUrl = process.env.TEST_DATABASE_URL;
-    if (!ownerUrl) throw new Error("W66 owner test URL is unavailable.");
-    await revokeRuntimeProvisioningAdmin(ownerUrl, applicationUrl);
+    process.env.MIGRATION_DATABASE_URL = this.migrationDatabaseUrl();
     const environment = {
       NODE_ENV: "test",
       DATABASE_URL: applicationUrl,
@@ -185,22 +202,42 @@ export class OptionCAfterFixture extends OptionCT5Fixture {
       await super.stop();
     } finally {
       this.restoreOptionCEnvironment();
-      await this.restoreMigrationRole();
+      try {
+        await this.restoreMigrationRole();
+      } finally {
+        await this.fixtureLease?.end();
+        this.fixtureLease = undefined;
+      }
     }
+  }
+
+  private async captureMigrationRolePostState(): Promise<void> {
+    if (!this.fixtureLease)
+      throw new Error("W66 fixture lease is unavailable.");
+    this.migrationRoleSnapshots = await captureFixtureWriterRolePostState(
+      this.fixtureLease,
+      this.migrationRoleSnapshots,
+    );
   }
 
   private async restoreMigrationRole(): Promise<void> {
     if (this.migrationRoleSnapshots.length === 0) return;
-    const ownerUrl = process.env.TEST_DATABASE_URL;
-    if (!ownerUrl)
-      throw new Error("W66 owner test URL is unavailable for cleanup.");
-    const owner = new Pool({ connectionString: ownerUrl, max: 1 });
-    try {
-      await restoreFixtureWriterRoles(owner, this.migrationRoleSnapshots);
-      this.migrationRoleSnapshots = [];
-    } finally {
-      await owner.end();
+    if (!this.fixtureLease)
+      throw new Error("W66 fixture lease is unavailable.");
+    if (
+      this.fixtureMigrationBaseUrl &&
+      this.newMigrationOwnedRoles.length > 0
+    ) {
+      await restoreMigrationOwnedRoles(
+        this.fixtureMigrationBaseUrl,
+        this.newMigrationOwnedRoles,
+      );
     }
+    await restoreFixtureWriterRoles(
+      this.fixtureLease,
+      this.migrationRoleSnapshots,
+    );
+    this.migrationRoleSnapshots = [];
   }
 
   private restoreOptionCEnvironment() {
