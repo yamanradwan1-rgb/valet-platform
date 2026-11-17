@@ -31,7 +31,7 @@ test("operator source never invokes broad legacy provisioning and legacy guard s
 
 test("cutover preflight includes the narrow Staff activation success definer", () => {
   const readiness = source("./option-c-protected-cutover-readiness.mjs");
-  const acl = source("./option-c-protected-cutover-acl.mjs");
+  const acl = source("./option-c-protected-cutover-acl-contract.mjs");
   assert.match(
     acl,
     /public\.s04_staff_activation_success\(uuid,text,text,text,xid8,uuid,bigint,text\)/,
@@ -67,7 +67,10 @@ test("cutover readiness executes full StaffAuth and Management privilege verifie
   );
   assert.match(
     readiness,
-    /await verifyStaffSessionLockAcl\(client, runtimeRole, migrationRole, \[/,
+    /await verifyStaffSessionLockAcl\([\s\S]*?runtimeRole,[\s\S]*?migrationRole,[\s\S]*?requireRuntimeExecute: phase === "PROTECTED"/,
   );
-  assert.match(readiness, /optionCRoles\.managementWriter,\s*\]\)/);
+  assert.match(
+    readiness,
+    /optionCRoles\.managementWriter,\s*\],\s*\{ requireRuntimeExecute: phase === "PROTECTED" \}/,
+  );
 });

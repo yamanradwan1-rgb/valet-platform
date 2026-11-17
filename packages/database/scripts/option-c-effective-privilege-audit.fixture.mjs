@@ -66,18 +66,27 @@ export function matrix() {
           ? names.sessionLockOwner
           : names.migrationRole;
       for (const role of Object.values(names)) {
+        const sessionLockOwner =
+          signature === optionCFunctionContract.runtimeSessionLock &&
+          role === names.sessionLockOwner;
         rows.push({
           kind: "function",
           role,
           object: signature,
           privilege: "EXECUTE",
-          effective: role === names[type],
-          grant_option: false,
+          effective: role === names[type] || sessionLockOwner,
+          grant_option: sessionLockOwner,
           owner,
           security_definer: true,
           proconfig: [`search_path=${search_path}`],
           search_path,
-          grants: [{ grantee: names[type], grantOption: false }],
+          grants:
+            signature === optionCFunctionContract.runtimeSessionLock
+              ? [
+                  { grantee: names[type], grantOption: false },
+                  { grantee: names.sessionLockOwner, grantOption: false },
+                ]
+              : [{ grantee: names[type], grantOption: false }],
         });
       }
     }
@@ -114,10 +123,14 @@ export function matrix() {
               object,
               name,
               privilege,
-              role === names.sessionLockOwner &&
+              (role === names.sessionLockOwner &&
                 (
                   staffSessionLockOwnerColumns[object]?.[privilege] || []
-                ).includes(name),
+                ).includes(name)) ||
+                (role === names.runtime &&
+                  privilege === "UPDATE" &&
+                  object === "users" &&
+                  name === "last_login_at"),
             ),
           );
         }

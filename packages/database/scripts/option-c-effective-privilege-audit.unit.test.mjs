@@ -79,6 +79,98 @@ test("valid bounded matrix verifies, including lock ownership and exact columns"
   assert.equal(snapshot.roles.runtime, "runtime");
 });
 
+test("effective audit accepts only the exact runtime row-lock/default-sequence contracts", async () => {
+  const evidence = matrix();
+  evidence.push(
+    {
+      kind: "column",
+      role: names.runtime,
+      object: "organization_memberships",
+      column: "updated_at",
+      privilege: "UPDATE",
+      effective: true,
+      grant_option: false,
+      grants: [],
+    },
+    {
+      kind: "column",
+      role: names.runtime,
+      object: "locations",
+      column: "updated_at",
+      privilege: "UPDATE",
+      effective: true,
+      grant_option: false,
+      grants: [],
+    },
+    {
+      kind: "default",
+      role: names.migrationRole,
+      object: "public",
+      object_type: "S",
+      grantee: names.runtime,
+      grantor: names.migrationRole,
+      privilege: "USAGE",
+      grant_option: false,
+    },
+    {
+      kind: "default",
+      role: names.migrationRole,
+      object: "public",
+      object_type: "S",
+      grantee: names.runtime,
+      grantor: names.migrationRole,
+      privilege: "SELECT",
+      grant_option: false,
+    },
+  );
+  await verifyOptionCEffectivePrivileges(fixtureClient(evidence).client, roles);
+
+  const unsafe = structuredClone(evidence);
+  unsafe.push({
+    kind: "column",
+    role: names.runtime,
+    object: "organization_memberships",
+    column: "role",
+    privilege: "UPDATE",
+    effective: true,
+    grant_option: false,
+    grants: [],
+  });
+  await assert.rejects(
+    verifyOptionCEffectivePrivileges(fixtureClient(unsafe).client, roles),
+    /Runtime protected column organization_memberships\.role UPDATE/,
+  );
+});
+
+test("function catalog preserves only approved timeout values while redacting other settings", () => {
+  assert.match(catalogQueries.functions, /lock_timeout=200ms/);
+  assert.match(catalogQueries.functions, /statement_timeout=500ms/);
+  assert.match(catalogQueries.functions, /<redacted>/);
+});
+
+test("effective audit distinguishes PG17 bootstrap ADMIN-only from SET-only owner access", async () => {
+  const snapshot = matrix();
+  snapshot.push({
+    kind: "membership",
+    role: names.migrationRole,
+    object: names.sessionLockOwner,
+    member: true,
+    direct_set: false,
+    direct_inherit: false,
+    direct_admin: true,
+    effective_set: true,
+    effective_inherit: false,
+    grantor: "postgres",
+    grantor_superuser: true,
+  });
+  await verifyOptionCEffectivePrivileges(fixtureClient(snapshot).client, roles);
+  snapshot.at(-1).grantor_superuser = false;
+  await assert.rejects(
+    verifyOptionCEffectivePrivileges(fixtureClient(snapshot).client, roles),
+    /Session lock owner has an unexpected membership route/,
+  );
+});
+
 test("catches effective role inheritance, secret reads, PUBLIC EXECUTE and grant options", async () => {
   const evidence = matrix();
   evidence.push({

@@ -19,18 +19,28 @@ const writerEnvironment = [
 ];
 
 function sameTarget(left, right) {
-  return left.host === right.host && left.port === right.port &&
-    left.database === right.database;
+  return (
+    left.host === right.host &&
+    left.port === right.port &&
+    left.database === right.database
+  );
 }
 
 export function readOptionCCutoverConfiguration(env = process.env) {
   if (env.OPTION_C_PROTECTED_CUTOVER !== "1") {
-    throw new Error("Option C protected cutover requires explicit operator opt-in.");
+    throw new Error(
+      "Option C protected cutover requires explicit operator opt-in.",
+    );
   }
   if (env.OPTION_C_LEGACY_WORKERS_DRAINED !== "1") {
-    throw new Error("Option C protected cutover requires an independently verified legacy worker drain.");
+    throw new Error(
+      "Option C protected cutover requires an independently verified legacy worker drain.",
+    );
   }
-  const migration = parseMigrationDatabaseUrl(env.MIGRATION_DATABASE_URL, env.NODE_ENV);
+  const migration = parseMigrationDatabaseUrl(
+    env.MIGRATION_DATABASE_URL,
+    env.NODE_ENV,
+  );
   const runtime = parseRuntimeDatabaseUrlForProvisioning(env.DATABASE_URL);
   assertDatabaseCredentialSeparation(migration, runtime, env.NODE_ENV);
   const migrationIdentity = decodedDatabaseIdentity(migration);
@@ -39,39 +49,63 @@ export function readOptionCCutoverConfiguration(env = process.env) {
   for (const [name, expectedRole] of writerEnvironment) {
     const parsed = parseRuntimeDatabaseUrlForProvisioning(env[name], name);
     const identity = decodedDatabaseIdentity(parsed);
-    if (identity.role !== expectedRole || !sameTarget(identity, runtimeIdentity)) {
-      throw new Error(`${name} must use the fixed protected role on the runtime database.`);
+    if (
+      identity.role !== expectedRole ||
+      !sameTarget(identity, runtimeIdentity)
+    ) {
+      throw new Error(
+        `${name} must use the fixed protected role on the runtime database.`,
+      );
     }
     writers[expectedRole] = identity;
   }
   if (!sameTarget(migrationIdentity, runtimeIdentity)) {
     throw new Error("Option C cutover database targets do not match.");
   }
-  const identities = [migrationIdentity, runtimeIdentity, ...Object.values(writers)];
-  if (new Set(identities.map(({ role }) => role)).size !== identities.length ||
-      new Set(identities.map(({ password }) => password)).size !== identities.length) {
-    throw new Error("Option C cutover credentials must use distinct roles and passwords.");
+  const identities = [
+    migrationIdentity,
+    runtimeIdentity,
+    ...Object.values(writers),
+  ];
+  if (
+    new Set(identities.map(({ role }) => role)).size !== identities.length ||
+    new Set(identities.map(({ password }) => password)).size !==
+      identities.length
+  ) {
+    throw new Error(
+      "Option C cutover credentials must use distinct roles and passwords.",
+    );
   }
   return { migration, migrationIdentity, runtimeIdentity, writers };
 }
 
 function exactProofOwnerMembership(rows, migrationRole, databaseOwner) {
-  if (!Array.isArray(rows) || rows.length !== 2 || migrationRole === databaseOwner) {
+  if (!Array.isArray(rows) || rows.length !== 2) {
     return false;
   }
-  const byGrantor = new Map(rows.map((row) => [row?.grantor_role, row]));
-  if (byGrantor.size !== 2) return false;
-  const expected = [
-    [migrationRole, false, true, false],
-    [databaseOwner, false, false, true],
-  ];
-  return expected.every(([grantor, inherit, set, admin]) => {
-    const row = byGrantor.get(grantor);
-    return row?.granted_role === optionCRoles.proofOwner &&
+  const setOnly = rows.filter(
+    (row) =>
+      row?.granted_role === optionCRoles.proofOwner &&
       row.member_role === migrationRole &&
-      row.inherit_option === inherit && row.set_option === set &&
-      row.admin_option === admin;
-  });
+      row.grantor_role === migrationRole &&
+      row.inherit_option === false &&
+      row.set_option === true &&
+      row.admin_option === false,
+  );
+  const creatorAdmin = rows.filter(
+    (row) =>
+      row?.granted_role === optionCRoles.proofOwner &&
+      row.member_role === migrationRole &&
+      row.inherit_option === false &&
+      row.set_option === false &&
+      row.admin_option === true &&
+      (row.grantor_role === databaseOwner || row.grantor_superuser === true),
+  );
+  return (
+    setOnly.length === 1 &&
+    creatorAdmin.length === 1 &&
+    setOnly[0] !== creatorAdmin[0]
+  );
 }
 
 export async function assertProofOwnerAccess(client, migrationRole) {
@@ -84,27 +118,42 @@ export async function assertProofOwnerAccess(client, migrationRole) {
   const role = await client.query(
     `SELECT rolcanlogin,rolinherit,rolsuper,rolcreatedb,rolcreaterole,
             rolreplication,rolbypassrls
-       FROM pg_catalog.pg_roles WHERE rolname=$1`, [optionCRoles.proofOwner],
+       FROM pg_catalog.pg_roles WHERE rolname=$1`,
+    [optionCRoles.proofOwner],
   );
   const current = role.rows[0];
-  if (role.rowCount !== 1 || !current || current.rolcanlogin || current.rolinherit ||
-      current.rolsuper || current.rolcreatedb || current.rolcreaterole ||
-      current.rolreplication || current.rolbypassrls) {
+  if (
+    role.rowCount !== 1 ||
+    !current ||
+    current.rolcanlogin ||
+    current.rolinherit ||
+    current.rolsuper ||
+    current.rolcreatedb ||
+    current.rolcreaterole ||
+    current.rolreplication ||
+    current.rolbypassrls
+  ) {
     throw new Error("Option C proof owner role attributes are unsafe.");
   }
   const memberships = await client.query(
     `SELECT granted.rolname AS granted_role,member.rolname AS member_role,
-            grantor.rolname AS grantor_role,membership.inherit_option,
+            grantor.rolname AS grantor_role,grantor.rolsuper AS grantor_superuser,
+            membership.inherit_option,
             membership.set_option,membership.admin_option
        FROM pg_catalog.pg_auth_members membership
        JOIN pg_catalog.pg_roles granted ON granted.oid=membership.roleid
        JOIN pg_catalog.pg_roles member ON member.oid=membership.member
        JOIN pg_catalog.pg_roles grantor ON grantor.oid=membership.grantor
-       WHERE granted.rolname=$1 OR member.rolname=$1`, [optionCRoles.proofOwner],
+       WHERE granted.rolname=$1 OR member.rolname=$1`,
+    [optionCRoles.proofOwner],
   );
-  if (!exactProofOwnerMembership(
-    memberships.rows, migrationRole, owner.rows[0]?.database_owner,
-  )) {
+  if (
+    !exactProofOwnerMembership(
+      memberships.rows,
+      migrationRole,
+      owner.rows[0]?.database_owner,
+    )
+  ) {
     throw new Error("Option C proof owner SET-only membership is unsafe.");
   }
 }
@@ -133,7 +182,10 @@ export async function lockOptionCBoundary(client, migrationRole) {
     primaryError = error;
   }
   await resetRolePreservingPrimary(client, primaryError);
-  if (result?.rowCount !== 1 || !["LEGACY", "PROTECTED"].includes(result.rows[0]?.phase)) {
+  if (
+    result?.rowCount !== 1 ||
+    !["LEGACY", "PROTECTED"].includes(result.rows[0]?.phase)
+  ) {
     throw new Error("Option C launch boundary cannot be locked.");
   }
   const state = result.rows[0];
@@ -144,15 +196,23 @@ export async function lockOptionCBoundary(client, migrationRole) {
   return state;
 }
 
-export async function assertSameCutoverTransaction(client, migrationRole, state) {
+export async function assertSameCutoverTransaction(
+  client,
+  migrationRole,
+  state,
+) {
   const identity = await client.query(
     `SELECT current_user,session_user,pg_catalog.pg_backend_pid() AS backend_pid,
             pg_catalog.pg_current_xact_id()::text AS full_xid`,
   );
   const row = identity.rows[0];
-  if (identity.rowCount !== 1 || row?.current_user !== migrationRole ||
-      row.session_user !== migrationRole || row.backend_pid !== state.backend_pid ||
-      row.full_xid !== state.full_xid) {
+  if (
+    identity.rowCount !== 1 ||
+    row?.current_user !== migrationRole ||
+    row.session_user !== migrationRole ||
+    row.backend_pid !== state.backend_pid ||
+    row.full_xid !== state.full_xid
+  ) {
     throw new Error("Option C cutover left its original migrator transaction.");
   }
 }

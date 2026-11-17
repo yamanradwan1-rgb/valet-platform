@@ -40,15 +40,19 @@ export async function assertOptionCFunctionReady(
     [signature, role],
   );
   const row = result.rows[0];
+  // The migration principal is an explicitly higher-trust provisioning
+  // identity. On the supported PG17 topology it may own the database/public
+  // schema and may hold CREATEDB/CREATEROLE. Those DDL/role-admin capabilities
+  // are audited separately and must not be confused with authority reachable
+  // by Runtime or a protected Writer. Keep the function-owner contract strict
+  // on identity, LOGIN mode and dangerous execution attributes; callers that
+  // use a dedicated NOLOGIN owner pass an exact stricter attribute contract.
   const requiredOwnerAttributes = {
+    owner_can_login: true,
     owner_inherit: false,
     owner_superuser: false,
-    owner_create_db: false,
-    owner_create_role: false,
     owner_replication: false,
     owner_bypass_rls: false,
-    owner_database_create: false,
-    owner_public_create: false,
     ...expectedOwnerAttributes,
   };
   const attributesMatch = Object.entries(requiredOwnerAttributes).every(

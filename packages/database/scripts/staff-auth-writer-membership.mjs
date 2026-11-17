@@ -1,6 +1,9 @@
-// PostgreSQL 17 grants a CREATEROLE migrator an ADMIN-only membership in a
-// role it creates. This is safe only when it confers neither SET nor INHERIT;
-// unlike a blanket membership ban, it also permits idempotent ALTER ROLE.
+// PostgreSQL 17 can grant a CREATEROLE migrator an ADMIN-only membership in a
+// role it creates. The migrator still has no direct SET/INHERIT execution path,
+// but ADMIN remains real delegation authority; accept it only for the explicit
+// higher-trust migration edge, never for Runtime or another writer.
+import { trustedCreatorAdmin } from "./option-c-bootstrap-creator-admin.mjs";
+
 export async function verifyStaffAuthWriterMembership(client, writer, runtime) {
   const identity = await client.query(
     `SELECT session_user AS migration_role,
@@ -21,7 +24,8 @@ export async function verifyStaffAuthWriterMembership(client, writer, runtime) {
   }
   const result = await client.query(
     `SELECT parent.rolname AS parent,member.rolname AS member,
-            grantor.rolname AS grantor,membership.inherit_option,
+            grantor.rolname AS grantor,grantor.rolsuper AS grantor_superuser,
+            membership.inherit_option,
             membership.set_option,membership.admin_option
        FROM pg_catalog.pg_auth_members membership
        JOIN pg_catalog.pg_roles parent ON parent.oid=membership.roleid
@@ -34,12 +38,11 @@ export async function verifyStaffAuthWriterMembership(client, writer, runtime) {
     result.rows.length > 1 ||
     result.rows.some(
       (row) =>
-        row.parent !== writer ||
-        row.member !== migrationRole ||
-        ![migrationRole, databaseOwner].includes(row.grantor) ||
-        row.inherit_option !== false ||
-        row.set_option !== false ||
-        row.admin_option !== true,
+        !trustedCreatorAdmin(row, {
+          parent: writer,
+          migrationRole,
+          databaseOwner,
+        }),
     )
   ) {
     throw new Error("Staff Auth writer has an unsafe role membership.");

@@ -162,12 +162,15 @@ export async function verifyManagementWriterFunctionInventory(
       row.proconfig[0] !== "search_path=pg_catalog, public" ||
       row.owner_inherit !== false ||
       row.owner_superuser !== false ||
-      row.owner_create_db !== false ||
-      row.owner_create_role !== false ||
+      // The pinned trusted migration owner necessarily holds DDL authority
+      // over its own public SECURITY DEFINER functions. CREATEROLE and
+      // CREATEDB may be enabled for migration provisioning (PG17 bootstrap).
+      // They are not reachable by the Management Writer: enforce exact
+      // owner identity, no SET/INHERIT routes, and no PUBLIC EXECUTE instead.
       row.owner_replication !== false ||
       row.owner_bypass_rls !== false ||
-      row.owner_database_create !== false ||
-      row.owner_public_create !== false
+      row.owner_database_create !== true ||
+      row.owner_public_create !== true
     ) {
       throw new Error(
         `Management writer SECURITY DEFINER grant source is unsafe: ${signature}.`,

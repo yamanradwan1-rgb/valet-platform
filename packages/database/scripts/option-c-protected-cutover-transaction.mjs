@@ -36,14 +36,20 @@ export async function runOptionCProtectedCutoverTransaction(
     if (state.phase === "LEGACY") {
       await dependencies.assertLegacyDrained(client, runtimeRole);
     }
-    await dependencies.verifyReadiness(client, runtimeRole, migrationRole);
+    await dependencies.verifyReadiness(client, runtimeRole, migrationRole, {
+      phase: state.phase,
+    });
 
     let promoted = false;
     if (state.phase === "LEGACY") {
       await dependencies.retireLegacyAcl(client, executeFormatted, runtimeRole);
       await dependencies.verifyFinalAcl(client, runtimeRole, migrationRole);
       await dependencies.assertSameTransaction(client, migrationRole, state);
-      promoted = await dependencies.promoteBoundary(client, migrationRole, state);
+      promoted = await dependencies.promoteBoundary(
+        client,
+        migrationRole,
+        state,
+      );
     } else {
       // PROTECTED is irreversible. Re-running this operator tool is verification
       // only; it never repairs ACLs or invokes any legacy/broad provisioner.

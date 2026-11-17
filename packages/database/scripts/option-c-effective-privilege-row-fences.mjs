@@ -4,6 +4,7 @@ export function inspectOptionCPrivilegeRows(matrix, roles, inventory) {
     protectedTables,
     protectedFunctions,
     writers,
+    runtimeLockColumnSet,
   } = inventory;
   const failures = [];
   for (const row of matrix) {
@@ -38,7 +39,11 @@ export function inspectOptionCPrivilegeRows(matrix, roles, inventory) {
         "staff_onboarding_invitations",
       ].includes(row.object) &&
       ["INSERT", "UPDATE", "REFERENCES"].includes(row.privilege) &&
-      row.effective
+      row.effective &&
+      !(
+        row.privilege === "UPDATE" &&
+        runtimeLockColumnSet.has(`${row.object}.${row.column}`)
+      )
     )
       failures.push(
         `Runtime protected column ${row.object}.${row.column} ${row.privilege}`,
@@ -64,7 +69,12 @@ export function inspectOptionCPrivilegeRows(matrix, roles, inventory) {
         row.kind,
       ) &&
       row.role !== roles.migrationRole &&
-      row.grant_option
+      row.grant_option &&
+      !(
+        row.kind === "function" &&
+        row.role === roles.sessionLockOwner &&
+        row.owner === roles.sessionLockOwner
+      )
     ) {
       failures.push(`${row.role}: grant option on ${row.kind} ${row.object}`);
     }
@@ -93,8 +103,18 @@ export function inspectOptionCPrivilegeRows(matrix, roles, inventory) {
         failures.push(`PUBLIC ${row.kind} ${row.object} ${row.privilege}`);
       }
     }
+    const safeRuntimeSequenceDefault =
+      row.kind === "default" &&
+      row.role === roles.migrationRole &&
+      row.object === "public" &&
+      row.object_type === "S" &&
+      row.grantee === roles.runtime &&
+      row.grantor === roles.migrationRole &&
+      ["SELECT", "USAGE"].includes(row.privilege) &&
+      row.grant_option === false;
     if (
       row.kind === "default" &&
+      !safeRuntimeSequenceDefault &&
       (row.grantee === "PUBLIC" ||
         row.grant_option ||
         [
@@ -150,6 +170,7 @@ export function inspectOptionCPrivilegeRows(matrix, roles, inventory) {
       if (
         row.role !== permitted &&
         row.role !== roles.migrationRole &&
+        row.role !== expectedOwner &&
         row.effective
       ) {
         failures.push(

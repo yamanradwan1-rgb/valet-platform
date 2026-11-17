@@ -23,6 +23,11 @@ row. PUBLIC and the protected writer roles do not execute it, and ordinary
 Runtime does not receive SELECT on `current_access_token_hash` or UPDATE on
 protected session columns.
 
+The dedicated MFA Writer rechecks the current raw bearer and the exact session
+identity inside its own ceremony transaction. Its column-level SELECT grants on
+`staff_auth_sessions` include `created_at` for that identity check. Its SELECT
+grants on `users` remain limited to `id` and `status`.
+
 Forward-only migration `20261116000300_option_c_management_raw_bearer_authority`
 keeps the existing Shift Presence/force-end function signatures while treating
 their historical TEXT verifier parameters as raw Staff bearers and hashing

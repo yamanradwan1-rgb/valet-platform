@@ -23,6 +23,7 @@ export const mfaProtectedWriterSelectColumns = Object.freeze({
   staff_auth_sessions: [
     "id",
     "user_id",
+    "created_at",
     "absolute_expires_at",
     "mfa_authenticated_at",
     "mfa_factor_id",

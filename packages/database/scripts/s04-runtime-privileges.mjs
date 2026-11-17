@@ -130,14 +130,16 @@ export async function verifyS04RuntimePrivileges(
         : row?.safe_search_path;
     const ownerAttributes = options.requireTrustedOwnerAttributes
       ? {
+          // The migration owner is deliberately higher-trust and may have
+          // CREATEDB/CREATEROLE plus database/schema DDL authority. Those
+          // capabilities are not reachable by Runtime through these pinned
+          // SECURITY DEFINER bodies, so constrain the execution-sensitive
+          // role attributes here instead of pretending the migrator is inert.
+          owner_can_login: true,
           owner_inherit: false,
           owner_superuser: false,
-          owner_create_db: false,
-          owner_create_role: false,
           owner_replication: false,
           owner_bypass_rls: false,
-          owner_database_create: false,
-          owner_public_create: false,
           ...options.expectedOwnerAttributes,
         }
       : (options.expectedOwnerAttributes ?? {});

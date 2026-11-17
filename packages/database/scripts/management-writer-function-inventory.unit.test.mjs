@@ -28,12 +28,15 @@ const direct = (signature, overrides = {}) => ({
   proconfig: ["search_path=pg_catalog, public"],
   owner_inherit: false,
   owner_superuser: false,
-  owner_create_db: false,
-  owner_create_role: false,
+  // The migration principal is deliberately a higher-trust provisioning
+  // identity on PostgreSQL 17. The verifier must not mistake its DDL
+  // administration attributes for authority reachable by the writer.
+  owner_create_db: true,
+  owner_create_role: true,
   owner_replication: false,
   owner_bypass_rls: false,
-  owner_database_create: false,
-  owner_public_create: false,
+  owner_database_create: true,
+  owner_public_create: true,
   owner_is_writer: false,
   owner_name: migrationOwner,
   owner_can_login: true,
@@ -177,8 +180,8 @@ test("management functions reject additional search_path settings and elevated o
     { prosecdef: false },
     { owner_inherit: true },
     { owner_can_login: false },
-    { owner_create_role: true },
-    { owner_public_create: true },
+    { owner_public_create: false },
+    { owner_database_create: false },
     { public_grant_option: true },
   ]) {
     const rows = managementWriterSecurityDefinerAllowlist.map(direct);

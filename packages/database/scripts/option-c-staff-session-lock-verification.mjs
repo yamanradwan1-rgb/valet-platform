@@ -4,6 +4,7 @@ import {
   staffSessionLockOwner,
   staffSessionLockOwnerColumns,
 } from "./option-c-staff-session-lock-contract.mjs";
+import { trustedCreatorAdmin } from "./option-c-bootstrap-creator-admin.mjs";
 
 async function tableColumns(client, table) {
   const result = await client.query(
@@ -73,7 +74,8 @@ async function assertOwnerRole(
   }
   const memberships = await client.query(
     `SELECT parent.rolname AS parent,member.rolname AS member,
-            grantor.rolname AS grantor,membership.inherit_option,
+            grantor.rolname AS grantor,grantor.rolsuper AS grantor_superuser,
+            membership.inherit_option,
             membership.set_option,membership.admin_option
        FROM pg_catalog.pg_auth_members membership
        JOIN pg_catalog.pg_roles parent ON parent.oid=membership.roleid
@@ -91,13 +93,11 @@ async function assertOwnerRole(
       row.set_option === true &&
       row.admin_option === false &&
       [migrationRole, databaseOwner].includes(row.grantor);
-    const ownerAdmin =
-      row.parent === staffSessionLockOwner &&
-      row.member === databaseOwner &&
-      row.inherit_option === false &&
-      row.set_option === false &&
-      row.admin_option === true &&
-      row.grantor === databaseOwner;
+    const ownerAdmin = trustedCreatorAdmin(row, {
+      parent: staffSessionLockOwner,
+      migrationRole,
+      databaseOwner,
+    });
     const key = `${row.parent}|${row.member}|${row.grantor}`;
     if ((!migratorSet && !ownerAdmin) || seen.has(key)) {
       throw new Error(
@@ -123,31 +123,30 @@ async function assertOwnerRole(
   }
 }
 
-async function assertOwnerObjects(client) {
+export async function assertOwnerObjects(client) {
   const objects = await client.query(
     `SELECT 'function' AS kind,namespace.nspname AS schema,function.proname AS name,
-            pg_catalog.pg_get_function_identity_arguments(function.oid) AS args
+            function.oid=pg_catalog.to_regprocedure($2) AS exact_signature
        FROM pg_catalog.pg_proc function
        JOIN pg_catalog.pg_namespace namespace ON namespace.oid=function.pronamespace
        WHERE function.proowner=(SELECT oid FROM pg_catalog.pg_roles WHERE rolname=$1)
        UNION ALL
-       SELECT 'relation',namespace.nspname,relation.relname,NULL
+       SELECT 'relation',namespace.nspname,relation.relname,false
        FROM pg_catalog.pg_class relation
        JOIN pg_catalog.pg_namespace namespace ON namespace.oid=relation.relnamespace
        WHERE relation.relowner=(SELECT oid FROM pg_catalog.pg_roles WHERE rolname=$1)
        UNION ALL
-       SELECT 'schema',namespace.nspname,namespace.nspname,NULL
+       SELECT 'schema',namespace.nspname,namespace.nspname,false
        FROM pg_catalog.pg_namespace namespace
        WHERE namespace.nspowner=(SELECT oid FROM pg_catalog.pg_roles WHERE rolname=$1)`,
-    [staffSessionLockOwner],
+    [staffSessionLockOwner, staffSessionLockFunction],
   );
   const exact =
     objects.rows.length === 1 &&
     objects.rows[0]?.kind === "function" &&
     objects.rows[0]?.schema === "public" &&
     objects.rows[0]?.name === "staff_auth_lock_current_session" &&
-    objects.rows[0]?.args ===
-      "uuid, uuid, text, timestamp with time zone, text";
+    objects.rows[0]?.exact_signature === true;
   if (!exact)
     throw new Error("Staff session lock owner object inventory is unsafe.");
 }
@@ -182,7 +181,12 @@ async function assertExactColumns(client, role, table, expected) {
   }
 }
 
-async function assertFunctionAcl(client, runtimeRole, protectedRoles) {
+export async function assertFunctionAcl(
+  client,
+  runtimeRole,
+  protectedRoles,
+  { requireRuntimeExecute = true } = {},
+) {
   const metadata = await client.query(
     `SELECT function.prosecdef,owner.rolname AS owner,function.proconfig,
             NOT EXISTS (SELECT 1 FROM pg_catalog.aclexplode(COALESCE(
@@ -218,9 +222,13 @@ async function assertFunctionAcl(client, runtimeRole, protectedRoles) {
   const explicitRuntime = acl.rows.filter(
     ({ grantee }) => grantee === runtimeRole,
   );
+  const runtimeInventorySafe = requireRuntimeExecute
+    ? explicitRuntime.length === 1 && explicitRuntime[0]?.is_grantable === false
+    : explicitRuntime.length === 0 ||
+      (explicitRuntime.length === 1 &&
+        explicitRuntime[0]?.is_grantable === false);
   if (
-    explicitRuntime.length !== 1 ||
-    explicitRuntime[0]?.is_grantable !== false ||
+    !runtimeInventorySafe ||
     acl.rows.some(
       ({ grantee }) =>
         grantee !== runtimeRole && grantee !== staffSessionLockOwner,
@@ -233,7 +241,11 @@ async function assertFunctionAcl(client, runtimeRole, protectedRoles) {
       "SELECT has_function_privilege($1,$2,'EXECUTE') AS allowed",
       [role, staffSessionLockFunction],
     );
-    if (access.rows[0]?.allowed !== (role === runtimeRole)) {
+    const expected =
+      role === runtimeRole
+        ? requireRuntimeExecute || explicitRuntime.length === 1
+        : false;
+    if (access.rows[0]?.allowed !== expected) {
       throw new Error(`Staff session lock EXECUTE is unsafe for ${role}.`);
     }
   }
@@ -244,6 +256,7 @@ export async function verifyStaffSessionLockAcl(
   runtimeRole,
   migrationRole,
   protectedRoles,
+  options = {},
 ) {
   await assertOwnerRole(client, runtimeRole, migrationRole, protectedRoles);
   await assertOwnerObjects(client);
@@ -256,5 +269,5 @@ export async function verifyStaffSessionLockAcl(
     SELECT: runtimeSessionSelectColumns,
     UPDATE: [],
   });
-  await assertFunctionAcl(client, runtimeRole, protectedRoles);
+  await assertFunctionAcl(client, runtimeRole, protectedRoles, options);
 }

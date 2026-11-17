@@ -30,6 +30,9 @@ test("MFA writer direct SELECT inventory excludes password hashes and anti-abuse
     ),
     true,
   );
+  assert.ok(
+    mfaProtectedWriterSelectColumns.staff_auth_sessions.includes("created_at"),
+  );
   assert.deepEqual(mfaProtectedWriterSelectColumns.anti_abuse_events, []);
   assert.deepEqual(mfaProtectedWriterSessionUpdateColumns, [
     "mfa_authenticated_at",
@@ -54,14 +57,19 @@ test("provisioner resets MFA table, column, schema and function grants before ex
     "./mfa-protected-writer-role-provisioning.mjs",
   );
   const grants = source("./mfa-protected-writer-acl-provisioning.mjs");
-  assert.match(roleProvisioner, /revokeAllSchemaColumnPrivileges/);
+  assert.match(roleProvisioner, /revokeAllTableColumnPrivileges/);
+  assert.match(roleProvisioner, /relation\.relowner=/);
   assert.match(
     roleProvisioner,
-    /for \(const kind of \["TABLES", "SEQUENCES", "FUNCTIONS"\]\)/,
+    /REVOKE ALL PRIVILEGES ON \$\{kind\} %I\.%I FROM %I/,
   );
   assert.match(
     roleProvisioner,
-    /REVOKE ALL PRIVILEGES ON ALL \$\{kind\} IN SCHEMA %I FROM %I/,
+    /MFA writer has foreign-owned relation authority/,
+  );
+  assert.match(
+    roleProvisioner,
+    /MFA writer can execute foreign-owned function/,
   );
   assert.match(
     grants,
@@ -82,7 +90,11 @@ test("provisioner resets MFA table, column, schema and function grants before ex
   );
   assert.match(
     roleProvisioner,
-    /ALTER DEFAULT PRIVILEGES FOR ROLE %I IN SCHEMA public REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC/,
+    /ALTER DEFAULT PRIVILEGES FOR ROLE %I REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC/,
+  );
+  assert.doesNotMatch(
+    roleProvisioner,
+    /IN SCHEMA public REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC/,
   );
   assert.match(provisioner, /GRANT EXECUTE ON FUNCTION/);
 });
@@ -100,7 +112,12 @@ test("exact verifier fences table grants, every column, PUBLIC, defaults, member
   assert.match(roleVerifier, /has_schema_privilege/);
   assert.match(verifier, /password_hash/);
   assert.match(roleVerifier, /pg_auth_members/);
+  assert.match(roleVerifier, /membership\.admin_option=true/);
+  assert.match(roleVerifier, /membership\.set_option=false/);
+  assert.match(roleVerifier, /membership\.inherit_option=false/);
+  assert.match(roleVerifier, /pg_catalog\.pg_has_role\(\$2,role\.oid,'SET'\)/);
   assert.match(roleVerifier, /pg_default_acl/);
+  assert.match(roleVerifier, /defaults\.defaclnamespace=0/);
   assert.match(functionVerifier, /pg_catalog\.aclexplode/);
   assert.match(functionVerifier, /unexpected direct function grant/);
   assert.equal(
@@ -143,6 +160,8 @@ test("exact MFA ACL verifier rejects password_hash, table, PUBLIC, default and f
     { publicFunctionDefaults: true },
     { roleInherit: true },
     { roleMembership: true },
+    { migratorSet: true },
+    { migratorInherit: true },
     { databaseCreate: true },
     { databaseTemporary: true },
     { publicUsageDenied: true },

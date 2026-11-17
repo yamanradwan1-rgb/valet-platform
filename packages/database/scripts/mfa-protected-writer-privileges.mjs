@@ -208,8 +208,7 @@ export async function provisionMfaProtectedWriter(
     writer.role,
     runtimeRole,
   );
-  await formatted(
-    client,
+  await client.query(
     `REVOKE ALL ON FUNCTION ${mfaProtectedWriterFunctions.accountSecurityAudit} FROM PUBLIC`,
   );
   await formatted(

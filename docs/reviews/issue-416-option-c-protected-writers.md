@@ -13,6 +13,14 @@
 
 Every protected principal is `LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS`, owns no objects or schema, has an independently rotated credential, and cannot `SET ROLE` to the other protected principals or `vap1_proof_owner`. Role/process credentials, connection pool, possession of the Staff bearer, proof of accepted MFA and tenant scope are **different security boundaries**. No generic privileged repository, SQL-execution endpoint or universal pool is allowed.
 
+The bootstrap administrator owns cluster provisioning. The migration
+administrator owns database provisioning and may hold PostgreSQL 17 creator
+`ADMIN` memberships for the roles it creates. That authority can delegate
+membership even when the direct `SET` and `INHERIT` options are false, so the
+migrator is a trusted administrative principal. Protected NOLOGIN owners own
+their designated objects. Runtime and operational Writers have no membership
+path to administrative or ownership roles.
+
 ## Transaction and authorization properties
 
 1. Preserve all existing RowLock/credential recheck/tenant/audit/limiter contracts as **one backend transaction per operation**. Never send one atomic command through multiple pools/connections or commit a privileged write before its audit/required settlement is durable.

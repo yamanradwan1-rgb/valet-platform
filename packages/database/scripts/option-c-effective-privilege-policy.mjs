@@ -1,6 +1,7 @@
 import { inspectOptionCPrivilegeRows } from "./option-c-effective-privilege-row-fences.mjs";
 import { optionCFunctionContract } from "./option-c-protected-cutover-acl.mjs";
 import { staffSessionLockOwnerColumns } from "./option-c-staff-session-lock-contract.mjs";
+import { runtimeLockColumns } from "./runtime-table-privileges.mjs";
 
 export const protectedTables = new Set([
   "staff_auth_sessions",
@@ -17,6 +18,9 @@ export const protectedTables = new Set([
 ]);
 
 const writers = ["staffAuthWriter", "mfaWriter", "managementWriter"];
+const runtimeLockColumnSet = new Set(
+  runtimeLockColumns.map(([table, column]) => `${table}.${column}`),
+);
 const sensitiveUpdates = {
   staff_auth_sessions: [
     "current_access_token_hash",
@@ -165,12 +169,13 @@ export function checkOptionCPrivilegeMatrix(matrix, roles) {
       membership.direct_admin === false &&
       [roles.migrationRole, databaseOwner].includes(membership.grantor);
     const ownerAdmin =
-      membership.role === databaseOwner &&
+      membership.role === roles.migrationRole &&
       membership.direct_admin === true &&
       membership.direct_set === false &&
       membership.direct_inherit === false &&
       membership.effective_inherit === false &&
-      membership.grantor === databaseOwner;
+      (membership.grantor === databaseOwner ||
+        membership.grantor_superuser === true);
     if (!migrator && !ownerAdmin)
       failures.push("Session lock owner has an unexpected membership route");
   }
@@ -213,7 +218,11 @@ export function checkOptionCPrivilegeMatrix(matrix, roles) {
   for (const [table, columns] of Object.entries(sensitiveUpdates)) {
     for (const column of columns) {
       if (byKey.has(rowKey("column", roles.runtime, table, "UPDATE", column))) {
-        requireDenied("column", roles.runtime, table, "UPDATE", column);
+        if (runtimeLockColumnSet.has(`${table}.${column}`)) {
+          requireAllowed("column", roles.runtime, table, "UPDATE", column);
+        } else {
+          requireDenied("column", roles.runtime, table, "UPDATE", column);
+        }
       }
     }
   }
@@ -240,6 +249,7 @@ export function checkOptionCPrivilegeMatrix(matrix, roles) {
       protectedTables,
       protectedFunctions,
       writers,
+      runtimeLockColumnSet,
     }),
   );
   for (const [table, privileges] of Object.entries(

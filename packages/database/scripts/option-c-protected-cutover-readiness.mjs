@@ -96,6 +96,7 @@ async function assertRetiredTargetsExist(client, expectedOwner) {
   for (const signature of optionCFunctionContract.retiredManagement) {
     const result = await client.query(
       `SELECT function.prosecdef,function.proconfig,owner.rolname AS owner,
+              owner.rolcanlogin AS owner_can_login,
               owner.rolinherit AS owner_inherit,
               owner.rolsuper AS owner_superuser,
               owner.rolcreatedb AS owner_create_db,
@@ -114,14 +115,11 @@ async function assertRetiredTargetsExist(client, expectedOwner) {
       result.rowCount !== 1 ||
       row?.prosecdef !== true ||
       row.owner !== expectedOwner ||
+      row.owner_can_login !== true ||
       row.owner_inherit !== false ||
       row.owner_superuser !== false ||
-      row.owner_create_db !== false ||
-      row.owner_create_role !== false ||
       row.owner_replication !== false ||
       row.owner_bypass_rls !== false ||
-      row.owner_database_create !== false ||
-      row.owner_public_create !== false ||
       !Array.isArray(row.proconfig) ||
       !row.proconfig.includes("search_path=pg_catalog, public")
     ) {
@@ -160,7 +158,11 @@ export async function verifyOptionCProtectedReadiness(
   client,
   runtimeRole,
   migrationRole,
+  { phase } = {},
 ) {
+  if (phase !== "LEGACY" && phase !== "PROTECTED") {
+    throw new Error("Option C readiness requires the locked boundary phase.");
+  }
   await verifyOptionCManagementBodies(client);
   await assertOptionCRevocationIsMonotonic(client, runtimeRole);
   await verifyOptionCRoleIsolation(client, runtimeRole, migrationRole);
@@ -197,12 +199,18 @@ export async function verifyOptionCProtectedReadiness(
   );
   const { verifyStaffSessionLockAcl } =
     await import("./option-c-staff-session-lock-acl.mjs");
-  await verifyStaffSessionLockAcl(client, runtimeRole, migrationRole, [
+  await verifyStaffSessionLockAcl(
+    client,
     runtimeRole,
-    optionCRoles.staffAuthWriter,
-    optionCRoles.mfaWriter,
-    optionCRoles.managementWriter,
-  ]);
+    migrationRole,
+    [
+      runtimeRole,
+      optionCRoles.staffAuthWriter,
+      optionCRoles.mfaWriter,
+      optionCRoles.managementWriter,
+    ],
+    { requireRuntimeExecute: phase === "PROTECTED" },
+  );
   for (const [role, tables] of Object.entries(writerColumns)) {
     for (const [table, privileges] of Object.entries(tables)) {
       for (const [privilege, columns] of Object.entries(privileges)) {

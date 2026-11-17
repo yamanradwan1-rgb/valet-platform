@@ -55,6 +55,11 @@ test("Staff Auth accepts PostgreSQL 17 ADMIN-only creator edge without SQL SET",
     writer,
     runtime,
   );
+  await verifyStaffAuthWriterMembership(
+    fake([{ ...permitted, grantor: "postgres", grantor_superuser: true }]),
+    writer,
+    runtime,
+  );
   await verifyStaffAuthWriterMembership(fake([]), writer, runtime);
 });
 
@@ -64,6 +69,7 @@ test("Staff Auth refuses inbound/outbound, SET, inherited and foreign ADMIN edge
     { member: writer },
     { member: runtime },
     { grantor: "unknown_owner" },
+    { grantor: "postgres", grantor_superuser: false },
     { inherit_option: true },
     { set_option: true },
     { admin_option: false },

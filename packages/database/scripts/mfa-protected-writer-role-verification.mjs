@@ -1,13 +1,30 @@
-async function assertWriterRole(client, writerRole) {
+async function assertWriterRole(client, writerRole, migrationRole) {
+  // PostgreSQL 17 may retain an ADMIN-only creator edge from the protected
+  // writer to the explicitly higher-trust migration principal. ADMIN can
+  // delegate membership; the checks below only prove the migrator has no
+  // direct SET/INHERIT execution path and that no other membership exists.
   const result = await client.query(
     `SELECT role.rolcanlogin,role.rolinherit,role.rolsuper,role.rolcreatedb,
             role.rolcreaterole,role.rolreplication,role.rolbypassrls,
             EXISTS (
               SELECT 1 FROM pg_catalog.pg_auth_members membership
-              WHERE membership.member=role.oid OR membership.roleid=role.oid
-            ) AS has_membership
+              WHERE membership.member=role.oid OR (
+                membership.roleid=role.oid AND NOT (
+                  membership.member=(SELECT oid FROM pg_catalog.pg_roles WHERE rolname=$2)
+                  AND membership.inherit_option=false
+                  AND membership.set_option=false
+                  AND membership.admin_option=true
+                  AND membership.grantor IN (
+                    SELECT grantor.oid FROM pg_catalog.pg_roles grantor
+                    WHERE grantor.rolname=$2 OR grantor.rolsuper=true
+                  )
+                )
+              )
+            ) AS has_unsafe_membership,
+            pg_catalog.pg_has_role($2,role.oid,'SET') AS migrator_can_set,
+            pg_catalog.pg_has_role($2,role.oid,'USAGE') AS migrator_can_inherit
      FROM pg_catalog.pg_roles role WHERE role.rolname=$1`,
-    [writerRole],
+    [writerRole, migrationRole],
   );
   const row = result.rows[0];
   if (
@@ -19,7 +36,9 @@ async function assertWriterRole(client, writerRole) {
     row.rolcreaterole ||
     row.rolreplication ||
     row.rolbypassrls ||
-    row.has_membership
+    row.has_unsafe_membership ||
+    row.migrator_can_set ||
+    row.migrator_can_inherit
   ) {
     throw new Error(
       "MFA writer role inheritance or role attributes are unsafe.",
@@ -108,20 +127,29 @@ async function assertSafeDefaults(client, writerRole, migrationRole) {
            SELECT oid FROM pg_catalog.pg_roles WHERE rolname=$1
          )
        ) AS writer_defaults,
-       EXISTS (
+       (EXISTS (
+         SELECT 1 FROM pg_catalog.pg_default_acl defaults
+         WHERE defaults.defaclrole=(
+             SELECT oid FROM pg_catalog.pg_roles WHERE rolname=$2
+           )
+           AND defaults.defaclobjtype='f'
+           AND defaults.defaclnamespace=0
+           AND NOT EXISTS (
+             SELECT 1 FROM pg_catalog.aclexplode(defaults.defaclacl) privilege
+             WHERE privilege.grantee=0 AND privilege.privilege_type='EXECUTE'
+           )
+       ) AND NOT EXISTS (
          SELECT 1 FROM pg_catalog.pg_default_acl defaults
          JOIN pg_catalog.pg_namespace namespace
            ON namespace.oid=defaults.defaclnamespace
+         CROSS JOIN LATERAL pg_catalog.aclexplode(defaults.defaclacl) privilege
          WHERE defaults.defaclrole=(
              SELECT oid FROM pg_catalog.pg_roles WHERE rolname=$2
            )
            AND defaults.defaclobjtype='f'
            AND namespace.nspname='public'
-           AND NOT EXISTS (
-             SELECT 1 FROM pg_catalog.aclexplode(defaults.defaclacl) privilege
-             WHERE privilege.grantee=0 AND privilege.privilege_type='EXECUTE'
-           )
-       ) AS migration_public_functions_closed`,
+           AND privilege.grantee=0 AND privilege.privilege_type='EXECUTE'
+       )) AS migration_public_functions_closed`,
     [writerRole, migrationRole],
   );
   if (
@@ -140,7 +168,7 @@ export async function verifyMfaProtectedWriterRole(
   writerRole,
   migrationRole,
 ) {
-  await assertWriterRole(client, writerRole);
+  await assertWriterRole(client, writerRole, migrationRole);
   await assertDatabaseAndSchemas(client, writerRole);
   await assertNoOwnedObjects(client, writerRole);
   await assertSafeDefaults(client, writerRole, migrationRole);

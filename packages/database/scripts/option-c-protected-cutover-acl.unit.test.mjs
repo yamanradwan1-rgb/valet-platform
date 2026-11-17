@@ -21,6 +21,8 @@ const roles = [
 function safeRoleClient({
   unsafeMembership = false,
   grantOption = false,
+  creatorGrantor = databaseOwner,
+  creatorGrantorSuperuser = false,
 } = {}) {
   const queries = [];
   return {
@@ -62,13 +64,15 @@ function safeRoleClient({
       }
       if (sql.includes("FROM pg_catalog.pg_auth_members membership")) {
         const rows = [
+          runtime,
           optionCRoles.staffAuthWriter,
           optionCRoles.mfaWriter,
           optionCRoles.managementWriter,
         ].map((parent) => ({
           parent,
           member: migrator,
-          grantor: databaseOwner,
+          grantor: creatorGrantor,
+          grantor_superuser: creatorGrantorSuperuser,
           inherit_option: false,
           set_option: false,
           admin_option: true,
@@ -109,7 +113,29 @@ test("role isolation accepts only trusted PG17 creator ADMIN-only rows", async (
   assert.equal(
     safe.queries.filter(({ sql }) => sql.includes("pg_catalog.pg_has_role"))
       .length,
-    7,
+    8,
+  );
+  assert.deepEqual(
+    await verifyOptionCRoleIsolation(
+      safeRoleClient({
+        creatorGrantor: "postgres",
+        creatorGrantorSuperuser: true,
+      }),
+      runtime,
+      migrator,
+    ),
+    roles,
+  );
+  await assert.rejects(
+    verifyOptionCRoleIsolation(
+      safeRoleClient({
+        creatorGrantor: "untrusted",
+        creatorGrantorSuperuser: false,
+      }),
+      runtime,
+      migrator,
+    ),
+    /membership or SET authority remains/,
   );
 
   await assert.rejects(
@@ -189,6 +215,20 @@ test("retirement grants only the narrow Runtime session lock authority", async (
     ).length,
     1,
   );
+  const setOwner = fixture.direct.findIndex(({ sql }) =>
+    sql.includes("SET LOCAL ROLE vaylet_staff_session_lock_owner"),
+  );
+  const revokeSessionLock = fixture.direct.findIndex(({ sql }) =>
+    sql.includes(
+      "REVOKE ALL ON FUNCTION public.staff_auth_lock_current_session",
+    ),
+  );
+  const resetOwner = fixture.direct.findIndex(
+    ({ sql }) => sql === "RESET ROLE",
+  );
+  assert(setOwner >= 0);
+  assert(revokeSessionLock > setOwner);
+  assert(resetOwner > revokeSessionLock);
   assert.equal(
     fixture.formatted.some(
       ({ format, values }) =>

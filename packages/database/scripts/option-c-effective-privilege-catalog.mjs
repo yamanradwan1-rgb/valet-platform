@@ -20,7 +20,9 @@ export const catalogQueries = {
     COALESCE(m.inherit_option, false) AS direct_inherit,
     COALESCE(m.set_option, false) AS direct_set,
     COALESCE(m.admin_option, false) AS direct_admin,
-    m.grantor::pg_catalog.regrole::text AS grantor
+    m.grantor::pg_catalog.regrole::text AS grantor,
+    COALESCE((SELECT rolsuper FROM pg_catalog.pg_roles
+      WHERE oid=m.grantor),false) AS grantor_superuser
     FROM requested r CROSS JOIN pg_catalog.pg_roles parent
     LEFT JOIN pg_catalog.pg_auth_members m ON m.member = r.oid AND m.roleid = parent.oid
     WHERE parent.oid <> r.oid AND (m.member IS NOT NULL OR
@@ -30,10 +32,11 @@ export const catalogQueries = {
       pg_catalog.pg_has_role(child.oid,target.oid,'USAGE'),
       pg_catalog.pg_has_role(child.oid,target.oid,'SET'),
       m.inherit_option,m.set_option,m.admin_option,
-      m.grantor::pg_catalog.regrole::text
+      m.grantor::pg_catalog.regrole::text,grantor.rolsuper
     FROM pg_catalog.pg_auth_members m
     JOIN pg_catalog.pg_roles child ON child.oid=m.member
     JOIN pg_catalog.pg_roles target ON target.oid=m.roleid
+    JOIN pg_catalog.pg_roles grantor ON grantor.oid=m.grantor
     WHERE target.rolname=$2::text AND child.rolname<>ALL($1::text[])`,
   schemas: `${roleCross} SELECT r.rolname AS role, n.nspname AS object,
     p.privilege AS privilege,
@@ -108,7 +111,8 @@ export const catalogQueries = {
     pg_catalog.has_function_privilege(r.oid,p.oid,'EXECUTE') AS effective,
     pg_catalog.has_function_privilege(r.oid,p.oid,'EXECUTE WITH GRANT OPTION') AS grant_option,
     owner.rolname AS owner, p.prosecdef AS security_definer,
-    ARRAY(SELECT CASE WHEN v LIKE 'search_path=%' THEN v
+    ARRAY(SELECT CASE WHEN v LIKE 'search_path=%'
+      OR v IN ('lock_timeout=200ms','statement_timeout=500ms') THEN v
       ELSE split_part(v,'=',1) || '=<redacted>' END
       FROM unnest(p.proconfig) v ORDER BY v) AS proconfig,
     (SELECT substring(v FROM 13) FROM unnest(p.proconfig) v WHERE v LIKE 'search_path=%' LIMIT 1) AS search_path,

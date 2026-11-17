@@ -2,6 +2,7 @@ import { revokeUnexpectedFunctionExecutors } from "./option-c-protected-cutover-
 import {
   runtimeSessionSelectColumns,
   staffSessionLockFunction,
+  staffSessionLockOwner,
 } from "./option-c-staff-session-lock-contract.mjs";
 
 export {
@@ -56,27 +57,43 @@ export async function retireStaffSessionLockAcl(
     );
   }
 
-  await client.query(
-    `REVOKE ALL ON FUNCTION ${staffSessionLockFunction} FROM PUBLIC`,
-  );
-  await revokeUnexpectedFunctionExecutors(
-    client,
-    formatted,
-    staffSessionLockFunction,
-    runtimeRole,
-  );
-  for (const role of protectedRoles) {
-    if (role !== runtimeRole) {
-      await formatted(
-        client,
-        `REVOKE ALL ON FUNCTION ${staffSessionLockFunction} FROM %I`,
-        [role],
-      );
+  // The session-lock function is deliberately owned by an isolated NOLOGIN
+  // role. The migration principal has an exact SET-only edge to that owner so
+  // ACL changes are performed with owner authority without transferring
+  // ownership or broadening the migrator's direct function privileges.
+  await client.query(`SET LOCAL ROLE ${staffSessionLockOwner}`);
+  let primaryError;
+  try {
+    await client.query(
+      `REVOKE ALL ON FUNCTION ${staffSessionLockFunction} FROM PUBLIC`,
+    );
+    await revokeUnexpectedFunctionExecutors(
+      client,
+      formatted,
+      staffSessionLockFunction,
+      runtimeRole,
+    );
+    for (const role of protectedRoles) {
+      if (role !== runtimeRole) {
+        await formatted(
+          client,
+          `REVOKE ALL ON FUNCTION ${staffSessionLockFunction} FROM %I`,
+          [role],
+        );
+      }
     }
+    await formatted(
+      client,
+      `GRANT EXECUTE ON FUNCTION ${staffSessionLockFunction} TO %I`,
+      [runtimeRole],
+    );
+  } catch (error) {
+    primaryError = error;
   }
-  await formatted(
-    client,
-    `GRANT EXECUTE ON FUNCTION ${staffSessionLockFunction} TO %I`,
-    [runtimeRole],
-  );
+  try {
+    await client.query("RESET ROLE");
+  } catch (resetError) {
+    if (!primaryError) throw resetError;
+  }
+  if (primaryError) throw primaryError;
 }

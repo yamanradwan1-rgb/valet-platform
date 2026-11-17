@@ -28,12 +28,12 @@ function client(
             owner_can_login: true,
             owner_inherit: false,
             owner_superuser: false,
-            owner_create_db: false,
-            owner_create_role: false,
+            owner_create_db: true,
+            owner_create_role: true,
             owner_replication: false,
             owner_bypass_rls: false,
-            owner_database_create: false,
-            owner_public_create: false,
+            owner_database_create: true,
+            owner_public_create: true,
             proconfig: ["search_path=pg_catalog"],
             allowed: true,
             public_denied: true,
@@ -66,7 +66,7 @@ test("Option C function readiness requires the exact trusted migration owner", a
   );
   await assert.rejects(
     assertOptionCFunctionReady(
-      client("migration_owner", { owner_create_role: true }),
+      client("migration_owner", { owner_superuser: true }),
       signature,
       "vaylet_staff_auth_writer",
       "search_path=pg_catalog",
@@ -85,6 +85,8 @@ test("the owner contract supports a designated NOLOGIN SECURITY DEFINER owner", 
     owner_create_role: false,
     owner_replication: false,
     owner_bypass_rls: false,
+    owner_database_create: false,
+    owner_public_create: false,
   };
   await assertOptionCFunctionReady(
     client(

@@ -210,7 +210,10 @@ function transactionFixture(phase = "LEGACY", failFinal = false) {
       return state;
     },
     assertLegacyDrained: async () => events.push("ASSERT_LEGACY_DRAINED"),
-    verifyReadiness: async () => events.push("VERIFY_READINESS"),
+    verifyReadiness: async (_client, _runtimeRole, _migrationRole, options) => {
+      assert.equal(options?.phase, phase);
+      events.push("VERIFY_READINESS");
+    },
     retireLegacyAcl: async () => events.push("RETIRE_LEGACY_ACL"),
     verifyFinalAcl: async () => {
       events.push("VERIFY_FINAL_ACL");

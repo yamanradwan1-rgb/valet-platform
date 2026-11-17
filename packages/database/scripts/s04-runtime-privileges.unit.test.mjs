@@ -35,12 +35,12 @@ function client(ownerBySignature = {}, overrides = {}) {
             owner_can_login: true,
             owner_inherit: false,
             owner_superuser: false,
-            owner_create_db: false,
-            owner_create_role: false,
+            owner_create_db: true,
+            owner_create_role: true,
             owner_replication: false,
             owner_bypass_rls: false,
-            owner_database_create: false,
-            owner_public_create: false,
+            owner_database_create: true,
+            owner_public_create: true,
             safe_search_path: true,
             safe_legacy_cleanup: true,
             public_denied: true,
@@ -73,7 +73,7 @@ test("S04 runtime SECURITY DEFINER functions must belong to the exact migration 
   );
   await assert.rejects(
     verifyS04RuntimePrivileges(
-      client({}, { owner_create_role: true }),
+      client({}, { owner_superuser: true }),
       "ordinary_runtime",
       "migration_owner",
       { requireTrustedOwnerAttributes: true },

@@ -35,6 +35,7 @@ const tableColumns = {
   staff_auth_sessions: [
     "id",
     "user_id",
+    "created_at",
     "absolute_expires_at",
     "mfa_authenticated_at",
     "mfa_factor_id",
@@ -109,7 +110,9 @@ export function mockVerifierClient(overrides = {}) {
               rolcreaterole: false,
               rolreplication: false,
               rolbypassrls: false,
-              has_membership: Boolean(overrides.roleMembership),
+              has_unsafe_membership: Boolean(overrides.roleMembership),
+              migrator_can_set: Boolean(overrides.migratorSet),
+              migrator_can_inherit: Boolean(overrides.migratorInherit),
             },
           ],
         };
