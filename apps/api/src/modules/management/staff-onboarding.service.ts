@@ -15,6 +15,7 @@ import {
   type AntiAbuseReservation,
   type AntiAbuseReservationState,
 } from "../anti-abuse/anti-abuse.service";
+import { requireMfaAssuranceInTransaction } from "../auth/mfa/mfa-assurance-policy";
 import type { StaffSessionContext } from "../auth/staff-session-context";
 import type { ManagementCommandContext } from "./management-command-context";
 import { MANAGEMENT_POSTGRES_POOL } from "./management-writer-database.module";
@@ -178,6 +179,9 @@ export class StaffOnboardingService {
           context,
           { organizationId },
         );
+        await requireMfaAssuranceInTransaction(transaction, context, {
+          sensitive: true,
+        });
         if (targetMembershipId !== undefined) {
           await staffOnboardingTargetEmail(
             transaction,

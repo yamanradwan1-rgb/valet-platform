@@ -13,7 +13,8 @@ import {
   staffOnboardingOperationExists,
 } from "../src/modules/management/staff-onboarding-repository";
 import { staffOnboardingTargetEmail } from "../src/modules/management/staff-onboarding-account-lock";
-import { recordAdminActivityInTransaction } from "../src/modules/auth/mfa/mfa-assurance-policy";
+import { requireMfaAssuranceInTransaction } from "../src/modules/auth/mfa/mfa-assurance-policy";
+import { MfaStepUpRequiredError } from "../src/modules/auth/mfa/mfa-errors";
 import { StaffOnboardingService } from "../src/modules/management/staff-onboarding.service";
 import type { AntiAbuseService } from "../src/modules/anti-abuse/anti-abuse.service";
 import { AntiAbuseUnavailableError } from "../src/modules/anti-abuse/anti-abuse.service";
@@ -33,7 +34,7 @@ vi.mock("../src/modules/management/staff-onboarding-account-lock", () => ({
   staffOnboardingTargetEmail: vi.fn(),
 }));
 vi.mock("../src/modules/auth/mfa/mfa-assurance-policy", () => ({
-  recordAdminActivityInTransaction: vi.fn(),
+  requireMfaAssuranceInTransaction: vi.fn(),
 }));
 
 const org = randomUUID(),
@@ -125,7 +126,7 @@ beforeEach(() => {
     return saved;
   });
   vi.mocked(staffOnboardingTargetEmail).mockResolvedValue(command.email);
-  vi.mocked(recordAdminActivityInTransaction).mockResolvedValue(undefined);
+  vi.mocked(requireMfaAssuranceInTransaction).mockResolvedValue(undefined);
 });
 
 afterEach(() => {
@@ -170,16 +171,20 @@ describe("#416 onboarding quota lease isolation", () => {
     expect(vi.mocked(createStaffOnboarding)).toHaveBeenCalledTimes(1);
   });
 
-  it("does not reserve before the membership preflight rejects", async () => {
-    vi.mocked(authorizeStaffManagementPreflight).mockRejectedValueOnce(
-      new Error("DENIED"),
-    );
-    await expect(service.create(context, org, command)).rejects.toThrow(
-      "DENIED",
-    );
-    expect(abuse.reserve).not.toHaveBeenCalled();
-    expect(vi.mocked(createStaffOnboarding)).not.toHaveBeenCalled();
-  });
+  it.each([
+    ["membership", authorizeStaffManagementPreflight, new Error("DENIED")],
+    ["MFA", requireMfaAssuranceInTransaction, new MfaStepUpRequiredError()],
+  ] as const)(
+    "reserves no quota when %s preflight fails",
+    async (_, gate, error) => {
+      vi.mocked(gate).mockRejectedValueOnce(error);
+      await expect(service.create(context, org, command)).rejects.toThrow(
+        error,
+      );
+      expect(abuse.reserve).not.toHaveBeenCalled();
+      expect(createStaffOnboarding).not.toHaveBeenCalled();
+    },
+  );
 
   it("finalizes IGNORED after a confirmed callback failure/rollback", async () => {
     vi.mocked(createStaffOnboarding).mockRejectedValueOnce(new Error("DENIED"));
