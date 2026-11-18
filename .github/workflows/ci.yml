@@ -262,7 +262,6 @@ jobs:
     timeout-minutes: 20
     env:
       DATABASE_URL: postgresql://valet_runtime:valet_runtime_e2e@localhost:5432/valet
-      MIGRATION_DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
       TEST_DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
       API_ORIGIN: http://localhost:3001
       E2E_APPROVED_DATABASE: valet
@@ -296,8 +295,9 @@ jobs:
           POSTGRES_PASSWORD: valet
           POSTGRES_DB: valet
         ports:
-          - 5432:5432
+          - "127.0.0.1:5432:5432"
         options: >-
+          --label "vaylet.employee-e2e.run-id=${{ github.run_id }}"
           --health-cmd "pg_isready -U valet -d valet"
           --health-interval 5s
           --health-timeout 5s
@@ -324,26 +324,64 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Prepare Option C E2E database identities
+        env:
+          E2E_PG_CONTAINER: ${{ job.services.postgres.id }}
+          EXPECTED_RUN_ID: ${{ github.run_id }}
+        shell: bash
+        run: |
+          test "$CI" = "true"
+          test -n "$E2E_PG_CONTAINER"
+          test "$(docker context inspect "$(docker context show)" --format '{{.Endpoints.docker.Host}}')" = "unix:///var/run/docker.sock"
+          metadata="$(docker inspect --format '{{.Config.Image}}|{{index .Config.Labels "vaylet.employee-e2e.run-id"}}|{{(index (index .NetworkSettings.Ports "5432/tcp") 0).HostIp}}|{{(index (index .NetworkSettings.Ports "5432/tcp") 0).HostPort}}' "$E2E_PG_CONTAINER")"
+          test "$metadata" = "postgres:17-alpine|$EXPECTED_RUN_ID|127.0.0.1|5432"
+          IFS='|' read -r version system_id database principal < <(
+            docker exec "$E2E_PG_CONTAINER" psql -X -U valet -d valet -tAc "SELECT current_setting('server_version_num'), system_identifier, current_database(), current_user FROM pg_control_system()"
+          )
+          test "$version" -ge 170000
+          test "$version" -lt 180000
+          [[ "$system_id" =~ ^[0-9]+$ ]]
+          test "$database:$principal" = "valet:valet"
+          migrator_password="$(openssl rand -hex 32)"
+          management_password="$(openssl rand -hex 32)"
+          staff_auth_password="$(openssl rand -hex 32)"
+          s04_key="$(node -e 'process.stdout.write(require("node:crypto").randomBytes(32).toString("base64url"))')"
+          for value in "$migrator_password" "$management_password" "$staff_auth_password" "$s04_key"; do
+            printf '::add-mask::%s\n' "$value"
+          done
+          docker exec -i "$E2E_PG_CONTAINER" psql -X -U valet -d valet -v ON_ERROR_STOP=1 <<SQL
+          CREATE ROLE valet_e2e_migrator LOGIN PASSWORD '$migrator_password' NOINHERIT CREATEROLE NOSUPERUSER NOCREATEDB NOREPLICATION NOBYPASSRLS;
+          ALTER DATABASE valet OWNER TO valet_e2e_migrator;
+          ALTER SCHEMA public OWNER TO valet_e2e_migrator;
+          REVOKE CREATE ON SCHEMA public FROM PUBLIC;
+          SQL
+          {
+            printf 'MIGRATION_DATABASE_URL=postgresql://valet_e2e_migrator:%s@localhost:5432/valet\n' "$migrator_password"
+            printf 'MANAGEMENT_WRITER_DATABASE_URL=postgresql://vaylet_management_writer:%s@localhost:5432/valet\n' "$management_password"
+            printf 'STAFF_AUTH_WRITER_DATABASE_URL=postgresql://vaylet_staff_auth_writer:%s@localhost:5432/valet\n' "$staff_auth_password"
+            printf 'ANTI_ABUSE_SQL_PROOF_SECRET_B64URL=%s\n' "$s04_key"
+          } >> "$GITHUB_ENV"
+
       - name: Run database migrations
         run: pnpm --filter @valet/database migrate:deploy
         env:
           # This is a disposable CI PostgreSQL service, never a production rollout.
           NODE_ENV: test
-          MIGRATION_DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
 
-      - name: Provision runtime role
-        run: pnpm --filter @valet/database runtime:provision
+      - name: Provision E2E runtime and writer roles
+        run: |
+          pnpm --filter @valet/database exec node scripts/provision-s04-proof-key.mjs
+          pnpm --filter @valet/database runtime:provision
+          pnpm --filter @valet/database staff-auth-writer:provision
         env:
-          DATABASE_URL: postgresql://valet_runtime:valet_runtime_e2e@localhost:5432/valet
-          MIGRATION_DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
+          NODE_ENV: test
 
       - name: Build contracts for E2E fixture imports
         run: pnpm --filter @valet/contracts build
 
       - name: Provision E2E fixtures
-        run: pnpm --filter @valet/api exec tsx tools/e2e/provision-employee-e2e.ts
+        run: DATABASE_URL="$MIGRATION_DATABASE_URL" pnpm --filter @valet/api exec tsx tools/e2e/provision-employee-e2e.ts
         env:
-          DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
           NODE_ENV: test
           E2E_APPROVED_DATABASE: valet
           E2E_FIXTURE_CONFIRM: employee-e2e
