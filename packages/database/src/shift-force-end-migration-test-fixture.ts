@@ -6,8 +6,8 @@ import { fileURLToPath } from "node:url";
 import { Client, Pool } from "pg";
 import { expectedMigrationDirectories } from "./migration-manifest.js";
 import {
-  provisionShiftForceEndPrivileges,
-  verifyShiftForceEndPrivileges,
+  provisionShiftForceEndObjectPrivileges,
+  verifyShiftForceEndObjectPrivileges,
 } from "../scripts/shift-force-end-runtime-privileges.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
@@ -95,11 +95,11 @@ export class ShiftForceEndMigrationTestFixture {
         );
         await client.query(result.rows[0].statement);
       };
-      await provisionShiftForceEndPrivileges(
+      await provisionShiftForceEndObjectPrivileges(
         client, (_ignored: unknown, format: string, values: readonly string[]) => formatted(format, values),
         this.runtimeRole,
       );
-      await verifyShiftForceEndPrivileges(client, this.runtimeRole);
+      await verifyShiftForceEndObjectPrivileges(client, this.runtimeRole);
     } finally {
       client.release();
     }

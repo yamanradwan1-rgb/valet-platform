@@ -25,11 +25,16 @@ const facts = {
 };
 
 function barrier() {
-  let entered!: () => void;
+  let entered!: (pid: number) => void;
   let release!: () => void;
-  const atBarrier = new Promise<void>((resolve) => { entered = resolve; });
+  const atBarrier = new Promise<number>((resolve) => { entered = resolve; });
   const resume = new Promise<void>((resolve) => { release = resolve; });
   return { atBarrier, entered, release, resume };
+}
+
+async function backendPid(client: PoolClient): Promise<number> {
+  const result = await client.query<{ pid: number }>("SELECT pg_backend_pid() AS pid");
+  return result.rows[0]!.pid;
 }
 
 /** Pause a REAL auth writer with its SQL locks still held, immediately after its chosen statement. */
@@ -44,7 +49,7 @@ function pausedWriter(pool: PostgresPool, statement: RegExp) {
           const result = await client.query(sql, values);
           if (!paused && statement.test(sql)) {
             paused = true;
-            gate.entered();
+            gate.entered(await backendPid(client));
             await gate.resume;
           }
           return result;
@@ -56,14 +61,15 @@ function pausedWriter(pool: PostgresPool, statement: RegExp) {
   return { gate, wrapper };
 }
 
-async function awaitLockWait(pool: PostgresPool, statement: RegExp): Promise<void> {
+async function awaitLockWait(pool: PostgresPool, blockerPid: number): Promise<void> {
   for (let attempt = 0; attempt < 150; attempt += 1) {
-    const result = await pool.query<{ query: string }>(
-      `SELECT query FROM pg_stat_activity
+    const result = await pool.query<{ blocked: boolean }>(
+      `SELECT EXISTS (SELECT 1 FROM pg_stat_activity
        WHERE datname = current_database() AND pid <> pg_backend_pid()
-         AND wait_event_type = 'Lock'`,
+         AND wait_event_type = 'Lock' AND $1::int = ANY(pg_blocking_pids(pid))) AS blocked`,
+      [blockerPid],
     );
-    if (result.rows.some((row) => statement.test(row.query))) return;
+    if (result.rows[0]?.blocked) return;
     await new Promise((resolve) => setTimeout(resolve, 20));
   }
   throw new Error("Expected real PostgreSQL lock wait was not observed.");
@@ -157,13 +163,13 @@ describe("Issue #283 real StaffAuthSession T1/T2 credential races", () => {
     const { gate, wrapper } = pausedWriter(ctx.pool, /UPDATE staff_auth_sessions\s+SET current_access_token_hash/i);
     const auth = new StaffAuthService(ctx.pool, { verify: async () => false }, wrapper);
     const refresh = auth.refresh(refreshToken);
-    await gate.atBarrier;
+    const blocker = await gate.atBarrier;
     try {
       const reserve = reserveConditionPhoto(ctx.pool, credential, scope.sessionId,
         randomUUID(), Buffer.alloc(32, 0x11), 256, "issue215_test");
       const mustReject = expect(reserve).rejects.toBeDefined();
       try {
-        await awaitLockWait(observer, /pg_advisory_xact_lock/i);
+        await awaitLockWait(observer, blocker);
       } finally { gate.release(); }
       await refresh;
       await mustReject;
@@ -181,11 +187,11 @@ describe("Issue #283 real StaffAuthSession T1/T2 credential races", () => {
     const lease = await storedLease(ctx, scope, credential);
     const { gate, wrapper } = pausedWriter(ctx.pool, /UPDATE staff_auth_sessions\s+SET current_access_token_hash/i);
     const refresh = new StaffAuthService(ctx.pool, { verify: async () => false }, wrapper).refresh(refreshToken);
-    await gate.atBarrier;
+    const blocker = await gate.atBarrier;
     try {
       const finalize = finalizeConditionPhoto(ctx.pool, credential, scope.sessionId, lease, facts);
       const mustReject = expect(finalize).rejects.toBeDefined();
-      try { await awaitLockWait(observer, /pg_advisory_xact_lock/i); }
+      try { await awaitLockWait(observer, blocker); }
       finally { gate.release(); }
       const rotated = await refresh;
       await mustReject;
@@ -204,7 +210,7 @@ describe("Issue #283 real StaffAuthSession T1/T2 credential races", () => {
     await inPostgresTransaction(ctx.pool, async (client) => {
       await authorizeConditionPhotoScope(client, credential, scope.sessionId);
       refresh = new StaffAuthService(ctx.pool, { verify: async () => false }, ctx.pool).refresh(refreshToken);
-      await awaitLockWait(observer, /pg_advisory_xact_lock/i);
+      await awaitLockWait(observer, await backendPid(client));
       await finalizeInsideLockedTransaction(client, scope, credential, lease);
     });
     await refresh;
@@ -219,11 +225,11 @@ describe("Issue #283 real StaffAuthSession T1/T2 credential races", () => {
     const lease = await storedLease(ctx, scope, credential);
     const { gate, wrapper } = pausedWriter(ctx.pool, /FOR UPDATE OF refresh, session/i);
     const logout = logoutStaffSession(wrapper, refreshToken);
-    await gate.atBarrier;
+    const blocker = await gate.atBarrier;
     try {
       const finalize = finalizeConditionPhoto(ctx.pool, credential, scope.sessionId, lease, facts);
       const mustReject = expect(finalize).rejects.toBeDefined();
-      try { await awaitLockWait(observer, /FROM staff_auth_sessions AS session/i); }
+      try { await awaitLockWait(observer, blocker); }
       finally { gate.release(); }
       await logout;
       await mustReject;
@@ -239,7 +245,7 @@ describe("Issue #283 real StaffAuthSession T1/T2 credential races", () => {
     await inPostgresTransaction(ctx.pool, async (client) => {
       await authorizeConditionPhotoScope(client, credential, scope.sessionId);
       logout = logoutStaffSession(ctx.pool, refreshToken);
-      await awaitLockWait(observer, /FOR UPDATE OF refresh, session/i);
+      await awaitLockWait(observer, await backendPid(client));
       await finalizeInsideLockedTransaction(client, scope, credential, lease);
     });
     await logout;
@@ -274,7 +280,7 @@ describe("Issue #283 real StaffAuthSession T1/T2 credential races", () => {
         }
         const finalize = finalizeConditionPhoto(ctx.pool, credential, scope.sessionId, lease, facts);
         const mustReject = expect(finalize).rejects.toBeDefined();
-        try { await awaitLockWait(observer, /FOR SHARE/i); }
+        try { await awaitLockWait(observer, await backendPid(revoker)); }
         finally { await revoker.query("COMMIT"); committed = true; }
         await mustReject;
         expect(await committedEvidence(ctx, lease)).toEqual({ selected: "0", audit_count: "0" });

@@ -108,8 +108,6 @@ def _rows(path: Path, scan: gate.Scan) -> list[dict]:
     rows = []
     for result, (identity, severity) in zip(results, scan.alerts):
         rule_id, relative, primary_hash, message_hash = identity
-        if not SAFE_RULE_ID.fullmatch(rule_id):
-            raise TelemetryIncomplete("SARIF_RULE_ID")
         region = result["locations"][0]["physicalLocation"].get("region")
         if not isinstance(region, dict) or type(region.get("startLine")) is not int:
             raise TelemetryIncomplete("SARIF_REGION")
@@ -143,6 +141,10 @@ def _delta(head: list[dict], base: list[dict], root: Path,
                 continue
             if severity not in ("HIGH", "CRITICAL"):
                 continue
+            # Unpublished identities participate in the gate comparison only.
+            # Every emitted rule ID must still pass the public-format check.
+            if not SAFE_RULE_ID.fullmatch(row["ruleId"]):
+                raise TelemetryIncomplete("SARIF_RULE_ID")
             pin = _source_pin(root, row["path"], row["line"], pins)
             details.append({"ruleId": row["ruleId"], "startLine": row["line"],
                             "severity": severity,

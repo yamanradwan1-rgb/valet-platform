@@ -125,7 +125,7 @@ jobs:
           POSTGRES_PASSWORD: valet
           POSTGRES_DB: valet
         ports:
-          - 5432:5432
+          - "127.0.0.1:5432:5432"
         options: >-
           --label "vaylet.issue215.disposable=true"
           --label "vaylet.issue215.run-id=${{ github.run_id }}"
@@ -163,28 +163,33 @@ jobs:
         if: ${{ matrix.lane == 'issue215' }}
         run: pnpm --filter @valet/api build
 
-      # The pinned Issue416 migration113 conditionally creates a cluster-wide
-      # NOLOGIN owner. Parallel disposable test databases must not race CREATE.
-      - name: Attest and pre-provision shared Issue416 CI proof owner
-        if: ${{ matrix.lane == 'database' }}
+      # Pre-create fixed NOLOGIN owners once in each disposable CI service.
+      - name: Attest and pre-provision shared Issue416 CI owners
         env:
           TEST_PG_CONTAINER: ${{ job.services.postgres.id }}
           EXPECTED_RUN_ID: ${{ github.run_id }}
+          POSTGRES_LANE: ${{ matrix.lane }}
         shell: bash
         run: |
           test "$CI" = "true"
           test -n "$TEST_PG_CONTAINER"
-          test "$(docker inspect --format '{{ index .Config.Labels "vaylet.issue215.disposable" }}' "$TEST_PG_CONTAINER")" = "true"
-          test "$(docker inspect --format '{{ index .Config.Labels "vaylet.issue215.run-id" }}' "$TEST_PG_CONTAINER")" = "$EXPECTED_RUN_ID"
-          version="$(docker exec "$TEST_PG_CONTAINER" psql -X -U valet -d valet -tAc 'SHOW server_version_num')"
+          test "$(docker context inspect "$(docker context show)" --format '{{.Endpoints.docker.Host}}')" = "unix:///var/run/docker.sock"
+          metadata="$(docker inspect --format '{{.Config.Image}}|{{index .Config.Labels "vaylet.issue215.disposable"}}|{{index .Config.Labels "vaylet.issue215.run-id"}}|{{(index (index .NetworkSettings.Ports "5432/tcp") 0).HostIp}}|{{(index (index .NetworkSettings.Ports "5432/tcp") 0).HostPort}}' "$TEST_PG_CONTAINER")"
+          test "$metadata" = "postgres:17-alpine|true|$EXPECTED_RUN_ID|127.0.0.1|5432"
+          IFS='|' read -r version system_id database principal < <(
+            docker exec "$TEST_PG_CONTAINER" psql -X -U valet -d valet -tAc "SELECT current_setting('server_version_num'), system_identifier, current_database(), current_user FROM pg_control_system()"
+          )
           test "$version" -ge 170000
           test "$version" -lt 180000
+          [[ "$system_id" =~ ^[0-9]+$ ]]
+          test "$database:$principal" = "valet:valet"
           docker exec "$TEST_PG_CONTAINER" psql -X -v ON_ERROR_STOP=1 -U valet -d valet -c \
-            'CREATE ROLE vap1_proof_owner NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS'
-          # All parallel migrations use this same disposable migration login.
-          # Materialize its one permitted SET-only membership before fan-out.
-          docker exec "$TEST_PG_CONTAINER" psql -X -v ON_ERROR_STOP=1 -U valet -d valet -c \
-            'GRANT vap1_proof_owner TO valet WITH INHERIT FALSE, SET TRUE'
+            'CREATE ROLE vaylet_staff_session_lock_owner NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS'
+          if [[ "$POSTGRES_LANE" == "database" ]]; then
+            docker exec "$TEST_PG_CONTAINER" psql -X -v ON_ERROR_STOP=1 -U valet -d valet \
+              -c 'CREATE ROLE vap1_proof_owner NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS' \
+              -c 'GRANT vap1_proof_owner TO valet WITH INHERIT FALSE, SET TRUE'
+          fi
 
       - name: Run bounded PostgreSQL API project
         if: ${{ startsWith(matrix.lane, 'api-') }}

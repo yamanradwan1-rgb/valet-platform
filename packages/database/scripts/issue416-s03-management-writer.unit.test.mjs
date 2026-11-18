@@ -291,7 +291,7 @@ test("protected wrappers recheck current session/MFA and touch only admin activi
     if (!hidden.includes("writer") && !hidden.includes("activity")) continue;
     assert(
       sql.includes(
-        "REVOKE ALL ON FUNCTION " + hidden.replace(/^public\./, "public."),
+        "REVOKE ALL ON FUNCTION " + hidden,
       ),
     );
   }

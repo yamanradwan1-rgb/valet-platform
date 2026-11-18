@@ -216,6 +216,17 @@ class CodeQLDeltaTelemetryTests(unittest.TestCase):
         self.save_pair(report(finding(rule=unsafe), query=unsafe), report(query=unsafe))
         self.assert_diagnostic("SARIF_RULE_ID")
 
+    def test_existing_nonpublic_rule_id_is_never_serialized(self):
+        private_rule = "js/private-" + SECRET
+        existing = finding(rule=private_rule)
+        result = self.augmented(
+            report(existing, query=private_rule),
+            report(existing, query=private_rule),
+        )
+        self.assertEqual((result["existing"], result["blocked"]), (1, 0))
+        self.assertEqual(result["newHighCriticalDelta"], [])
+        self.assertNotIn(private_rule, self.out.read_text())
+
     def test_source_and_summary_failures_have_fixed_diagnostics(self):
         self.save_pair(report(finding(message=SECRET)), report())
         self.source.write_text("modified source\n", encoding="utf-8")

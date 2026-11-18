@@ -32,6 +32,23 @@ function fixture(roleExists) {
   return { client: new Client(), events, statements };
 }
 
+test("the exact Staff session lock migration uses the pre-attested owner without claiming it", async () => {
+  const sql = readFileSync(new URL(
+    "../../packages/database/prisma/migrations/20261116000200_option_c_staff_session_lock_owner/migration.sql",
+    import.meta.url,
+  ), "utf8");
+  const existing = fixture(true);
+  await existing.client.query(sql);
+  assert.deepEqual(existing.statements[0].params, ["vaylet_staff_session_lock_owner"]);
+  assert.equal(existing.statements[1].text, sql);
+  assert.deepEqual(existing.events, []);
+  await assert.rejects(fixture(false).client.query(sql), /pre-attested shared CI proof owner/);
+  await assert.rejects(
+    fixture(true).client.query(sql + "\n-- changed"),
+    /resource already exists/,
+  );
+});
+
 test("pinned migration113 accepts only an existing shared CI proof owner", async () => {
   const { client, events, statements } = fixture(true);
   await client.query(pinnedSql);

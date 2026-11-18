@@ -1,11 +1,11 @@
 import { createHash } from "node:crypto";
 
-// This historical migration conditionally creates one fixed CLUSTER-scoped
-// NOLOGIN owner. It is not a per-test-owned role. The isolated CI service must
-// provision it before parallel scratch-database migrations.
-const PINNED_VAP1_113_LF_SHA256 =
-  "4978f3388b650211a6d588af0c67dcd46a0e31cc2bbecda2589338b44aafffba";
-const PINNED_VAP1_ROLE = { kind: "role", name: "vap1_proof_owner" };
+// These exact migrations verify their cluster-scoped NOLOGIN owners.
+// The isolated service provisions them before scratch migrations fan out.
+const pinnedSharedRoles = new Map([
+  ["vap1_proof_owner", "4978f3388b650211a6d588af0c67dcd46a0e31cc2bbecda2589338b44aafffba"],
+  ["vaylet_staff_session_lock_owner", "4a7c9fb4ee924a9b350cce8948b41fcbfd254b745c26346eaebd2906e617686d"],
+]);
 
 const ownershipInstallSymbol = Symbol.for(
   "vaylet.test.postgres.ownership-runtime.installed",
@@ -34,7 +34,7 @@ function patchQuery(prototype, appendEvent, connectionLimit) {
     const dropped = text === undefined ? [] : droppedResources(text);
     const action = originalQuery.bind(this);
     if (isPinnedSharedRoleMigration(text, created)) {
-      return executePinnedSharedRoleMigration(action, args);
+      return executePinnedSharedRoleMigration(action, args, created[0]);
     }
     if (created.length > 0) {
       return executeOwnedCreate({
@@ -57,17 +57,17 @@ function isPinnedSharedRoleMigration(text, created) {
   if (
     text === undefined ||
     created.length !== 1 ||
-    created[0].kind !== PINNED_VAP1_ROLE.kind ||
-    created[0].name !== PINNED_VAP1_ROLE.name
+    created[0].kind !== "role" ||
+    !pinnedSharedRoles.has(created[0].name)
   )
     return false;
   return (
     createHash("sha256").update(text.replace(/\r\n/g, "\n")).digest("hex") ===
-    PINNED_VAP1_113_LF_SHA256
+    pinnedSharedRoles.get(created[0].name)
   );
 }
 
-function executePinnedSharedRoleMigration(action, args) {
+function executePinnedSharedRoleMigration(action, args, role) {
   const callbackIndex = args.findIndex((value) => typeof value === "function");
   const callback = callbackIndex < 0 ? undefined : args[callbackIndex];
   const queryArgs =
@@ -75,9 +75,9 @@ function executePinnedSharedRoleMigration(action, args) {
       ? args
       : args.filter((_, index) => index !== callbackIndex);
   const operation = (async () => {
-    if (!(await resourceExists(action, PINNED_VAP1_ROLE))) {
+    if (!(await resourceExists(action, role))) {
       throw new Error(
-        "Pinned Issue416 migration113 requires a pre-attested shared CI proof owner; refusing unowned global role CREATE.",
+        "Pinned migration requires a pre-attested shared CI proof owner; refusing unowned global role CREATE.",
       );
     }
     // The exact pinned SQL checks NOLOGIN/NOINHERIT and membership safety

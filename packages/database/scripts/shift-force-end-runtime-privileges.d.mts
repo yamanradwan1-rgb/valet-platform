@@ -15,3 +15,5 @@ export declare function verifyShiftForceEndPrivileges(
   client: Pick<PoolClient, "query">,
   runtimeRole: string,
 ): Promise<void>;
+export declare const provisionShiftForceEndObjectPrivileges: typeof provisionShiftForceEndPrivileges;
+export declare const verifyShiftForceEndObjectPrivileges: typeof verifyShiftForceEndPrivileges;
