@@ -4,6 +4,7 @@ import {
   staffDirectoryPath,
   staffRolePath,
 } from "../issue416-option-c-t5/probe-fixture";
+import { assertManagementWaitRevalidatesExpiry } from "./after-management-expiry-case";
 import { assertManagementMfaStepUp } from "./after-management-mfa-case";
 import { assertReciprocalAdminRoleMutationSerializes } from "./after-management-reciprocal-role-case";
 import {
@@ -208,6 +209,10 @@ describe("Option C protected writer integration / strict writer principals", () 
 
   it("returns the Management step-up contract for missing and stale MFA", async () => {
     await assertManagementMfaStepUp(fixture);
+  });
+
+  it("rechecks Management MFA expiry after waiting for the organization lock", async () => {
+    await assertManagementWaitRevalidatesExpiry(fixture);
   });
 
   it("serializes logout against an in-flight Management mutation and preserves audit attribution", async () => {

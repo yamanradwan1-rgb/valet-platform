@@ -16,7 +16,7 @@ export const pinnedOptionCManagementBodies = Object.freeze([
   ],
   [
     "public.staff_management_authorize_writer(uuid,uuid,text,uuid,uuid)",
-    "ccdbd4d3720e1d259e3ee1bb5b869d04e9f25b87e09f5deef339b4e28a524e8d",
+    "d2ff0eb93d6004807bf18fd12511f730fddcf70fd773616bb32cf2e12c5c4c43",
   ],
   [
     "public.staff_management_touch_writer_activity(uuid,uuid,text)",

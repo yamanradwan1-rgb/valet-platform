@@ -39,7 +39,7 @@ const orderedRuntimeSql = readFileSync(
 ).replace(/\r\n/g, "\n");
 const mfaStepUpAuthorizationSql = readFileSync(
   new URL(
-    "../prisma/migrations/20261118000100_option_c_management_mfa_step_up_contract/migration.sql",
+    "../prisma/migrations/20261118000200_option_c_management_authority_freshness/migration.sql",
     import.meta.url,
   ),
   "utf8",
@@ -136,7 +136,19 @@ test("S03 installed-function SHA pins match the reviewed raw-token SQL source", 
       organizationLock < membershipRow &&
       membershipRow < mfaRow,
   );
-  assert.match(mfaStepUpAuthorizationSql, /MESSAGE = 'MFA_STEP_UP_REQUIRED'/);
+  const finalClock = mfaStepUpAuthorizationSql.indexOf(
+    "v_now := pg_catalog.clock_timestamp();",
+    mfaRow,
+  );
+  const finalExpiry = mfaStepUpAuthorizationSql.indexOf(
+    "IF v_now >= v_access_expires_at",
+    finalClock,
+  );
+  const stepUp = mfaStepUpAuthorizationSql.indexOf(
+    "MESSAGE = 'MFA_STEP_UP_REQUIRED'",
+    finalExpiry,
+  );
+  assert(mfaRow < finalClock && finalClock < finalExpiry && finalExpiry < stepUp);
   for (const name of [
     "staff_management_authorized_onboarding_create",
     "staff_management_authorized_onboarding_resend",

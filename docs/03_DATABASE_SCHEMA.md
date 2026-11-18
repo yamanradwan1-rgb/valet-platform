@@ -52,6 +52,12 @@ the active User, raw bearer, session and organization membership, it reports
 sessions and actor memberships retain `AUTHORIZATION_DENIED`.
 
 Forward-only migration
+`20261118000200_option_c_management_authority_freshness` uses a fresh
+clock reading for bearer expiry and MFA freshness after the organization,
+membership and factor locks. The early bearer check and lock order stay in
+place.
+
+Forward-only migration
 `20261116000320_option_c_runtime_bearer_lock_order` hardens the existing
 Runtime-executable Shift Presence policy and Staff shift force-end
 `SECURITY DEFINER` functions without expanding their API or privileges.
