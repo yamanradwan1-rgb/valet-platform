@@ -5,6 +5,7 @@ import type {
 
 import { ApiTransportValidationError } from "../../common/http/api-errors";
 import type { PostgresTransaction } from "../../common/database/postgres";
+import { MfaStepUpRequiredError } from "../auth/mfa/mfa-errors";
 import type { ManagementCommandContext } from "./management-command-context";
 import { ManagementAccessDeniedError } from "./management-authorization";
 import { throwStaffManagementResult } from "./staff-management-errors";
@@ -18,6 +19,7 @@ interface MutationResultRow extends Record<string, unknown> {
 
 interface PostgresError extends Error {
   readonly code?: string;
+  readonly message: string;
 }
 
 async function execute(
@@ -43,6 +45,12 @@ async function execute(
     };
   } catch (error) {
     const postgresError = error as PostgresError;
+    if (
+      postgresError.code === "P0001" &&
+      postgresError.message === "MFA_STEP_UP_REQUIRED"
+    ) {
+      throw new MfaStepUpRequiredError();
+    }
     if (postgresError.code === "42501") throw new ManagementAccessDeniedError();
     if (postgresError.code === "22023") throw new ApiTransportValidationError();
     throw error;

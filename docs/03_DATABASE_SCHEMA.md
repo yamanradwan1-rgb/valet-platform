@@ -44,6 +44,14 @@ onboarding serialization and rechecks time-based session/MFA authority after
 the advisory lock is acquired.
 
 Forward-only migration
+`20261118000100_option_c_management_mfa_step_up_contract` replaces the
+Management writer authorization function in place. It preserves its signature,
+owner and existing grants and explicitly revokes PUBLIC access. After checking
+the active User, raw bearer, session and organization membership, it reports
+`MFA_STEP_UP_REQUIRED` for missing or stale MFA assurance. Invalid credentials,
+sessions and actor memberships retain `AUTHORIZATION_DENIED`.
+
+Forward-only migration
 `20261116000320_option_c_runtime_bearer_lock_order` hardens the existing
 Runtime-executable Shift Presence policy and Staff shift force-end
 `SECURITY DEFINER` functions without expanding their API or privileges.

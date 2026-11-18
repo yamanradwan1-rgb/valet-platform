@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { OptionCAfterFixture, runtimeBoolean } from "./after-fixture";
+import { OptionCAfterFixture } from "./after-fixture";
 import { runLegacyRuntimeProvisioner } from "./after-provisioner-runner";
 
 const fixture = new OptionCAfterFixture();
@@ -19,6 +19,7 @@ const deniedFunctions = [
 
 async function closureViolations(): Promise<string[]> {
   const violations: string[] = [];
+  const principal = new URL(fixture.runtimeDatabaseUrl()).username;
   for (const [table, column, privilege] of [
     ["staff_auth_sessions", "revoked_at", "UPDATE"],
     ["staff_auth_sessions", "mfa_authenticated_at", "UPDATE"],
@@ -26,25 +27,20 @@ async function closureViolations(): Promise<string[]> {
     ["staff_refresh_credentials", "token_hash", "INSERT"],
     ["staff_refresh_credentials", "consumed_at", "UPDATE"],
   ] as const) {
-    if (
-      await runtimeBoolean(
-        fixture,
-        `SELECT has_column_privilege(current_user,$1,$2,$3) AS allowed`,
-        [table, column, privilege],
-      )
-    )
+    const result = await fixture.query<{ allowed: boolean }>(
+      `SELECT has_column_privilege($1,$2,$3,$4) AS allowed`,
+      [principal, table, column, privilege],
+    );
+    if (result.rows[0]?.allowed === true)
       violations.push(`${table}.${column}:${privilege}`);
   }
   for (const fn of deniedFunctions) {
-    if (
-      await runtimeBoolean(
-        fixture,
-        `SELECT COALESCE(has_function_privilege(current_user,
-           to_regprocedure($1), 'EXECUTE'),false) AS allowed`,
-        [fn],
-      )
-    )
-      violations.push(`${fn}:EXECUTE`);
+    const result = await fixture.query<{ allowed: boolean }>(
+      `SELECT COALESCE(has_function_privilege($1,
+         to_regprocedure($2), 'EXECUTE'),false) AS allowed`,
+      [principal, fn],
+    );
+    if (result.rows[0]?.allowed === true) violations.push(`${fn}:EXECUTE`);
   }
   const ancestry = await fixture.query<{
     parent_count: string;

@@ -37,6 +37,13 @@ const orderedRuntimeSql = readFileSync(
   ),
   "utf8",
 ).replace(/\r\n/g, "\n");
+const mfaStepUpAuthorizationSql = readFileSync(
+  new URL(
+    "../prisma/migrations/20261118000100_option_c_management_mfa_step_up_contract/migration.sql",
+    import.meta.url,
+  ),
+  "utf8",
+).replace(/\r\n/g, "\n");
 
 test("S03 installed-function SHA pins match the reviewed raw-token SQL source", () => {
   assert.equal(pinnedOptionCManagementBodies.length, 10);
@@ -52,7 +59,6 @@ test("S03 installed-function SHA pins match the reviewed raw-token SQL source", 
   for (const [signature, digest] of pinnedOptionCManagementBodies) {
     const name = signature.slice("public.".length, signature.indexOf("("));
     const lockOrderedNames = new Set([
-      "staff_management_authorize_writer",
       "staff_management_authorized_onboarding_create",
       "staff_management_authorized_onboarding_resend",
     ]);
@@ -60,11 +66,15 @@ test("S03 installed-function SHA pins match the reviewed raw-token SQL source", 
       ? upgradedRuntimeLocks.has(name)
         ? orderedRuntimeSql
         : runtimeBearerSql
-      : lockOrderedNames.has(name)
-        ? lockOrderedAuthorizationSql
-        : sql;
+      : name === "staff_management_authorize_writer"
+        ? mfaStepUpAuthorizationSql
+        : lockOrderedNames.has(name)
+          ? lockOrderedAuthorizationSql
+          : sql;
     const create =
-      runtimeBearers.has(name) || lockOrderedNames.has(name)
+      runtimeBearers.has(name) ||
+      lockOrderedNames.has(name) ||
+      name === "staff_management_authorize_writer"
         ? `CREATE OR REPLACE FUNCTION public.${name}(`
         : `CREATE FUNCTION public.${name}(`;
     const start = reviewedSource.indexOf(create);
@@ -99,16 +109,34 @@ test("S03 installed-function SHA pins match the reviewed raw-token SQL source", 
     }
     assert.equal(createHash("sha256").update(body).digest("hex"), digest, name);
   }
-  const advisory = lockOrderedAuthorizationSql.indexOf("staff-user-security:");
-  const userRow = lockOrderedAuthorizationSql.indexOf(
+  const advisory = mfaStepUpAuthorizationSql.indexOf("staff-user-security:");
+  const userRow = mfaStepUpAuthorizationSql.indexOf(
     "FROM public.users AS actor",
     advisory,
   );
-  const sessionRow = lockOrderedAuthorizationSql.indexOf(
+  const sessionRow = mfaStepUpAuthorizationSql.indexOf(
     "FROM public.staff_auth_sessions AS session",
     userRow,
   );
   assert(advisory >= 0 && advisory < userRow && userRow < sessionRow);
+  const membershipRow = mfaStepUpAuthorizationSql.indexOf(
+    "FROM public.organization_memberships AS membership",
+    sessionRow,
+  );
+  const organizationLock = mfaStepUpAuthorizationSql.indexOf(
+    "staff-management-org:",
+    sessionRow,
+  );
+  const mfaRow = mfaStepUpAuthorizationSql.indexOf(
+    "FROM public.user_mfa_totp_factors AS factor",
+    membershipRow,
+  );
+  assert(
+    sessionRow < organizationLock &&
+      organizationLock < membershipRow &&
+      membershipRow < mfaRow,
+  );
+  assert.match(mfaStepUpAuthorizationSql, /MESSAGE = 'MFA_STEP_UP_REQUIRED'/);
   for (const name of [
     "staff_management_authorized_onboarding_create",
     "staff_management_authorized_onboarding_resend",

@@ -4,6 +4,8 @@ import {
   staffDirectoryPath,
   staffRolePath,
 } from "../issue416-option-c-t5/probe-fixture";
+import { assertManagementMfaStepUp } from "./after-management-mfa-case";
+import { assertReciprocalAdminRoleMutationSerializes } from "./after-management-reciprocal-role-case";
 import {
   assertConcurrentActorRoleMutation,
   assertConcurrentLogoutFencesMutation,
@@ -200,6 +202,14 @@ describe("Option C protected writer integration / strict writer principals", () 
     await assertConcurrentActorRoleMutation(fixture);
   });
 
+  it("serializes reciprocal Admin role changes without PostgreSQL deadlock", async () => {
+    await assertReciprocalAdminRoleMutationSerializes(fixture);
+  });
+
+  it("returns the Management step-up contract for missing and stale MFA", async () => {
+    await assertManagementMfaStepUp(fixture);
+  });
+
   it("serializes logout against an in-flight Management mutation and preserves audit attribution", async () => {
     await assertConcurrentLogoutFencesMutation(fixture);
   });
@@ -233,6 +243,9 @@ describe("Option C protected writer integration / strict writer principals", () 
       String(refresh.body?.accessToken),
     );
     expect(beforeLogout.status).toBe(200);
+    expect(
+      (await fixture.logout(String(refresh.body?.refreshToken))).status,
+    ).toBe(204);
     const target = await fixture.employee(admin.membership.organizationId);
     const afterLogout = await fixture.managementWriterSql(
       `SELECT * FROM public.staff_management_authorized_set_role(
@@ -249,9 +262,6 @@ describe("Option C protected writer integration / strict writer principals", () 
       ],
     );
     expect(afterLogout.allowed).toBe(false);
-    expect(
-      (await fixture.logout(String(refresh.body?.refreshToken))).status,
-    ).toBe(204);
     const closed = await fixture.managementGet(
       staffDirectoryPath(admin.membership.organizationId),
       String(refresh.body?.accessToken),

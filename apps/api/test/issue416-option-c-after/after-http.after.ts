@@ -165,4 +165,29 @@ describe("Option C AFTER / mounted bearer, MFA and Management acceptance", () =>
     expect((await fixture.logout(nextRefresh)).status).toBe(204);
     expect((await fixture.getMfa(mfaState, nextBearer)).status).toBe(401);
   });
+
+  it("keeps an expired access credential terminal across refresh and logout", async () => {
+    const actor = await fixture.admin();
+    await fixture.query(
+      `UPDATE staff_auth_sessions
+       SET access_expires_at=created_at+interval '1 millisecond'
+       WHERE id=$1`,
+      [actor.auth.sessionId],
+    );
+    expect(
+      (await fixture.getMfa(mfaState, actor.auth.accessToken)).status,
+    ).toBe(401);
+
+    const refreshed = await fixture.refresh(actor.auth.refreshToken);
+    expect(refreshed.status).toBe(200);
+    const nextBearer = String(refreshed.body?.accessToken);
+    const nextRefresh = String(refreshed.body?.refreshToken);
+    expect((await fixture.getMfa(mfaState, nextBearer)).status).toBe(200);
+    expect(
+      (await fixture.getMfa(mfaState, actor.auth.accessToken)).status,
+    ).toBe(401);
+
+    expect((await fixture.logout(nextRefresh)).status).toBe(204);
+    expect((await fixture.getMfa(mfaState, nextBearer)).status).toBe(401);
+  });
 });
