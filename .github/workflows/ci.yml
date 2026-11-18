@@ -274,6 +274,7 @@ jobs:
       HANDOFF_VERIFIER_HMAC_SECRET_B64URL: AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE
       MFA_TOTP_ENCRYPTION_KEY_B64URL: AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI
       MFA_RECOVERY_HMAC_SECRET_B64URL: AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM
+      MFA_PROTECTED_WRITER_ENABLED: "true"
       STAFF_PUSH_RETRIEVAL_CREATION_ENABLED: "false"
       STAFF_PUSH_WORKER_SENDING_ENABLED: "false"
       STAFF_PUSH_RETRIEVAL_POLICY_VERSION: "1"
@@ -345,8 +346,10 @@ jobs:
           migrator_password="$(openssl rand -hex 32)"
           management_password="$(openssl rand -hex 32)"
           staff_auth_password="$(openssl rand -hex 32)"
+          mfa_password="$(openssl rand -hex 32)"
+          mfa_activity_key="$(node -e 'process.stdout.write(require("node:crypto").randomBytes(32).toString("base64url"))')"
           s04_key="$(node -e 'process.stdout.write(require("node:crypto").randomBytes(32).toString("base64url"))')"
-          for value in "$migrator_password" "$management_password" "$staff_auth_password" "$s04_key"; do
+          for value in "$migrator_password" "$management_password" "$staff_auth_password" "$mfa_password" "$mfa_activity_key" "$s04_key"; do
             printf '::add-mask::%s\n' "$value"
           done
           docker exec -i "$E2E_PG_CONTAINER" psql -X -U valet -d valet -v ON_ERROR_STOP=1 <<SQL
@@ -359,6 +362,8 @@ jobs:
             printf 'MIGRATION_DATABASE_URL=postgresql://valet_e2e_migrator:%s@localhost:5432/valet\n' "$migrator_password"
             printf 'MANAGEMENT_WRITER_DATABASE_URL=postgresql://vaylet_management_writer:%s@localhost:5432/valet\n' "$management_password"
             printf 'STAFF_AUTH_WRITER_DATABASE_URL=postgresql://vaylet_staff_auth_writer:%s@localhost:5432/valet\n' "$staff_auth_password"
+            printf 'MFA_WRITER_DATABASE_URL=postgresql://vaylet_mfa_writer:%s@localhost:5432/valet\n' "$mfa_password"
+            printf 'MFA_ACTIVITY_PROOF_SECRET_B64URL=%s\n' "$mfa_activity_key"
             printf 'ANTI_ABUSE_SQL_PROOF_SECRET_B64URL=%s\n' "$s04_key"
           } >> "$GITHUB_ENV"
 
@@ -375,6 +380,13 @@ jobs:
           pnpm --filter @valet/database staff-auth-writer:provision
         env:
           NODE_ENV: test
+
+      - name: Cut over the disposable E2E database to Option C
+        run: pnpm --filter @valet/database exec node scripts/provision-option-c-protected-cutover.mjs
+        env:
+          NODE_ENV: test
+          OPTION_C_PROTECTED_CUTOVER: "1"
+          OPTION_C_LEGACY_WORKERS_DRAINED: "1"
 
       - name: Build contracts for E2E fixture imports
         run: pnpm --filter @valet/contracts build
