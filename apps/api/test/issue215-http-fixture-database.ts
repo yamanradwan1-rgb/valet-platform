@@ -33,6 +33,7 @@ interface OwnedRoleTarget {
 export interface Issue215HttpDatabase {
   readonly admin: Pool;
   readonly runtimeUrl: string;
+  readonly writerEnvironment: Record<string, string>;
   seed(required?: boolean, override?: boolean | null): Promise<Issue215HttpScope>;
   createBearer(scope: Issue215HttpScope): Promise<string>;
   close(): Promise<void>;
@@ -82,6 +83,32 @@ export async function openIssue215HttpDatabase(): Promise<Issue215HttpDatabase> 
       stdio: "pipe",
       windowsHide: true,
     });
+    const writerPassword = randomBytes(32).toString("hex");
+    const writerRole = await roleOwner.createRole(writerPassword);
+    const writerEnvironment: Record<string, string> = {
+      MIGRATION_DATABASE_URL: owner.dbUrl,
+      STAFF_AUTH_WRITER_DATABASE_URL: runtimeDatabaseUrlFor(
+        owner.dbUrl, new URL(owner.dbUrl).pathname.slice(1), writerRole, writerPassword,
+      ),
+      STAFF_AUTH_WRITER_ROLE: writerRole,
+    };
+    if (process.env.GITHUB_ACTIONS === "true" && process.env.GITHUB_JOB === "postgres") {
+      const sharedPassword = process.env.VAYLET_CI_MANAGEMENT_WRITER_PASSWORD;
+      if (sharedPassword !== undefined && /^[a-f0-9]{64}$/.test(sharedPassword)) {
+        writerEnvironment.MANAGEMENT_WRITER_DATABASE_URL = runtimeDatabaseUrlFor(
+          owner.dbUrl, new URL(owner.dbUrl).pathname.slice(1), "vaylet_management_writer", sharedPassword,
+        );
+      }
+    }
+    execFileSync(process.execPath, [resolve(
+      __dirname, "../../../packages/database/scripts/provision-staff-auth-writer-role.mjs",
+    )], {
+      env: {
+        ...process.env, ...writerEnvironment, NODE_ENV: "test",
+        DATABASE_URL: runtimeUrl, MIGRATION_DATABASE_URL: owner.dbUrl,
+      },
+      timeout: 120_000, stdio: "pipe", windowsHide: true,
+    });
     // Also prove the application really connects as its restricted runtime
     // principal; running these E2E queries under the migration owner is invalid.
     const restrictedProbe = new Pool({ connectionString: runtimeUrl, max: 1 });
@@ -101,6 +128,7 @@ export async function openIssue215HttpDatabase(): Promise<Issue215HttpDatabase> 
     return {
       admin: owner.pool,
       runtimeUrl,
+      writerEnvironment,
       async seed(required = true, override = null) {
         const scope = await owner.seed();
         await owner.pool.query(

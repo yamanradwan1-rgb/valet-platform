@@ -41,7 +41,7 @@ function message(child: ChildProcess, expected: string, maximumMs: number): Prom
   });
 }
 
-function startNest(databaseUrl: string, s3: S3Fixture, crash: boolean) {
+function startNest(database: Issue215HttpDatabase, s3: S3Fixture, crash: boolean) {
   // This test boots the real compiled Nest controllers in a separate OS
   // process. TypeScript test imports alone cannot supply its constructor
   // metadata or production Contracts runtime entry points.
@@ -61,7 +61,9 @@ function startNest(databaseUrl: string, s3: S3Fixture, crash: boolean) {
       ...process.env, NODE_ENV: "test", ISSUE215_NEST_CHILD_OWNED: "true",
       ISSUE215_NEST_CHILD_CRASH: crash ? "true" : "false",
       AWS_ACCESS_KEY_ID: s3.accessKeyId, AWS_SECRET_ACCESS_KEY: s3.secretAccessKey,
-      AWS_REGION: s3.region, DATABASE_URL: databaseUrl,
+      AWS_REGION: s3.region, DATABASE_URL: database.runtimeUrl,
+      ...database.writerEnvironment,
+      MIGRATION_DATABASE_URL: undefined,
       CONDITION_PHOTO_STORAGE_ENABLED: "true",
       CONDITION_PHOTO_PRIVATE_BUCKET: s3.bucket,
       CONDITION_PHOTO_BUCKET_ALIAS: "issue215_local",
@@ -79,7 +81,7 @@ function startNest(databaseUrl: string, s3: S3Fixture, crash: boolean) {
     throw new Error("Nest child PID or executable identity is not task-owned.");
   childDiagnostic.set(child, "");
   const collect = (chunk: Buffer) => {
-    const safe = chunk.toString().replaceAll(databaseUrl, "[DATABASE]")
+    const safe = chunk.toString().replaceAll(database.runtimeUrl, "[DATABASE]")
       .replaceAll(s3.secretAccessKey, "[SECRET]")
       .replace(/postgres(?:ql)?:\/\/\S+/gi, "[DATABASE]");
     childDiagnostic.set(child, (childDiagnostic.get(child) ?? "").concat(safe).slice(-700));
@@ -146,7 +148,7 @@ describe("#285 REAL whole Nest SIGKILL → new Nest replica → durable MinIO jo
     const scope = await db.seed(true);
     const initialBearer = await db.createBearer(scope);
     const operationId = randomUUID();
-    const first = startNest(db.runtimeUrl, s3, true);
+    const first = startNest(db, s3, true);
     const ready = await message(first, "ready", 35_000);
     expect(ready.baseUrl).toMatch(/^http:\/\/127\.0\.0\.1:\d+$/);
     const operationPath = `/v1/staff/check-in/sessions/${scope.sessionId}`;
@@ -196,7 +198,7 @@ describe("#285 REAL whole Nest SIGKILL → new Nest replica → durable MinIO jo
       [t1.rows[0]!.attempt_id, t1.rows[0]!.operation_id],
     );
     expect(expiry.rowCount).toBe(1);
-    const second = startNest(db.runtimeUrl, s3, false);
+    const second = startNest(db, s3, false);
     const next = await message(second, "ready", 35_000);
     const newBearer = await db.createBearer(scope);
     const reconciled = await post(next.baseUrl!, `${operationPath}/condition-photo-uploads/${operationId}/reconcile`, newBearer, {});

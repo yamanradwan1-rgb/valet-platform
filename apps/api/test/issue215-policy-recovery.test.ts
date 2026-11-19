@@ -250,16 +250,19 @@ describe("Issue #292 post-marker required-policy upload recovery", () => {
     );
     expect(acl.rows[0]?.public_execute).toBe(false);
     const restricted = await fixture.pool.connect();
+    const unrelatedRole = `vlt_t_role_215_${randomUUID().replaceAll("-", "")}`;
     try {
       await restricted.query("BEGIN");
-      await restricted.query("SET LOCAL ROLE pg_monitor");
+      await restricted.query(`CREATE ROLE "${unrelatedRole}" NOLOGIN NOINHERIT`);
+      await restricted.query(`GRANT "${unrelatedRole}" TO CURRENT_USER WITH INHERIT FALSE, SET TRUE`);
+      await restricted.query(`SET LOCAL ROLE "${unrelatedRole}"`);
       await expect(restricted.query(
         "SELECT public.condition_photo_session_open_for_upload($1::uuid)",
         [scope.sessionId],
       )).rejects.toMatchObject({ code: "42501" });
     } finally {
-      await restricted.query("ROLLBACK").catch(() => undefined);
-      restricted.release();
+      try { await restricted.query("ROLLBACK"); }
+      finally { restricted.release(); }
     }
   });
 

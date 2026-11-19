@@ -113,7 +113,7 @@ export function readAttestedIssue215Minio(): S3Fixture {
 export async function openIssue215HttpFixture(): Promise<Issue215HttpFixture> {
   const s3 = readAttestedIssue215Minio();
   const db = await openIssue215HttpDatabase();
-  const oldEnv = new Map(envKeys.map((key) => [key, process.env[key]]));
+  const oldEnv = new Map([...envKeys, ...Object.keys(db.writerEnvironment)].map((key) => [key, process.env[key]]));
   let app: INestApplication | undefined;
   try {
     Object.assign(process.env, {
@@ -121,6 +121,7 @@ export async function openIssue215HttpFixture(): Promise<Issue215HttpFixture> {
       AWS_SECRET_ACCESS_KEY: s3.secretAccessKey,
       AWS_REGION: s3.region,
       DATABASE_URL: db.runtimeUrl,
+      ...db.writerEnvironment,
       CONDITION_PHOTO_STORAGE_ENABLED: "true",
       CONDITION_PHOTO_PRIVATE_BUCKET: s3.bucket,
       CONDITION_PHOTO_BUCKET_ALIAS: "issue215_local",
