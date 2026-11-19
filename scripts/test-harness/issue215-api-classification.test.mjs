@@ -60,7 +60,7 @@ test("reviewed #215 and #309 exact API tests alone enter the protected Issue215 
   }
   assert.equal(
     postgresProfileForProject(ISSUE215_API_PROJECT).name,
-    "api-race",
+    "api-issue215",
   );
   assert.equal(
     postgresProfileForProject(ISSUE309_BROWSER_PROJECT).name,

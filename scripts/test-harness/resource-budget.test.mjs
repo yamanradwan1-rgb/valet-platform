@@ -43,6 +43,7 @@ test("race profile admits exactly two safe local file workers", () => {
 test("long API projects use one file worker after repeated native fork crashes", () => {
   assert.equal(postgresProfile("api-standard").fileWorkers, 1);
   assert.equal(postgresProfile("api-compound").fileWorkers, 1);
+  assert.equal(postgresProfile("api-issue215").fileWorkers, 1);
   assert.equal(postgresProfile("database-direct").fileWorkers, 2);
   assert.equal(postgresProfile("database-provision").fileWorkers, 2);
 });
@@ -54,6 +55,7 @@ test("profiles include pool, direct client, and subprocess envelopes", () => {
         "api-standard",
         "api-compound",
         "api-race",
+        "api-issue215",
         "database-direct",
         "database-provision",
       ].map((name) => [name, postgresProfile(name).connectionEnvelope]),
@@ -62,6 +64,7 @@ test("profiles include pool, direct client, and subprocess envelopes", () => {
       "api-standard": 28,
       "api-compound": 32,
       "api-race": 38,
+      "api-issue215": 50,
       "database-direct": 11,
       "database-provision": 21,
     },
