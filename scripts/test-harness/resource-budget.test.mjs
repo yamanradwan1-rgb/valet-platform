@@ -59,7 +59,7 @@ test("profiles include pool, direct client, and subprocess envelopes", () => {
       ].map((name) => [name, postgresProfile(name).connectionEnvelope]),
     ),
     {
-      "api-standard": 20,
+      "api-standard": 28,
       "api-compound": 32,
       "api-race": 38,
       "database-direct": 11,

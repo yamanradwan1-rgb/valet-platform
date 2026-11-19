@@ -14,6 +14,16 @@ export function createFixtureStaffAuthWriterIdentity(applicationUrl: string) {
   return { role, url: url.toString() };
 }
 
+export function ciFixtureManagementWriterEnvironment(applicationUrl: string): Record<string, string> {
+  const password = process.env.VAYLET_CI_MANAGEMENT_WRITER_PASSWORD;
+  if (process.env.GITHUB_ACTIONS !== "true" || process.env.GITHUB_JOB !== "postgres" ||
+      password === undefined || !/^[a-f0-9]{64}$/.test(password)) return {};
+  const url = new URL(applicationUrl);
+  url.username = "vaylet_management_writer";
+  url.password = password;
+  return { MANAGEMENT_WRITER_DATABASE_URL: url.toString() };
+}
+
 export class StaffAuthNativeProofKeys {
   readonly antiAbuseHmac = randomBytes(32).toString("base64url");
   readonly sqlProof = randomBytes(32).toString("base64url");

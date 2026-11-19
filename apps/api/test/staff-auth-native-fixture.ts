@@ -16,6 +16,7 @@ import {
 } from "./staff-auth-native-writer-role-lifecycle";
 import {
   createFixtureStaffAuthWriterIdentity,
+  ciFixtureManagementWriterEnvironment,
   provisionStaffAuthWriter,
   resolveProtectedWriterEnvironment,
   StaffAuthNativeProofKeys,
@@ -85,6 +86,7 @@ export class StaffAuthNativeFixture {
   >();
   private readonly originalEnvironment = {
     database: process.env.DATABASE_URL,
+    migration: process.env.MIGRATION_DATABASE_URL,
     mfaProtected: process.env.MFA_PROTECTED_WRITER_ENABLED,
     mfaWriter: process.env.MFA_WRITER_DATABASE_URL,
     mfaActivity: process.env.MFA_ACTIVITY_PROOF_SECRET_B64URL,
@@ -146,11 +148,14 @@ export class StaffAuthNativeFixture {
     await this.captureWriterRolePostState();
     await this.afterRuntimeProvisioning(applicationUrl, writers);
     this.adminPool = new Pool({ connectionString: this.migrationUrl });
-    for (const [key, value] of Object.entries(writers)) {
+    for (const [key, value] of Object.entries({
+      ...ciFixtureManagementWriterEnvironment(applicationUrl), ...writers,
+    })) {
       this.optionalWriterPrevious.set(key, process.env[key]);
       process.env[key] = value;
     }
     process.env.DATABASE_URL = applicationUrl;
+    process.env.MIGRATION_DATABASE_URL = this.migrationUrl;
     this.proofKeys.apply();
     process.env.MFA_PROTECTED_WRITER_ENABLED = protectedMode ? "true" : "false";
     if (protectedMode)
@@ -262,6 +267,7 @@ export class StaffAuthNativeFixture {
     };
     this.proofKeys.restore();
     restore("DATABASE_URL", this.originalEnvironment.database);
+    restore("MIGRATION_DATABASE_URL", this.originalEnvironment.migration);
     restore(
       "MFA_PROTECTED_WRITER_ENABLED",
       this.originalEnvironment.mfaProtected,
