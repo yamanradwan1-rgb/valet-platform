@@ -183,6 +183,13 @@ jobs:
           test "$version" -lt 180000
           [[ "$system_id" =~ ^[0-9]+$ ]]
           test "$database:$principal" = "valet:valet"
+          management_password="$(openssl rand -hex 32)"
+          printf '::add-mask::%s\n' "$management_password"
+          # The job owns this role. Scratch database cleanup must never claim it.
+          printf "CREATE ROLE vaylet_management_writer LOGIN PASSWORD '%s' NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;\n" "$management_password" |
+            docker exec -i "$TEST_PG_CONTAINER" psql -X -v ON_ERROR_STOP=1 -U valet -d valet
+          printf 'VAYLET_CI_MANAGEMENT_WRITER_PASSWORD=%s\n' "$management_password" >> "$GITHUB_ENV"
+          printf 'VAYLET_CI_POSTGRES_BOOTSTRAP_URL=%s\n' "$TEST_DATABASE_URL" >> "$GITHUB_ENV"
           docker exec "$TEST_PG_CONTAINER" psql -X -v ON_ERROR_STOP=1 -U valet -d valet -c \
             'CREATE ROLE vaylet_staff_session_lock_owner NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS'
           if [[ "$POSTGRES_LANE" == "database" ]]; then
