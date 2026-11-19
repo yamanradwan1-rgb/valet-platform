@@ -38,6 +38,7 @@ export class Phase6CoreE2ETestContext extends CompleteHandoffTestContext {
     await this.setup();
     const writer = await this.provisionFixtureStaffAuthWriter();
     this.setEnvironment("DATABASE_URL", this.runtimeUrl);
+    this.setEnvironment("MIGRATION_DATABASE_URL", this.migrationUrl);
     this.setEnvironment("STAFF_AUTH_WRITER_DATABASE_URL", writer.url);
     this.setEnvironment("STAFF_AUTH_WRITER_ROLE", writer.role);
     const managementPassword = process.env.VAYLET_CI_MANAGEMENT_WRITER_PASSWORD;
