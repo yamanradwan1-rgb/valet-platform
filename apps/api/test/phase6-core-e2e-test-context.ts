@@ -36,7 +36,19 @@ export class Phase6CoreE2ETestContext extends CompleteHandoffTestContext {
 
   async setupApi(): Promise<void> {
     await this.setup();
+    const writer = await this.provisionFixtureStaffAuthWriter();
     this.setEnvironment("DATABASE_URL", this.runtimeUrl);
+    this.setEnvironment("STAFF_AUTH_WRITER_DATABASE_URL", writer.url);
+    this.setEnvironment("STAFF_AUTH_WRITER_ROLE", writer.role);
+    const managementPassword = process.env.VAYLET_CI_MANAGEMENT_WRITER_PASSWORD;
+    if (process.env.GITHUB_ACTIONS === "true" && process.env.GITHUB_JOB === "postgres" &&
+        process.env.MANAGEMENT_WRITER_DATABASE_URL === undefined &&
+        /^[a-f0-9]{64}$/.test(managementPassword ?? "")) {
+      const managementWriter = new URL(this.runtimeUrl);
+      managementWriter.username = "vaylet_management_writer";
+      managementWriter.password = managementPassword!;
+      this.setEnvironment("MANAGEMENT_WRITER_DATABASE_URL", managementWriter.toString());
+    }
     this.setEnvironment("STAFF_AUTH_ALLOWED_ORIGINS", allowedOrigin);
     this.passwordHash = await argon2.hash(password, {
       hashLength: 32,

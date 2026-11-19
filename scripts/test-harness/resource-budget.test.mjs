@@ -60,7 +60,7 @@ test("profiles include pool, direct client, and subprocess envelopes", () => {
     ),
     {
       "api-standard": 20,
-      "api-compound": 24,
+      "api-compound": 32,
       "api-race": 38,
       "database-direct": 11,
       "database-provision": 21,

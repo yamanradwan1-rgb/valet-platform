@@ -1,7 +1,8 @@
 export const DEFAULT_NON_TEST_ALLOWANCE = 20;
 export const POSTGRES_RESOURCE_PROFILES = Object.freeze({
   "api-standard": profile("api-standard", 4, 2, 2, 1, 10, 1),
-  "api-compound": profile("api-compound", 4, 3, 2, 1, 10, 1),
+  // Mounted Phase 6 keeps fixture admin/runtime plus application Runtime and two Writers.
+  "api-compound": profile("api-compound", 4, 5, 2, 1, 10, 1),
   "api-race": profile("api-race", 6, 4, 4, 1, 10, 2),
   // One isolated Next subprocess plus one Chromium process, no parallel files.
   "api-photo-browser": profile("api-photo-browser", 6, 4, 4, 2, 20, 1),
