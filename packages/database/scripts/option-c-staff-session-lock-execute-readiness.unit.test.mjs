@@ -6,6 +6,7 @@ import {
   staffSessionLockOwner,
 } from "./option-c-staff-session-lock-contract.mjs";
 import { assertFunctionAcl } from "./option-c-staff-session-lock-verification.mjs";
+import { provisionLegacyStaffSessionLock } from "./option-c-staff-session-lock-acl.mjs";
 
 const runtime = "cos_runtime";
 const roles = [
@@ -65,4 +66,32 @@ test("LEGACY readiness accepts owner-only session lock EXECUTE before retirement
 
 test("PROTECTED verification requires the narrow Runtime EXECUTE grant", async () => {
   await assertFunctionAcl(client({ runtimeExecute: true }), runtime, roles);
+});
+
+test("LEGACY provisioning grants only the verified session lock to Runtime", async () => {
+  let runtimeExecute = false;
+  let currentRole = "migrator";
+  const connection = {
+    async query(sql, values) {
+      if (sql === `SET LOCAL ROLE ${staffSessionLockOwner}`) {
+        currentRole = staffSessionLockOwner;
+        return;
+      }
+      if (sql === "RESET ROLE") {
+        currentRole = "migrator";
+        return;
+      }
+      assert.equal(currentRole, "migrator");
+      return client({ runtimeExecute }).query(sql, values);
+    },
+  };
+  await provisionLegacyStaffSessionLock(connection, async (target, sql, values) => {
+    assert.equal(target, connection);
+    assert.equal(currentRole, staffSessionLockOwner);
+    assert.equal(sql, `GRANT EXECUTE ON FUNCTION ${staffSessionLockFunction} TO %I`);
+    assert.deepEqual(values, [runtime]);
+    runtimeExecute = true;
+  }, runtime);
+  assert.equal(currentRole, "migrator");
+  assert.equal(runtimeExecute, true);
 });

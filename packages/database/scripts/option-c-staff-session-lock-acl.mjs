@@ -1,4 +1,5 @@
 import { revokeUnexpectedFunctionExecutors } from "./option-c-protected-cutover-executor-revocation.mjs";
+import { assertFunctionAcl } from "./option-c-staff-session-lock-verification.mjs";
 import {
   runtimeSessionSelectColumns,
   staffSessionLockFunction,
@@ -12,6 +13,19 @@ export {
   staffSessionLockOwnerColumns,
 } from "./option-c-staff-session-lock-contract.mjs";
 export { verifyStaffSessionLockAcl } from "./option-c-staff-session-lock-verification.mjs";
+
+export async function provisionLegacyStaffSessionLock(client, formatted, runtimeRole) {
+  await assertFunctionAcl(client, runtimeRole, [], { requireRuntimeExecute: false });
+  await client.query(`SET LOCAL ROLE ${staffSessionLockOwner}`);
+  await formatted(
+    client,
+    `GRANT EXECUTE ON FUNCTION ${staffSessionLockFunction} TO %I`,
+    [runtimeRole],
+  );
+  // The caller rolls back the transaction if either statement fails.
+  await client.query("RESET ROLE");
+  await assertFunctionAcl(client, runtimeRole, [runtimeRole]);
+}
 
 async function tableColumns(client, table) {
   const result = await client.query(

@@ -18,6 +18,7 @@ import { assertLegacyRuntimeProvisioningAllowed } from "./vap1-security-privileg
 import { assertOptionCProvisioningIsLegacy } from "./option-c-runtime-provision-guard.mjs";
 import { provisionS04RuntimePrivileges } from "./s04-runtime-privileges.mjs";
 import { verifyRuntimeRoleObjectSafety } from "./runtime-role-object-safety.mjs";
+import { provisionLegacyStaffSessionLock } from "./option-c-staff-session-lock-acl.mjs";
 import {
   requireManagementWriterIdentity,
   provisionManagementWriterPrivileges,
@@ -227,6 +228,7 @@ async function provisionRuntimeRole() {
     );
 
     await provisionS04RuntimePrivileges(client, executeFormatted, runtimeRole);
+    await provisionLegacyStaffSessionLock(client, executeFormatted, runtimeRole);
 
     await executeFormatted(
       client,
