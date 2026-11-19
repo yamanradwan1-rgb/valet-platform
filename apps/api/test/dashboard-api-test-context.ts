@@ -8,6 +8,7 @@ import { AppModule } from "../src/app.module";
 import { DashboardOverviewTestContext } from "./dashboard-overview-test-context";
 import type { ShiftFixture } from "./shift-test-context";
 import type { TestRole } from "./shift-test-context";
+import { ciFixtureManagementWriterEnvironment } from "./staff-auth-native-test-environment";
 import {
   type DashboardActor,
 } from "./dashboard-test-context";
@@ -46,7 +47,14 @@ export class DashboardApiTestContext extends DashboardOverviewTestContext {
 
   async setupApi(): Promise<void> {
     await this.setup();
+    const writer = await this.provisionFixtureStaffAuthWriter();
     this.setEnvironment("DATABASE_URL", this.runtimeUrl);
+    this.setEnvironment("MIGRATION_DATABASE_URL", this.migrationUrl);
+    this.setEnvironment("STAFF_AUTH_WRITER_DATABASE_URL", writer.url);
+    this.setEnvironment("STAFF_AUTH_WRITER_ROLE", writer.role);
+    for (const [key, value] of Object.entries(ciFixtureManagementWriterEnvironment(this.runtimeUrl))) {
+      this.setEnvironment(key, value);
+    }
     this.setEnvironment("STAFF_AUTH_ALLOWED_ORIGINS", allowedOrigin);
     this.setEnvironment(
       "ANTI_ABUSE_HMAC_SECRET_B64URL",
@@ -62,7 +70,7 @@ export class DashboardApiTestContext extends DashboardOverviewTestContext {
       type: argon2.argon2id,
       version: 19,
     });
-    this.app = await NestFactory.create(AppModule, { logger: false });
+    this.app = await NestFactory.create(AppModule, { logger: false, abortOnError: false });
     await this.app.listen(0, "127.0.0.1");
     const address = this.app.getHttpServer().address() as { port: number };
     this.baseUrl = `http://127.0.0.1:${address.port}`;
