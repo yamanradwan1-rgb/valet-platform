@@ -22,6 +22,7 @@ import {
 } from "./staff-auth-native-test-environment";
 import { createStaffAuthNativeUser } from "./staff-auth-native-user";
 import { cleanupStaffAuthNativeFixture } from "./staff-auth-native-fixture-cleanup";
+import { fixtureSessionLockRoles } from "./staff-auth-native-session-lock-owner";
 export type {
   AuthHttpResult,
   AuthRawHttpResult,
@@ -110,7 +111,7 @@ export class StaffAuthNativeFixture {
       this.writerRoleSnapshots = await captureFixtureWriterRoleBaseline(
         bootstrap,
         writers,
-        ["vaylet_staff_session_lock_owner"],
+        await fixtureSessionLockRoles(bootstrap, adminDatabaseUrl),
       );
       await bootstrap.query(`CREATE DATABASE "${this.databaseName}"`);
       this.databaseCreated = true;

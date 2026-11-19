@@ -6,8 +6,7 @@ export async function prepareCiManagementWriter(pg) {
   const env = process.env;
   if (env.GITHUB_ACTIONS !== "true" || env.GITHUB_JOB !== "postgres" ||
       env.NODE_ENV !== "test" ||
-      basename(process.argv[1] ?? "") !== "provision-runtime-role.mjs" ||
-      env.MANAGEMENT_WRITER_DATABASE_URL !== undefined) return;
+      basename(process.argv[1] ?? "") !== "provision-runtime-role.mjs") return;
 
   const bootstrap = new URL(env.VAYLET_CI_POSTGRES_BOOTSTRAP_URL);
   const runtime = new URL(env.DATABASE_URL);
@@ -29,13 +28,23 @@ export async function prepareCiManagementWriter(pg) {
     await lock.connect();
     await lock.query("SET statement_timeout = '60s'");
     await lock.query("SELECT pg_advisory_lock(hashtext('vaylet-ci-management-writer'))");
-    // The child exits after provisioning and PostgreSQL releases the session lock.
-    lock.connection.stream.unref();
-    runtime.username = "vaylet_management_writer";
-    runtime.password = password;
-    env.MANAGEMENT_WRITER_DATABASE_URL = runtime.toString();
   } catch {
     await lock.end().catch(() => undefined);
     throw new Error("Could not acquire PostgreSQL CI Management Writer fixture lock");
+  }
+
+  try {
+    const { provisionS04ProofKey } = await import("../../packages/database/scripts/provision-s04-proof-key.mjs");
+    await provisionS04ProofKey(env);
+    // The child exits after provisioning and PostgreSQL releases the session lock.
+    lock.connection.stream.unref();
+    if (env.MANAGEMENT_WRITER_DATABASE_URL === undefined) {
+      runtime.username = "vaylet_management_writer";
+      runtime.password = password;
+      env.MANAGEMENT_WRITER_DATABASE_URL = runtime.toString();
+    }
+  } catch {
+    await lock.end().catch(() => undefined);
+    throw new Error("Could not provision the S04 proof key for the PostgreSQL CI fixture");
   }
 }

@@ -47,7 +47,7 @@ describe("Issue 215 task-only PostgreSQL target: fail closed before any mutation
     const ciDocker = {
       Id: ciId,
       Config: {
-        Image: "postgres:17-alpine", Env: ["POSTGRES_USER=valet", "POSTGRES_DB=valet"],
+        Image: "postgres:17-alpine", Env: ["POSTGRES_USER=valet_ci_bootstrap", "POSTGRES_DB=valet"],
         Labels: { "vaylet.issue215.disposable": "true", "vaylet.issue215.run-id": "123456789" },
       },
       State: { Status: "running" },

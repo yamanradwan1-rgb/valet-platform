@@ -121,7 +121,7 @@ jobs:
       postgres:
         image: postgres:17-alpine
         env:
-          POSTGRES_USER: valet
+          POSTGRES_USER: valet_ci_bootstrap
           POSTGRES_PASSWORD: valet
           POSTGRES_DB: valet
         ports:
@@ -129,7 +129,7 @@ jobs:
         options: >-
           --label "vaylet.issue215.disposable=true"
           --label "vaylet.issue215.run-id=${{ github.run_id }}"
-          --health-cmd "pg_isready -U valet -d valet"
+          --health-cmd "pg_isready -U valet_ci_bootstrap -d valet"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
@@ -168,7 +168,6 @@ jobs:
         env:
           TEST_PG_CONTAINER: ${{ job.services.postgres.id }}
           EXPECTED_RUN_ID: ${{ github.run_id }}
-          POSTGRES_LANE: ${{ matrix.lane }}
         shell: bash
         run: |
           test "$CI" = "true"
@@ -177,26 +176,32 @@ jobs:
           metadata="$(docker inspect --format '{{.Config.Image}}|{{index .Config.Labels "vaylet.issue215.disposable"}}|{{index .Config.Labels "vaylet.issue215.run-id"}}|{{(index (index .NetworkSettings.Ports "5432/tcp") 0).HostIp}}|{{(index (index .NetworkSettings.Ports "5432/tcp") 0).HostPort}}' "$TEST_PG_CONTAINER")"
           test "$metadata" = "postgres:17-alpine|true|$EXPECTED_RUN_ID|127.0.0.1|5432"
           IFS='|' read -r version system_id database principal < <(
-            docker exec "$TEST_PG_CONTAINER" psql -X -U valet -d valet -tAc "SELECT current_setting('server_version_num'), system_identifier, current_database(), current_user FROM pg_control_system()"
+            docker exec "$TEST_PG_CONTAINER" psql -X -U valet_ci_bootstrap -d valet -tAc "SELECT current_setting('server_version_num'), system_identifier, current_database(), current_user FROM pg_control_system()"
           )
           test "$version" -ge 170000
           test "$version" -lt 180000
           [[ "$system_id" =~ ^[0-9]+$ ]]
-          test "$database:$principal" = "valet:valet"
+          test "$database:$principal" = "valet:valet_ci_bootstrap"
           management_password="$(openssl rand -hex 32)"
+          s04_key="$(node -e 'process.stdout.write(require("node:crypto").randomBytes(32).toString("base64url"))')"
           printf '::add-mask::%s\n' "$management_password"
+          printf '::add-mask::%s\n' "$s04_key"
           # The job owns this role. Scratch database cleanup must never claim it.
           printf "CREATE ROLE vaylet_management_writer LOGIN PASSWORD '%s' NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;\n" "$management_password" |
-            docker exec -i "$TEST_PG_CONTAINER" psql -X -v ON_ERROR_STOP=1 -U valet -d valet
+            docker exec -i "$TEST_PG_CONTAINER" psql -X -v ON_ERROR_STOP=1 -U valet_ci_bootstrap -d valet
           printf 'VAYLET_CI_MANAGEMENT_WRITER_PASSWORD=%s\n' "$management_password" >> "$GITHUB_ENV"
           printf 'VAYLET_CI_POSTGRES_BOOTSTRAP_URL=%s\n' "$TEST_DATABASE_URL" >> "$GITHUB_ENV"
-          docker exec "$TEST_PG_CONTAINER" psql -X -v ON_ERROR_STOP=1 -U valet -d valet -c \
+          printf 'ANTI_ABUSE_SQL_PROOF_SECRET_B64URL=%s\n' "$s04_key" >> "$GITHUB_ENV"
+          docker exec "$TEST_PG_CONTAINER" psql -X -v ON_ERROR_STOP=1 -U valet_ci_bootstrap -d valet -c \
             'CREATE ROLE vaylet_staff_session_lock_owner NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS'
-          if [[ "$POSTGRES_LANE" == "database" ]]; then
-            docker exec "$TEST_PG_CONTAINER" psql -X -v ON_ERROR_STOP=1 -U valet -d valet \
-              -c 'CREATE ROLE vap1_proof_owner NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS' \
-              -c 'GRANT vap1_proof_owner TO valet WITH INHERIT FALSE, SET TRUE'
-          fi
+          # Scratch migrations and Runtime provisioning use the restricted
+          # database owner. Each pinned migration establishes its own SET role.
+          docker exec "$TEST_PG_CONTAINER" psql -X -v ON_ERROR_STOP=1 -U valet_ci_bootstrap -d valet \
+            -c 'CREATE ROLE vap1_proof_owner NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS' \
+            -c "CREATE ROLE valet LOGIN PASSWORD 'valet' NOSUPERUSER NOINHERIT CREATEDB CREATEROLE NOREPLICATION NOBYPASSRLS" \
+            -c 'ALTER DATABASE valet OWNER TO valet' \
+            -c 'GRANT vap1_proof_owner, vaylet_staff_session_lock_owner, vaylet_management_writer TO valet WITH ADMIN TRUE, INHERIT FALSE, SET FALSE' \
+            -c 'ALTER ROLE valet_ci_bootstrap NOLOGIN PASSWORD NULL'
 
       - name: Run bounded PostgreSQL API project
         if: ${{ startsWith(matrix.lane, 'api-') }}

@@ -96,6 +96,7 @@ export class ShiftTestContext {
   readonly runtimeRole: string;
   readonly runtimeUrl: string;
   runtimePool!: Pool;
+  private databaseCreated = false;
 
   constructor(label: string) {
     const labelKey = createHash("sha256")
@@ -118,6 +119,7 @@ export class ShiftTestContext {
       const bootstrap = new Pool({ connectionString: baseDatabaseUrl });
       try {
         await bootstrap.query(`CREATE DATABASE "${this.databaseName}"`);
+        this.databaseCreated = true;
       } finally {
         await bootstrap.end();
       }
@@ -142,6 +144,7 @@ export class ShiftTestContext {
     await timedFixtureStage("teardown", this.timingTraceId, async () => {
       await this.runtimePool?.end();
       await this.adminPool.end();
+      if (!this.databaseCreated) return;
       const bootstrap = new Pool({ connectionString: baseDatabaseUrl });
       try {
         await bootstrap.query(
