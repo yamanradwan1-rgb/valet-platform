@@ -22,7 +22,7 @@ const policy = { ...syntheticStaffPushPolicy, sendingEnabled: true };
 
 async function prepared() {
   const fixture = await context.createGuestParkedFixture();
-  const registration = await context.addRegistration(fixture.userId);
+  const registration = await context.addRegistration(fixture.userId, { registrationAgeDays: 31 });
   await context.request(fixture);
   const delivery = await context.adminPool.query<{ id: string }>(
     `SELECT delivery.id FROM staff_push_deliveries AS delivery
@@ -34,25 +34,13 @@ async function prepared() {
 }
 
 async function ageRegistration(registrationId: string, days: number) {
-  const client = await context.adminPool.connect();
-  try {
-    await client.query("BEGIN");
-    await client.query("SET LOCAL session_replication_role = replica");
-    await client.query(
-      `UPDATE staff_push_registrations
-       SET created_at = clock_timestamp() - interval '31 days',
-           last_confirmed_at = clock_timestamp() - make_interval(days => $2),
-           updated_at = clock_timestamp()
-       WHERE id = $1`,
-      [registrationId, days],
-    );
-    await client.query("COMMIT");
-  } catch (error) {
-    await client.query("ROLLBACK");
-    throw error;
-  } finally {
-    client.release();
-  }
+  await context.adminPool.query(
+    `UPDATE staff_push_registrations
+     SET last_confirmed_at = clock_timestamp() - make_interval(days => $2),
+         updated_at = clock_timestamp()
+     WHERE id = $1`,
+    [registrationId, days],
+  );
 }
 
 async function registration(registrationId: string) {

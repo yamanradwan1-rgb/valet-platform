@@ -72,6 +72,7 @@ export class RetrievalPushTestContext extends ConfirmParkedTestContext {
     userId: string,
     options: {
       readonly absoluteExpired?: boolean;
+      readonly registrationAgeDays?: number;
       readonly revoked?: boolean;
       readonly state?:
         "ACTIVE" | "DISABLED" | "PROVIDER_INVALID" | "SUPERSEDED";
@@ -101,7 +102,7 @@ export class RetrievalPushTestContext extends ConfirmParkedTestContext {
         options.revoked ?? false,
       ],
     );
-    await this.insertActiveRegistration(registrationId, sessionId);
+    await this.insertActiveRegistration(registrationId, sessionId, options.registrationAgeDays);
     if (state !== "ACTIVE") {
       let successorId: string | null = null;
       if (state === "SUPERSEDED") {
@@ -161,7 +162,7 @@ export class RetrievalPushTestContext extends ConfirmParkedTestContext {
     };
   }
 
-  private async insertActiveRegistration(id: string, sessionId: string) {
+  private async insertActiveRegistration(id: string, sessionId: string, ageDays = 0) {
     const installationId = randomUUID();
     const tokenHash = `staff-push-token-sha256:v1:${createHash("sha256")
       .update(id)
@@ -173,8 +174,9 @@ export class RetrievalPushTestContext extends ConfirmParkedTestContext {
           locale, created_at, updated_at, last_confirmed_at)
        VALUES ($1, $2, 'FCM', 'ANDROID', 'com.vaylet.employee', $3,
                $4, $5, 'synthetic', 'synthetic', 'en',
-               transaction_timestamp(), transaction_timestamp(), transaction_timestamp())`,
-      [id, sessionId, installationId, `synthetic-token-${id}`, tokenHash],
+               transaction_timestamp() - make_interval(days => $6),
+               transaction_timestamp(), transaction_timestamp())`,
+      [id, sessionId, installationId, `synthetic-token-${id}`, tokenHash, ageDays],
     );
   }
 
