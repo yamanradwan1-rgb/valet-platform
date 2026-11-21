@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
@@ -34,9 +33,7 @@ async function sessionContext(
     [auth.sessionId],
   );
   return {
-    accessTokenHash: `staff-access-sha256:v1:${createHash("sha256")
-      .update(auth.accessToken)
-      .digest("hex")}`,
+    rawAccessToken: auth.accessToken,
     createdAt: row.rows[0]!.created_at,
     staffAuthSessionId: auth.sessionId,
     userId,

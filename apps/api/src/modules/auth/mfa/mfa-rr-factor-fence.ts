@@ -1,14 +1,14 @@
-import type { PostgresTransaction } from '../../../common/database/postgres';
-import type { StaffSessionContext } from '../staff-session-context';
-import { MfaStepUpRequiredError } from './mfa-errors';
-import { localMfaBypassEnabled } from './local-mfa-bypass';
+import type { PostgresTransaction } from "../../../common/database/postgres";
+import type { StaffSessionContext } from "../staff-session-context";
+import { MfaStepUpRequiredError } from "./mfa-errors";
+import { localMfaBypassEnabled } from "./local-mfa-bypass";
 
 /**
  * Call only AFTER canonical Company Admin session/User and Organization locks
  * have been acquired, and BEFORE the protected RR projection. A recovery
- * UPDATE committed after the RR snapshot causes PostgreSQL 40001 here, so the
- * owner must retry the entire transaction with fresh authorization. Holding
- * FOR SHARE through COMMIT orders reader-first recovery correctly.
+ * UPDATE is serialized by the session/User locks acquired before this fence.
+ * The factor is read after those locks, so Runtime needs no factor UPDATE
+ * privilege merely to take a row lock.
  */
 export async function requireCurrentMfaFactorFenceInRr(
   transaction: PostgresTransaction,
@@ -23,10 +23,9 @@ export async function requireCurrentMfaFactorFenceInRr(
       AND factor.user_id = session.user_id
      WHERE session.id = $1
        AND session.user_id = $2
-       AND session.current_access_token_hash = $3
-       AND factor.state = 'ACTIVE'
-     FOR SHARE OF factor`,
-    [context.staffAuthSessionId, context.userId, context.accessTokenHash],
+       AND session.created_at = $3::timestamptz
+       AND factor.state = 'ACTIVE'`,
+    [context.staffAuthSessionId, context.userId, context.createdAt],
   );
   if (factor.rowCount !== 1) throw new MfaStepUpRequiredError();
 }

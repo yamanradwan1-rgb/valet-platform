@@ -72,7 +72,7 @@ function setup(
     resolve: vi.fn(async () => ({
       userId: uuid,
       staffAuthSessionId: uuid,
-      accessTokenHash: "not-a-secret",
+      rawAccessToken: "vsa1." + "A".repeat(43),
       createdAt: new Date(0),
     })),
   } as unknown as StaffSessionContextResolver;

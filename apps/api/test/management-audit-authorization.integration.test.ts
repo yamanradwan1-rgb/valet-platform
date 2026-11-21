@@ -2,7 +2,6 @@ import type { PoolClient } from "pg";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
 import type { StaffSessionContext } from "../src/modules/auth/staff-session-context";
-import { staffCredentialHash } from "../src/modules/auth/staff-auth-credential";
 import {
   authorizeManagementAuditLocation,
   authorizeManagementAuditOrganization,
@@ -27,7 +26,7 @@ async function context(
   const createdAt = session.rows[0]?.created_at;
   if (createdAt === undefined) throw new Error("Test Staff session missing.");
   return {
-    accessTokenHash: staffCredentialHash("access", auth.accessToken),
+    rawAccessToken: auth.accessToken,
     createdAt,
     staffAuthSessionId: auth.sessionId,
     userId,

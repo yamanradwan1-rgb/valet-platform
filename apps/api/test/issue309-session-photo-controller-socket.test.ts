@@ -52,7 +52,7 @@ async function fixture(deliver: Deliver) {
     { resolve: async () => ({
       userId: uuid,
       staffAuthSessionId: uuid,
-      accessTokenHash: "synthetic",
+      rawAccessToken: "vsa1." + "A".repeat(43),
       createdAt: new Date(0),
     }) } as StaffSessionContextResolver,
   );

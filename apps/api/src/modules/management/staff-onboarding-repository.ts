@@ -1,6 +1,7 @@
 import type { StaffOnboardingCreate } from "@valet/contracts";
 
 import type { PostgresTransaction } from "../../common/database/postgres";
+import type { ManagementCommandContext } from "./management-command-context";
 import { throwStaffOnboardingDatabaseError } from "./staff-onboarding-errors";
 
 export interface StaffInvitationIssuanceRow {
@@ -53,15 +54,20 @@ async function execute(
 
 export function createStaffOnboarding(
   transaction: PostgresTransaction,
+  context: ManagementCommandContext,
   input: IssuanceIdentity & { readonly command: StaffOnboardingCreate },
 ): Promise<StaffInvitationIssuanceRow> {
   return execute(
     transaction,
-    `SELECT * FROM public.staff_onboarding_create(
-      $1::uuid,$2::uuid,$3::uuid,$4::text,$5::text,$6::text,$7::text,
-      $8::membership_role,$9::uuid[],$10::text
+    `SELECT * FROM public.staff_management_authorized_onboarding_create(
+      $1::uuid,$2::uuid,$3::text,$4::uuid,$5::uuid,$6::uuid,
+      $7::text,$8::text,$9::text,$10::text,
+      $11::membership_role,$12::uuid[],$13::text
     )`,
     [
+      context.staffAuthSessionId,
+      context.userId,
+      context.rawAccessToken,
       input.actorMembershipId,
       input.organizationId,
       input.operationId,
@@ -78,14 +84,19 @@ export function createStaffOnboarding(
 
 export function resendStaffOnboarding(
   transaction: PostgresTransaction,
+  context: ManagementCommandContext,
   input: IssuanceIdentity & { readonly membershipId: string },
 ): Promise<StaffInvitationIssuanceRow> {
   return execute(
     transaction,
-    `SELECT * FROM public.staff_onboarding_resend(
-      $1::uuid,$2::uuid,$3::uuid,$4::uuid,$5::text,$6::text
+    `SELECT * FROM public.staff_management_authorized_onboarding_resend(
+      $1::uuid,$2::uuid,$3::text,$4::uuid,$5::uuid,$6::uuid,
+      $7::uuid,$8::text,$9::text
     )`,
     [
+      context.staffAuthSessionId,
+      context.userId,
+      context.rawAccessToken,
       input.actorMembershipId,
       input.organizationId,
       input.membershipId,

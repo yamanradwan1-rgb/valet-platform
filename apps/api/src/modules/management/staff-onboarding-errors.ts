@@ -1,4 +1,5 @@
 import { ApiTransportValidationError } from "../../common/http/api-errors";
+import { MfaStepUpRequiredError } from "../auth/mfa/mfa-errors";
 import { ManagementAccessDeniedError } from "./management-authorization";
 
 export class StaffOnboardingUnavailableError extends Error {
@@ -28,6 +29,9 @@ export class StaffOnboardingOperationConflictError extends Error {
 export function throwStaffOnboardingDatabaseError(error: unknown): never {
   const row = error as { readonly code?: string; readonly message?: string };
   if (row.code === "42501") throw new ManagementAccessDeniedError();
+  if (row.code === "P0001" && row.message === "MFA_STEP_UP_REQUIRED") {
+    throw new MfaStepUpRequiredError();
+  }
   if (row.code === "22023" || row.code === "23514") {
     throw new ApiTransportValidationError();
   }

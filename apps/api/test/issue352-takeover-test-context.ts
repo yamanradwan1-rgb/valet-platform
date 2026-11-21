@@ -1,4 +1,4 @@
-import { createHash, randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 
 import type { StaffSessionContext } from "../src/modules/auth/staff-session-context";
 import type { DispatchMember } from "./dispatch-test-context";
@@ -89,8 +89,9 @@ export class Issue352TakeoverTestContext extends CompleteHandoffTestContext {
 
   async credential(userId: string, assured = false): Promise<StaffSessionContext> {
     const staffAuthSessionId = randomUUID();
+    const rawAccessToken = `vsa1.${randomBytes(32).toString("base64url")}`;
     const accessTokenHash = `staff-access-sha256:v1:${createHash("sha256")
-      .update(randomUUID())
+      .update(rawAccessToken)
       .digest("hex")}`;
     const factorId = assured ? randomUUID() : null;
     if (factorId !== null) {
@@ -120,7 +121,7 @@ export class Issue352TakeoverTestContext extends CompleteHandoffTestContext {
     if (createdAt === undefined) {
       throw new Error("Expected a persisted issue352 Staff session.");
     }
-    return { accessTokenHash, createdAt, staffAuthSessionId, userId };
+    return { rawAccessToken, createdAt, staffAuthSessionId, userId };
   }
 
   async snapshot(taskId: string): Promise<TakeoverSnapshot> {

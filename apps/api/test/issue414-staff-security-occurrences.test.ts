@@ -7,12 +7,13 @@ import {
   findStaffSecurityOccurrence,
 } from "../src/modules/dashboard/management-alert-sources/staff-security-occurrence-reader";
 
+type AdministrativeOccurrenceAuthorityModule =
+  typeof import("../src/modules/dashboard/management-alert-sources/administrative-occurrence-authority");
+
 vi.mock(
   "../src/modules/dashboard/management-alert-sources/administrative-occurrence-authority",
   async (importOriginal) => ({
-    ...(await importOriginal<
-      typeof import("../src/modules/dashboard/management-alert-sources/administrative-occurrence-authority")
-    >()),
+    ...(await importOriginal<AdministrativeOccurrenceAuthorityModule>()),
     authorizeStaffSecurityAlert: vi.fn(),
   }),
 );
@@ -26,7 +27,7 @@ const context = {
   userId: "77777777-7777-4777-8777-777777777777",
   staffAuthSessionId: "88888888-8888-4888-8888-888888888888",
   createdAt: new Date("2026-11-04T00:00:00Z"),
-  accessTokenHash: "staff-access-sha256:v1:test",
+  rawAccessToken: "vsa1." + "A".repeat(43),
 };
 const when = new Date("2026-11-04T18:00:00Z");
 

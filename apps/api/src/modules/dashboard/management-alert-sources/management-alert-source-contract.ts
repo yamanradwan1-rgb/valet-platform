@@ -1,6 +1,6 @@
 import type { PostgresTransaction } from "../../../common/database/postgres";
 import type { StaffSessionContext } from "../../auth/staff-session-context";
-import { lockAndRecheckStaffSessionContext } from "../../auth/staff-session-revalidation";
+import { lockStaffSessionWithBearer } from "../../auth/staff-session-lock";
 import { authorizeDashboardReadLocation } from "../dashboard-read-authorization";
 import type { DashboardLocationScope } from "../dashboard-location-authorization";
 import { DashboardOverviewError } from "../dashboard-overview-error";
@@ -54,7 +54,7 @@ export async function requireManagementAlertSourceScope(
   // Staff tokens. Lock user/session BEFORE the management-org authorization
   // fence, even when this reader is invoked without the aggregate facade.
   if (
-    (await lockAndRecheckStaffSessionContext(transaction, input.context)) ===
+    (await lockStaffSessionWithBearer(transaction, input.context, "SHARED")) ===
     undefined
   ) {
     throw new DashboardOverviewError("AUTHORIZATION_DENIED");

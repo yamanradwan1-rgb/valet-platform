@@ -1,4 +1,4 @@
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { Pool } from "pg";
 import type { StaffSessionContext } from "../src/modules/auth/staff-session-context";
 import {
@@ -47,7 +47,7 @@ export class StaffShiftForceEndTestFixture extends ManagementControlPlaneTestFix
       createdAt: new Date(),
       userId: actorUser.id,
       staffAuthSessionId: auth.sessionId,
-      accessTokenHash: `staff-access-sha256:v1:${createHash("sha256").update(auth.accessToken).digest("hex")}`,
+      rawAccessToken: auth.accessToken,
     };
     return {
       ...actor,

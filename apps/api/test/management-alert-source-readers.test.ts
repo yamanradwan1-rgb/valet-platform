@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { PostgresTransaction } from "../src/common/database/postgres";
-import { lockAndRecheckStaffSessionContext } from "../src/modules/auth/staff-session-revalidation";
 import { authorizeDashboardReadLocation } from "../src/modules/dashboard/dashboard-read-authorization";
 import { queryRetrievalSlaAlertCases } from "../src/modules/dashboard/management-alert-sources/retrieval-sla-alert-reader";
 import { queryIncidentAlertCases } from "../src/modules/dashboard/management-alert-sources/incident-alert-reader";
@@ -11,14 +10,12 @@ import type { ManagementAlertReaderInput } from "../src/modules/dashboard/manage
 vi.mock("../src/modules/dashboard/dashboard-read-authorization", () => ({
   authorizeDashboardReadLocation: vi.fn(),
 }));
-vi.mock("../src/modules/auth/staff-session-revalidation", () => ({
-  lockAndRecheckStaffSessionContext: vi.fn(),
-}));
 
+const rawAccessToken = `vsa1.${"D".repeat(43)}`;
 const input: ManagementAlertReaderInput = {
   context: {
-    accessTokenHash: "test-token-hash",
     createdAt: new Date("2026-11-04T00:00:00.000Z"),
+    rawAccessToken,
     staffAuthSessionId: "staff-session",
     userId: "current-user",
   },
@@ -31,39 +28,57 @@ const input: ManagementAlertReaderInput = {
 };
 
 const authorize = vi.mocked(authorizeDashboardReadLocation);
-const staffSession = vi.mocked(lockAndRecheckStaffSessionContext);
 
 function fakeTransaction(
   sourceRows: Record<string, unknown>[],
   entitlement = true,
+  sessionCurrent = true,
 ) {
   const statements: Array<{ sql: string; args?: readonly unknown[] }> = [];
-  const transaction = {
-    query: vi.fn(async (sql: string, args?: readonly unknown[]) => {
-      statements.push(args === undefined ? { sql } : { sql, args });
-      if (sql.includes("shift_presence_lock_management_entitlement")) {
-        return { rows: [{ enabled: entitlement }], rowCount: 1 };
-      }
-      return { rows: sourceRows, rowCount: sourceRows.length };
-    }),
-  } as unknown as PostgresTransaction;
-  return { transaction, statements };
+  const sessionLocks: Array<{ sql: string; args?: readonly unknown[] }> = [];
+  const query = vi.fn(async (sql: string, args?: readonly unknown[]) => {
+    if (sql.includes("staff_auth_lock_current_session")) {
+      sessionLocks.push(args === undefined ? { sql } : { sql, args });
+      return sessionCurrent
+        ? {
+            rows: [
+              {
+                absolute_expires_at: new Date("2026-11-05T00:00:00.000Z"),
+                checked_at: new Date("2026-11-04T12:00:00.000Z"),
+                created_at: input.context.createdAt,
+                id: input.context.staffAuthSessionId,
+                last_admin_activity_at: null,
+                mfa_authenticated_at: null,
+                mfa_factor_id: null,
+                user_id: input.context.userId,
+              },
+            ],
+            rowCount: 1,
+          }
+        : { rows: [], rowCount: 0 };
+    }
+    statements.push(args === undefined ? { sql } : { sql, args });
+    if (sql.includes("shift_presence_lock_management_entitlement")) {
+      return { rows: [{ enabled: entitlement }], rowCount: 1 };
+    }
+    return { rows: sourceRows, rowCount: sourceRows.length };
+  });
+  const transaction = { query } as unknown as PostgresTransaction;
+  return { transaction, statements, sessionLocks, query };
 }
 
 beforeEach(() => {
   vi.resetAllMocks();
   authorize.mockResolvedValue(input.scope);
-  staffSession.mockResolvedValue({
-    id: input.context.staffAuthSessionId,
-    user_id: input.context.userId,
-    created_at: input.context.createdAt,
-  });
 });
 
 describe("Issue #414 P1 management source authorization and query contracts", () => {
   it("denies an invalid current token before LM scope and every family source query", async () => {
-    const { transaction, statements } = fakeTransaction([]);
-    staffSession.mockResolvedValue(undefined);
+    const { transaction, statements, sessionLocks } = fakeTransaction(
+      [],
+      true,
+      false,
+    );
     await expect(
       queryIncidentAlertCases(transaction, input),
     ).rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
@@ -76,13 +91,20 @@ describe("Issue #414 P1 management source authorization and query contracts", ()
     await expect(
       queryPresenceReviewAlertCases(transaction, input),
     ).rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
-    expect(staffSession).toHaveBeenCalledTimes(3);
+    expect(sessionLocks).toHaveLength(3);
+    expect(sessionLocks[0]!.args).toEqual([
+      input.context.staffAuthSessionId,
+      input.context.userId,
+      rawAccessToken,
+      input.context.createdAt,
+      "SHARED",
+    ]);
     expect(authorize).not.toHaveBeenCalled();
     expect(statements).toHaveLength(0);
   });
 
   it("denies a stale or mismatched source scope before querying protected incidents", async () => {
-    const { transaction, statements } = fakeTransaction([]);
+    const { transaction, statements, sessionLocks } = fakeTransaction([]);
     authorize.mockResolvedValueOnce(null);
     await expect(
       queryIncidentAlertCases(transaction, input),
@@ -96,11 +118,19 @@ describe("Issue #414 P1 management source authorization and query contracts", ()
     await expect(
       queryIncidentAlertCases(transaction, input),
     ).rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
+    authorize.mockResolvedValueOnce({
+      ...input.scope,
+      organizationId: "organization-b",
+    });
+    await expect(
+      queryIncidentAlertCases(transaction, input),
+    ).rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
     expect(statements).toHaveLength(0);
+    expect(sessionLocks).toHaveLength(3);
   });
 
   it("uses a strictly bounded, matched, covered current attempt and sanitized CRITICAL identity", async () => {
-    const { transaction, statements } = fakeTransaction([
+    const { transaction, statements, sessionLocks, query } = fakeTransaction([
       {
         requestId: "request-uuid",
         requestedAt: new Date("2026-11-03T12:00:00.000Z"),
@@ -139,8 +169,15 @@ describe("Issue #414 P1 management source authorization and query contracts", ()
     );
     expect(source.sql).toContain("instant.at > request.requested_at");
     expect(source.args).toEqual(["organization-a", "location-a", 60, 21]);
-    expect(staffSession).toHaveBeenCalledWith(transaction, input.context);
-    expect(staffSession.mock.invocationCallOrder[0]).toBeLessThan(
+    expect(sessionLocks).toHaveLength(1);
+    expect(sessionLocks[0]!.args).toEqual([
+      input.context.staffAuthSessionId,
+      input.context.userId,
+      rawAccessToken,
+      input.context.createdAt,
+      "SHARED",
+    ]);
+    expect(query.mock.invocationCallOrder[0]).toBeLessThan(
       authorize.mock.invocationCallOrder[0]!,
     );
     expect(authorize).toHaveBeenCalledWith(transaction, {
@@ -219,7 +256,7 @@ describe("Issue #414 P1 management source authorization and query contracts", ()
     expect(allowed.statements[0]!.args).toEqual([
       "current-user",
       "staff-session",
-      "test-token-hash",
+      rawAccessToken,
       "organization-a",
     ]);
     const sql = allowed.statements[1]!.sql;

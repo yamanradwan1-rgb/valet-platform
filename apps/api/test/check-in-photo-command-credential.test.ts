@@ -10,17 +10,20 @@ const request = {
   authenticatedUserId: "11111111-1111-4111-8111-111111111111",
   valetSessionId: "22222222-2222-4222-8222-222222222222",
 };
+const rawAccessToken = `vsa1.${"A".repeat(43)}`;
 const credential: StaffSessionContext = {
   userId: request.authenticatedUserId,
   staffAuthSessionId: "33333333-3333-4333-8333-333333333333",
-  accessTokenHash: "for-test-only-hash",
+  rawAccessToken,
   createdAt: new Date("2026-10-15T00:00:00.000Z"),
 };
 
 function revokedAfterPreflightPool() {
   const commands: string[] = [];
-  const query = vi.fn(async (sql: string) => {
+  const calls: Array<{ sql: string; parameters: readonly unknown[] }> = [];
+  const query = vi.fn(async (sql: string, parameters?: readonly unknown[]) => {
     commands.push(sql);
+    calls.push({ sql, parameters: parameters ?? [] });
     // The exact StaffAuthSession row was deleted/revoked while S3 was pending.
     return { rows: [] };
   });
@@ -28,7 +31,7 @@ function revokedAfterPreflightPool() {
   const pool = {
     connect: vi.fn(async () => ({ query, release })),
   } as unknown as PostgresPool;
-  return { commands, pool, release };
+  return { calls, commands, pool, release };
 }
 
 describe("P3 exact staff bearer required for trusted evidence", () => {
@@ -38,9 +41,11 @@ describe("P3 exact staff bearer required for trusted evidence", () => {
       receipt: undefined,
     }));
     const pool = { connect: vi.fn() } as unknown as PostgresPool;
-    await expect(createCompleteCheckInConditionCommandExecutor(pool, {
-      photoPreflight: preflight,
-    })(request)).rejects.toBeInstanceOf(UnauthorizedException);
+    await expect(
+      createCompleteCheckInConditionCommandExecutor(pool, {
+        photoPreflight: preflight,
+      })(request),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
     expect(preflight).not.toHaveBeenCalled();
     expect(pool.connect).not.toHaveBeenCalled();
   });
@@ -51,9 +56,11 @@ describe("P3 exact staff bearer required for trusted evidence", () => {
       receipt: undefined,
     }));
     const pool = { connect: vi.fn() } as unknown as PostgresPool;
-    await expect(createCompleteCheckInCommandExecutor(pool, {
-      photoPreflight: preflight,
-    })({ ...request, expectedVersion: 1 })).rejects.toBeInstanceOf(UnauthorizedException);
+    await expect(
+      createCompleteCheckInCommandExecutor(pool, {
+        photoPreflight: preflight,
+      })({ ...request, expectedVersion: 1 }),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
     expect(preflight).not.toHaveBeenCalled();
     expect(pool.connect).not.toHaveBeenCalled();
   });
@@ -61,29 +68,54 @@ describe("P3 exact staff bearer required for trusted evidence", () => {
   it.each(["condition", "final"] as const)(
     "revoked token after delayed %s byte preflight never reaches a mutation or audit",
     async (command) => {
-      let releaseProof!: (value: { requestNonce: string; receipt: undefined }) => void;
-      const delayed = new Promise<{ requestNonce: string; receipt: undefined }>((resolve) => {
-        releaseProof = resolve;
-      });
+      let releaseProof!: (value: {
+        requestNonce: string;
+        receipt: undefined;
+      }) => void;
+      const delayed = new Promise<{ requestNonce: string; receipt: undefined }>(
+        (resolve) => {
+          releaseProof = resolve;
+        },
+      );
       const preflight = vi.fn(() => delayed);
       const h = revokedAfterPreflightPool();
-      const pending = command === "condition"
-        ? createCompleteCheckInConditionCommandExecutor(h.pool, {
-          photoPreflight: preflight,
-        })(request, credential)
-        : createCompleteCheckInCommandExecutor(h.pool, {
-          photoPreflight: preflight,
-        })({ ...request, expectedVersion: 1 }, credential);
+      const pending =
+        command === "condition"
+          ? createCompleteCheckInConditionCommandExecutor(h.pool, {
+              photoPreflight: preflight,
+            })(request, credential)
+          : createCompleteCheckInCommandExecutor(h.pool, {
+              photoPreflight: preflight,
+            })({ ...request, expectedVersion: 1 }, credential);
 
       expect(preflight).toHaveBeenCalledTimes(1);
       expect(h.commands).toEqual([]);
-      releaseProof({ requestNonce: "server-nonce-0123456789", receipt: undefined });
+      releaseProof({
+        requestNonce: "server-nonce-0123456789",
+        receipt: undefined,
+      });
       await expect(pending).rejects.toBeInstanceOf(UnauthorizedException);
       expect(h.commands[0]).toBe("BEGIN");
-      expect(h.commands.some((sql) => sql.includes("FROM staff_auth_sessions"))).toBe(true);
+      const sessionLock = h.commands.findIndex((sql) =>
+        sql.includes("staff_auth_lock_current_session"),
+      );
+      expect(sessionLock).toBeGreaterThan(0);
+      expect(h.commands[sessionLock]).toContain(
+        "public.staff_auth_lock_current_session",
+      );
+      expect(h.calls[sessionLock]!.parameters).toEqual([
+        credential.staffAuthSessionId,
+        credential.userId,
+        rawAccessToken,
+        credential.createdAt,
+        "EXCLUSIVE",
+      ]);
       expect(h.commands).toContain("ROLLBACK");
-      expect(h.commands.some((sql) => /\b(UPDATE|INSERT)\s+(valet_sessions|audit_events)\b/i.test(sql)))
-        .toBe(false);
+      expect(
+        h.commands.some((sql) =>
+          /\b(UPDATE|INSERT)\s+(valet_sessions|audit_events)\b/i.test(sql),
+        ),
+      ).toBe(false);
       expect(h.release).toHaveBeenCalledOnce();
     },
   );

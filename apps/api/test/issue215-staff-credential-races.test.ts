@@ -1,11 +1,9 @@
 import { randomUUID } from "node:crypto";
-import { resolve } from "node:path";
-import { pathToFileURL } from "node:url";
 
-import { Pool, type PoolClient } from "pg";
+import type { PoolClient } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import type { RaceContext, Scope } from "./issue215-staff-race-context";
+import { openIssue215StaffRaceContext, type RaceContext, type Scope } from "./issue215-staff-race-context";
 import { inPostgresTransaction } from "../src/common/database/postgres-transaction";
 import type { PostgresPool } from "../src/common/database/postgres";
 import { StaffAuthService } from "../src/modules/auth/staff-auth.service";
@@ -25,11 +23,16 @@ const facts = {
 };
 
 function barrier() {
-  let entered!: () => void;
+  let entered!: (pid: number) => void;
   let release!: () => void;
-  const atBarrier = new Promise<void>((resolve) => { entered = resolve; });
+  const atBarrier = new Promise<number>((resolve) => { entered = resolve; });
   const resume = new Promise<void>((resolve) => { release = resolve; });
   return { atBarrier, entered, release, resume };
+}
+
+async function backendPid(client: PoolClient): Promise<number> {
+  const result = await client.query<{ pid: number }>("SELECT pg_backend_pid() AS pid");
+  return result.rows[0]!.pid;
 }
 
 /** Pause a REAL auth writer with its SQL locks still held, immediately after its chosen statement. */
@@ -44,7 +47,7 @@ function pausedWriter(pool: PostgresPool, statement: RegExp) {
           const result = await client.query(sql, values);
           if (!paused && statement.test(sql)) {
             paused = true;
-            gate.entered();
+            gate.entered(await backendPid(client));
             await gate.resume;
           }
           return result;
@@ -56,14 +59,15 @@ function pausedWriter(pool: PostgresPool, statement: RegExp) {
   return { gate, wrapper };
 }
 
-async function awaitLockWait(pool: PostgresPool, statement: RegExp): Promise<void> {
+async function awaitLockWait(pool: PostgresPool, blockerPid: number): Promise<void> {
   for (let attempt = 0; attempt < 150; attempt += 1) {
-    const result = await pool.query<{ query: string }>(
-      `SELECT query FROM pg_stat_activity
+    const result = await pool.query<{ blocked: boolean }>(
+      `SELECT EXISTS (SELECT 1 FROM pg_stat_activity
        WHERE datname = current_database() AND pid <> pg_backend_pid()
-         AND wait_event_type = 'Lock'`,
+         AND $1::int = ANY(pg_blocking_pids(pid))) AS blocked`,
+      [blockerPid],
     );
-    if (result.rows.some((row) => statement.test(row.query))) return;
+    if (result.rows[0]?.blocked) return;
     await new Promise((resolve) => setTimeout(resolve, 20));
   }
   throw new Error("Expected real PostgreSQL lock wait was not observed.");
@@ -91,7 +95,7 @@ async function createCredential(ctx: RaceContext, scope: Scope) {
   const credential: StaffSessionContext = {
     userId: scope.userId,
     staffAuthSessionId: sessionId,
-    accessTokenHash: staffCredentialHash("access", accessToken),
+    rawAccessToken: accessToken,
     createdAt: inserted.rows[0]!.created_at,
   };
   return { credential, refreshToken };
@@ -99,11 +103,11 @@ async function createCredential(ctx: RaceContext, scope: Scope) {
 
 async function storedLease(ctx: RaceContext, scope: Scope, credential: StaffSessionContext) {
   const reservation = await reserveConditionPhoto(
-    ctx.pool, credential, scope.sessionId, randomUUID(), Buffer.alloc(32, 0x11), 256, "issue215_test",
+    ctx.runtime, credential, scope.sessionId, randomUUID(), Buffer.alloc(32, 0x11), 256, "issue215_test",
   );
   const lease = reservation.lease;
   if (!lease) throw new Error("Expected a fresh T1 lease.");
-  await markConditionPhotoStored(ctx.pool, credential, scope.sessionId, lease, facts);
+  await markConditionPhotoStored(ctx.runtime, credential, scope.sessionId, lease, facts);
   return lease;
 }
 
@@ -133,37 +137,26 @@ async function committedEvidence(ctx: RaceContext, lease: Lease) {
 
 describe("Issue #283 real StaffAuthSession T1/T2 credential races", () => {
   let ctx: RaceContext;
-  let observer: Pool;
   beforeAll(async () => {
-    // The guarded P1 fixture is loaded at runtime: API's tsc rootDir excludes
-    // packages/database TS source. Its pinned target attestation still runs.
-    const fixtureUrl = pathToFileURL(resolve(__dirname,
-      "../../../packages/database/src/condition-photo-p1-test-context.ts"));
-    const { ConditionPhotoP1TestContext } = await import(/* @vite-ignore */ fixtureUrl.href) as {
-      ConditionPhotoP1TestContext: new () => RaceContext;
-    };
-    ctx = new ConditionPhotoP1TestContext();
-    await ctx.start();
-    observer = new Pool({ connectionString: ctx.dbUrl, max: 1 });
+    ctx = await openIssue215StaffRaceContext();
   }, 180_000);
   afterAll(async () => {
-    await observer?.end();
     await ctx?.stop();
   }, 30_000);
 
   it("refresh commits first: waiting T1 refuses the old access hash and creates no attempt", async () => {
     const scope = await ctx.seed();
     const { credential, refreshToken } = await createCredential(ctx, scope);
-    const { gate, wrapper } = pausedWriter(ctx.pool, /UPDATE staff_auth_sessions\s+SET current_access_token_hash/i);
-    const auth = new StaffAuthService(wrapper, { verify: async () => false });
+    const { gate, wrapper } = pausedWriter(ctx.authWriter, /UPDATE staff_auth_sessions\s+SET current_access_token_hash/i);
+    const auth = new StaffAuthService(ctx.runtime, { verify: async () => false }, wrapper);
     const refresh = auth.refresh(refreshToken);
-    await gate.atBarrier;
+    const blocker = await gate.atBarrier;
     try {
-      const reserve = reserveConditionPhoto(ctx.pool, credential, scope.sessionId,
+      const reserve = reserveConditionPhoto(ctx.runtime, credential, scope.sessionId,
         randomUUID(), Buffer.alloc(32, 0x11), 256, "issue215_test");
       const mustReject = expect(reserve).rejects.toBeDefined();
       try {
-        await awaitLockWait(observer, /pg_advisory_xact_lock/i);
+        await awaitLockWait(ctx.pool, blocker);
       } finally { gate.release(); }
       await refresh;
       await mustReject;
@@ -179,19 +172,19 @@ describe("Issue #283 real StaffAuthSession T1/T2 credential races", () => {
     const scope = await ctx.seed();
     const { credential, refreshToken } = await createCredential(ctx, scope);
     const lease = await storedLease(ctx, scope, credential);
-    const { gate, wrapper } = pausedWriter(ctx.pool, /UPDATE staff_auth_sessions\s+SET current_access_token_hash/i);
-    const refresh = new StaffAuthService(wrapper, { verify: async () => false }).refresh(refreshToken);
-    await gate.atBarrier;
+    const { gate, wrapper } = pausedWriter(ctx.authWriter, /UPDATE staff_auth_sessions\s+SET current_access_token_hash/i);
+    const refresh = new StaffAuthService(ctx.runtime, { verify: async () => false }, wrapper).refresh(refreshToken);
+    const blocker = await gate.atBarrier;
     try {
-      const finalize = finalizeConditionPhoto(ctx.pool, credential, scope.sessionId, lease, facts);
+      const finalize = finalizeConditionPhoto(ctx.runtime, credential, scope.sessionId, lease, facts);
       const mustReject = expect(finalize).rejects.toBeDefined();
-      try { await awaitLockWait(observer, /pg_advisory_xact_lock/i); }
+      try { await awaitLockWait(ctx.pool, blocker); }
       finally { gate.release(); }
       const rotated = await refresh;
       await mustReject;
       expect(await committedEvidence(ctx, lease)).toEqual({ selected: "0", audit_count: "0" });
-      const current = { ...credential, accessTokenHash: staffCredentialHash("access", rotated.accessToken) };
-      await finalizeConditionPhoto(ctx.pool, current, scope.sessionId, lease, facts);
+      const current = { ...credential, rawAccessToken: rotated.accessToken };
+      await finalizeConditionPhoto(ctx.runtime, current, scope.sessionId, lease, facts);
       expect(await committedEvidence(ctx, lease)).toEqual({ selected: "1", audit_count: "1" });
     } finally { gate.release(); await refresh.catch(() => undefined); }
   }, 30_000);
@@ -201,15 +194,15 @@ describe("Issue #283 real StaffAuthSession T1/T2 credential races", () => {
     const { credential, refreshToken } = await createCredential(ctx, scope);
     const lease = await storedLease(ctx, scope, credential);
     let refresh!: Promise<unknown>;
-    await inPostgresTransaction(ctx.pool, async (client) => {
+    await inPostgresTransaction(ctx.runtime, async (client) => {
       await authorizeConditionPhotoScope(client, credential, scope.sessionId);
-      refresh = new StaffAuthService(ctx.pool, { verify: async () => false }).refresh(refreshToken);
-      await awaitLockWait(observer, /pg_advisory_xact_lock/i);
+      refresh = new StaffAuthService(ctx.runtime, { verify: async () => false }, ctx.authWriter).refresh(refreshToken);
+      await awaitLockWait(ctx.pool, await backendPid(client));
       await finalizeInsideLockedTransaction(client, scope, credential, lease);
     });
     await refresh;
     expect(await committedEvidence(ctx, lease)).toEqual({ selected: "1", audit_count: "1" });
-    await expect(finalizeConditionPhoto(ctx.pool, credential, scope.sessionId, lease, facts))
+    await expect(finalizeConditionPhoto(ctx.runtime, credential, scope.sessionId, lease, facts))
       .rejects.toBeDefined();
   }, 30_000);
 
@@ -217,13 +210,13 @@ describe("Issue #283 real StaffAuthSession T1/T2 credential races", () => {
     const scope = await ctx.seed();
     const { credential, refreshToken } = await createCredential(ctx, scope);
     const lease = await storedLease(ctx, scope, credential);
-    const { gate, wrapper } = pausedWriter(ctx.pool, /FOR UPDATE OF refresh, session/i);
+    const { gate, wrapper } = pausedWriter(ctx.authWriter, /FOR UPDATE OF refresh, session/i);
     const logout = logoutStaffSession(wrapper, refreshToken);
-    await gate.atBarrier;
+    const blocker = await gate.atBarrier;
     try {
-      const finalize = finalizeConditionPhoto(ctx.pool, credential, scope.sessionId, lease, facts);
+      const finalize = finalizeConditionPhoto(ctx.runtime, credential, scope.sessionId, lease, facts);
       const mustReject = expect(finalize).rejects.toBeDefined();
-      try { await awaitLockWait(observer, /FROM staff_auth_sessions AS session/i); }
+      try { await awaitLockWait(ctx.pool, blocker); }
       finally { gate.release(); }
       await logout;
       await mustReject;
@@ -236,15 +229,15 @@ describe("Issue #283 real StaffAuthSession T1/T2 credential races", () => {
     const { credential, refreshToken } = await createCredential(ctx, scope);
     const lease = await storedLease(ctx, scope, credential);
     let logout!: Promise<void>;
-    await inPostgresTransaction(ctx.pool, async (client) => {
+    await inPostgresTransaction(ctx.runtime, async (client) => {
       await authorizeConditionPhotoScope(client, credential, scope.sessionId);
-      logout = logoutStaffSession(ctx.pool, refreshToken);
-      await awaitLockWait(observer, /FOR UPDATE OF refresh, session/i);
+      logout = logoutStaffSession(ctx.authWriter, refreshToken);
+      await awaitLockWait(ctx.pool, await backendPid(client));
       await finalizeInsideLockedTransaction(client, scope, credential, lease);
     });
     await logout;
     expect(await committedEvidence(ctx, lease)).toEqual({ selected: "1", audit_count: "1" });
-    await expect(finalizeConditionPhoto(ctx.pool, credential, scope.sessionId, lease, facts))
+    await expect(finalizeConditionPhoto(ctx.runtime, credential, scope.sessionId, lease, facts))
       .rejects.toBeDefined();
   }, 30_000);
 
@@ -272,9 +265,9 @@ describe("Issue #283 real StaffAuthSession T1/T2 credential races", () => {
             [scope.orgId, scope.memberId, scope.locationId],
           );
         }
-        const finalize = finalizeConditionPhoto(ctx.pool, credential, scope.sessionId, lease, facts);
+        const finalize = finalizeConditionPhoto(ctx.runtime, credential, scope.sessionId, lease, facts);
         const mustReject = expect(finalize).rejects.toBeDefined();
-        try { await awaitLockWait(observer, /FOR SHARE/i); }
+        try { await awaitLockWait(ctx.pool, await backendPid(revoker)); }
         finally { await revoker.query("COMMIT"); committed = true; }
         await mustReject;
         expect(await committedEvidence(ctx, lease)).toEqual({ selected: "0", audit_count: "0" });

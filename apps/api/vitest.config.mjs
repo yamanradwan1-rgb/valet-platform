@@ -96,7 +96,7 @@ export default defineConfig({
       postgresProject("api-postgres-standard", "api-standard"),
       postgresProject("api-postgres-compound", "api-compound"),
       postgresProject("api-postgres-race", "api-race"),
-      postgresProject("api-postgres-issue215", "api-race"),
+      postgresProject("api-postgres-issue215", "api-issue215"),
       postgresProject("api-postgres-issue309-browser", "api-photo-browser"),
       ...(process.env.CI !== "true" &&
       process.env.ISSUE319_EPHEMERAL_PG === "I_OWN_THIS_CLUSTER"

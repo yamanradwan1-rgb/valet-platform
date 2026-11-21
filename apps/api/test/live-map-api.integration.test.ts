@@ -28,7 +28,7 @@ const resolver: StaffSessionContextResolver = {
     const userId = authorization && principals.get(authorization);
     if (userId === undefined) throw new UnauthorizedException();
     return {
-      accessTokenHash: "test-access-hash",
+      rawAccessToken: "vsa1." + "A".repeat(43),
       createdAt: new Date(0),
       staffAuthSessionId: randomUUID(),
       userId,

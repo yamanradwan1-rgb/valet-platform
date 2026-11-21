@@ -13,7 +13,7 @@ const userId = "44444444-4444-4444-8444-444444444444";
 const context = {
   userId,
   staffAuthSessionId: "55555555-5555-4555-8555-555555555555",
-  accessTokenHash: "staff-access-sha256:v1:test",
+  rawAccessToken: "vsa1." + "A".repeat(43),
   createdAt: new Date("2026-11-04T00:00:00Z"),
 };
 type Role = "ORG_ADMIN" | "LOCATION_MANAGER" | "VALET_SUPERVISOR";
@@ -35,7 +35,14 @@ function scriptedDatabase(s: Scenario = {}) {
   let sessionReads = 0;
   const query = async (sql: string, params: unknown[] = []) => {
     statements.push({ sql, params });
-    if (sql.includes("FROM staff_auth_sessions AS session")) {
+    if (sql.includes("public.staff_auth_lock_current_session(")) {
+      expect(params).toEqual([
+        context.staffAuthSessionId,
+        context.userId,
+        context.rawAccessToken,
+        context.createdAt,
+        "SHARED",
+      ]);
       sessionReads += 1;
       const valid =
         sessionReads === 1
@@ -49,14 +56,27 @@ function scriptedDatabase(s: Scenario = {}) {
         rowCount: 1,
         rows: [
           {
-            now,
-            factorCurrent: validMfa,
-            mfaFactorId: validMfa ? membershipId : null,
-            mfaAuthenticatedAt: new Date(now.getTime() - 1_000),
-            lastAdminActivityAt: new Date(now.getTime() - 1_000),
+            id: context.staffAuthSessionId,
+            user_id: context.userId,
+            created_at: context.createdAt,
+            absolute_expires_at: new Date(now.getTime() + 60_000),
+            mfa_factor_id: validMfa ? membershipId : null,
+            mfa_authenticated_at: validMfa
+              ? new Date(now.getTime() - 1_000)
+              : null,
+            last_admin_activity_at: validMfa
+              ? new Date(now.getTime() - 1_000)
+              : null,
+            checked_at: now,
           },
         ],
       };
+    }
+    if (sql.includes("FROM user_mfa_totp_factors AS factor")) {
+      expect(params).toEqual([membershipId, context.userId]);
+      const valid =
+        sessionReads === 1 ? s.validMfa !== false : s.postLockMfa !== false;
+      return { rowCount: valid ? 1 : 0, rows: valid ? [{}] : [] };
     }
     if (sql.includes("SELECT 1 FROM organization_memberships AS membership")) {
       const valid = (params[2] as string[]).includes(
@@ -125,17 +145,15 @@ describe("Issue #414 read-only administrative source authorization", () => {
     );
     expect(lock).toBeGreaterThan(0);
     expect(
-      sql.filter((s) => s.includes("FROM staff_auth_sessions")),
+      sql.filter((s) => s.includes("public.staff_auth_lock_current_session(")),
     ).toHaveLength(2);
-    expect(sql[0]).toContain("FOR SHARE OF session, actor");
-    expect(sql[0]).toContain("session.current_access_token_hash=$3");
-    expect(sql[0]).toContain("session.created_at=$4::timestamptz");
-    expect(sql[lock + 1]).toContain("FOR SHARE OF session, actor");
-    expect(sql[lock + 2]).toContain(
-      "FOR SHARE OF membership, actor, organization",
-    );
-    expect(sql[lock + 2]).not.toContain("FOR SHARE OF subscription");
-    expect(sql[lock + 2]).toContain(
+    expect(sql[0]).toContain("public.staff_auth_lock_current_session(");
+    expect(sql[0]).not.toContain("current_access_token_hash");
+    expect(sql[lock + 1]).toContain("public.staff_auth_lock_current_session(");
+    expect(sql[lock + 2]).toContain("FROM user_mfa_totp_factors AS factor");
+    expect(sql[lock + 3]).toContain("FOR SHARE OF membership, organization");
+    expect(sql[lock + 3]).not.toContain("FOR SHARE OF subscription");
+    expect(sql[lock + 3]).toContain(
       "subscription.dashboard_access_enabled=TRUE",
     );
     expect(sql.at(-1)).toContain("FROM locations");

@@ -2,7 +2,6 @@ import { randomUUID } from "node:crypto";
 import { Pool, type PoolClient } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { staffCredentialHash } from "../src/modules/auth/staff-auth-credential";
 import type { StaffSessionContext } from "../src/modules/auth/staff-session-context";
 import type { PostgresPool } from "../src/common/database/postgres";
 import { locationKpiAnalytics } from "../src/modules/dashboard/analytics-kpi-query";
@@ -57,7 +56,7 @@ async function makeActor(): Promise<Actor> {
     locationId: location.locationId,
     session: {
       userId: user.id, staffAuthSessionId: login.sessionId,
-      accessTokenHash: staffCredentialHash("access", login.accessToken),
+      rawAccessToken: login.accessToken,
       createdAt: created.rows[0]!.created_at,
     },
   };

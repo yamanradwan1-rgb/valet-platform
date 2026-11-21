@@ -3,6 +3,10 @@ import {
   managementPhotoLockSignature as signature,
   photoReadTables,
 } from "./condition-photo-privilege-policy.mjs";
+import {
+  assertPhotoLockOwnerMembership,
+  photoLockMembershipSql,
+} from "./condition-photo-owner-membership.mjs";
 
 const keyColumns = ["id", "id", "vehicle_photo_id", "vehicle_photo_id"];
 
@@ -59,12 +63,8 @@ export async function provisionManagementPhotoLockOwner(client, executeFormatted
       role.rolreplication || role.rolbypassrls || role.rolinherit) {
     throw new Error("Management photo lock owner has privileged role attributes.");
   }
-  const member = await client.query(
-    `SELECT COUNT(*)::integer AS total FROM pg_auth_members m
-     JOIN pg_roles a ON a.oid=m.member JOIN pg_roles b ON b.oid=m.roleid
-     WHERE a.rolname=$1 OR b.rolname=$1`, [owner],
-  );
-  if (member.rows[0]?.total !== 0) throw new Error("Photo lock owner inherits roles.");
+  const membership = await client.query(photoLockMembershipSql, [owner]);
+  assertPhotoLockOwnerMembership(membership.rows, owner, migrationRole, runtimeRole);
   const owned = await client.query(
     `SELECT COUNT(*)::integer AS total FROM pg_proc p
      JOIN pg_roles r ON r.oid=p.proowner WHERE r.rolname=$1
@@ -85,25 +85,67 @@ export async function provisionManagementPhotoLockOwner(client, executeFormatted
     await executeFormatted(client, "GRANT SELECT ON TABLE %s TO %I", [table, owner]);
     await executeFormatted(client, "GRANT UPDATE (%I) ON TABLE %s TO %I", [keyColumns[index], table, owner]);
   }
-  // PostgreSQL requires membership of the target owner for ALTER FUNCTION.
-  // It is granted and revoked entirely inside this provisioning transaction.
-  if (fn.rows[0].owner !== owner) {
-    await executeFormatted(client, "GRANT %I TO %I", [owner, migrationRole]);
-    await executeFormatted(client, "ALTER FUNCTION %s OWNER TO %I", [signature, owner]);
+  // The protected function is owned by this NOLOGIN role after the first
+  // run. Its ACL must be maintained by that owner on every replay, since the
+  // migrator deliberately cannot inherit its privileges between runs.
+  // The temporary SET membership never commits: it is revoked in the same
+  // provisioning transaction before the caller may COMMIT.
+  await executeFormatted(client, "GRANT %I TO %I", [owner, migrationRole]);
+  try {
+    if (fn.rows[0].owner !== owner) {
+      await executeFormatted(client, "ALTER FUNCTION %s OWNER TO %I", [signature, owner]);
+    }
+    await client.query("SET LOCAL ROLE valet_photo_evidence_lock_owner");
+    try {
+      await executeFormatted(client, "REVOKE ALL ON FUNCTION %s FROM PUBLIC", [signature]);
+      await executeFormatted(client, "REVOKE ALL ON FUNCTION %s FROM %I", [
+        signature, runtimeRole,
+      ]);
+      await executeFormatted(client, "GRANT EXECUTE ON FUNCTION %s TO %I", [
+        signature, runtimeRole,
+      ]);
+    } finally {
+      await client.query("RESET ROLE");
+    }
+    const restored = await client.query("SELECT current_user AS name");
+    if (restored.rows[0]?.name !== migrationRole) {
+      throw new Error("Management photo function owner role was not restored.");
+    }
+  } finally {
+    await executeFormatted(client, "REVOKE %I FROM %I", [owner, migrationRole]);
   }
-  await executeFormatted(client, "REVOKE %I FROM %I", [owner, migrationRole]);
   await executeFormatted(client, "REVOKE CREATE ON SCHEMA public FROM %I", [owner]);
   const verified = await client.query(
     `SELECT p.prosecdef,r.rolcanlogin,r.rolinherit,
-            has_schema_privilege($1,'public','CREATE') AS can_create,
-            (SELECT COUNT(*)::integer FROM pg_auth_members m
-             WHERE m.member=r.oid OR m.roleid=r.oid) AS memberships
+            has_schema_privilege($1,'public','CREATE') AS can_create
      FROM pg_proc p JOIN pg_roles r ON r.oid=p.proowner
      WHERE p.oid=to_regprocedure($2) AND r.rolname=$1`, [owner, signature],
   );
   const row = verified.rows[0];
   if (verified.rowCount !== 1 || !row.prosecdef || row.rolcanlogin ||
-      row.rolinherit || row.can_create || row.memberships !== 0) {
+      row.rolinherit || row.can_create) {
     throw new Error("Management photo lock owner provisioning failed.");
+  }
+  const finalMembership = await client.query(photoLockMembershipSql, [owner]);
+  assertPhotoLockOwnerMembership(finalMembership.rows, owner, migrationRole, runtimeRole);
+  const exactFunctionAcl = await client.query(
+    `SELECT pg_get_userbyid(acl.grantee) AS grantee,
+            pg_get_userbyid(acl.grantor) AS grantor,
+            acl.is_grantable
+       FROM pg_proc AS function
+       CROSS JOIN LATERAL aclexplode(
+         COALESCE(function.proacl,acldefault('f',function.proowner))
+       ) AS acl
+      WHERE function.oid=to_regprocedure($1)
+        AND acl.privilege_type='EXECUTE'`,
+    [signature],
+  );
+  const requiredGrantees = new Set([owner, runtimeRole]);
+  if (exactFunctionAcl.rowCount !== requiredGrantees.size ||
+      exactFunctionAcl.rows.some(({ grantee, grantor, is_grantable }) =>
+        !requiredGrantees.delete(grantee) ||
+        grantor !== owner || is_grantable !== false) ||
+      requiredGrantees.size !== 0) {
+    throw new Error("Management photo evidence-lock function grants are unsafe.");
   }
 }

@@ -5,6 +5,9 @@ import { resolve } from "node:path";
 import { Pool } from "pg";
 
 import { createRuntimePostgresPool } from "../src/common/database/postgres";
+import { provisionMountedStaffWriters } from "./mounted-staff-writer-test-fixture";
+import { dropFixtureCreatedRole } from "./staff-auth-native-writer-role-lifecycle";
+import { dropShiftFixtureDatabase } from "./shift-test-database-cleanup";
 
 export type TestRole =
   "LOCATION_MANAGER" | "ORG_ADMIN" | "VALET_EMPLOYEE" | "VALET_SUPERVISOR";
@@ -96,6 +99,8 @@ export class ShiftTestContext {
   readonly runtimeRole: string;
   readonly runtimeUrl: string;
   runtimePool!: Pool;
+  private databaseCreated = false;
+  private readonly fixtureWriterRoles: string[] = [];
 
   constructor(label: string) {
     const labelKey = createHash("sha256")
@@ -118,6 +123,7 @@ export class ShiftTestContext {
       const bootstrap = new Pool({ connectionString: baseDatabaseUrl });
       try {
         await bootstrap.query(`CREATE DATABASE "${this.databaseName}"`);
+        this.databaseCreated = true;
       } finally {
         await bootstrap.end();
       }
@@ -142,16 +148,25 @@ export class ShiftTestContext {
     await timedFixtureStage("teardown", this.timingTraceId, async () => {
       await this.runtimePool?.end();
       await this.adminPool.end();
+      if (!this.databaseCreated) return;
       const bootstrap = new Pool({ connectionString: baseDatabaseUrl });
       try {
-        await bootstrap.query(
-          `DROP DATABASE "${this.databaseName}" WITH (FORCE)`,
-        );
+        await dropShiftFixtureDatabase(bootstrap, this.databaseName);
         await bootstrap.query(`DROP ROLE IF EXISTS "${this.runtimeRole}"`);
+        for (const role of this.fixtureWriterRoles) {
+          await dropFixtureCreatedRole(bootstrap, role);
+        }
       } finally {
         await bootstrap.end();
       }
     });
+  }
+
+  protected provisionFixtureStaffAuthWriter(protectedMfa = false) {
+    return provisionMountedStaffWriters({
+      admin: this.adminPool, migrationUrl: this.migrationUrl,
+      runtimeUrl: this.runtimeUrl, roles: this.fixtureWriterRoles,
+    }, runPnpm, protectedMfa);
   }
 
   async createFixture(

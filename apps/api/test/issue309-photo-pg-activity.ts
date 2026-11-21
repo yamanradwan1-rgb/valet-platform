@@ -1,5 +1,5 @@
 import { performance } from "node:perf_hooks";
-import type { Pool, PoolClient } from "pg";
+import { Client, type Pool, type PoolClient } from "pg";
 
 import {
   runtimeDatabaseBudgets,
@@ -7,6 +7,29 @@ import {
 } from "../src/common/database/runtime-postgres-policy";
 
 type PoolOwner = "fixture-admin" | "nest-http" | "photo-fence";
+
+export async function openIssue309CiObserver(runtimeUrl: string): Promise<Client | undefined> {
+  if (process.env.VAYLET_ISSUE215_TEST_TARGET !== "ci") return undefined;
+  const password = process.env.VAYLET_CI_PHOTO_OBSERVER_PASSWORD;
+  const target = new URL(runtimeUrl);
+  const bootstrap = new URL(process.env.VAYLET_CI_POSTGRES_BOOTSTRAP_URL ?? "");
+  if (process.env.GITHUB_ACTIONS !== "true" || process.env.GITHUB_JOB !== "postgres" ||
+      password === undefined || !/^[a-f0-9]{64}$/.test(password) ||
+      target.protocol !== bootstrap.protocol || target.host !== bootstrap.host ||
+      !/^\/vlt_t_db_215_[a-f0-9]{32}$/.test(target.pathname)) {
+    throw new Error("Issue309 needs an attested disposable CI observer.");
+  }
+  target.username = "valet_ci_photo_observer";
+  target.password = password;
+  const client = new Client({ connectionString: target.toString(), connectionTimeoutMillis: 4_000 });
+  try {
+    await client.connect();
+    return client;
+  } catch {
+    await client.end();
+    throw new Error("Issue309 could not establish the disposable CI observer.");
+  }
+}
 
 interface BackendLease {
   readonly owner: PoolOwner;

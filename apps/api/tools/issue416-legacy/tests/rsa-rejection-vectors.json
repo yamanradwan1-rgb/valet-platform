@@ -1,0 +1,14 @@
+{
+  "description": "Test-only two independent RSA-1536 public keys with valid SHA-256 signatures. NEVER trusted or production keys; no private material.",
+  "canonicalMessageSha256": "f3719459fa67236fcd587371d2e712646cfc159672b95ae2ee3ef4984b275630",
+  "cases": [
+    {
+      "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMIHfMA0GCSqGSIb3DQEBAQUAA4HNADCByQKBwQC0H0ib2CDWyud9Yo0D98IQrC6E\nvYFErCPcxnWX4F1EtOoZVRbhjLAlsGBaF3vCzLwk9niryJajqU+f/NYubmxL+u6C\nmK2iBX+6S7dUXJZsvLlrCH8b82Kj8jyu0ZI49xAR+ueZH601muN+k2tcbxpBeNoD\nYG+x081ugIDCLR8cbirRmpAq4IUPb9Ft1tI4edbTGq1uJzaP+Ac/lvd4ow8wde89\nksvzVWEPqAAXNykk87vMTHyWD2ENayasZXNRDakCAwEAAQ==\n-----END PUBLIC KEY-----\n",
+      "base64Signature": "QAmKsbDDpUkJ+pb10IJPgJ+YBkexKkP86u+AMYQlXL4/NQMruIy1uO94WcehncKa/Fnx3ypRsG7hts4useHthMA/EWVDczGd7lV0N0m07Y0jwq88Y1IabRjVafGphhto9vfIHcIrerMremokBUbMx/63GbFKrXws5IoDAgVJeGiwRWC6eUS3rF8tqVsFcsq0c0iaJsbD2PFCRLZd+7F2AyDl9HOVnnzrUJwlY2CGSszQ/N4vlXjQlIHVIDD/fULT"
+    },
+    {
+      "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMIHfMA0GCSqGSIb3DQEBAQUAA4HNADCByQKBwQC0bmGsRookgeBdTRQDH1XdYHGd\nbeZHPFnMpK3Hv4ET+Z2is0NTeF9rZgY/j0NCNZV1Tn7cjSFefjLY7Ge2Stm2IewR\nf/gfRvFqw+sjMgs1QxlnLNtHL2rbBeQpV53GgNOcaEPCm4VPBbq99HMslc2YP6ar\nad07Hp+jbrTUlw5T01DmqECNsksMcsP898Pow/bB8rz9N+OzwCkynzTj1ppLYTLa\nI66dRNhDhsTqXBoJ02/198aWpOJLOK02wkfdGbsCAwEAAQ==\n-----END PUBLIC KEY-----\n",
+      "base64Signature": "pArOoMdPIGgfUnr0TQcD6UCrZfFIIMzxbZXYU/yAwL/w8Olka5Vw+/UpJH+yFwKfB+K5gRJMFLHuSMsgYwMqHY2ZjFW3xoYHeSDqW1nGIiePw6Y4TOsWL1sXi6XThahOQA+fscv7ci0M3uI3NwqVNPhAoz110cBBvonVg5E9SCXfj6joWjiQCvpan5PRLlnwmpVwDoMVdCQv3uv4VWQiBU1DgmNzEzYNzZGTXxCq/E68n82+Iq96NTOeHmWxRlhG"
+    }
+  ]
+}

@@ -15,7 +15,12 @@ export async function verifyRuntimeFeaturePrivileges(client, runtimeRole) {
   await verifyLocationConfigurationPrivileges(client, runtimeRole);
   await verifyBasicBrandingPrivileges(client, runtimeRole);
   await verifyAuditFoundationPrivileges(client, runtimeRole);
-  await verifyMfaPrivileges(client, runtimeRole);
+  await verifyMfaPrivileges(
+    client,
+    runtimeRole,
+    process.env.MFA_PROTECTED_WRITER_ENABLED === "true",
+    Boolean(process.env.STAFF_AUTH_WRITER_DATABASE_URL),
+  );
   await verifyShiftForceEndPrivileges(client, runtimeRole);
   await verifyManagementSettingsPrivileges(client, runtimeRole);
   await verifyManagementFeaturePrivileges(client, runtimeRole);

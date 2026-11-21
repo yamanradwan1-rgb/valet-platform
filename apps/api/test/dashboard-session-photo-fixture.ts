@@ -20,7 +20,7 @@ export const id = {
 export const bytes = Buffer.from([255,216,255,224,7,8,9,10,255,217]);
 const sha256 = createHash("sha256").update(bytes).digest();
 const credential: StaffSessionContext = {
-  userId:id.user,staffAuthSessionId:id.session,accessTokenHash:"test-hash",createdAt:new Date("2026-10-21"),
+  userId:id.user,staffAuthSessionId:id.session,rawAccessToken: "vsa1." + "A".repeat(43),createdAt:new Date("2026-10-21"),
 };
 const scope = {organizationId:id.organization,locationId:id.location,membershipId:id.membership};
 export const request = {authenticatedUserId:id.user,credential,locationId:id.location,sessionId:id.session};

@@ -19,7 +19,7 @@ import {
 import { authorizeEmergencyTakeoverRead } from "../src/modules/dispatch/emergency-task-takeover.authority";
 
 const context: StaffSessionContext = {
-  accessTokenHash: "hash",
+  rawAccessToken: "vsa1." + "A".repeat(43),
   createdAt: new Date("2026-10-29T12:00:00Z"),
   staffAuthSessionId: "session-id",
   userId: "current-user",

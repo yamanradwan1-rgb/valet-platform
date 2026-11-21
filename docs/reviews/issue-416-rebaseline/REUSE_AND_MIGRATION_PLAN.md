@@ -1,0 +1,38 @@
+# Issue #416 — reuse, migration and preservation plan
+
+**Pinned source:** `db85db57fc5c3913a22d34ab5d9ef77269756301`. **Mode:** local assessment, no code selection or migration action authorized. Existing Draft PR #464, worktrees, remote branches and originally failed W9 evidence must remain untouched.
+
+## Reuse ledger (all source-only until real integration is verified)
+
+| Existing asset | Reuse verdict | Evidence, dependency and adaptation |
+|---|---|---|
+| `apps/dashboard/src/features/administration/staff/staff-password-reset-action.tsx`, `staff-detail-drawer.tsx` | **Likely reusable** for future B | Copy-once and scope remount behind `NEXT_PUBLIC_ISSUE416_STAFF_PASSWORD_RESET_ENABLED` OFF. Retest AR/EN, RTL/LTR, themes, keyboard, stale session/scope, MFA and disabled-state when backend changes. |
+| `apps/dashboard/src/app/staff/reset-password/route.ts` and `staff-public-reset-{script,document}.ts` | **Likely reusable** | Standalone public page with fragment scrubbing/no-referrer/no-store/CSP. Never mistake mock browser success for protected SQL. Retest real link privacy, no AppProviders refresh, AR/EN, mobile. |
+| `apps/api/src/modules/auth/staff-password-reset-credential.ts:1-19` | **Reusable unchanged if contract stays vspr1** | CSPRNG32, canonical token, domain-specific verifier hash. Do not compare with token-abuse HMAC; review key privacy. |
+| `apps/api/src/modules/management/issue416-password-reset-{controller,service,boundary,caller,authority,link}.ts` | **Interface/preflight reuse only** | `service.ts:47,68` hard-blocks; `caller.ts:15-39` validates raw bearer; `authority.ts:15-49` checks status/eligibility but must repeat SQL rechecks. Service only reveals generated link after known commit. |
+| `apps/api/src/modules/auth/issue416-password-reset-redeem-{controller,service,preparser,ingress,boundary}.ts` and `issue416-r03-private-attempt-admission.ts` | **Ingress/contract seams only** | Attempt binder and signer unavailable, SQL readiness always throws. Verify pre-JSON IP quota on production HTTP mount and no token logging before enabling. |
+| `apps/api/src/modules/auth/staff-password-verification.ts`, `staff-password-hashing.ts`, `staff-auth-vap1-bearer.ts` | **Reuse with trust proof** | Raw Argon2 and access bearer possession; not an SQL-only credential provenance proof. Preserve existing auth/refresh behavior. |
+| `apps/api/src/modules/management/issue416-r02-atomic-closure.ts`, `apps/api/src/modules/auth/issue416-r03-atomic-closure.ts` | **Potentially reuse as negative consistency predicates** | Read-only pre-COMMIT checks, not a writer, signer, COMMIT evidence or grant. No blind integration. |
+| Private reset migration `20261113012600_issue416_private_reset_credentials/migration.sql` and later 120–135 SQL | **Candidate for selective new design** | Has useful reset, audit, quota constraints and deliberately closed admission; depends on precise Prisma chain/ACL and effective non-superuser proof. Reuse only after approved forward-only migration design, no rewrite of applied history. |
+| A01 W33/W35 source and 160–161 lineage fix | **Preserve security research; targeted reuse** | Original signed receipt lineage forgery was reproduced in isolated PG17; fix prevents unrelated same-user/same-ms receipt. However A01 path and signer/limiter not operationally proven. |
+| W29 private A01 immutable limiter (SQL165/166), W27 private R02/R03 quota ledger | **Candidates for targeted authenticated limiters** | Own-worktree SQL/source smoke cannot attest production grants or trusted binder. No direct transition to active runtime. W29 latest isolated `dd775ee4...`, W27 archive `c9df0b...` narrow QA approval only. |
+| W37 Staff Onboarding race test-barrier fix `3e17a0b3` | **Keep** | Narrow PG17 22/22 test evidence; not proof of Reset Auth safety. |
+| Prime PG17 catalog hardening `cfc9fe05`, W30 catalog read-only evidence | **Keep QA framework selectively** | Actual PG17.11 metadata counts in prior fixture; W30 migrator superuser, restricted non-superuser fixture not proven. Does not count 210 business races. |
+| W46 sanitized CodeQL telemetry / latest Prime `db85db57` | **Keep as diagnostic** | Not a waiver; Security CI must still pass scanner gate. Never hide new findings. |
+| W47 isolated manual PG17 test-runner candidates | **Hold pending exact W54 re-review** | Earlier recorded candidate `25a7325a...` admitted remote Docker context/host confusion risk. Any newer SHA must be directly inspected and independently approved before reuse. A Docker container label alone does not prove local SQL postmaster identity. |
+| W40 SQL162–164 and W41 staged 29 files | **Do not cherry-pick wholesale** | W40 leaves Group16/non-User L1 positive denial, R03 missing trusted bearer binder/readback. W41 staged/uncommitted ABI mismatched and not independently approved. |
+| Full 35-family C3/L1/L2 ceremony and 210 protocol cases | **Preserve for A; no automatic reuse in B/C** | Useful threat-model and race inventory. Large universal protocol/cutover is not intrinsically required for future standalone Reset if equivalent T5 trust root demonstrably smaller. |
+
+## Migration113 and L1/L2
+
+No real production deployment or customer migration. **Historical W9 failed migration113 remains prohibited**; do not mark it resolved or run recovery under a different name. W28's source comparison found migration113 matches historical W9 source SHA256 `55FAF42491358F9273AFF6B99B5C6A13D921C64A7ECC61F030C4703FDB5F8090`; its W9 read-only packet had migration112 SUCCESS, migration113 first ROLLED BACK and second FAILED/UNFINISHED. Migration113 initializes `LEGACY_COMPAT`, proof purposes disabled and no selected proof keys/admissions. L1/L2 is still PROPOSED, not an Accepted execution/cutover. A brand-new fully attested disposable PG17 fixture may validate fresh-install and alternative forward-only migrations; it does **not** prove historical W9 upgrade or safe shared-test migration. Record exact applied migration names/checksums and any dev/shared fixture users/session state before declaring T0 production cutover unnecessary.
+
+Keep these safety properties independently of Option A: credential/session revocation, no refresh replay resurrection, factor monotonicity, tenant identity, rollback/unknown COMMIT, immutable audit, and safe account recovery. The exhaustive original T0 signed ADMIT/HOLD/RETIRE and L1/L2 N→R→N historical-production rollout may be waived only through a separate Owner decision supported by absence of active workloads and test-data disposition; do not casually rewrite existing migrations or ledger.
+
+## Integration discipline
+
+Maintain feature flag OFF and protected controllers unregistered. Work exclusively on an Owner-approved isolated branch after architecture approval. Select exact file/commit provenance, resolve API↔SQL ABI and inherited ACL conflict, run focused source/PG17/HTTP tests, seek independent security review, then same-SHA CI/Security success. Verify provisioner grants twice, source effective roles, all old function overloads, Staff Auth/Guest compatibility **before** any privilege retirement. Never force a false PASS by deleting tests or weakening CodeQL.
+
+### Preservation checkpoint verified 2026-11-15
+
+Draft PR #464 and clean Prime at `db85db57`. Separate assessment branch `docs/issue416-security-rebaseline-20261115` retains design docs only. W56 halted its own uncommitted test harness at safe checkpoint without project SQL migration; disposable labeled PG17 container preserved (not used for this assessment). No worktree deleted/reset/cleaned, no source rewrite or remote release.

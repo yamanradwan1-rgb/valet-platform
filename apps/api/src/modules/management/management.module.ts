@@ -1,6 +1,7 @@
 import { MiddlewareConsumer, Module, type NestModule } from "@nestjs/common";
 
 import { RuntimeDatabaseModule } from "../../common/database/runtime-database.module";
+import { ManagementWriterDatabaseModule } from "./management-writer-database.module";
 import { HttpInfrastructureModule } from "../../common/http/http-infrastructure.module";
 import { RequestIdMiddleware } from "../../common/http/api-request";
 import { AntiAbuseModule } from "../anti-abuse/anti-abuse.module";
@@ -90,6 +91,7 @@ import {
     AuthModule,
     PaymentsModule,
     RuntimeDatabaseModule,
+    ManagementWriterDatabaseModule,
     HttpInfrastructureModule,
   ],
   providers: [

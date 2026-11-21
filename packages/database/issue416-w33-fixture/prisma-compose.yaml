@@ -1,0 +1,35 @@
+name: vaylet-issue416-w33-prisma
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: vaylet-issue416-w33-prisma-pg17
+    labels:
+      vaylet.environment: isolated-test
+      vaylet.issue: "416"
+      vaylet.owner: worker-33
+      vaylet.database: fresh-prisma-migrate-deploy
+      vaylet.disposable: "true"
+    environment:
+      POSTGRES_USER: issue416_w33_prisma_owner
+      POSTGRES_PASSWORD: ${ISSUE416_W33_PRISMA_PASSWORD:?Disposable local-only test password required}
+      POSTGRES_DB: issue416_w33_prisma_db
+    ports:
+      - "127.0.0.1:55833:5432"
+    volumes:
+      - issue416_w33_prisma_pg_data:/var/lib/postgresql/data
+      - ./prisma-init.sql:/docker-entrypoint-initdb.d/01-w33-prisma-roles.sql:ro
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U issue416_w33_prisma_owner -d issue416_w33_prisma_db
+      interval: 3s
+      timeout: 3s
+      retries: 15
+volumes:
+  issue416_w33_prisma_pg_data:
+    name: vaylet-issue416-w33-prisma-pg17-data
+    labels:
+      vaylet.environment: isolated-test
+      vaylet.issue: "416"
+      vaylet.owner: worker-33
+      vaylet.disposable: "true"

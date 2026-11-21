@@ -121,15 +121,15 @@ jobs:
       postgres:
         image: postgres:17-alpine
         env:
-          POSTGRES_USER: valet
+          POSTGRES_USER: valet_ci_bootstrap
           POSTGRES_PASSWORD: valet
           POSTGRES_DB: valet
         ports:
-          - 5432:5432
+          - "127.0.0.1:5432:5432"
         options: >-
           --label "vaylet.issue215.disposable=true"
           --label "vaylet.issue215.run-id=${{ github.run_id }}"
-          --health-cmd "pg_isready -U valet -d valet"
+          --health-cmd "pg_isready -U valet_ci_bootstrap -d valet"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
@@ -163,14 +163,63 @@ jobs:
         if: ${{ matrix.lane == 'issue215' }}
         run: pnpm --filter @valet/api build
 
+      # Pre-create fixed NOLOGIN owners once in each disposable CI service.
+      - name: Attest and pre-provision shared Issue416 CI owners
+        env:
+          TEST_PG_CONTAINER: ${{ job.services.postgres.id }}
+          EXPECTED_RUN_ID: ${{ github.run_id }}
+          POSTGRES_LANE: ${{ matrix.lane }}
+        shell: bash
+        run: |
+          test "$CI" = "true"
+          test -n "$TEST_PG_CONTAINER"
+          test "$(docker context inspect "$(docker context show)" --format '{{.Endpoints.docker.Host}}')" = "unix:///var/run/docker.sock"
+          metadata="$(docker inspect --format '{{.Config.Image}}|{{index .Config.Labels "vaylet.issue215.disposable"}}|{{index .Config.Labels "vaylet.issue215.run-id"}}|{{(index (index .NetworkSettings.Ports "5432/tcp") 0).HostIp}}|{{(index (index .NetworkSettings.Ports "5432/tcp") 0).HostPort}}' "$TEST_PG_CONTAINER")"
+          test "$metadata" = "postgres:17-alpine|true|$EXPECTED_RUN_ID|127.0.0.1|5432"
+          IFS='|' read -r version system_id database principal < <(
+            docker exec "$TEST_PG_CONTAINER" psql -X -U valet_ci_bootstrap -d valet -tAc "SELECT current_setting('server_version_num'), system_identifier, current_database(), current_user FROM pg_control_system()"
+          )
+          test "$version" -ge 170000
+          test "$version" -lt 180000
+          [[ "$system_id" =~ ^[0-9]+$ ]]
+          test "$database:$principal" = "valet:valet_ci_bootstrap"
+          management_password="$(openssl rand -hex 32)"
+          s04_key="$(node -e 'process.stdout.write(require("node:crypto").randomBytes(32).toString("base64url"))')"
+          printf '::add-mask::%s\n' "$management_password"
+          printf '::add-mask::%s\n' "$s04_key"
+          # The job owns this role. Scratch database cleanup must never claim it.
+          printf "CREATE ROLE vaylet_management_writer LOGIN PASSWORD '%s' NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;\n" "$management_password" |
+            docker exec -i "$TEST_PG_CONTAINER" psql -X -v ON_ERROR_STOP=1 -U valet_ci_bootstrap -d valet
+          printf 'VAYLET_CI_MANAGEMENT_WRITER_PASSWORD=%s\n' "$management_password" >> "$GITHUB_ENV"
+          printf 'VAYLET_CI_POSTGRES_BOOTSTRAP_URL=%s\n' "$TEST_DATABASE_URL" >> "$GITHUB_ENV"
+          printf 'ANTI_ABUSE_SQL_PROOF_SECRET_B64URL=%s\n' "$s04_key" >> "$GITHUB_ENV"
+          if [[ "$POSTGRES_LANE" == "issue215" ]]; then
+            observer_password="$(openssl rand -hex 32)"
+            printf '::add-mask::%s\n' "$observer_password"
+            printf "CREATE ROLE valet_ci_photo_observer LOGIN PASSWORD '%s' NOINHERIT;\nGRANT pg_read_all_stats TO valet_ci_photo_observer WITH INHERIT TRUE, SET FALSE;\n" "$observer_password" |
+              docker exec -i "$TEST_PG_CONTAINER" psql -X -v ON_ERROR_STOP=1 -U valet_ci_bootstrap -d valet
+            printf 'VAYLET_CI_PHOTO_OBSERVER_PASSWORD=%s\n' "$observer_password" >> "$GITHUB_ENV"
+          fi
+          docker exec "$TEST_PG_CONTAINER" psql -X -v ON_ERROR_STOP=1 -U valet_ci_bootstrap -d valet -c \
+            'CREATE ROLE vaylet_staff_session_lock_owner NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS'
+          # Scratch migrations and Runtime provisioning use the restricted
+          # database owner. Each pinned migration establishes its own SET role.
+          docker exec "$TEST_PG_CONTAINER" psql -X -v ON_ERROR_STOP=1 -U valet_ci_bootstrap -d valet \
+            -c 'CREATE ROLE vap1_proof_owner NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS' \
+            -c "CREATE ROLE valet LOGIN PASSWORD 'valet' NOSUPERUSER NOINHERIT CREATEDB CREATEROLE NOREPLICATION NOBYPASSRLS" \
+            -c 'ALTER DATABASE valet OWNER TO valet' \
+            -c 'GRANT vap1_proof_owner, vaylet_staff_session_lock_owner, vaylet_management_writer TO valet WITH ADMIN TRUE, INHERIT FALSE, SET FALSE' \
+            -c 'ALTER ROLE valet_ci_bootstrap NOLOGIN PASSWORD NULL'
+
       - name: Run bounded PostgreSQL API project
         if: ${{ startsWith(matrix.lane, 'api-') }}
         env:
+          POSTGRES_PROJECT: ${{ matrix.project }}
           VAYLET_ISSUE215_TEST_TARGET: ci
           VAYLET_ISSUE215_CI_POSTGRES_CONTAINER_ID: ${{ job.services.postgres.id }}
           # Diagnostic-only phase timings; no database name, credentials or URLs.
           VAYLET_PG_FIXTURE_TIMING: "1"
-        run: pnpm --filter @valet/api exec node ../../scripts/test-harness/run-postgres-projects.mjs vitest.config.mjs ${{ matrix.project }}
+        run: pnpm --filter @valet/api exec node ../../scripts/test-harness/run-postgres-projects.mjs vitest.config.mjs "$POSTGRES_PROJECT"
 
       - name: Run bounded PostgreSQL database lane
         if: ${{ matrix.lane == 'database' }}
@@ -238,7 +287,6 @@ jobs:
     timeout-minutes: 20
     env:
       DATABASE_URL: postgresql://valet_runtime:valet_runtime_e2e@localhost:5432/valet
-      MIGRATION_DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
       TEST_DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
       API_ORIGIN: http://localhost:3001
       E2E_APPROVED_DATABASE: valet
@@ -251,6 +299,7 @@ jobs:
       HANDOFF_VERIFIER_HMAC_SECRET_B64URL: AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE
       MFA_TOTP_ENCRYPTION_KEY_B64URL: AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI
       MFA_RECOVERY_HMAC_SECRET_B64URL: AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM
+      MFA_PROTECTED_WRITER_ENABLED: "true"
       STAFF_PUSH_RETRIEVAL_CREATION_ENABLED: "false"
       STAFF_PUSH_WORKER_SENDING_ENABLED: "false"
       STAFF_PUSH_RETRIEVAL_POLICY_VERSION: "1"
@@ -272,8 +321,9 @@ jobs:
           POSTGRES_PASSWORD: valet
           POSTGRES_DB: valet
         ports:
-          - 5432:5432
+          - "127.0.0.1:5432:5432"
         options: >-
+          --label "vaylet.employee-e2e.run-id=${{ github.run_id }}"
           --health-cmd "pg_isready -U valet -d valet"
           --health-interval 5s
           --health-timeout 5s
@@ -300,26 +350,75 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Prepare Option C E2E database identities
+        env:
+          E2E_PG_CONTAINER: ${{ job.services.postgres.id }}
+          EXPECTED_RUN_ID: ${{ github.run_id }}
+        shell: bash
+        run: |
+          test "$CI" = "true"
+          test -n "$E2E_PG_CONTAINER"
+          test "$(docker context inspect "$(docker context show)" --format '{{.Endpoints.docker.Host}}')" = "unix:///var/run/docker.sock"
+          metadata="$(docker inspect --format '{{.Config.Image}}|{{index .Config.Labels "vaylet.employee-e2e.run-id"}}|{{(index (index .NetworkSettings.Ports "5432/tcp") 0).HostIp}}|{{(index (index .NetworkSettings.Ports "5432/tcp") 0).HostPort}}' "$E2E_PG_CONTAINER")"
+          test "$metadata" = "postgres:17-alpine|$EXPECTED_RUN_ID|127.0.0.1|5432"
+          IFS='|' read -r version system_id database principal < <(
+            docker exec "$E2E_PG_CONTAINER" psql -X -U valet -d valet -tAc "SELECT current_setting('server_version_num'), system_identifier, current_database(), current_user FROM pg_control_system()"
+          )
+          test "$version" -ge 170000
+          test "$version" -lt 180000
+          [[ "$system_id" =~ ^[0-9]+$ ]]
+          test "$database:$principal" = "valet:valet"
+          migrator_password="$(openssl rand -hex 32)"
+          management_password="$(openssl rand -hex 32)"
+          staff_auth_password="$(openssl rand -hex 32)"
+          mfa_password="$(openssl rand -hex 32)"
+          mfa_activity_key="$(node -e 'process.stdout.write(require("node:crypto").randomBytes(32).toString("base64url"))')"
+          s04_key="$(node -e 'process.stdout.write(require("node:crypto").randomBytes(32).toString("base64url"))')"
+          for value in "$migrator_password" "$management_password" "$staff_auth_password" "$mfa_password" "$mfa_activity_key" "$s04_key"; do
+            printf '::add-mask::%s\n' "$value"
+          done
+          docker exec -i "$E2E_PG_CONTAINER" psql -X -U valet -d valet -v ON_ERROR_STOP=1 <<SQL
+          CREATE ROLE valet_e2e_migrator LOGIN PASSWORD '$migrator_password' NOINHERIT CREATEROLE NOSUPERUSER NOCREATEDB NOREPLICATION NOBYPASSRLS;
+          ALTER DATABASE valet OWNER TO valet_e2e_migrator;
+          ALTER SCHEMA public OWNER TO valet_e2e_migrator;
+          REVOKE CREATE ON SCHEMA public FROM PUBLIC;
+          SQL
+          {
+            printf 'MIGRATION_DATABASE_URL=postgresql://valet_e2e_migrator:%s@localhost:5432/valet\n' "$migrator_password"
+            printf 'MANAGEMENT_WRITER_DATABASE_URL=postgresql://vaylet_management_writer:%s@localhost:5432/valet\n' "$management_password"
+            printf 'STAFF_AUTH_WRITER_DATABASE_URL=postgresql://vaylet_staff_auth_writer:%s@localhost:5432/valet\n' "$staff_auth_password"
+            printf 'MFA_WRITER_DATABASE_URL=postgresql://vaylet_mfa_writer:%s@localhost:5432/valet\n' "$mfa_password"
+            printf 'MFA_ACTIVITY_PROOF_SECRET_B64URL=%s\n' "$mfa_activity_key"
+            printf 'ANTI_ABUSE_SQL_PROOF_SECRET_B64URL=%s\n' "$s04_key"
+          } >> "$GITHUB_ENV"
+
       - name: Run database migrations
         run: pnpm --filter @valet/database migrate:deploy
         env:
           # This is a disposable CI PostgreSQL service, never a production rollout.
           NODE_ENV: test
-          MIGRATION_DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
 
-      - name: Provision runtime role
-        run: pnpm --filter @valet/database runtime:provision
+      - name: Provision E2E runtime and writer roles
+        run: |
+          pnpm --filter @valet/database exec node scripts/provision-s04-proof-key.mjs
+          pnpm --filter @valet/database runtime:provision
+          pnpm --filter @valet/database staff-auth-writer:provision
         env:
-          DATABASE_URL: postgresql://valet_runtime:valet_runtime_e2e@localhost:5432/valet
-          MIGRATION_DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
+          NODE_ENV: test
+
+      - name: Cut over the disposable E2E database to Option C
+        run: pnpm --filter @valet/database exec node scripts/provision-option-c-protected-cutover.mjs
+        env:
+          NODE_ENV: test
+          OPTION_C_PROTECTED_CUTOVER: "1"
+          OPTION_C_LEGACY_WORKERS_DRAINED: "1"
 
       - name: Build contracts for E2E fixture imports
         run: pnpm --filter @valet/contracts build
 
       - name: Provision E2E fixtures
-        run: pnpm --filter @valet/api exec tsx tools/e2e/provision-employee-e2e.ts
+        run: DATABASE_URL="$MIGRATION_DATABASE_URL" pnpm --filter @valet/api exec tsx tools/e2e/provision-employee-e2e.ts
         env:
-          DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
           NODE_ENV: test
           E2E_APPROVED_DATABASE: valet
           E2E_FIXTURE_CONFIRM: employee-e2e

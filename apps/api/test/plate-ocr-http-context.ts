@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { Module, type INestApplication } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import type { PlateOcrResponse } from "@valet/contracts";
+import { createRuntimePostgresPool, type PostgresPool } from "../src/common/database/postgres";
 import { RUNTIME_POSTGRES_POOL } from "../src/common/database/runtime-database.module";
 import { HttpInfrastructureModule } from "../src/common/http/http-infrastructure.module";
 import {
@@ -30,11 +31,14 @@ export class PlateOcrHttpContext extends ReturningCheckInTestContext {
   time = 0;
   mode = "test";
   guard!: PlateOcrCostGuard;
+  private staffAuthWriter!: PostgresPool;
   result: () => Promise<PlateOcrResponse> = async () => ({
     status: "NO_MATCH",
   });
   override async start() {
     await super.start();
+    const writer = await this.provisionFixtureStaffAuthWriter();
+    this.staffAuthWriter = createRuntimePostgresPool(writer.url);
     const runtime = this.runtime;
     const acquire = (identity: Parameters<PlateOcrCostGuard["acquire"]>[0]) =>
       this.guard.acquire(identity);
@@ -119,6 +123,7 @@ export class PlateOcrHttpContext extends ReturningCheckInTestContext {
   }
   override async stop() {
     await this.app?.close();
+    await this.staffAuthWriter?.end();
     await super.stop();
   }
   async staff(shift = true) {
@@ -131,7 +136,7 @@ export class PlateOcrHttpContext extends ReturningCheckInTestContext {
     // Password hashing is outside this route's scope; credentials/session resolution are real.
     const tokens = await new StaffAuthService(this.runtime, {
       verify: async () => true,
-    }).login(email, "test-only");
+    }, this.staffAuthWriter).login(email, "test-only");
     if (shift)
       await this.admin.query(
         `INSERT INTO shifts (id, organization_id, location_id, membership_id, started_at)

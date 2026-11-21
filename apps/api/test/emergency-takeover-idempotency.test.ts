@@ -36,7 +36,7 @@ const request: EmergencyTakeoverCommandRequest = {
   staffSessionContext: {
     userId: randomUUID(),
     staffAuthSessionId: randomUUID(),
-    accessTokenHash: "hidden",
+    rawAccessToken: "vsa1." + "A".repeat(43),
     createdAt: new Date(),
   },
 };
@@ -54,7 +54,7 @@ describe("emergency takeover operation identity", () => {
       ...request,
       staffSessionContext: {
         ...request.staffSessionContext,
-        accessTokenHash: "new-credential-hash",
+        rawAccessToken: "vsa1." + "B".repeat(43),
       },
     };
     expect(

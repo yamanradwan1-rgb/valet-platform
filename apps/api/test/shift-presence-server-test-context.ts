@@ -6,6 +6,7 @@ import {
   staffCredentialHash,
 } from "../src/modules/auth/staff-auth-credential";
 import type { StaffSessionContext } from "../src/modules/auth/staff-session-context";
+import type { ManagementCommandContext } from "../src/modules/management/management-command-context";
 import { ShiftPresenceService } from "../src/modules/shifts/shift-presence.service";
 import { PresenceManagementService } from "../src/modules/management/presence-management.service";
 import { createStartShiftCommandExecutor } from "../src/modules/shifts/start-shift-command";
@@ -95,10 +96,13 @@ export class PresenceServerTestContext extends ShiftTestContext {
         CASE WHEN $4::uuid IS NULL THEN NULL ELSE clock_timestamp() END) RETURNING created_at`,
       [id, userId, hash, factor],
     );
-    const context: StaffSessionContext = {
+    // Preserve the genuine synthetic raw bearer for the protected Management
+    // writer's in-transaction possession check. A stored verifier hash alone
+    // must not be used as command authority.
+    const context: ManagementCommandContext = {
       userId,
       staffAuthSessionId: id,
-      accessTokenHash: hash,
+      rawAccessToken: token,
       createdAt: row.rows[0]!.created_at,
     };
     return { context, token, factorId: factor };

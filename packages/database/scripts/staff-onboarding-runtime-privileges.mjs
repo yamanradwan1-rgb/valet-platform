@@ -3,7 +3,10 @@ import {
   verifyStaffManagementPrivileges,
 } from "./staff-management-runtime-privileges.mjs";
 
-export const runtimeStaffOnboardingFunctions = [
+// Activation belongs to the Staff Auth protected writer (S01/W57).
+export const runtimeStaffOnboardingFunctions = [];
+
+export const protectedStaffOnboardingFunctions = [
   "public.staff_onboarding_activate(text,text,text)",
   "public.staff_onboarding_create(uuid,uuid,uuid,text,text,text,text,membership_role,uuid[],text)",
   "public.staff_onboarding_resend(uuid,uuid,uuid,uuid,text,text)",
@@ -44,12 +47,19 @@ export async function provisionStaffOnboardingPrivileges(
       runtimeRole,
     ]);
   }
+  // The protected activation entrypoint must never inherit PUBLIC EXECUTE,
+  // including after ordinary runtime role provisioning is repeated.
+  await client.query(
+    "REVOKE ALL ON FUNCTION public.staff_onboarding_activate(text,text,text) FROM PUBLIC",
+  );
   for (const name of runtimeStaffOnboardingFunctions) {
     await executeFormatted(client, "REVOKE ALL ON FUNCTION %s FROM %I", [
       name,
       runtimeRole,
     ]);
-    await executeFormatted(client, "GRANT EXECUTE ON FUNCTION %s TO %I", [
+  }
+  for (const name of protectedStaffOnboardingFunctions) {
+    await executeFormatted(client, "REVOKE ALL ON FUNCTION %s FROM %I", [
       name,
       runtimeRole,
     ]);
@@ -59,6 +69,7 @@ export async function provisionStaffOnboardingPrivileges(
 export async function verifyStaffOnboardingPrivileges(client, runtimeRole) {
   for (const [name, allowed] of [
     ...runtimeStaffOnboardingFunctions.map((name) => [name, true]),
+    ...protectedStaffOnboardingFunctions.map((name) => [name, false]),
     ...privateStaffOnboardingFunctions.map((name) => [name, false]),
   ]) {
     const result = await client.query(
@@ -68,7 +79,8 @@ export async function verifyStaffOnboardingPrivileges(client, runtimeRole) {
         owner.rolname <> $1 AS owner_safe,
         NOT EXISTS (
           SELECT 1 FROM aclexplode(COALESCE(function.proacl,acldefault('f',function.proowner))) AS acl
-          WHERE acl.privilege_type = 'EXECUTE' AND (acl.grantee=0 OR acl.is_grantable)
+          WHERE acl.privilege_type = 'EXECUTE'
+            AND (acl.grantee=0 OR (acl.grantee<>function.proowner AND acl.is_grantable))
         ) AS acl_safe
        FROM pg_proc AS function JOIN pg_roles AS owner ON owner.oid=function.proowner
        WHERE function.oid=to_regprocedure($2)`,

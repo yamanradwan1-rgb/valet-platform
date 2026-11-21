@@ -1,4 +1,5 @@
 import type { PostgresTransaction } from "../../common/database/postgres";
+import { lockStaffUserSecurityBoundaryShared } from "../auth/staff-user-security-lock";
 import { lockShiftOperationalEligibility } from "../shifts/shift-operational-eligibility";
 
 export interface AuthorizedRouteHistory {
@@ -14,6 +15,7 @@ export async function authorizeRouteHistory(
   authenticatedUserId: string,
   trackingSessionId: string,
 ): Promise<AuthorizedRouteHistory | null> {
+  await lockStaffUserSecurityBoundaryShared(transaction, authenticatedUserId);
   const result = await transaction.query<{
     location_id: string;
     membership_id: string;
@@ -51,7 +53,7 @@ export async function authorizeRouteHistory(
       AND access.membership_id = membership.id
       AND access.location_id = tracker.location_id
      WHERE tracker.id = $2 AND tracker.ended_at IS NOT NULL AND actor.id = $1
-     FOR SHARE OF organization, location, session, task, membership, actor, access`,
+     FOR SHARE OF organization, location, session, task, membership, access`,
     [authenticatedUserId, trackingSessionId],
   );
   const row = result.rows[0];
@@ -62,7 +64,8 @@ export async function authorizeRouteHistory(
       locationId: row.location_id,
       membershipId: row.membership_id,
     })) === null
-  ) return null;
+  )
+    return null;
   return {
     locationId: row.location_id,
     membershipId: row.membership_id,

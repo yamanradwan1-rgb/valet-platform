@@ -19,21 +19,7 @@ export function disconnectBeforePresenceCommit(db: PresenceServerTestContext) {
                   )
                     accessedOperation = true;
                   if (sql === "COMMIT" && accessedOperation) {
-                    const pid = (
-                      await client.query<{ pid: number }>(
-                        `SELECT pg_backend_pid() AS pid`,
-                      )
-                    ).rows[0]!.pid;
-                    const verified = await db.adminPool.query(
-                      `SELECT pid FROM pg_stat_activity WHERE pid=$1 AND datname=$2 AND usename=$3`,
-                      [pid, db.databaseName, db.runtimeRole],
-                    );
-                    if (verified.rowCount !== 1)
-                      throw new Error("Unexpected test disconnect target");
-                    await db.adminPool.query(
-                      `SELECT pg_terminate_backend($1)`,
-                      [pid],
-                    );
+                    await client.end();
                   }
                   return Reflect.apply(client.query, client, [sql, ...args]);
                 };

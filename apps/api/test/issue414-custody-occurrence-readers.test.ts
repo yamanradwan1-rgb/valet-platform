@@ -42,7 +42,7 @@ const input = {
   context: {
     userId: randomUUID(),
     staffAuthSessionId: randomUUID(),
-    accessTokenHash: "staff-access-sha256:v1:test",
+    rawAccessToken: "vsa1." + "A".repeat(43),
     createdAt: occurredAt,
   },
   scope,

@@ -1,5 +1,6 @@
 import type { PostgresTransaction } from "../../common/database/postgres";
 import { lockLocationLifecycle } from "../../common/database/location-lifecycle-lock";
+import { lockStaffUserSecurityBoundaryShared } from "../auth/staff-user-security-lock";
 import { ShiftOperationError } from "./shift-errors";
 
 export type OperationalShiftRole = "VALET_EMPLOYEE" | "VALET_SUPERVISOR";
@@ -14,11 +15,11 @@ export async function requireActiveShiftUser(
   transaction: PostgresTransaction,
   authenticatedUserId: string,
 ): Promise<void> {
+  await lockStaffUserSecurityBoundaryShared(transaction, authenticatedUserId);
   const result = await transaction.query<{ status: string }>(
     `SELECT status::text
      FROM users
-     WHERE id = $1
-     FOR SHARE`,
+     WHERE id = $1`,
     [authenticatedUserId],
   );
   if (result.rows[0]?.status !== "ACTIVE") {

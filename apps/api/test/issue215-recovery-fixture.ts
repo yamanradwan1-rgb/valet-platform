@@ -5,6 +5,7 @@ import { Client, Pool } from "pg";
 
 import { createRuntimePostgresPool } from "../src/common/database/postgres";
 import type { StaffSessionContext } from "../src/modules/auth/staff-session-context";
+import { generateStaffCredential, staffCredentialHash } from "../src/modules/auth/staff-auth-credential";
 import {
   assertRecoveryDatabaseDropOwner,
   recoveryDatabaseIsExplicitlyOwned,
@@ -140,7 +141,8 @@ export class Issue215RecoveryDatabase {
 
   async newCredential(userId: string): Promise<StaffSessionContext> {
     const authSessionId = randomUUID();
-    const accessTokenHash = `staff-access-sha256:v1:${randomBytes(32).toString("hex")}`;
+    const rawAccessToken = generateStaffCredential("vsa1.");
+    const accessTokenHash = staffCredentialHash("access", rawAccessToken);
     const result = await this.adminPool.query<{ created_at: Date }>(
       `INSERT INTO staff_auth_sessions
         (id,user_id,current_access_token_hash,access_expires_at,absolute_expires_at,
@@ -151,7 +153,7 @@ export class Issue215RecoveryDatabase {
       [authSessionId, userId, accessTokenHash],
     );
     return { userId, staffAuthSessionId: authSessionId,
-      accessTokenHash, createdAt: result.rows[0]!.created_at };
+      rawAccessToken, createdAt: result.rows[0]!.created_at };
   }
 
   async fixture(): Promise<RecoveryFixture> {

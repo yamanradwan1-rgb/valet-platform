@@ -1,7 +1,7 @@
 import type { PostgresTransaction } from "../../common/database/postgres";
 import { lockLocationLifecycle } from "../../common/database/location-lifecycle-lock";
 import type { StaffSessionContext } from "../auth/staff-session-context";
-import { lockAndRecheckStaffSessionContext } from "../auth/staff-session-revalidation";
+import { lockStaffSessionWithBearer } from "../auth/staff-session-lock";
 import type { DashboardLocationScope } from "./dashboard-location-authorization";
 
 /** Only the existing Tasks list may use this Supervisor-specific read grant. */
@@ -16,7 +16,7 @@ export async function authorizeSupervisorEmergencyTasksScope(
   // Keep the current credential locked before Location/membership eligibility.
   // The takeover writer also acquires StaffSession before Location lifecycle.
   if (
-    (await lockAndRecheckStaffSessionContext(transaction, context)) ===
+    (await lockStaffSessionWithBearer(transaction, context, "SHARED")) ===
     undefined
   )
     return null;
@@ -49,7 +49,7 @@ export async function authorizeSupervisorEmergencyTasksScope(
       AND shift_row.membership_id = membership.id
       AND shift_row.status = 'ACTIVE'
      WHERE location.id = $1 AND location.status = 'ACTIVE'
-     FOR SHARE OF organization, location, membership, staff_user,
+     FOR SHARE OF organization, location, membership,
                   access_row, shift_row`,
     [locationId, context.userId],
   );

@@ -8,13 +8,13 @@ import {
 } from "../src/modules/dashboard/management-alert-sources/financial-alert-source-query";
 import type { FinancialAlertReaderInput } from "../src/modules/dashboard/management-alert-sources/financial-alert-source-types";
 
+type ManagementAlertSourceContractModule =
+  typeof import("../src/modules/dashboard/management-alert-sources/management-alert-source-contract");
+
 vi.mock(
   "../src/modules/dashboard/management-alert-sources/management-alert-source-contract",
   async (importOriginal) => {
-    const actual =
-      await importOriginal<
-        typeof import("../src/modules/dashboard/management-alert-sources/management-alert-source-contract")
-      >();
+    const actual = await importOriginal<ManagementAlertSourceContractModule>();
     return { ...actual, requireManagementAlertSourceScope: vi.fn() };
   },
 );
@@ -28,7 +28,7 @@ const valetSessionId = "ffffffff-ffff-4fff-8fff-ffffffffffff";
 
 const input: FinancialAlertReaderInput = {
   context: {
-    accessTokenHash: "test-hash",
+    rawAccessToken: "vsa1." + "A".repeat(43),
     createdAt: new Date("2026-11-04T00:00:00.000Z"),
     staffAuthSessionId: "test-staff-session",
     userId: "test-user",

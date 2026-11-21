@@ -11,6 +11,7 @@ import {
   verifyGuestPushWorkerPrivileges,
 } from "./guest-push-worker-runtime-privileges.mjs";
 import { readGuestPushWorkerProvisioningConfiguration } from "./guest-push-worker-provisioning-policy.mjs";
+import { revokeDirectFunctionGrants } from "./revoke-role-routine-grants.mjs";
 
 const { Client } = pg;
 
@@ -101,13 +102,14 @@ async function provisionGuestPushWorkerRole() {
     ]);
     await executeFormatted(client, "REVOKE ALL ON SCHEMA public FROM %I", [workerRole]);
     await executeFormatted(client, "GRANT USAGE ON SCHEMA public TO %I", [workerRole]);
-    for (const objectType of ["TABLES", "SEQUENCES", "FUNCTIONS"]) {
+    for (const objectType of ["TABLES", "SEQUENCES"]) {
       await executeFormatted(
         client,
         `REVOKE ALL PRIVILEGES ON ALL ${objectType} IN SCHEMA public FROM %I`,
         [workerRole],
       );
     }
+    await revokeDirectFunctionGrants(client, executeFormatted, workerRole);
     await provisionGuestPushWorkerPrivileges(client, executeFormatted, workerRole);
     for (const objectType of ["TABLES", "SEQUENCES", "FUNCTIONS"]) {
       await executeFormatted(

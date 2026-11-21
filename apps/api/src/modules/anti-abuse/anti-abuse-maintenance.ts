@@ -59,6 +59,7 @@ export class AntiAbuseMaintenance implements OnModuleInit, OnModuleDestroy {
           const result = await transaction.query<{ deleted: number }>(
             "SELECT cleanup_expired_anti_abuse_events() AS deleted",
           );
+          await transaction.query("SELECT public.s04_cleanup_nonces()");
           const backlog = await transaction.query<{
             count: number;
             age: number;

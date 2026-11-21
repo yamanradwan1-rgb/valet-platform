@@ -36,7 +36,7 @@ export function createCancelCheckInCredentialFixture(context: ShiftTestContext) 
         [id, userId, staffCredentialHash("access", token)],
       );
       contexts.set(`Bearer ${token}`, {
-        accessTokenHash: staffCredentialHash("access", token),
+        rawAccessToken: token,
         createdAt: row.rows[0]!.created_at,
         staffAuthSessionId: id,
         userId,

@@ -2,6 +2,36 @@ import { createHmac } from "node:crypto";
 
 import { Injectable } from "@nestjs/common";
 
+export const STAFF_PASSWORD_RESET_ANTI_ABUSE = {
+  issueTargetUser: {
+    scope: "v1:staff-password-reset-issue-target-user",
+    limit: 3,
+  },
+  issueIssuerUser: {
+    scope: "v1:staff-password-reset-issue-issuer-user",
+    limit: 20,
+  },
+  issueOrganization: {
+    scope: "v1:staff-password-reset-issue-organization",
+    limit: 100,
+  },
+  issueClientAddress: {
+    scope: "v1:staff-password-reset-issue-client-address",
+    limit: 30,
+  },
+  redeemClientAddress: {
+    scope: "v1:staff-password-reset-redeem-client-address",
+    limit: 30,
+  },
+  redeemCredential: {
+    scope: "v1:staff-password-reset-redeem-credential",
+    limit: 5,
+  },
+} as const;
+
+type StaffPasswordResetAntiAbuseScope =
+  (typeof STAFF_PASSWORD_RESET_ANTI_ABUSE)[keyof typeof STAFF_PASSWORD_RESET_ANTI_ABUSE]["scope"];
+
 export type AntiAbuseScope =
   | "v1:dashboard-session-photo-view-user"
   | "v1:condition-photo-upload-user"
@@ -22,7 +52,8 @@ export type AntiAbuseScope =
   | "v1:mfa-totp-user"
   | "v1:mfa-recovery-user"
   | "v1:staff-onboarding-create-organization"
-  | "v1:staff-onboarding-resend-membership";
+  | "v1:staff-onboarding-resend-membership"
+  | StaffPasswordResetAntiAbuseScope;
 
 export interface AntiAbuseKey {
   readonly keyHash: string;

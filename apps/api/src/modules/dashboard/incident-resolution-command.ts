@@ -62,7 +62,7 @@ export async function resolveDashboardIncident(
          WHERE m.id=$1 AND m.organization_id=$2 AND m.user_id=$4
            AND m.status='ACTIVE' AND m.role IN ('ORG_ADMIN','LOCATION_MANAGER')
            AND o.status='ACTIVE' AND l.status='ACTIVE'
-         FOR SHARE OF m,o,l,u`,
+         FOR SHARE OF m,o,l`,
         [
           scope.membershipId,
           scope.organizationId,
@@ -91,7 +91,7 @@ export async function resolveDashboardIncident(
         [
           input.context.userId,
           input.context.staffAuthSessionId,
-          input.context.accessTokenHash,
+          input.context.rawAccessToken ?? "",
           scope.organizationId,
         ],
       );

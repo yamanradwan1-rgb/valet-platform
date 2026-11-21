@@ -52,10 +52,6 @@
     },
     { "path": "packages/database/prisma/seed.mjs", "maxLines": 792 },
     {
-      "path": "packages/database/scripts/provision-runtime-role.mjs",
-      "maxLines": 364
-    },
-    {
       "path": "packages/database/src/runtime-role.integration.test.ts",
       "maxLines": 949
     },

@@ -1,5 +1,152 @@
 # Database Schema — Logical Design
 
+## Issue #416 Option C — Staff session lock boundary
+
+Forward-only migrations `20261116000200_option_c_staff_session_lock_owner` and
+`20261116000210_option_c_staff_session_lock_function` add inert
+`runtime_lock_version bigint NOT NULL DEFAULT 0` columns to `users` and
+`staff_auth_sessions`, plus the NOLOGIN/NOINHERIT
+`vaylet_staff_session_lock_owner`. The owner has only the exact User/session
+read columns required to authenticate and lock a Staff session, and UPDATE only
+on the two inert lock-version columns so PostgreSQL can take row locks without
+granting mutation authority over protected session or User state. In
+particular, the owner cannot read `users.password_hash`.
+
+`public.staff_auth_lock_current_session(uuid,uuid,text,timestamptz,text)` is a
+`SECURITY DEFINER` authority for ordinary Runtime only. Initial resolution uses
+`NULL,NULL,<raw bearer>,NULL,'SHARED'`; exact rechecks use the resolved
+session/User/creation tuple and `SHARED` or `EXCLUSIVE`. The function derives
+the stored access-token verifier internally, rejects revoked/expired/inactive
+or cross-identity credentials, acquires the canonical `staff-user-security`
+transaction advisory lock, then locks the User row before the Staff session
+row. PUBLIC and the protected writer roles do not execute it, and ordinary
+Runtime does not receive SELECT on `current_access_token_hash` or UPDATE on
+protected session columns.
+
+The dedicated MFA Writer rechecks the current raw bearer and the exact session
+identity inside its own ceremony transaction. Its column-level SELECT grants on
+`staff_auth_sessions` include `created_at` for that identity check. Its SELECT
+grants on `users` remain limited to `id` and `status`.
+
+Forward-only migration `20261116000300_option_c_management_raw_bearer_authority`
+keeps the existing Shift Presence/force-end function signatures while treating
+their historical TEXT verifier parameters as raw Staff bearers and hashing
+inside the definer. The same cutover preserves the existing entitlement
+function with raw-bearer verification. No new generic Management writer entry
+point is introduced.
+
+Forward-only migration
+`20261116000310_option_c_management_user_security_lock_order` preserves the
+existing Management writer authorization ABI while acquiring the canonical
+`staff-user-security:<User>` transaction advisory lock before User and Staff
+session row locks. This aligns Staff status/onboarding mutations with auth and
+onboarding serialization and rechecks time-based session/MFA authority after
+the advisory lock is acquired.
+
+Forward-only migration
+`20261118000100_option_c_management_mfa_step_up_contract` replaces the
+Management writer authorization function in place. It preserves its signature,
+owner and existing grants and explicitly revokes PUBLIC access. After checking
+the active User, raw bearer, session and organization membership, it reports
+`MFA_STEP_UP_REQUIRED` for missing or stale MFA assurance. Invalid credentials,
+sessions and actor memberships retain `AUTHORIZATION_DENIED`.
+
+Forward-only migration
+`20261118000200_option_c_management_authority_freshness` uses a fresh
+clock reading for bearer expiry and MFA freshness after the organization,
+membership and factor locks. The early bearer check and lock order stay in
+place.
+
+Forward-only migration
+`20261116000320_option_c_runtime_bearer_lock_order` hardens the existing
+Runtime-executable Shift Presence policy and Staff shift force-end
+`SECURITY DEFINER` functions without expanding their API or privileges.
+It checks the raw bearer against current session/User state before taking
+the canonical `staff-user-security` advisory lock, then locks the active
+User row before the exact Staff session row and revalidates the bearer,
+revocation and expiry under those transaction-held row locks. Shift Presence
+retains its established settings/Location advisory lock order; force-end
+retains the subsequent Management organization lock. The protected cutover
+pins the final installed bodies of both functions and the entitlement
+function, refusing legacy hash-as-bearer SQL during promotion or reprovision.
+
+## Issue #416 Option C S04 — protected ephemeral anti-abuse write boundary
+
+Migration `20261115016200_issue416_s04_signed_quota_guard` adds private
+`s04_quota_guard.proof_key` (one independently provisioned 32-byte key) and
+`s04_quota_guard.used_nonce` (single-use UUID with indexed expiry). Both
+relations are inaccessible to the ordinary runtime SQL principal. Existing
+`public.anti_abuse_events` rows and indexes are retained; no rolling-window
+counter reset or domain/tenant/location field is introduced.
+
+At runtime, direct `anti_abuse_events` INSERT/UPDATE is retired entirely.
+Fixed `SECURITY DEFINER` functions `s04_counted`, `s04_reserve`,
+`s04_finalize` and `s04_guest_classified` verify short-lived, operation-bound
+HMAC proofs against the private key and consume each nonce exactly once inside
+the same PostgreSQL transaction as the counter change. Guest classified
+group binding, class/aggregate/credential limits and 15-minute windows remain
+atomic. `s04_staff_login_success` and `s04_mfa_success` are restricted
+to independently provisioned protected writer principals, each with a fixed
+Staff/MFA scope; these functions run within their respective verified
+authentication transaction. No generic writer principal or inherited table
+write privilege is introduced. `s04_cleanup_nonces` deletes at most 1000
+nonces older than one hour per invocation, beyond the 30-second signed-proof
+validity ceiling. The cleanup and original bounded anti-abuse retention
+remain independent of operational/audit event history.
+
+Forward-only migration `20261115235910_option_c_s04_staff_activation_success`
+initially added the activation-only helper. Migration
+`20261116000100_option_c_s04_signed_staff_activation_success` replaces that
+unsigned four-argument signature with
+`public.s04_staff_activation_success(uuid,text,text,text,xid8,uuid,bigint,text)` and
+drops the old signature with `RESTRICT`. The current helper requires the S04
+action-bound HMAC proof and one-use nonce over the exact reservation ID, scope,
+key hash, invitation verifier and current PostgreSQL `xid8`; SQL compares the
+signed XID to `pg_current_xact_id()` inside the activation transaction. It can change only a matching `PENDING`
+anti-abuse reservation to `IGNORED` for the two Staff activation scopes and
+only when an unrevoked, consumed invitation is linked to an ACTIVE user and
+membership with the exact immutable activation audit generation. The
+successful invitation activation, proof nonce, quota finalization and audit
+are committed in the same Staff Auth writer transaction. Ordinary runtime,
+PUBLIC and the other protected writers must not execute this helper; the Staff
+Auth writer retains no generic `s04_finalize` permission. Existing migrations
+and historical quota events remain unchanged. The ordered source inventory
+now contains 153 migration directories. Actual mounted protected HTTP
+qualification is a release gate. The signed SQL-level PG17 qualification is
+available through `pnpm --filter @valet/database s04:staff-activation:pg17`;
+it requires an individually attested disposable fixture as documented in
+`packages/database/issue416-s04/README.md`.
+
+The separate migrator must seed the proof key before runtime privilege
+provisioning. Both API and migrator require the distinct secret
+`ANTI_ABUSE_SQL_PROOF_SECRET_B64URL`; key mismatch fails closed.
+Writer-role function grants and full mounted Staff/MFA/Guest qualification
+remain explicit release gates during coordinated Option C integration.
+
+## Option C S03 — Management writer authorization boundary
+
+Forward-only migration `20261115190000_option_c_management_writer` adds five
+purpose-specific Management writer entry functions for Staff role/status/
+LocationAccess and onboarding invitation issuance/reissue. They require the
+current Staff session ID, User and raw bearer possession proof (SHA-256 checked
+inside the definer function), and recheck an active
+TOTP factor, sensitive 5-minute assurance, 30-minute activity freshness,
+Company subscription, and exact active Organization/actor membership inside
+the same PostgreSQL transaction. Existing command functions retain their
+last-usable-admin, LM coverage, blocker and optimistic-version protections.
+Each command and its tenant audit commit before the wrapper updates the same
+session's `last_admin_activity_at`; failure rolls back the entire transaction.
+
+`MANAGEMENT_WRITER_DATABASE_URL` uses the exact `vaylet_management_writer`
+independent SQL login, used only for
+these commands, with access to five wrapper functions and narrowly limited
+read/audit permissions. It cannot write membership fields or MFA/session
+assertions directly. Ordinary `DATABASE_URL` cannot execute either the
+legacy actor-ID write functions or the new wrappers. Runtime reprovisioning
+must include the distinct Management writer credentials or fail before making
+database changes. Invitation activation belongs to the separate Staff Auth
+writer boundary.
+
 ## Issue #304 — optional Key Slot label and authoritative read projection
 
 Forward-only migration `20261020009700_issue304_key_slot_label` adds nullable
@@ -644,6 +791,13 @@ Constraints/rules:
 - access expiry is at most 15 minutes and never exceeds the fixed absolute expiry
 - absolute expiry is exactly 30 days from database-authoritative session creation and never slides
 - revocation retains the session and its refresh lineage
+- under Option C S01, a forward-only database trigger makes a non-null
+  `revoked_at` immutable; neither the ordinary runtime role nor the dedicated
+  Staff Auth writer may clear or backdate a committed revocation
+- Staff session issuance and access/refresh rotation are restricted to the
+  dedicated `vaylet_staff_auth_writer` SQL principal; the ordinary runtime
+  principal retains read access and the narrowly required MFA assurance and
+  irrevocable session-revocation updates
 - MFA assurance fields are all-null or all-present; `mfa_factor_id` is a
   restrictive same-User reference to `user_mfa_totp_factors`
 - assurance is valid only while that exact factor remains the User's current
@@ -2416,6 +2570,12 @@ Rules:
 - normal runtime writes `USER`/`SYSTEM`/`ANONYMOUS` events only through the
   fixed-search-path SECURITY DEFINER append function; the controlled-operator
   append boundary is not executable by the ordinary runtime role
+- Issue #416 reserves `STAFF_PASSWORD_RESET_LINK_ISSUED` and
+  `STAFF_PASSWORD_RESET_PASSWORD_CHANGED` for authoritative reset operations.
+  The generic runtime append function rejects both with SQLSTATE `42501`,
+  including an otherwise identical event-ID replay. The additive reservation
+  introduces no reset operation. Authentication and atomic reset audit append
+  remain gated on `docs/plans/issue-416-security-foundation.md`.
 - deployment of migration 35 is a drained, coordinated database/runtime-role
   cutover: apply the migration with ordinary runtime audit traffic stopped,
   reprovision the runtime role, then start the updated application. This avoids
@@ -3372,3 +3532,49 @@ The migration owner records the actual additive migration ID, final SQL details
 and test evidence on implementation. Ordinary Check-In and Manual/No Plate do
 not depend on OCR admission/recovery; performance and NOWAIT availability must
 be proven in independent real-load tests.
+
+### Issue #416 — private authenticated Staff reset and attempt accounting (Option A/v9 source)
+
+The following is the **locally committed, dormant** forward-only migration
+source inventory, **not** the installed state of W9, QA or production. The
+original isolated W9 PostgreSQL17 migration113 failed, and its history repair
+remains specifically denied. No private SQL tables, ACLs, functions, or keys
+are claimed to exist in a running database by this section.
+
+| Source migrations | Tables and key invariants | Current authorization status |
+| --- | --- | --- |
+| 113–117 | `auth_proof_private` schema with NOLOGIN/NOINHERIT owner, private proof-key/selection/boundary, challenges, nonsecret receipts and fixed binary codec; schema and default PUBLIC grants restricted | Dormant, no keys provisioned and no runtime VAP1 signer |
+| 120, 124, 128, 131 | `reset_issue_quota_bundles`, four exact reservation entries, immutable domain evidence and source-bound finalization; target 3, issuer 20, Organization 100, trusted address 30 per 15 DB-clock minutes, atomic reservation, replay and conservative PENDING/COUNTED/IGNORED reconciliation | No ordinary runtime DML or generic SQL quota oracle; authentic R02 writer and actual PostgreSQL evidence absent |
+| 125–127, 129–130, 132 | Reset credential and consumed/evidence/issuer/target links, generation identity, canonical verifier hash, account-security audit and reciprocal deferred constraints; migration130 unconditionally denies unproved token consumption | No authentic raw bearer-to-private receipt proof, no protected atomic password/session/refresh/Push writer; redemption remains denied |
+| 133–134 | Separate `reset_redeem_client_attempts` and `reset_redeem_credential_attempts`; audience/request-scoped HMAC digest identity, credential FK to prior committed client attempt, one attempt per full XID, DB-owned time, 15-minute rolling 30/5 serialization, immutable UPDATE/DELETE/TRUNCATE and unconditional unbound INSERT rejection | W25 independently approved **dormant source only**, merged in Prime `e89908e8` with source inventory `8a3dff7e`; **no** trusted pre-parser binder, dedicated app/SQL key custody or SQL-only ACL/PG17 attestation. Never applied or enabled. |
+| 135 | Forward-only `public.anti_abuse_events` CHECK denies only the two legacy public R03 reset-redeem scopes; bounded installation lock and refusal if untrusted historical public R03 rows already exist. Other Staff Auth/Guest scopes and required old grants remain untouched. | Dormant source only, not applied to W9/PG17. Cannot substitute for private 133–134 binder, independent COMMIT, runtime ACL, or repair the wider legacy mutable anti-abuse exposure. |
+
+The two R03 limits are **counted on the attempt**, not on successful password
+change. Malformed-body requests consume the trusted-IP allowance before body
+parsing; valid canonical bearer attempts additionally consume the 5-verifier
+allowance. A failure, password-policy error, invalid token or business rollback
+must not erase an independently committed attempt. A COUNTED-only terminal
+attempt ledger must never offer a discretionary `IGNORED` transition; the
+separate R02 issue limiter keeps its exact PENDING/COUNTED/IGNORED receipt
+reconciliation contract. Future durable writers must use trusted request IDs,
+private HMAC keys, fresh same-session authority and database clock; do not
+store raw IP, password, bearer or MFA evidence in SQL.
+
+**Critical existing grant incompatibility:** the current ordinary runtime
+provisioner intentionally grants `UPDATE(state,group_key_hash)` and `SELECT`
+on **public** `anti_abuse_events`; its source limiter counts only
+`PENDING`/`COUNTED`, allowing a SQL-only runtime principal to discount an R03
+public attempt to `IGNORED`. Current runtime readiness independently requires
+those legacy UPDATE grants; a global REVOKE without a staged compatible
+replacement breaks older Auth/Guest consumers and may be undone by another
+provisioner run. The private R03 attempt ledger must be the *only* accepted
+redemption-rate evidence, with effective PostgreSQL17 ACL denial tested for
+ordinary runtime, PUBLIC, inherited and twice-reprovisioned principals before
+any activation. See `docs/validation/ISSUE416_R03_SQL_QUOTA_P0_EVIDENCE.md`.
+
+No source-only migration or schema statement proves the later requirements:
+true purpose-specific app/PG HMAC parity, backend/full-XID one-use challenge,
+all 35 applicable writer-family privilege closures, simultaneous Staff
+session/refresh/Push revocation and anonymous audit, 21 actual two-connection
+races or L1/L2 controlled cutover. These remain blocked until a separately
+attested and authorized PG17 source/role/test environment exists.

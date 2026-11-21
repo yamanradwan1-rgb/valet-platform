@@ -7,7 +7,6 @@ import { lastValueFrom, of } from "rxjs";
 import { describe, expect, it, vi } from "vitest";
 
 import type { PostgresPool } from "../src/common/database/postgres";
-import { staffCredentialHash } from "../src/modules/auth/staff-auth-credential";
 import { StaffResponseUserRevalidationInterceptor } from "../src/modules/auth/staff-response-user-revalidation.interceptor";
 
 const bearer = `Bearer vsa1.${"A".repeat(43)}`;
@@ -20,7 +19,15 @@ function scenario(
     readonly headersSent?: boolean;
   } = {},
 ) {
-  const query = vi.fn().mockResolvedValue({ rows: [{ status: "ACTIVE" }] });
+  const query = vi.fn().mockResolvedValue({
+    rows: [
+      {
+        id: "10000000-0000-4000-8000-000000000001",
+        user_id: "20000000-0000-4000-8000-000000000002",
+        created_at: new Date("2026-11-16T12:00:00Z"),
+      },
+    ],
+  });
   const pool = { query } as unknown as PostgresPool;
   const interceptor = new StaffResponseUserRevalidationInterceptor(pool);
   const request = {
@@ -50,14 +57,14 @@ describe("Staff emergency near-response revalidation", () => {
     ).resolves.toEqual({ privateData: true });
     expect(test.query).toHaveBeenCalledOnce();
     expect(test.query).toHaveBeenCalledWith(
-      expect.stringContaining("FROM staff_auth_sessions"),
-      [staffCredentialHash("access", bearer.slice("Bearer ".length))],
+      expect.stringContaining("staff_auth_lock_current_session"),
+      [null, null, bearer.slice("Bearer ".length), null, "SHARED"],
     );
   });
 
   it("also checks case-insensitive Staff GET routes", async () => {
     const test = scenario({ path: "/V1/STAFF/dashboard/organizations" });
-    test.query.mockResolvedValue({ rows: [{ status: "DISABLED" }] });
+    test.query.mockResolvedValue({ rows: [] });
     await expect(
       lastValueFrom(test.interceptor.intercept(test.context, test.next)),
     ).rejects.toBeInstanceOf(UnauthorizedException);
@@ -66,19 +73,19 @@ describe("Staff emergency near-response revalidation", () => {
 
   it("suppresses the pending protected body after security disable", async () => {
     const test = scenario();
-    test.query.mockResolvedValue({ rows: [{ status: "DISABLED" }] });
+    test.query.mockResolvedValue({ rows: [] });
     await expect(
       lastValueFrom(test.interceptor.intercept(test.context, test.next)),
     ).rejects.toBeInstanceOf(UnauthorizedException);
     expect(test.query).toHaveBeenCalledOnce();
   });
 
-  it("allows an already-authorized response if a refresh rotated its token", async () => {
+  it("fails closed if a refresh rotated the bearer before serialization", async () => {
     const test = scenario();
     test.query.mockResolvedValue({ rows: [] });
     await expect(
       lastValueFrom(test.interceptor.intercept(test.context, test.next)),
-    ).resolves.toEqual({ privateData: true });
+    ).rejects.toBeInstanceOf(UnauthorizedException);
   });
 
   it("fails closed when the recheck cannot query PostgreSQL", async () => {

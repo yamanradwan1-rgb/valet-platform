@@ -43,11 +43,11 @@ export class Phase4RetrievalHandoffGateContext extends Phase3OperationsGateConte
     super(`006h_${label}`);
   }
 
-  override async setupGate(): Promise<void> {
+  override async setupGate(protectedMfa = false): Promise<void> {
     this.priorHandoffSecret = process.env.HANDOFF_VERIFIER_HMAC_SECRET_B64URL;
     process.env.HANDOFF_VERIFIER_HMAC_SECRET_B64URL =
       randomBytes(32).toString("base64url");
-    await super.setupGate();
+    await super.setupGate(protectedMfa);
   }
 
   override async teardownGate(): Promise<void> {

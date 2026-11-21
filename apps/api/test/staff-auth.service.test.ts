@@ -25,6 +25,7 @@ function failureHarness(
   const service = new StaffAuthService(
     { query } as unknown as Pool,
     { verify } as StaffPasswordVerifier,
+    { query } as unknown as Pool,
   );
   return { service, verify };
 }

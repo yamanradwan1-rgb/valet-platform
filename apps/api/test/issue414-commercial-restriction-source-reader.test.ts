@@ -12,7 +12,7 @@ vi.mock("../src/modules/management/management-authorization", () => ({
 
 const organizationId = "11111111-1111-4111-8111-111111111111";
 const context = {
-  accessTokenHash: "redacted",
+  rawAccessToken: "vsa1." + "A".repeat(43),
   createdAt: new Date("2026-11-04T08:00:00.000Z"),
   staffAuthSessionId: "22222222-2222-4222-8222-222222222222",
   userId: "33333333-3333-4333-8333-333333333333",

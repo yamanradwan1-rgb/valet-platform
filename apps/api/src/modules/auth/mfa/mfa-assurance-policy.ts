@@ -1,4 +1,4 @@
-import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 
 import type {
   PostgresPool,
@@ -13,6 +13,8 @@ import {
 import { localMfaBypassEnabled } from "./local-mfa-bypass";
 import { MfaStepUpRequiredError } from "./mfa-errors";
 import { lockAndRecheckMfaSession } from "./mfa-session-repository";
+import { mfaProtectedWriterEnabled } from "../../../common/database/mfa-protected-pool";
+import { registerProtectedAdminActivity } from "./mfa-protected-admin-touch";
 
 const maxAssuranceMs = 8 * 60 * 60 * 1000;
 const inactivityMs = 30 * 60 * 1000;
@@ -57,50 +59,30 @@ export function evaluateMfaAssurance(
   return "ASSURANCE_VALID";
 }
 
-interface AssuranceRow {
-  readonly factor_current: boolean;
-  readonly last_admin_activity_at: Date | null;
-  readonly mfa_authenticated_at: Date | null;
-  readonly mfa_factor_id: string | null;
-  readonly now: Date;
-}
-
 async function readAssurance(
   queryable: Pick<PostgresPool, "query"> | PostgresTransaction,
   context: StaffSessionContext,
 ): Promise<{ readonly now: Date; readonly snapshot: MfaAssuranceSnapshot }> {
-  const result = await queryable.query<AssuranceRow>(
-    `WITH decision AS (SELECT clock_timestamp() AS now)
-     SELECT session.mfa_authenticated_at, session.mfa_factor_id,
-            session.last_admin_activity_at, decision.now,
-            EXISTS (
-              SELECT 1 FROM user_mfa_totp_factors AS factor
-              WHERE factor.id = session.mfa_factor_id
-                AND factor.user_id = session.user_id
-                AND factor.state = 'ACTIVE'
-            ) AS factor_current
-     FROM staff_auth_sessions AS session
-     INNER JOIN users AS staff_user ON staff_user.id = session.user_id
-     CROSS JOIN decision
-     WHERE session.id = $1 AND session.user_id = $2
-       AND session.current_access_token_hash = $3
-       AND session.revoked_at IS NULL
-       AND decision.now < session.access_expires_at
-       AND decision.now < session.absolute_expires_at
-       AND staff_user.status = 'ACTIVE'`,
-    [context.staffAuthSessionId, context.userId, context.accessTokenHash],
-  );
-  const row = result.rows[0];
-  if (result.rowCount !== 1 || row === undefined) {
-    throw new UnauthorizedException();
-  }
+  const session = await lockAndRecheckMfaSession(queryable, context);
+  const factorCurrent =
+    session.mfa_factor_id !== null &&
+    (
+      await queryable.query<{ readonly current: boolean }>(
+        `SELECT EXISTS (
+           SELECT 1 FROM user_mfa_totp_factors AS factor
+           WHERE factor.id = $1 AND factor.user_id = $2
+             AND factor.state = 'ACTIVE'
+         ) AS current`,
+        [session.mfa_factor_id, session.user_id],
+      )
+    ).rows[0]?.current === true;
   return {
-    now: row.now,
+    now: session.now,
     snapshot: {
-      factorCurrent: row.factor_current,
-      lastAdminActivityAt: row.last_admin_activity_at,
-      mfaAuthenticatedAt: row.mfa_authenticated_at,
-      mfaFactorId: row.mfa_factor_id,
+      factorCurrent,
+      lastAdminActivityAt: session.last_admin_activity_at,
+      mfaAuthenticatedAt: session.mfa_authenticated_at,
+      mfaFactorId: session.mfa_factor_id,
     },
   };
 }
@@ -145,6 +127,12 @@ export async function recordAdminActivityInTransaction(
     await lockAndRecheckMfaSession(transaction, context);
     return;
   }
+  if (mfaProtectedWriterEnabled()) {
+    await lockAndRecheckMfaSession(transaction, context);
+    await registerProtectedAdminActivity(transaction, context);
+    return;
+  }
+  await lockAndRecheckMfaSession(transaction, context);
   const clock = await transaction.query<{ readonly now: Date }>(
     `SELECT clock_timestamp() AS now`,
   );
@@ -156,7 +144,7 @@ export async function recordAdminActivityInTransaction(
      FROM users AS staff_user, user_mfa_totp_factors AS factor
      WHERE session.id = $1
        AND session.user_id = $2
-       AND session.current_access_token_hash = $3
+       AND session.created_at = $3::timestamptz
        AND session.revoked_at IS NULL
        AND staff_user.id = session.user_id
        AND staff_user.status = 'ACTIVE'
@@ -169,7 +157,7 @@ export async function recordAdminActivityInTransaction(
        AND $4::timestamptz < session.absolute_expires_at
        AND $4::timestamptz < session.mfa_authenticated_at + INTERVAL '8 hours'
        AND $4::timestamptz < session.last_admin_activity_at + INTERVAL '30 minutes'`,
-    [context.staffAuthSessionId, context.userId, context.accessTokenHash, now],
+    [context.staffAuthSessionId, context.userId, context.createdAt, now],
   );
   if (updated.rowCount !== 1) throw new MfaStepUpRequiredError();
 }

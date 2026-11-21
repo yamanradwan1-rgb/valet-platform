@@ -1,8 +1,12 @@
 export const DEFAULT_NON_TEST_ALLOWANCE = 20;
 export const POSTGRES_RESOURCE_PROFILES = Object.freeze({
-  "api-standard": profile("api-standard", 4, 2, 2, 1, 10, 1),
-  "api-compound": profile("api-compound", 4, 3, 2, 1, 10, 1),
+  // Native Staff Auth keeps fixture admin, application Runtime and two Writers.
+  "api-standard": profile("api-standard", 4, 4, 2, 1, 10, 1),
+  // Mounted operations keep fixture admin/runtime plus application Runtime and three Writers.
+  "api-compound": profile("api-compound", 4, 6, 2, 1, 10, 1),
   "api-race": profile("api-race", 6, 4, 4, 1, 10, 2),
+  // Photo HTTP fixtures mount dedicated Writer pools alongside Runtime and probes.
+  "api-issue215": profile("api-issue215", 6, 6, 4, 1, 10, 1),
   // One isolated Next subprocess plus one Chromium process, no parallel files.
   "api-photo-browser": profile("api-photo-browser", 6, 4, 4, 2, 20, 1),
   "database-direct": profile("database-direct", 4, 2, 3, 0, 0, 2),
@@ -17,7 +21,7 @@ const PROJECT_PROFILES = Object.freeze({
   "api-postgres-standard": "api-standard",
   "api-postgres-compound": "api-compound",
   "api-postgres-race": "api-race",
-  "api-postgres-issue215": "api-race",
+  "api-postgres-issue215": "api-issue215",
   "api-postgres-issue309-browser": "api-photo-browser",
   "database-postgres-direct": "database-direct",
   "database-postgres-provision": "database-provision",

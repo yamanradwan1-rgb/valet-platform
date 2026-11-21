@@ -1,4 +1,5 @@
 import type { PostgresTransaction } from "../../common/database/postgres";
+import { lockStaffUserSecurityBoundaryShared } from "../auth/staff-user-security-lock";
 import { CashMutationError } from "./cash-errors";
 import type { CashAuthorization } from "./cash-types";
 
@@ -16,6 +17,7 @@ export async function authorizeCashMutation(
   valetSessionId: string,
   managerOnly = false,
 ): Promise<CashAuthorization> {
+  await lockStaffUserSecurityBoundaryShared(transaction, authenticatedUserId);
   const result = await transaction.query<AuthorizationRow>(
     `SELECT session.id::text AS valet_session_id,
             session.organization_id::text, session.location_id::text,
@@ -40,7 +42,7 @@ export async function authorizeCashMutation(
       AND access.location_id = session.location_id
      WHERE session.id = $2 AND actor.id = $1
        AND ($3::boolean = false OR membership.role = 'LOCATION_MANAGER')
-     FOR SHARE OF session, location, organization, membership, actor, access`,
+     FOR SHARE OF session, location, organization, membership, access`,
     [authenticatedUserId, valetSessionId, managerOnly],
   );
   const row = result.rows[0];

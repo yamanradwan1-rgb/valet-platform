@@ -10,10 +10,8 @@ import { mergeMap, type Observable } from "rxjs";
 
 import type { PostgresPool } from "../../common/database/postgres";
 import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
-import {
-  accessBearerPattern,
-  staffCredentialHash,
-} from "./staff-auth-credential";
+import { accessBearerPattern } from "./staff-auth-credential";
+import { resolveStaffSessionWithBearer } from "./staff-session-lock";
 
 interface StaffHttpRequest {
   readonly method?: string;
@@ -54,7 +52,6 @@ export class StaffResponseUserRevalidationInterceptor implements NestInterceptor
       return next.handle();
 
     const response = context.switchToHttp().getResponse<StaffHttpResponse>();
-    const tokenHash = staffCredentialHash("access", token);
     return next.handle().pipe(
       mergeMap(async (value: unknown) => {
         // Manual streaming controllers may have sent bytes already.
@@ -63,17 +60,10 @@ export class StaffResponseUserRevalidationInterceptor implements NestInterceptor
           !response.writableEnded &&
           !response.destroyed
         ) {
-          const result = await this.pool.query<{ readonly status: string }>(
-            `SELECT actor.status::text AS status
-             FROM staff_auth_sessions AS session
-             INNER JOIN users AS actor ON actor.id = session.user_id
-             WHERE session.current_access_token_hash = $1`,
-            [tokenHash],
-          );
-          // Refresh may already have rotated the old token. Do not turn an
-          // already-authorized in-flight GET into a false logout/refresh 401.
-          // Global disable retains the current hash while revoking sessions.
-          if (result.rows[0]?.status === "DISABLED") {
+          if (
+            (await resolveStaffSessionWithBearer(this.pool, token)) ===
+            undefined
+          ) {
             throw new UnauthorizedException();
           }
         }

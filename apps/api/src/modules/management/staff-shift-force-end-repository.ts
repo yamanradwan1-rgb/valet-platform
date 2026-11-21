@@ -32,7 +32,7 @@ export async function forceEndStaffShift(
       [
         context.userId,
         context.staffAuthSessionId,
-        context.accessTokenHash,
+        context.rawAccessToken ?? "",
         organizationId,
         shiftId,
         command.operationId,

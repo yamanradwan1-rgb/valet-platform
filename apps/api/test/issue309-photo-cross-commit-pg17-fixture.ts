@@ -63,7 +63,7 @@ export async function seedPhotoFenceCase(h: Issue309PhotoHttpFixture): Promise<P
     credential: {
       userId: viewer.userId,
       staffAuthSessionId: session.rows[0]!.id,
-      accessTokenHash: tokenHash,
+      rawAccessToken: viewer.authorization.slice(7),
       createdAt: session.rows[0]!.created_at,
     },
   };

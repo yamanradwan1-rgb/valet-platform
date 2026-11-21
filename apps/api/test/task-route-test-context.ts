@@ -27,8 +27,8 @@ export class TaskRouteTestContext extends RouteHistoryTestContext {
     return {
       userId,
       accessToken,
+      rawAccessToken: accessToken,
       staffAuthSessionId,
-      accessTokenHash,
       createdAt: result.rows[0]!.created_at,
     };
   }

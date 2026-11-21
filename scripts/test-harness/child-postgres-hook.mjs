@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { appendOwnershipEvent } from "./ownership-state.mjs";
 import { installPostgresOwnershipRuntime } from "./postgres-ownership-hooks.mjs";
 import { currentProcessIdentity } from "./process-identity.mjs";
+import { prepareCiManagementWriter } from "./ci-management-writer.mjs";
 
 const runId =
   process.env.VAYLET_TEST_RUN_ID ?? process.env.VAYLET_TEST_CLUSTER_RUN_ID;
@@ -41,6 +42,7 @@ if (runId) {
     pg = undefined;
   }
   if (pg !== undefined) {
+    await prepareCiManagementWriter(pg);
     installPostgresOwnershipRuntime({
       appendEvent,
       pg,

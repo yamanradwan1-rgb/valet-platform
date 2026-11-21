@@ -7285,7 +7285,6 @@ describe("intake session creation persistence", () => {
     expect(result.rows.every((row) => row.confdeltype === "r")).toBe(true);
     expect(result.rows.every((row) => row.confupdtype === "r")).toBe(true);
   });
-
   it("does not backfill an operation for a pre-existing session", async () => {
     const result = await databaseClient.query<{ count: number }>(
       `SELECT count(*)::integer AS count
@@ -7363,6 +7362,7 @@ describe("staff authentication persistence", () => {
         column_name: "last_admin_activity_at",
         table_name: "staff_auth_sessions",
       },
+      { column_name: "runtime_lock_version", table_name: "staff_auth_sessions" },
       { column_name: "id", table_name: "staff_refresh_credentials" },
       { column_name: "session_id", table_name: "staff_refresh_credentials" },
       { column_name: "token_hash", table_name: "staff_refresh_credentials" },

@@ -231,12 +231,12 @@ describe("existing durable AntiAbuse bounds new presence routes by authenticated
       }
     },
   );
-  it("fails closed on a real limiter INSERT privilege failure", async () => {
+  it("fails closed when Runtime loses EXECUTE on the S04 limiter", async () => {
     const f = await db.createFixture();
     const auth = await db.session(f.userId);
     const before = await allocations();
     await db.adminPool.query(
-      `REVOKE INSERT(scope,key_hash,state) ON anti_abuse_events FROM "${db.runtimeRole}"`,
+      `REVOKE EXECUTE ON FUNCTION public.s04_counted(text,text,uuid,bigint,text) FROM "${db.runtimeRole}"`,
     );
     try {
       const result = await http.request(
@@ -254,7 +254,7 @@ describe("existing durable AntiAbuse bounds new presence routes by authenticated
       expect(await allocations()).toEqual(before);
     } finally {
       await db.adminPool.query(
-        `GRANT INSERT(scope,key_hash,state) ON anti_abuse_events TO "${db.runtimeRole}"`,
+        `GRANT EXECUTE ON FUNCTION public.s04_counted(text,text,uuid,bigint,text) TO "${db.runtimeRole}"`,
       );
     }
   });

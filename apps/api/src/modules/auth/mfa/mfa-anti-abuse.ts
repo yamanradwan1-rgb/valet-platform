@@ -30,7 +30,20 @@ export class MfaAntiAbuse {
     transaction: PostgresTransaction,
     reservation: AntiAbuseReservation,
   ): Promise<void> {
-    await this.antiAbuse.finalizeInTransaction(transaction, reservation, "IGNORED");
+    if (
+      !reservation.id ||
+      (reservation.key.scope !== "v1:mfa-totp-user" &&
+        reservation.key.scope !== "v1:mfa-recovery-user")
+    ) throw new AntiAbuseUnavailableError();
+    // S04's purpose-restricted finalizer executes in the SAME MFA writer
+    // transaction. Never fall back to mutable ordinary-runtime limiter rows.
+    const done = await transaction.query<{ affected: number }>(
+      "SELECT public.s04_mfa_success($1::uuid,$2::text,$3::text) AS affected",
+      [reservation.id, reservation.key.scope, reservation.key.keyHash],
+    );
+    if (done.rowCount !== 1 || done.rows[0]?.affected !== 1) {
+      throw new AntiAbuseUnavailableError();
+    }
   }
 
   async failure(reservation: AntiAbuseReservation): Promise<void> {

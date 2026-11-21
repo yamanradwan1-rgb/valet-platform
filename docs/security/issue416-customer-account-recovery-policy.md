@@ -1,0 +1,51 @@
+# VAYLET — Customer Account Recovery Policy (Option C)
+
+**Status:** PROPOSED PRE-LAUNCH POLICY — NOT YET AN OPERATIONAL CAPABILITY.
+**Decision:** Company Admin Password Reset remains API/UI disabled. No implicit authority to use development-only credentials, migration-owner SQL, W9, legacy reactivation, or a custom emergency endpoint.
+**Scope:** Human-initiated recovery for real customer organizations (Company Admin and Staff). VAYLET is a SaaS provider, not a valet operator. This policy does not assign VAYLET operators permission to take customer vehicle or valet-operation actions.
+
+## 1. Launch prerequisite
+
+Before onboarding any real customer, the Owner must approve a tested, narrowly scoped **customer recovery operation** and accountable on-call staff with independent privileged identities. If the approved implementation is unavailable, **do not perform account recovery by modifying production PostgreSQL directly**. The support request remains blocked/escalated; the organization may use a still-authorized existing Company Admin for ordinary staff management where that workflow is supported. Do not enable the unfinished Issue #416 Reset routes as an emergency bypass.
+
+**Current capability gap:** the existing Staff Activation path for an ACTIVE User requires successful verification of that User's existing password; it is **not** a forgotten-password recovery path. Company Admin staff management cannot reset an ACTIVE User's password while Issue #416 remains disabled. Therefore neither a support policy nor ordinary management access supplies actual recoverability today. First-customer launch remains blocked until an approved recovery tool/process is implemented and tested, or an explicit Owner-approved alternative meets the same security properties.
+
+**Customer onboarding gate:** record a verified Organization ownership/contact baseline **before** account activation, along with an independently verified fallback contact, security-sensitive change freeze rules, support coverage and escalation contact. Assign at least two distinct named on-call operators with separate hardware-backed/MFA-protected accounts, approved secure credential-delivery channel and outage fallback that does *not* permit SQL-owner emergency writes. Demonstrate a synthetic end-to-end recovery drill and customer notification before first customer. No invented SLA or support hours are implied here; the Owner must approve and publish the actual support commitment.
+
+## 2. Eligible requester and assurance
+
+The request must identify the target **global User ID and exact Organization ID/membership**, plus the requested recovery type (password, MFA factor, or disabled user). Email, customer name, verbal claims, displayed dashboard screenshots, and knowledge of parked cars **are not sufficient evidence of authorization**.
+
+1. Open an internally numbered case using the approved support channel. Record timestamps, operator and independently verified company contact in a protected case system; never copy passwords, tokens, TOTP seeds, recovery codes or raw personal documents into the ticket.
+2. Establish the requester's organizational authority through the *previously verified* customer admin/contact record, not newly supplied request contact details. Independently call back using a registered channel and verify a second factor or established offline organization authorization procedure. A request to change the verified contact and recover credentials in the same operation must be rejected pending separate high-assurance ownership review.
+3. For an existing non-admin Staff account, require the current eligible Company Admin to authorize the exact target and purpose. For a sole Company Admin, require an enhanced organization-ownership verification and independent VAYLET security approver. Location Manager authorization is **not** a substitute for sole Company Admin verification.
+4. Identify global User/membership cardinality across **all statuses**. A User shared across organizations may not receive a password rotation from a single organization's request without additional global owner approvals and a formally reviewed procedure. A recoverable Staff target must be an eligible, active User/membership; suspended/inactive users require separate reactivation authorization.
+5. Treat credential compromise, stolen session/refresh or unauthorized role changes as a security incident first. Preserve evidence and revoke affected access using independently authenticated incident tooling; never restore trust merely by issuing another password.
+
+## 3. Dual control and least privilege
+
+The **verifying support operator** and **approving security operator** must be different authenticated humans using organization-managed MFA and unique operator identities. Record their immutable identity IDs, exact role, approval time, case ID, target global User, target membership/Organization, reason and verification channel classification. An `operatorRef` free-text argument or a single operator claiming two identities is not an approval. Any break-glass operation has independently documented security leadership authorization and a separate incident review; emergency use does not waive SQL privilege or audit restrictions.
+
+The executor must operate through an approved, purpose-restricted service or CLI that verifies the signed dual approval and current target/company state under a single transaction. Production must not expose `MIGRATION_DATABASE_URL` to API/support runtime. The tool must never permit arbitrary SQL, actor UUID substitution, role escalation, Organization reassignment, skipping MFA, changing tenant grants, or reusing a stale approval.
+
+## 4. Recovery execution contract
+
+**Required before tool approval:** actual effective runtime SQL role negatives and independent privileged writer authorization; real PostgreSQL 17 tests for concurrency, eligibility, tenant and cardinality restrictions, revoked approvals and production-safe logging. A tool must be **single-use, case-bound and idempotent**, use DB clock, documented short expiry and an explicit decision for lost COMMIT acknowledgements.
+
+For an approved **password** recovery, only the verified global target may receive a fresh credential through a separately reviewed one-use secure channel. Never email a plaintext password, place credentials in chat, log/analytics, query strings, support ticket fields or a generic public URL. A password change must atomically revoke **all** target Staff Auth sessions, dependent `staff_refresh_credentials` generations by invalidating their parent sessions, Staff Push registrations and any active `staff_password_reset` / Staff Onboarding credentials that are compatible with the User state; inspect actual installed tables rather than assuming an unavailable feature is live. Verify refresh cannot be replayed even when there is no `revoked_at` column on the refresh row. Include a security audit and committed operation receipt. Maintain User status, MFA factors, memberships, grants and operational history unchanged unless separately approved and proven safe. The user must authenticate again and satisfy existing MFA; the tool must not auto-login or silently grant assurance.
+
+For **MFA recovery**, do not fabricate a `mfa_authenticated_at` timestamp or set an arbitrary TOTP factor ACTIVE. Require approved verification and a purpose-specific factor retirement/re-enrollment ceremony. On suspected compromise, disable all current sessions and Push in the same security transaction; no raw recovery-code disclosure through a generic operator CLI.
+
+Only reveal a new one-time credential/activation mechanism after **known successful COMMIT**. On ambiguous COMMIT, do not automatically retry or reissue secret; use an exact authorized immutable receipt/status readback. If readback cannot distinguish the outcome, fail closed and escalate.
+
+## 5. Audit, privacy and detection
+
+Create immutable security event records for: request received, channel and ownership verification completed/failed, dual approval granted/rejected/revoked, actual protected execution attempt and final known/unknown result, target notified via a previously verified channel, and periodic independent review. Events must bind operation ID, original case ID, exact target and organization, distinct operator principal IDs, security policy version, source IP classification and receipt linkage. Event writes must not be discountable, deletable or forgeable by the ordinary runtime SQL principal. Keep records under an approved retention schedule and privacy/access policy; no unapproved duration is assumed here.
+
+Alert on unusually frequent requests, repeat requests for the same target, any sole-admin recovery, repeated failed approval, attempted cross-tenant/secondary-membership operations, missing audit receipt and attempted use of unsafe SQL or dev bypass. Do not expose whether a User account exists to an unauthenticated caller.
+
+## 6. Safeguards, testing and go/no-go
+
+Minimum acceptance: real PostgreSQL 17 isolated synthetic Company Admin/Staff/multi-organization targets, actual ordinary runtime and operator roles, two-connection approval/use races, operator identity replay, revoked/suspended User, sole-admin verification, cross-tenant negative, blocked second membership (any status), concurrent login/refresh/Push, immutable audit failure rollback, ambiguous COMMIT/readback, no secret disclosure. Verify no mutation of shifts, tasks, custody, vehicles or organization grants; prove actual Staff login/MFA after recovery and denial of every old bearer. Reprovision privileges twice to check the old grants do not return. Test the **actual approved recovery CLI or controlled service** and its dual-human authorization plus real Staff Auth/MFA HTTP postconditions; do not pretend an internal CLI uses the disabled public Reset endpoint. Run independent security review and same-SHA CI/Security CI.
+
+**No-go:** absent approved production-capable recovery tool, distinct attested operators, secure delivery, immutable audit, effective SQL privilege proof, or required green checks, **customer recovery remains unavailable and first-customer launch is blocked** pending an explicit owner decision. This document alone does not authorize a production credential reset or deployment.

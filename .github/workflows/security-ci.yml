@@ -335,6 +335,15 @@ jobs:
             --head "$RUNNER_TEMP/codeql-head.sarif" \
             --base "$RUNNER_TEMP/codeql-base.sarif" \
             --out security-reports/codeql-sanitized.json
+      - name: Add sanitized source-pinned CodeQL delta telemetry
+        if: ${{ always() && steps.codeql-analyze.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          python3 scripts/security/codeql_delta_telemetry.py \
+            --head "$RUNNER_TEMP/codeql-head.sarif" \
+            --base "$RUNNER_TEMP/codeql-base.sarif" \
+            --source-root "$GITHUB_WORKSPACE" \
+            --out security-reports/codeql-sanitized.json
       - if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:

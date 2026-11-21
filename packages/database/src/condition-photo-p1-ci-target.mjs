@@ -30,7 +30,7 @@ export function assertIssue215CiDockerTarget(targets, env) {
     target?.Config?.Labels?.["vaylet.issue215.disposable"] !== "true" ||
     target?.Config?.Labels?.["vaylet.issue215.run-id"] !== env.GITHUB_RUN_ID ||
     target?.State?.Status !== "running" ||
-    !target?.Config?.Env?.includes("POSTGRES_USER=valet") ||
+    !target?.Config?.Env?.includes("POSTGRES_USER=valet_ci_bootstrap") ||
     !target?.Config?.Env?.includes("POSTGRES_DB=valet") ||
     !Array.isArray(ports) || ports.length < 1 || ports.length > 2 ||
     !ports.some((port) => port.HostPort === "5432" &&

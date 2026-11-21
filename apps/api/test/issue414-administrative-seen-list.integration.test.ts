@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Pool } from "pg";
 import type { StaffSessionContext } from "../src/modules/auth/staff-session-context";
@@ -107,9 +106,7 @@ describe("Issue #414 F Seen filtering with W18's typed receipts", () => {
     const otherContext: StaffSessionContext = {
       userId: otherUser.id,
       staffAuthSessionId: auth.sessionId,
-      accessTokenHash: `staff-access-sha256:v1:${createHash("sha256")
-        .update(auth.accessToken)
-        .digest("hex")}`,
+      rawAccessToken: auth.accessToken,
       createdAt: otherSession.rows[0]!.createdAt,
     };
     expect(await read(otherContext)).toEqual(first);

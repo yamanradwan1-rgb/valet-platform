@@ -11,6 +11,7 @@ import {
   type ConfirmParkedFixture,
 } from "./confirm-parked-test-context";
 import { installSyntheticStaffPushPolicyEnvironment } from "./staff-push-policy-test-value";
+import { ciFixtureManagementWriterEnvironment } from "./staff-auth-native-test-environment";
 
 export interface GateFixture extends ConfirmParkedFixture {
   readonly accessToken: string;
@@ -66,23 +67,31 @@ export function assertQueueMatchesQueuedTask(
 export class Phase3OperationsGateContext extends ConfirmParkedTestContext {
   private app?: INestApplication;
   private baseUrl = "";
-  private priorDatabaseUrl: string | undefined;
-  private priorAntiAbuseSecret: string | undefined;
+  private readonly previousEnvironment = new Map<string, string | undefined>();
   private restorePushPolicy: () => void = () => undefined;
 
   constructor(label: string) {
     super(`005h_${label}`);
   }
 
-  async setupGate(): Promise<void> {
+  async setupGate(protectedMfa = false): Promise<void> {
     await this.setup();
-    this.priorDatabaseUrl = process.env.DATABASE_URL;
-    this.priorAntiAbuseSecret = process.env.ANTI_ABUSE_HMAC_SECRET_B64URL;
-    process.env.DATABASE_URL = this.runtimeUrl;
-    process.env.ANTI_ABUSE_HMAC_SECRET_B64URL =
-      randomBytes(32).toString("base64url");
+    const writer = await this.provisionFixtureStaffAuthWriter(protectedMfa);
+    const fixtureEnvironment = {
+      DATABASE_URL: this.runtimeUrl,
+      MIGRATION_DATABASE_URL: this.migrationUrl,
+      STAFF_AUTH_WRITER_DATABASE_URL: writer.url,
+      STAFF_AUTH_WRITER_ROLE: writer.role,
+      ANTI_ABUSE_HMAC_SECRET_B64URL: randomBytes(32).toString("base64url"),
+      ...ciFixtureManagementWriterEnvironment(this.runtimeUrl),
+      ...writer.mfaEnvironment,
+    };
+    for (const [key, value] of Object.entries(fixtureEnvironment)) {
+      this.previousEnvironment.set(key, process.env[key]);
+      process.env[key] = value;
+    }
     this.restorePushPolicy = installSyntheticStaffPushPolicyEnvironment();
-    this.app = await NestFactory.create(AppModule, { logger: false });
+    this.app = await NestFactory.create(AppModule, { logger: false, abortOnError: false });
     await this.app.listen(0, "127.0.0.1");
     const address = this.app.getHttpServer().address() as { port: number };
     this.baseUrl = `http://127.0.0.1:${address.port}`;
@@ -90,12 +99,9 @@ export class Phase3OperationsGateContext extends ConfirmParkedTestContext {
 
   async teardownGate(): Promise<void> {
     await this.app?.close();
-    if (this.priorDatabaseUrl === undefined) delete process.env.DATABASE_URL;
-    else process.env.DATABASE_URL = this.priorDatabaseUrl;
-    if (this.priorAntiAbuseSecret === undefined) {
-      delete process.env.ANTI_ABUSE_HMAC_SECRET_B64URL;
-    } else {
-      process.env.ANTI_ABUSE_HMAC_SECRET_B64URL = this.priorAntiAbuseSecret;
+    for (const [key, value] of this.previousEnvironment) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
     }
     this.restorePushPolicy();
     await this.teardown();

@@ -14,6 +14,8 @@
     "shift-presence:maintain": "node scripts/shift-presence-maintenance.mjs",
     "migrate:deploy": "node scripts/run-migrate-deploy.mjs",
     "runtime:provision": "node scripts/provision-runtime-role.mjs",
+    "staff-auth-writer:provision": "node scripts/provision-staff-auth-writer-role.mjs",
+    "s04:staff-activation:pg17": "node scripts/run-s04-staff-activation-pg17.mjs",
     "guest-push-worker:provision": "node scripts/provision-guest-push-worker-role.mjs",
     "seed": "node prisma/seed.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",

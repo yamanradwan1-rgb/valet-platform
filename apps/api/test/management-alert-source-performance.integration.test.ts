@@ -18,6 +18,7 @@ import { inPostgresTransaction } from "../src/common/database/postgres-transacti
 import { queryPresenceReviewAlertCases } from "../src/modules/dashboard/management-alert-sources/presence-review-alert-reader";
 import { queryIncidentAlertCases } from "../src/modules/dashboard/management-alert-sources/incident-alert-reader";
 import { PresenceServerTestContext } from "./shift-presence-server-test-context";
+import { staffCredentialHash } from "../src/modules/auth/staff-auth-credential";
 
 const db = new PresenceServerTestContext("414-alert-w8-perf");
 const families: AlertPerfFamily[] = ["ALT-01", "ALT-08", "ALT-12"];
@@ -95,7 +96,7 @@ async function proveCommercialScope(scenario: AlertPerfFixture) {
       [
         config.context.userId,
         config.context.staffAuthSessionId,
-        config.context.accessTokenHash,
+        staffCredentialHash("access", config.context.rawAccessToken ?? ""),
         config.scope.organizationId,
       ],
     );
@@ -120,7 +121,7 @@ async function proveCommercialScope(scenario: AlertPerfFixture) {
         [
           config.context.userId,
           config.context.staffAuthSessionId,
-          config.context.accessTokenHash,
+          staffCredentialHash("access", config.context.rawAccessToken ?? ""),
           config.scope.organizationId,
         ],
       ),

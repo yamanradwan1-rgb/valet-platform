@@ -15,8 +15,8 @@ test("Guest T4's three simultaneous pools use the bounded compound project", () 
   const actual = classifyPackageTests({ packageKind: "api", rootDir: apiRoot });
   assert.ok(actual["api-postgres-compound"].includes(fixture));
   assert.equal(actual["api-postgres-standard"].includes(fixture), false);
-  assert.equal(postgresProfileForProject("api-postgres-standard").poolCount, 2);
-  assert.equal(postgresProfileForProject("api-postgres-compound").poolCount, 3);
+  assert.equal(postgresProfileForProject("api-postgres-standard").poolCount, 4);
+  assert.equal(postgresProfileForProject("api-postgres-compound").poolCount, 6);
 });
 
 test("exact-name compound ownership requires real DB signal and does not widen to lookalikes", () => {

@@ -1,4 +1,5 @@
 import type { PostgresTransaction } from "../../common/database/postgres";
+import { lockStaffUserSecurityBoundaryShared } from "../auth/staff-user-security-lock";
 import { MapSetupError } from "./map-setup-errors";
 
 export interface MapSetupActor {
@@ -11,6 +12,7 @@ export async function authorizeLocationMapSetup(
   authenticatedUserId: string,
   locationId: string,
 ): Promise<MapSetupActor> {
+  await lockStaffUserSecurityBoundaryShared(transaction, authenticatedUserId);
   const result = await transaction.query<MapSetupActor>(
     `SELECT membership.id::text AS "membershipId",
             membership.organization_id::text AS "organizationId"
@@ -31,7 +33,7 @@ export async function authorizeLocationMapSetup(
       AND access.membership_id = membership.id
       AND access.location_id = location.id
      WHERE actor.id = $1 AND actor.status = 'ACTIVE'
-     FOR SHARE OF actor, membership, organization, location, access`,
+     FOR SHARE OF membership, organization, location, access`,
     [authenticatedUserId, locationId],
   );
   const actor = result.rows[0];

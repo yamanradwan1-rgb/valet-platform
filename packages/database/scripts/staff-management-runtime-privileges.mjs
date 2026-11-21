@@ -4,6 +4,14 @@ export const runtimeStaffManagementFunctions = [
   "public.staff_management_set_location_access(uuid,uuid,uuid,integer,uuid[],boolean)",
 ];
 
+export const managementWriterFunctions = [
+  "public.staff_management_authorized_set_role(uuid,uuid,text,uuid,uuid,uuid,integer,membership_role)",
+  "public.staff_management_authorized_set_status(uuid,uuid,text,uuid,uuid,uuid,integer,membership_status)",
+  "public.staff_management_authorized_set_location_access(uuid,uuid,text,uuid,uuid,uuid,integer,uuid[],boolean)",
+  "public.staff_management_authorized_onboarding_create(uuid,uuid,text,uuid,uuid,uuid,text,text,text,text,membership_role,uuid[],text)",
+  "public.staff_management_authorized_onboarding_resend(uuid,uuid,text,uuid,uuid,uuid,uuid,text,text)",
+];
+
 export const privateStaffManagementFunctions = [
   "public.staff_management_authorize_actor(uuid,uuid)",
   "public.staff_management_authorize_staff_actor(uuid,uuid)",
@@ -13,6 +21,8 @@ export const privateStaffManagementFunctions = [
   "public.staff_management_lock_admin_factors(uuid)",
   "public.staff_management_lock_lm_active_grants(uuid,uuid)",
   "public.staff_management_lm_target_covered(uuid,uuid,uuid)",
+  "public.staff_management_authorize_writer(uuid,uuid,text,uuid,uuid)",
+  "public.staff_management_touch_writer_activity(uuid,uuid,text)",
 ];
 
 export async function provisionStaffManagementPrivileges(
@@ -22,10 +32,6 @@ export async function provisionStaffManagementPrivileges(
 ) {
   for (const functionName of runtimeStaffManagementFunctions) {
     await executeFormatted(client, "REVOKE ALL ON FUNCTION %s FROM %I", [
-      functionName,
-      runtimeRole,
-    ]);
-    await executeFormatted(client, "GRANT EXECUTE ON FUNCTION %s TO %I", [
       functionName,
       runtimeRole,
     ]);
@@ -58,7 +64,7 @@ export async function verifyStaffManagementPrivileges(client, runtimeRole) {
     );
     const row = result.rows[0];
     if (
-      row?.runtime_allowed !== true ||
+      row?.runtime_allowed !== false ||
       row.security_definer !== true ||
       row.owner_safe !== true ||
       row.search_path_safe !== true ||
@@ -66,7 +72,7 @@ export async function verifyStaffManagementPrivileges(client, runtimeRole) {
       row.public_denied !== true
     ) {
       throw new Error(
-        "Runtime Staff management function privileges are unsafe.",
+        "Ordinary runtime must not execute protected Staff management mutations.",
       );
     }
   }

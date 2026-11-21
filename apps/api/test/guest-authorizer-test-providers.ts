@@ -13,8 +13,10 @@ export function guestAdmissionQueryStub(
       return {
         rows: [
           {
-            id: "admission",
-            retry_after: decision.allowed ? 0 : decision.retryAfter,
+            id: decision.allowed ? "00000000-0000-4000-8000-000000000001" : null,
+            // The protected S04 SQL function returns a numeric zero for a
+            // successful admitted request; undefined is not a valid result.
+            retry_after: decision.allowed ? 0 : decision.retryAfter ?? 30,
           },
         ],
       };

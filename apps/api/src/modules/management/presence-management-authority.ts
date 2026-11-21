@@ -100,7 +100,7 @@ export async function protectPresenceManagementAuthority(
     [
       context.userId,
       context.staffAuthSessionId,
-      context.accessTokenHash,
+      context.rawAccessToken ?? "",
       organizationId,
     ],
   );
@@ -128,7 +128,7 @@ export async function protectPresenceManagementAuthority(
     throw new ManagementAccessDeniedError();
   if (session.mfa_factor_id !== null) {
     await transaction.query(
-      `SELECT id FROM user_mfa_totp_factors WHERE id=$1 AND user_id=$2 FOR SHARE`,
+      `SELECT id FROM user_mfa_totp_factors WHERE id=$1 AND user_id=$2`,
       [session.mfa_factor_id, context.userId],
     );
   }

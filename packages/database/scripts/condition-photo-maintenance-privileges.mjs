@@ -1,5 +1,7 @@
 import {
   listPhotoFunctions,
+  managementPhotoLockOwner,
+  managementPhotoLockSignature,
   photoFunctionIds,
   photoMaintenanceFunctions,
   photoPrivateTables,
@@ -13,6 +15,7 @@ export async function provisionConditionPhotoMaintenancePrivileges(
 ) {
   const catalog = await listPhotoFunctions(client);
   await photoFunctionIds(client, [...photoRuntimeFunctions, ...photoMaintenanceFunctions]);
+  const managementLock = await photoFunctionIds(client, [managementPhotoLockSignature]);
   for (const table of [...photoPrivateTables, "public.vehicle_photos"]) {
     await executeFormatted(client, "REVOKE ALL ON TABLE %s FROM %I", [table, role]);
     const result = await client.query(
@@ -30,6 +33,9 @@ export async function provisionConditionPhotoMaintenancePrivileges(
     );
   }
   for (const fn of catalog) {
+    // This lock has a separate owner. The effective ACL verifier below still
+    // rejects PUBLIC, grant options, or any maintenance EXECUTE on it.
+    if (managementLock.has(fn.oid) && fn.owner === managementPhotoLockOwner) continue;
     await executeFormatted(client, "REVOKE ALL ON FUNCTION %s FROM PUBLIC", [fn.signature]);
     await executeFormatted(client, "REVOKE ALL ON FUNCTION %s FROM %I", [fn.signature, role]);
   }

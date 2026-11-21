@@ -38,7 +38,7 @@ export async function requireFinancialAlertSourceScope(
              AND access.location_id = location.id
          ))
        )
-     FOR SHARE OF membership, actor, organization, location`,
+     FOR SHARE OF membership, organization, location`,
     [
       scope.organizationId,
       scope.locationId,

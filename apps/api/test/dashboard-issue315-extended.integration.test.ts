@@ -1,7 +1,6 @@
 import { Pool, type PoolClient } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { staffCredentialHash } from "../src/modules/auth/staff-auth-credential";
 import type { StaffSessionContext } from "../src/modules/auth/staff-session-context";
 import { authorizeDashboardReadLocation } from "../src/modules/dashboard/dashboard-read-authorization";
 import { ManagementControlPlaneTestFixture } from "./management-control-plane-test-fixture";
@@ -51,7 +50,7 @@ async function actor(): Promise<Actor> {
     organizationId: member.organizationId, locationId: location.locationId,
     sessionId: login.sessionId,
     context: {
-      accessTokenHash: staffCredentialHash("access", login.accessToken),
+      rawAccessToken: login.accessToken,
       createdAt: result.rows[0]!.created_at,
       staffAuthSessionId: login.sessionId, userId: user.id,
     },

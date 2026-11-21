@@ -1,12 +1,14 @@
 import { setTimeout as delay } from "node:timers/promises";
 import { performance } from "node:perf_hooks";
 
-import type { PoolClient } from "pg";
+import type { Client, PoolClient } from "pg";
 import { afterAll,beforeAll,describe,expect,it } from "vitest";
 
 import { openIssue309PhotoHttpFixture, type Issue309PhotoHttpFixture } from "./issue309-photo-http-fixture";
 import { runPhotoFenceHttp,seedPhotoFenceCase,type PhotoFenceCase } from "./issue309-photo-cross-commit-pg17-fixture";
-import { issue309IdleObservationBudgetMs } from "./issue309-photo-pg-activity";
+import { issue309IdleObservationBudgetMs, openIssue309CiObserver } from "./issue309-photo-pg-activity";
+
+let observer: Client | undefined;
 
 type Revoker = "session" | "grant" | "availability";
 
@@ -30,7 +32,7 @@ async function ensureNoIdleTransaction(h: Issue309PhotoHttpFixture, writerPid?: 
   const started = performance.now();
   const budgetMs = issue309IdleObservationBudgetMs();
   const checkZeroIdle = async () => {
-    const result = await h.db.admin.query<{
+    const result = await (observer ?? h.db.admin).query<{
       pid: number;
       usename: string;
       application_name: string;
@@ -62,8 +64,14 @@ async function ensureNoIdleTransaction(h: Issue309PhotoHttpFixture, writerPid?: 
 
 describe("Issue #309 two-connection real restricted PG17 + Node HTTP fence", () => {
   let h: Issue309PhotoHttpFixture;
-  beforeAll(async () => { h = await openIssue309PhotoHttpFixture({ hypotheticalApprovedRoles:true }); },240_000);
-  afterAll(async () => { await h?.close(); },90_000);
+  beforeAll(async () => {
+    h = await openIssue309PhotoHttpFixture({ hypotheticalApprovedRoles: true });
+    observer = await openIssue309CiObserver(h.db.runtimeUrl);
+  }, 240_000);
+  afterAll(async () => {
+    try { await observer?.end(); }
+    finally { await h?.close(); }
+  }, 90_000);
 
   it("detects an intentionally uncommitted fixture transaction by backend PID",async()=>{
     const writer = await h.db.admin.connect();

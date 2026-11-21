@@ -3,6 +3,8 @@ import { randomUUID } from "node:crypto";
 import { resolve } from "node:path";
 import { Client } from "pg";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import { hashStaffPassword } from "../src/modules/auth/staff-password-hashing";
+import { staffInvitationHash } from "../src/modules/management/staff-invitation-credential";
 import {
   StaffOnboardingTestFixture,
   issued,
@@ -121,8 +123,7 @@ describe("T05-C PostgreSQL constraints and runtime command boundary", () => {
       await expect(
         runtime.query("SELECT staff_onboarding_activate('unknown',NULL,NULL)"),
       ).rejects.toMatchObject({
-        code: "P0001",
-        message: "STAFF_ACTIVATION_FAILED",
+        code: "42501",
       });
       for (const table of [
         "users",
@@ -176,6 +177,42 @@ describe("T05-C PostgreSQL constraints and runtime command boundary", () => {
         ),
       ).rejects.toMatchObject({ code: "42501" });
       const fresh = issued(await fixture.create(actor));
+      // An ordinary SQL principal knows the complete invitation token here.
+      // A pending account must stay pending even if the caller supplies a valid
+      // credential digest and a correctly encoded Argon2 password hash.
+      const token = new URLSearchParams(new URL(fresh.activationLink).hash.slice(1))
+        .get("invite");
+      expect(token).not.toBeNull();
+      await expect(
+        runtime.query("SELECT staff_onboarding_activate($1,NULL,$2)", [
+          staffInvitationHash(token!),
+          await hashStaffPassword("Attempted SQL activation 240D!"),
+        ]),
+      ).rejects.toMatchObject({ code: "42501" });
+      const stillPending = await fixture.query<{
+        user_status: string;
+        membership_status: string;
+        consumed: boolean;
+      }>(
+        `SELECT account.status::text AS user_status,
+                member.status::text AS membership_status,
+                invitation.consumed_at IS NOT NULL AS consumed
+         FROM staff_onboarding_invitations invitation
+         JOIN organization_memberships member ON member.id=invitation.membership_id
+         JOIN users account ON account.id=member.user_id
+         WHERE invitation.id=$1`,
+        [fresh.invitationId],
+      );
+      expect(stillPending.rows[0]).toEqual({
+        user_status: "PENDING",
+        membership_status: "PENDING",
+        consumed: false,
+      });
+      const authorized = await fixture.request("/v1/staff/auth/activate", {
+        origin: fixture.allowedOrigin,
+        body: { inviteToken: token, password: "Authorized activation password 240D!" },
+      });
+      expect(authorized.status).toBe(200);
       for (const [sql, values] of [
         [
           "SELECT staff_management_set_role($1,$2,$3,1,'VALET_SUPERVISOR')",

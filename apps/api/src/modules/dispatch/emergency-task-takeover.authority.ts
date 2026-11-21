@@ -119,7 +119,7 @@ export async function authorizeEmergencyTakeoverRead(
        AND membership.user_id = $2
        AND membership.status = 'ACTIVE'
        AND membership.role IN ('ORG_ADMIN','VALET_SUPERVISOR')
-     FOR SHARE OF membership, staff_user`,
+     FOR SHARE OF membership`,
     [task.organizationId, context.userId],
   );
   const actor = actors.rows[0];

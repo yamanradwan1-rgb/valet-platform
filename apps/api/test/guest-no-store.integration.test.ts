@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 
 import {
   MiddlewareConsumer,
@@ -30,7 +30,11 @@ import {
   StaffGuestAccessController,
 } from "../src/modules/guest-access/guest-access.controller";
 import { GuestAccessService } from "../src/modules/guest-access/guest-access.service";
-import { guestAuthorizerTestProviders, guestAdmissionQueryStub } from "./guest-authorizer-test-providers";
+import {
+  guestAuthorizerTestProviders,
+  guestAdmissionQueryStub,
+} from "./guest-authorizer-test-providers";
+import { createGuestNoStoreRequest } from "./guest-no-store-request";
 
 const sessionId = randomUUID();
 const rawToken = "A".repeat(43);
@@ -129,34 +133,9 @@ class TestModule implements NestModule {
 
 let app: INestApplication;
 let baseUrl: string;
+const originalS04Key = process.env.ANTI_ABUSE_SQL_PROOF_SECRET_B64URL;
 
-async function request(
-  method: string,
-  path: string,
-  options: { authorization?: string; body?: unknown } = {},
-): Promise<{
-  body: Record<string, unknown>;
-  headers: Headers;
-  status: number;
-}> {
-  const headers: Record<string, string> = {};
-  if (options.authorization !== undefined) {
-    headers.authorization = options.authorization;
-  }
-  if (options.body !== undefined) headers["content-type"] = "application/json";
-  const response = await fetch(`${baseUrl}${path}`, {
-    method,
-    headers,
-    ...(options.body === undefined
-      ? {}
-      : { body: JSON.stringify(options.body) }),
-  });
-  return {
-    body: (await response.json()) as Record<string, unknown>,
-    headers: response.headers,
-    status: response.status,
-  };
-}
+const request = createGuestNoStoreRequest(() => baseUrl);
 
 function expectNoStore(result: { headers: Headers }): void {
   expect(result.headers.get("cache-control")).toBe("no-store");
@@ -164,10 +143,14 @@ function expectNoStore(result: { headers: Headers }): void {
 }
 
 beforeAll(async () => {
+  // The mocked counter still exercises the real purpose-bound signer, using
+  // only a fresh test-owned key; it must not silently bypass the S04 boundary.
+  process.env.ANTI_ABUSE_SQL_PROOF_SECRET_B64URL =
+    randomBytes(32).toString("base64url");
   app = await NestFactory.create(TestModule, { logger: false });
   await app.listen(0, "127.0.0.1");
   baseUrl = await app.getUrl();
-});
+}, 60_000);
 
 beforeEach(() => {
   antiAbuseMode = "ALLOW";
@@ -177,6 +160,9 @@ beforeEach(() => {
 
 afterAll(async () => {
   await app.close();
+  if (originalS04Key === undefined)
+    delete process.env.ANTI_ABUSE_SQL_PROOF_SECRET_B64URL;
+  else process.env.ANTI_ABUSE_SQL_PROOF_SECRET_B64URL = originalS04Key;
 });
 
 describe("SEC-003 guest response cache prevention", () => {

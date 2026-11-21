@@ -207,6 +207,9 @@ export function StaffDetailDrawer(props: {
               organizationId={props.organizationId}
               reconciling={props.reconciling}
             />
+            {/* Option C (2026-11-15): deliberately do not mount the unfinished
+                Company Admin reset action, even when an obsolete flag is set.
+                Preserve its source for a future separately approved feature. */}
           </>
         )}
         {mutation.error ? (

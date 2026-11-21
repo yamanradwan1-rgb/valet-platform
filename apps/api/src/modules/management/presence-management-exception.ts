@@ -2,6 +2,7 @@ import { shiftPresenceManagementExceptionSchema } from "@valet/contracts";
 
 import type { PostgresTransaction } from "../../common/database/postgres";
 import type { StaffSessionContext } from "../auth/staff-session-context";
+import { tryLockStaffUserSecurityBoundaryShared } from "../auth/staff-user-security-lock";
 import { requireMfaAssuranceInTransaction } from "../auth/mfa/mfa-assurance-policy";
 import type { PresenceManagementActor } from "./presence-management-authority";
 import { appendPresenceManagementAudit } from "./presence-management-audit";
@@ -112,10 +113,16 @@ export async function reviewManagementPresenceException(
     throw new PresenceManagementError("PRESENCE_REVIEW_CONFLICT");
   }
   // Nonblocking second principal proof cannot mistake contention for revoked authority.
-  const requester = await transaction.query(
-    `SELECT id FROM users WHERE id=$1 AND status='ACTIVE' FOR SHARE NOWAIT`,
-    [before.requester.userId],
+  const requesterLockAcquired = await tryLockStaffUserSecurityBoundaryShared(
+    transaction,
+    before.requester.userId,
   );
+  const requester = requesterLockAcquired
+    ? await transaction.query(
+        `SELECT id FROM users WHERE id=$1 AND status='ACTIVE'`,
+        [before.requester.userId],
+      )
+    : { rowCount: 0, rows: [] };
   const member = await transaction.query<{ status: string; role: string }>(
     `SELECT status::text,role::text FROM organization_memberships
     WHERE id=$1 AND organization_id=$2 AND user_id=$3 FOR SHARE NOWAIT`,

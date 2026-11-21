@@ -30,7 +30,7 @@ describe("#309 PG17 concrete runtime blockers without photo VIEW permission", ()
     finally { await db?.close(); }
   }, 90_000);
 
-  it("accepts the migrated #309 view-budget scope but rejects an unknown scope under restricted runtime grants", async () => {
+  it("keeps the migrated view-budget scope and denies Runtime direct quota writes", async () => {
     const identity = await runtime.query<{
       readonly actor: string;
       readonly canInsertTable: boolean;
@@ -51,27 +51,27 @@ describe("#309 PG17 concrete runtime blockers without photo VIEW permission", ()
     `);
     expect(identity.rows).toHaveLength(1);
     expect(identity.rows[0]?.actor).toMatch(/^vlt_t_role_215_/);
-    // Runtime is deliberately granted INSERT on these named columns only;
-    // whole-table INSERT is denied by the least-privilege provisioner.
+    // S04 accounts for quota through guarded entrypoints, including this scope.
     expect(identity.rows[0]).toMatchObject({
-      canInsertTable: false, canInsertScope: true,
-      canInsertKey: true, canInsertState: true,
+      canInsertTable: false, canInsertScope: false,
+      canInsertKey: false, canInsertState: false,
     });
     // Migration 98 is an accepted, guarded, forward-only #309 contract:
     // the viewer budget scope is now deliberately allowlisted. The old
     // pre-migration denial assertion contradicted the immutable SQL.
     expect(identity.rows[0]?.constraintSql).toContain(newViewBudgetScope);
 
-    // Real task-owned PostgreSQL proves the restricted runtime role can
-    // account for this *approved* budget while an unknown scope stays denied.
     const keyHash = `anti-abuse-hmac-sha256:v1:${"a".repeat(64)}`;
+    const insert = `INSERT INTO public.anti_abuse_events(scope,key_hash,state)
+                    VALUES ($1,$2,'COUNTED')`;
     await expect(runtime.query(
-      `INSERT INTO public.anti_abuse_events(scope,key_hash,state)
-       VALUES ($1,$2,'COUNTED')`, [newViewBudgetScope, keyHash],
+      insert, [newViewBudgetScope, keyHash],
+    )).rejects.toMatchObject({ code: "42501" });
+    await expect(db.admin.query(
+      insert, [newViewBudgetScope, keyHash],
     )).resolves.toMatchObject({ rowCount: 1 });
-    await expect(runtime.query(
-      `INSERT INTO public.anti_abuse_events(scope,key_hash,state)
-       VALUES ($1,$2,'COUNTED')`, [unknownViewBudgetScope, keyHash],
+    await expect(db.admin.query(
+      insert, [unknownViewBudgetScope, keyHash],
     )).rejects.toMatchObject({
       code: "23514", constraint: "anti_abuse_events_scope_check",
     });

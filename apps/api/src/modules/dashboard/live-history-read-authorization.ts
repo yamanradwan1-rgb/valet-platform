@@ -2,7 +2,10 @@ import { UnauthorizedException } from "@nestjs/common";
 
 import type { PostgresTransaction } from "../../common/database/postgres";
 import type { StaffSessionContext } from "../auth/staff-session-context";
-import type { LockedStaffSessionContext } from "../auth/staff-session-revalidation";
+import {
+  lockStaffSessionWithBearer,
+  type LockedStaffSessionRow,
+} from "../auth/staff-session-lock";
 import { evaluateMfaAssurance } from "../auth/mfa/mfa-assurance-policy";
 import { localMfaBypassEnabled } from "../auth/mfa/local-mfa-bypass";
 import { MfaStepUpRequiredError } from "../auth/mfa/mfa-errors";
@@ -25,41 +28,8 @@ interface ViewerRoleHint {
 async function lockLiveStaffSessionForRead(
   transaction: PostgresTransaction,
   context: StaffSessionContext,
-): Promise<LockedStaffSessionContext | undefined> {
-  await transaction.query(
-    `SELECT pg_advisory_xact_lock_shared(
-       hashtextextended('staff-user-security:' || $1::text, 0)
-     )`,
-    [context.userId],
-  );
-  const result = await transaction.query<LockedStaffSessionContext>(
-    `SELECT session.id, session.user_id, session.created_at
-     FROM staff_auth_sessions AS session
-     INNER JOIN users AS staff_user ON staff_user.id = session.user_id
-     WHERE session.id = $1
-       AND session.user_id = $2
-       AND session.current_access_token_hash = $3
-       AND session.created_at = $4::timestamptz
-       AND session.revoked_at IS NULL
-       AND clock_timestamp() < session.access_expires_at
-       AND clock_timestamp() < session.absolute_expires_at
-       AND staff_user.status = 'ACTIVE'
-     FOR SHARE OF session`,
-    [
-      context.staffAuthSessionId,
-      context.userId,
-      context.accessTokenHash,
-      context.createdAt,
-    ],
-  );
-  return result.rows[0];
-}
-
-interface LiveMfaSessionRow {
-  readonly mfa_authenticated_at: Date | null;
-  readonly mfa_factor_id: string | null;
-  readonly last_admin_activity_at: Date | null;
-  readonly now: Date;
+): Promise<LockedStaffSessionRow | undefined> {
+  return lockStaffSessionWithBearer(transaction, context, "SHARED");
 }
 
 /**
@@ -72,45 +42,31 @@ interface LiveMfaSessionRow {
 async function requireLiveHistoryMfaForRead(
   transaction: PostgresTransaction,
   context: StaffSessionContext,
+  session: LockedStaffSessionRow,
 ): Promise<void> {
-  const checked = await transaction.query<LiveMfaSessionRow>(
-    `SELECT session.mfa_authenticated_at, session.mfa_factor_id,
-            session.last_admin_activity_at, clock_timestamp() AS now
-     FROM staff_auth_sessions AS session
-     INNER JOIN users AS staff_user ON staff_user.id = session.user_id
-     WHERE session.id = $1 AND session.user_id = $2
-       AND session.current_access_token_hash = $3
-       AND session.revoked_at IS NULL
-       AND clock_timestamp() < session.access_expires_at
-       AND clock_timestamp() < session.absolute_expires_at
-       AND staff_user.status = 'ACTIVE'
-     FOR SHARE OF session, staff_user`,
-    [context.staffAuthSessionId, context.userId, context.accessTokenHash],
-  );
-  const row = checked.rows[0];
-  if (checked.rowCount !== 1 || row === undefined) {
-    throw new UnauthorizedException();
-  }
   if (localMfaBypassEnabled()) return;
   const factorCurrent =
-    row.mfa_factor_id !== null &&
-    (await transaction.query(
-      `SELECT factor.id FROM user_mfa_totp_factors AS factor
+    session.mfa_factor_id !== null &&
+    (
+      await transaction.query(
+        `SELECT factor.id FROM user_mfa_totp_factors AS factor
        WHERE factor.id = $1 AND factor.user_id = $2
-         AND factor.state = 'ACTIVE'
-       FOR SHARE OF factor`,
-      [row.mfa_factor_id, context.userId],
-    )).rowCount === 1;
-  if (evaluateMfaAssurance(
-    {
-      factorCurrent,
-      lastAdminActivityAt: row.last_admin_activity_at,
-      mfaAuthenticatedAt: row.mfa_authenticated_at,
-      mfaFactorId: row.mfa_factor_id,
-    },
-    row.now,
-    false,
-  ) !== "ASSURANCE_VALID") {
+         AND factor.state = 'ACTIVE'`,
+        [session.mfa_factor_id, context.userId],
+      )
+    ).rowCount === 1;
+  if (
+    evaluateMfaAssurance(
+      {
+        factorCurrent,
+        lastAdminActivityAt: session.last_admin_activity_at,
+        mfaAuthenticatedAt: session.mfa_authenticated_at,
+        mfaFactorId: session.mfa_factor_id,
+      },
+      session.checked_at,
+      false,
+    ) !== "ASSURANCE_VALID"
+  ) {
     throw new MfaStepUpRequiredError();
   }
 }
@@ -163,7 +119,7 @@ async function lockLiveHistoryAuthority(
     [
       input.authenticatedUserId,
       input.staffSessionContext.staffAuthSessionId,
-      input.staffSessionContext.accessTokenHash,
+      input.staffSessionContext.rawAccessToken ?? "",
       input.organizationId,
     ],
   );
@@ -231,14 +187,11 @@ export async function authorizeLiveHistoryLocation(
 ): Promise<DashboardLocationScope | null> {
   if (input.staffSessionContext.userId !== input.authenticatedUserId)
     return null;
-  if (
-    (await lockLiveStaffSessionForRead(
-      transaction,
-      input.staffSessionContext,
-    )) === undefined
-  ) {
-    return null;
-  }
+  const lockedSession = await lockLiveStaffSessionForRead(
+    transaction,
+    input.staffSessionContext,
+  );
+  if (lockedSession === undefined) return null;
 
   // This read selects only the branch to validate. It grants no authority:
   // the role, Organization and Location are all rechecked under locks below.
@@ -258,6 +211,7 @@ export async function authorizeLiveHistoryLocation(
       await requireLiveHistoryMfaForRead(
         transaction,
         input.staffSessionContext,
+        lockedSession,
       );
     } catch (error) {
       if (

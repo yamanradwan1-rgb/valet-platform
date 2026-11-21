@@ -1,6 +1,7 @@
 import "dotenv/config";
 
 import pg from "pg";
+import { revokeDirectFunctionGrants } from "./revoke-role-routine-grants.mjs";
 
 import {
   migrationClientConfig,
@@ -73,7 +74,8 @@ async function provision() {
     await executeFormatted(client, "REVOKE ALL ON SCHEMA public FROM %I", [maintenanceRole]);
     await executeFormatted(client, "GRANT USAGE ON SCHEMA public TO %I", [maintenanceRole]);
     for (const kind of ["TABLES", "SEQUENCES", "FUNCTIONS"]) {
-      await executeFormatted(
+      if (kind === "FUNCTIONS") await revokeDirectFunctionGrants(client, executeFormatted, maintenanceRole);
+      else await executeFormatted(
         client,
         `REVOKE ALL PRIVILEGES ON ALL ${kind} IN SCHEMA public FROM %I`,
         [maintenanceRole],

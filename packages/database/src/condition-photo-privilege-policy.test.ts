@@ -1,13 +1,17 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  managementPhotoLockSignature,
   photoMaintenanceFunctions,
   photoPrivateTables,
   photoRuntimeFunctions,
 } from "../scripts/condition-photo-privilege-policy.mjs";
 import { readConditionPhotoMaintenancePolicy } from "../scripts/condition-photo-maintenance-policy.mjs";
 import { provisionConditionPhotoRuntimePrivileges } from "../scripts/condition-photo-runtime-privileges.mjs";
-import { provisionConditionPhotoMaintenancePrivileges } from "../scripts/condition-photo-maintenance-privileges.mjs";
+import {
+  provisionConditionPhotoMaintenancePrivileges,
+  verifyConditionPhotoMaintenancePrivileges,
+} from "../scripts/condition-photo-maintenance-privileges.mjs";
 
 const migrationUrl = "postgresql://valet_migration:mig@db.example.test:5432/valet";
 const runtimeUrl = "postgresql://valet_runtime:api@db.example.test:5432/valet";
@@ -41,15 +45,24 @@ describe("Issue #215 photo maintenance database identity", () => {
 
 interface Statement { format: string; values: string[] }
 
-function roleProvisionHarness() {
+function roleProvisionHarness({ maintenanceCanLock = false } = {}) {
   const signatures = [
     ...photoRuntimeFunctions,
     ...photoMaintenanceFunctions,
     "public.condition_photo_coherence_guard()",
   ];
   const statements: Statement[] = [];
+  let currentRole = "valet_migration";
   const client = {
     query: async (sql: string, params?: unknown[]) => {
+      if (sql.includes("AS table_allowed")) {
+        return { rows: [{ table_allowed: false, column_allowed: false }] };
+      }
+      if (sql.includes("has_function_privilege")) {
+        const signature = signatures[Number(params?.[1]) - 100];
+        return { rows: [{ allowed: photoMaintenanceFunctions.some((fn) => fn === signature) ||
+          (maintenanceCanLock && signature === managementPhotoLockSignature) }] };
+      }
       if (sql.includes("FROM pg_proc function")) {
         return {
           rows: signatures.map((signature, index) => ({
@@ -64,7 +77,15 @@ function roleProvisionHarness() {
           })),
         };
       }
-      if (sql === "SELECT current_user AS name") return { rows: [{ name: "valet_migration" }] };
+      if (sql === "SET LOCAL ROLE valet_photo_evidence_lock_owner") {
+        currentRole = "valet_photo_evidence_lock_owner";
+        return { rows: [] };
+      }
+      if (sql === "RESET ROLE") {
+        currentRole = "valet_migration";
+        return { rows: [] };
+      }
+      if (sql === "SELECT current_user AS name") return { rows: [{ name: currentRole }] };
       if (sql.includes("FROM pg_proc p JOIN pg_roles role ON role.oid=p.proowner")) {
         return { rowCount: 1, rows: [{
           prosecdef: true, safe: true, denied: true,
@@ -77,6 +98,22 @@ function roleProvisionHarness() {
           rolcreaterole: false, rolreplication: false, rolbypassrls: false,
           rolinherit: false,
         }] };
+      }
+      if (sql.includes("FROM pg_auth_members AS membership")) {
+        // This pre-existing owner fixture has no inherited creator edge;
+        // the strict PG17 ADMIN-only/SET-denied cases are tested separately.
+        expect(sql).toContain("membership.set_option");
+        expect(sql).toContain("membership.admin_option");
+        return { rowCount: 0, rows: [] };
+      }
+      if (sql.includes("pg_get_userbyid(acl.grantee)")) {
+        return {
+          rowCount: 2,
+          rows: [
+            { grantee: "valet_photo_evidence_lock_owner", grantor: "valet_photo_evidence_lock_owner", is_grantable: false },
+            { grantee: "valet_runtime", grantor: "valet_photo_evidence_lock_owner", is_grantable: false },
+          ],
+        };
       }
       if (sql.includes("COUNT(*)::integer AS total")) return { rows: [{ total: 0 }] };
       if (sql.includes("SELECT p.prosecdef,r.rolcanlogin")) {
@@ -155,7 +192,8 @@ describe("Issue #215 photo function grant boundaries", () => {
       harness.client, harness.executeFormatted, "valet_photo_maintenance",
     );
     expect(grantTargets(harness.statements)).toEqual(photoMaintenanceFunctions);
-    for (const signature of photoRuntimeFunctions) {
+    expect(harness.statements.some(({ values }) => values.includes(managementPhotoLockSignature))).toBe(false);
+    for (const signature of photoRuntimeFunctions.filter((fn) => fn !== managementPhotoLockSignature)) {
       expect(harness.statements).toContainEqual({
         format: "REVOKE ALL ON FUNCTION %s FROM %I",
         values: [signature, "valet_photo_maintenance"],
@@ -165,5 +203,14 @@ describe("Issue #215 photo function grant boundaries", () => {
       format: "REVOKE ALL ON TABLE %s FROM %I",
       values: ["public.vehicle_photos", "valet_photo_maintenance"],
     });
+  });
+
+  it("fails closed if the maintenance role can execute the separately owned management lock", async () => {
+    await expect(verifyConditionPhotoMaintenancePrivileges(
+      roleProvisionHarness().client, "valet_photo_maintenance",
+    )).resolves.toBeUndefined();
+    await expect(verifyConditionPhotoMaintenancePrivileges(
+      roleProvisionHarness({ maintenanceCanLock: true }).client, "valet_photo_maintenance",
+    )).rejects.toThrow("Condition-photo maintenance function privileges are unsafe.");
   });
 });

@@ -20,6 +20,14 @@ export async function provisionShiftForceEndPrivileges(
     executeFormatted,
     runtimeRole,
   );
+  await provisionShiftForceEndObjectPrivileges(client, executeFormatted, runtimeRole);
+}
+
+export async function provisionShiftForceEndObjectPrivileges(
+  client,
+  executeFormatted,
+  runtimeRole,
+) {
   await executeFormatted(
     client,
     "REVOKE ALL ON TABLE public.shift_force_end_closures FROM %I",
@@ -42,6 +50,10 @@ export async function provisionShiftForceEndPrivileges(
 
 export async function verifyShiftForceEndPrivileges(client, runtimeRole) {
   await verifyStaffOnboardingPrivileges(client, runtimeRole);
+  await verifyShiftForceEndObjectPrivileges(client, runtimeRole);
+}
+
+export async function verifyShiftForceEndObjectPrivileges(client, runtimeRole) {
   for (const name of [
     runtimeShiftForceEndFunction,
     ...privateShiftForceEndFunctions,

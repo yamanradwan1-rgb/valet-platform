@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { PostgresTransaction } from "../src/common/database/postgres";
-import { lockAndRecheckStaffSessionContext } from "../src/modules/auth/staff-session-revalidation";
 import { authorizeDashboardReadLocation } from "../src/modules/dashboard/dashboard-read-authorization";
 import { findRetrievalSlaAlertCaseById } from "../src/modules/dashboard/management-alert-sources/retrieval-sla-alert-reader";
 import { findIncidentAlertCaseById } from "../src/modules/dashboard/management-alert-sources/incident-alert-reader";
@@ -11,16 +10,14 @@ import type { ManagementAlertExactReaderInput } from "../src/modules/dashboard/m
 vi.mock("../src/modules/dashboard/dashboard-read-authorization", () => ({
   authorizeDashboardReadLocation: vi.fn(),
 }));
-vi.mock("../src/modules/auth/staff-session-revalidation", () => ({
-  lockAndRecheckStaffSessionContext: vi.fn(),
-}));
 
 const sourceId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const sessionId = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+const rawAccessToken = `vsa1.${"E".repeat(43)}`;
 const input: ManagementAlertExactReaderInput = {
   context: {
-    accessTokenHash: "token-hash",
     createdAt: new Date("2026-11-03T00:00:00Z"),
+    rawAccessToken,
     staffAuthSessionId: "auth-session",
     userId: "user",
   },
@@ -32,12 +29,36 @@ const input: ManagementAlertExactReaderInput = {
   sourceId,
 };
 const authorize = vi.mocked(authorizeDashboardReadLocation);
-const staffSession = vi.mocked(lockAndRecheckStaffSessionContext);
 
-function fakeTransaction(rows: Record<string, unknown>[], enabled = true) {
+function fakeTransaction(
+  rows: Record<string, unknown>[],
+  enabled = true,
+  sessionCurrent = true,
+) {
   const calls: Array<{ sql: string; args?: readonly unknown[] }> = [];
+  const sessionLocks: Array<{ sql: string; args?: readonly unknown[] }> = [];
   const transaction = {
     query: vi.fn(async (sql: string, args?: readonly unknown[]) => {
+      if (sql.includes("staff_auth_lock_current_session")) {
+        sessionLocks.push(args === undefined ? { sql } : { sql, args });
+        return sessionCurrent
+          ? {
+              rows: [
+                {
+                  absolute_expires_at: new Date("2026-11-04T00:00:00.000Z"),
+                  checked_at: new Date("2026-11-03T12:00:00.000Z"),
+                  created_at: input.context.createdAt,
+                  id: input.context.staffAuthSessionId,
+                  last_admin_activity_at: null,
+                  mfa_authenticated_at: null,
+                  mfa_factor_id: null,
+                  user_id: input.context.userId,
+                },
+              ],
+              rowCount: 1,
+            }
+          : { rows: [], rowCount: 0 };
+      }
       calls.push(args === undefined ? { sql } : { sql, args });
       if (sql.includes("shift_presence_lock_management_entitlement")) {
         return { rows: [{ enabled }], rowCount: 1 };
@@ -45,23 +66,21 @@ function fakeTransaction(rows: Record<string, unknown>[], enabled = true) {
       return { rows, rowCount: rows.length };
     }),
   } as unknown as PostgresTransaction;
-  return { transaction, calls };
+  return { transaction, calls, sessionLocks };
 }
 
 beforeEach(() => {
   vi.resetAllMocks();
   authorize.mockResolvedValue(input.scope);
-  staffSession.mockResolvedValue({
-    id: input.context.staffAuthSessionId,
-    user_id: input.context.userId,
-    created_at: input.context.createdAt,
-  });
 });
 
 describe("Issue #414 exact-source navigation lookup", () => {
   it("rejects stale Staff tokens before every exact-source authorization or lookup", async () => {
-    const { transaction, calls } = fakeTransaction([]);
-    staffSession.mockResolvedValue(undefined);
+    const { transaction, calls, sessionLocks } = fakeTransaction(
+      [],
+      true,
+      false,
+    );
     await expect(
       findIncidentAlertCaseById(transaction, input),
     ).rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
@@ -76,6 +95,14 @@ describe("Issue #414 exact-source navigation lookup", () => {
     ).rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
     expect(authorize).not.toHaveBeenCalled();
     expect(calls).toHaveLength(0);
+    expect(sessionLocks).toHaveLength(3);
+    expect(sessionLocks[0]!.args).toEqual([
+      input.context.staffAuthSessionId,
+      input.context.userId,
+      rawAccessToken,
+      input.context.createdAt,
+      "SHARED",
+    ]);
   });
 
   it("returns exact current retrieval source with safe session ID only on detail", async () => {

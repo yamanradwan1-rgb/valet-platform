@@ -78,7 +78,7 @@ export async function openIssue309PhotoHttpFixture(
   const db = await openIssue215HttpDatabase();
   const pgActivity = new Issue309PhotoPgActivity();
   pgActivity.track(db.admin, "fixture-admin");
-  const oldEnv = new Map(environmentKeys.map((key) => [key, process.env[key]]));
+  const oldEnv = new Map([...environmentKeys, ...Object.keys(db.writerEnvironment)].map((key) => [key, process.env[key]]));
   let app: INestApplication | undefined;
   let client: S3Client | undefined;
   try {
@@ -87,6 +87,7 @@ export async function openIssue309PhotoHttpFixture(
       AWS_SECRET_ACCESS_KEY: s3.secretAccessKey,
       AWS_REGION: s3.region,
       DATABASE_URL: db.runtimeUrl,
+      ...db.writerEnvironment,
       CONDITION_PHOTO_STORAGE_ENABLED: "true",
       CONDITION_PHOTO_PRIVATE_BUCKET: s3.bucket,
       CONDITION_PHOTO_BUCKET_ALIAS: "issue215_local",

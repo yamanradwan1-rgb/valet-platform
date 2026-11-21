@@ -5,11 +5,12 @@ import { Inject, Injectable } from "@nestjs/common";
 import { appendAccountSecurityAuditEvent } from "../../audit/account-security-audit-writer";
 import type { PostgresPool } from "../../../common/database/postgres";
 import { inPostgresTransaction } from "../../../common/database/postgres-transaction";
-import { RUNTIME_POSTGRES_POOL } from "../../../common/database/runtime-database.module";
+import { MFA_CEREMONY_POSTGRES_POOL } from "../../../common/database/mfa-protected-pool";
 import {
   STAFF_SESSION_CONTEXT_RESOLVER,
   type StaffSessionContextResolver,
 } from "../staff-session-context";
+import { requireRequestBearerPossession } from "../staff-auth-vap1-bearer";
 import { MfaAntiAbuse } from "./mfa-anti-abuse";
 import {
   MfaEnrollmentNotAvailableError,
@@ -22,15 +23,14 @@ import {
 } from "./mfa-factor-repository";
 import {
   establishMfaAssurance,
-  lockAndRecheckMfaSession,
+  lockAndRecheckMfaSessionInWriter,
   lockMfaUser,
   requireManagementMfaEligibility,
 } from "./mfa-session-repository";
-import {
-  protectTotpSecret,
-  unprotectTotpSecret,
-} from "./mfa-secret-protection";
-import { generateTotpSecret, verifyTotpCode } from "./mfa-totp";
+import { unprotectTotpSecret } from "./mfa-secret-protection";
+import { preparePendingMfaMaterial } from "./mfa-vap1-pending-material";
+import { verifyLockedEnrollmentConfirmation } from "./mfa-vap1-ceremony-checks";
+import { generateTotpSecret } from "./mfa-totp";
 import { generateRecoveryCodes } from "./mfa-recovery-code";
 
 export interface MfaProvisioningData {
@@ -51,7 +51,7 @@ export interface MfaEnrollmentConfirmation {
 @Injectable()
 export class MfaEnrollmentService {
   constructor(
-    @Inject(RUNTIME_POSTGRES_POOL) private readonly pool: PostgresPool,
+    @Inject(MFA_CEREMONY_POSTGRES_POOL) private readonly pool: PostgresPool,
     @Inject(STAFF_SESSION_CONTEXT_RESOLVER)
     private readonly sessions: StaffSessionContextResolver,
     private readonly antiAbuse: MfaAntiAbuse,
@@ -59,8 +59,12 @@ export class MfaEnrollmentService {
 
   async begin(authorization: string | undefined): Promise<MfaProvisioningData> {
     const context = await this.sessions.resolve(authorization);
+    requireRequestBearerPossession(authorization, context);
     return inPostgresTransaction(this.pool, async (transaction) => {
-      const session = await lockAndRecheckMfaSession(transaction, context);
+      const session = await lockAndRecheckMfaSessionInWriter(
+        transaction,
+        context,
+      );
       await lockMfaUser(transaction, session.user_id);
       await requireManagementMfaEligibility(transaction, session.user_id);
       const current = await lockCurrentFactor(transaction, session.user_id);
@@ -80,13 +84,13 @@ export class MfaEnrollmentService {
       }
       const factorId = randomUUID();
       const secret = generateTotpSecret();
-      const protectedSecret = protectTotpSecret(secret, {
+      const material = preparePendingMfaMaterial(secret, {
         factorId,
         userId: session.user_id,
       });
       await insertPendingFactor(transaction, {
         id: factorId,
-        protectedSecret,
+        protectedSecret: material.protectedSecret,
         sessionId: session.id,
         userId: session.user_id,
       });
@@ -99,10 +103,14 @@ export class MfaEnrollmentService {
     input: { readonly code: string; readonly factorId: string },
   ): Promise<MfaEnrollmentConfirmation> {
     const context = await this.sessions.resolve(authorization);
+    requireRequestBearerPossession(authorization, context);
     const reservation = await this.antiAbuse.reserveTotp(context.userId);
     try {
       return await inPostgresTransaction(this.pool, async (transaction) => {
-        const session = await lockAndRecheckMfaSession(transaction, context);
+        const session = await lockAndRecheckMfaSessionInWriter(
+          transaction,
+          context,
+        );
         await lockMfaUser(transaction, session.user_id);
         await requireManagementMfaEligibility(transaction, session.user_id);
         const factor = await lockFactorById(
@@ -116,15 +124,11 @@ export class MfaEnrollmentService {
         ) {
           throw new MfaEnrollmentNotAvailableError();
         }
-        const secret = unprotectTotpSecret(factor.protected_secret, {
-          factorId: factor.id,
-          userId: factor.user_id,
-        });
-        const acceptedStep = await verifyTotpCode({
-          code: input.code,
-          now: session.now,
-          secret,
-        });
+        const acceptedStep = await verifyLockedEnrollmentConfirmation(
+          input.code,
+          session,
+          factor,
+        );
         if (acceptedStep === undefined) throw new MfaVerificationFailedError();
         const recoverySetGeneration = 1;
         const recoveryCodes = generateRecoveryCodes({
