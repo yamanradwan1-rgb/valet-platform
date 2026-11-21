@@ -1,7 +1,11 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { randomBytes } from "node:crypto";
+import { Pool } from "pg";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import type { PostgresTransaction } from "../src/common/database/postgres";
 import { inPostgresTransaction } from "../src/common/database/postgres-transaction";
 import { withDatabaseOperationDeadline } from "../src/common/database/runtime-database-deadline";
+import { AntiAbuseKeyDeriver } from "../src/modules/anti-abuse/anti-abuse-key";
+import { AntiAbuseService } from "../src/modules/anti-abuse/anti-abuse.service";
 import { ShiftTestContext } from "./shift-test-context";
 
 function pauseResponses(transaction: PostgresTransaction) {
@@ -12,16 +16,26 @@ function pauseResponses(transaction: PostgresTransaction) {
 
 describe("T3 real PostgreSQL COMMIT and ROLLBACK response timeouts", () => {
   const context = new ShiftTestContext("t3_protocol_response_timeout");
-  beforeAll(() => context.setup(), 120_000);
-  afterAll(() => context.teardown(), 60_000);
-  const key = (letter: string) =>
-    "anti-abuse-hmac-sha256:v1:" + letter.repeat(64);
+  let observer: Pool;
+  let antiAbuse: AntiAbuseService;
+  beforeAll(async () => {
+    await context.setup();
+    vi.stubEnv("ANTI_ABUSE_HMAC_SECRET_B64URL", randomBytes(32).toString("base64url"));
+    antiAbuse = new AntiAbuseService(context.runtimePool, new AntiAbuseKeyDeriver());
+    observer = new Pool({ connectionString: context.runtimeUrl, max: 1 });
+  }, 120_000);
+  afterAll(async () => {
+    vi.unstubAllEnvs();
+    try { await observer?.end(); }
+    finally { await context.teardown(); }
+  }, 60_000);
+  const key = (letter: string) => antiAbuse.key("v1:guest-token", letter);
 
   async function count(letter: string) {
     return (
       await context.adminPool.query(
         "SELECT count(*)::int AS count FROM anti_abuse_events WHERE key_hash=$1",
-        [key(letter)],
+        [key(letter).keyHash],
       )
     ).rows[0].count;
   }
@@ -46,9 +60,11 @@ describe("T3 real PostgreSQL COMMIT and ROLLBACK response timeouts", () => {
     let active = -1;
     for (let index = 0; index < 40; index += 1) {
       active = (
-        await context.adminPool.query(
-          "SELECT count(*)::int AS count FROM pg_stat_activity WHERE usename=$1 AND (state='active' OR state LIKE '%transaction%')",
-          [context.runtimeRole],
+        await observer.query(
+          `SELECT count(*)::int AS count FROM pg_stat_activity
+           WHERE datname=$1 AND usename=$2 AND pid<>pg_backend_pid()
+             AND (state='active' OR state LIKE '%transaction%')`,
+          [context.databaseName, context.runtimeRole],
         )
       ).rows[0].count;
       if (active === 0) break;
@@ -64,27 +80,29 @@ describe("T3 real PostgreSQL COMMIT and ROLLBACK response timeouts", () => {
   it("bounds an actual lost ROLLBACK response, destroys its lease and preserves no effect", async () => {
     let pid = 0;
     let paused!: () => void;
-    const atResponseLoss = new Promise<void>((resolve) => {
+    let rejectResponseLoss!: (error: unknown) => void;
+    const atResponseLoss = new Promise<void>((resolve, reject) => {
       paused = resolve;
+      rejectResponseLoss = reject;
     });
     const start = performance.now();
     const result = withDatabaseOperationDeadline(() =>
       inPostgresTransaction(context.runtimePool, async (transaction) => {
         pid = (await transaction.query("SELECT pg_backend_pid() AS pid"))
           .rows[0].pid;
-        await transaction.query(
-          "INSERT INTO anti_abuse_events(scope,key_hash,state) VALUES('v1:guest-token',$1,'COUNTED')",
-          [key("a")],
-        );
+        await antiAbuse.countInTransaction(transaction, key("a"), 1);
         pauseResponses(transaction);
         paused();
         throw new Error("authoritative domain abort");
       }),
-    ).catch((error: unknown) => error);
+    ).catch((error: unknown) => {
+      rejectResponseLoss(error);
+      return error;
+    });
     await atResponseLoss;
     let rolledBack = false;
     for (let index = 0; index < 40; index += 1) {
-      const observed = await context.adminPool.query(
+      const observed = await observer.query(
         "SELECT query='ROLLBACK' AND state='idle' AND xact_start IS NULL AS rolled_back FROM pg_stat_activity WHERE pid=$1 AND datname=$2 AND usename=$3",
         [pid, context.databaseName, context.runtimeRole],
       );
@@ -110,10 +128,7 @@ describe("T3 real PostgreSQL COMMIT and ROLLBACK response timeouts", () => {
       withDatabaseOperationDeadline(() =>
         inPostgresTransaction(context.runtimePool, async (transaction) => {
           actions += 1;
-          await transaction.query(
-            "INSERT INTO anti_abuse_events(scope,key_hash,state) VALUES('v1:guest-token',$1,'COUNTED')",
-            [key("b")],
-          );
+          await antiAbuse.countInTransaction(transaction, key("b"), 1);
           // COMMIT runs at the server while incoming protocol frames are paused.
           pauseResponses(transaction);
         }),
