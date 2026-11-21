@@ -28,10 +28,10 @@ let provider: StaffPushProvider;
 let send: ReturnType<typeof vi.fn<StaffPushProvider["send"]>>;
 let observations: StaffPushObservation[];
 
-async function prepared() {
+async function prepared(intentTtlSeconds = policy.employeeRetrievalRequested.intentTtlSeconds) {
   const fixture = await context.createGuestParkedFixture();
   const registration = await context.addRegistration(fixture.userId);
-  await context.request(fixture);
+  await context.request(fixture, { ...policy.employeeRetrievalRequested, intentTtlSeconds });
   const rows = await context.adminPool.query<{
     delivery_id: string;
     intent_id: string;
@@ -264,19 +264,14 @@ describe("Staff Push send-time eligibility", () => {
   );
 
   it("expires an intent without provider I/O", async () => {
-    const fixture = await prepared();
-    const client = await context.adminPool.connect();
-    await client.query("BEGIN");
-    await client.query("SET LOCAL session_replication_role = replica");
-    await client.query(
-      `UPDATE staff_push_intents
-       SET created_at = clock_timestamp() - interval '2 seconds',
-           expires_at = clock_timestamp() - interval '1 second'
-       WHERE id = $1`,
-      [fixture.intent_id],
-    );
-    await client.query("COMMIT");
-    client.release();
+    const fixture = await prepared(1);
+    await expect.poll(async () => {
+      const result = await context.adminPool.query<{ expired: boolean }>(
+        `SELECT expires_at <= clock_timestamp() AS expired FROM staff_push_intents WHERE id = $1`,
+        [fixture.intent_id],
+      );
+      return result.rows[0]?.expired;
+    }, { timeout: 3_000 }).toBe(true);
     await worker().runOnce();
     await runProviderIndependentStaffPushMaintenance(
       context.runtimePool,
