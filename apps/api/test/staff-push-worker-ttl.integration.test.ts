@@ -9,10 +9,10 @@ import { providerSendResult } from "./staff-push-provider-test-value";
 const context = new RetrievalPushTestContext("worker_ttl");
 const policy = { ...syntheticStaffPushPolicy, sendingEnabled: true };
 
-async function prepared() {
+async function prepared(intentTtlSeconds = policy.employeeRetrievalRequested.intentTtlSeconds) {
   const fixture = await context.createGuestParkedFixture();
   await context.addRegistration(fixture.userId);
-  await context.request(fixture);
+  await context.request(fixture, { ...policy.employeeRetrievalRequested, intentTtlSeconds });
   const delivery = await context.adminPool.query<{ id: string }>(
     `SELECT delivery.id FROM staff_push_deliveries AS delivery
      INNER JOIN staff_push_intents AS intent ON intent.id = delivery.intent_id
@@ -20,43 +20,6 @@ async function prepared() {
     [fixture.sessionId],
   );
   return { ...fixture, deliveryId: delivery.rows[0]!.id };
-}
-
-async function setIntentLifetime(valetSessionId: string, seconds: number) {
-  const client = await context.adminPool.connect();
-  try {
-    await client.query("BEGIN");
-    await client.query("SET LOCAL session_replication_role = replica");
-    await client.query(
-      `UPDATE staff_push_intents
-       SET expires_at = clock_timestamp() + make_interval(secs => $2)
-       WHERE valet_session_id = $1`,
-      [valetSessionId, seconds],
-    );
-    await client.query("COMMIT");
-  } catch (error) {
-    await client.query("ROLLBACK");
-    throw error;
-  } finally {
-    client.release();
-  }
-}
-
-async function makeDue(deliveryId: string) {
-  const client = await context.adminPool.connect();
-  try {
-    await client.query("BEGIN");
-    await client.query("SET LOCAL session_replication_role = replica");
-    await client.query(
-      `UPDATE staff_push_deliveries
-       SET next_attempt_at = clock_timestamp() - interval '1 second'
-       WHERE id = $1`,
-      [deliveryId],
-    );
-    await client.query("COMMIT");
-  } finally {
-    client.release();
-  }
 }
 
 beforeAll(() => context.setup(), 120_000);
@@ -69,8 +32,7 @@ afterAll(() => context.teardown(), 60_000);
 
 describe("Staff Push authoritative provider TTL", () => {
   it("does not extend DB lifetime under unrelated application clock epochs", async () => {
-    const fixture = await prepared();
-    await setIntentLifetime(fixture.sessionId, 120);
+    await prepared(120);
     let wireTtl = 0;
     const provider: StaffPushProvider = {
       async send(request) {
@@ -91,8 +53,7 @@ describe("Staff Push authoritative provider TTL", () => {
   });
 
   it("subtracts monotonic delay from the DB-authoritative budget", async () => {
-    const fixture = await prepared();
-    await setIntentLifetime(fixture.sessionId, 30);
+    await prepared(30);
     const monotonicTimes = [1_000_000, 1_005_000];
     let wireTtl = 0;
     const provider: StaffPushProvider = {
@@ -114,8 +75,7 @@ describe("Staff Push authoritative provider TTL", () => {
   });
 
   it("does not restart the five-minute TTL on retry", async () => {
-    const fixture = await prepared();
-    await setIntentLifetime(fixture.sessionId, 45);
+    const fixture = await prepared(55);
     const first: StaffPushProvider = {
       async send(request) {
         expect(request.messageForTransport()).toBeDefined();
@@ -129,7 +89,14 @@ describe("Staff Push authoritative provider TTL", () => {
       { observe: () => undefined },
       () => 0,
     ).runOnce();
-    await makeDue(fixture.deliveryId);
+    await expect.poll(async () => {
+      const result = await context.adminPool.query<{ due: boolean }>(
+        `SELECT state = 'RETRY_WAIT' AND next_attempt_at <= clock_timestamp() AS due
+         FROM staff_push_deliveries WHERE id = $1`,
+        [fixture.deliveryId],
+      );
+      return result.rows[0]?.due;
+    }, { timeout: 12_000 }).toBe(true);
     let retryTtl = 0;
     const retry: StaffPushProvider = {
       async send(request) {
@@ -144,7 +111,7 @@ describe("Staff Push authoritative provider TTL", () => {
     }).runOnce();
     expect(retryTtl).toBeGreaterThan(35);
     expect(retryTtl).toBeLessThanOrEqual(45);
-  });
+  }, 15_000);
 
   it("finalizes EXPIRED when freshness ends before transport", async () => {
     const fixture = await prepared();
