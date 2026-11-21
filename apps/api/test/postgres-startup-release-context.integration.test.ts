@@ -65,7 +65,7 @@ describe("native pg startup socket context and later authorized Staff release", 
           resetContexts.push(deadlineState());
         const callback = args.at(-1);
         if (
-          text?.startsWith("SELECT session.id") &&
+          text?.includes("FROM public.staff_auth_lock_current_session(") &&
           typeof callback === "function"
         ) {
           args[args.length - 1] = (...results: unknown[]) => {
