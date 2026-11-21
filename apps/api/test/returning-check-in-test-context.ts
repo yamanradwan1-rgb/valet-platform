@@ -9,6 +9,8 @@ import {
   type PostgresPool,
 } from "../src/common/database/postgres";
 import type { MembershipRole } from "../src/modules/staff/custody-staff-authorizer";
+import { provisionMountedStaffWriters } from "./mounted-staff-writer-test-fixture";
+import { dropFixtureCreatedRole } from "./staff-auth-native-writer-role-lifecycle";
 
 export interface ReturningFixture {
   locationId: string;
@@ -100,6 +102,7 @@ export class ReturningCheckInTestContext {
   runtime!: PostgresPool;
   private databaseCreated = false;
   private roleCreated = false;
+  private readonly fixtureWriterRoles: string[] = [];
 
   async start(): Promise<void> {
     const bootstrap = new Pool({
@@ -129,6 +132,15 @@ export class ReturningCheckInTestContext {
     this.runtime = createRuntimePostgresPool(runtimeUrl);
   }
 
+  protected provisionFixtureStaffAuthWriter() {
+    return provisionMountedStaffWriters({
+      admin: this.admin,
+      migrationUrl: databaseUrl(databaseName),
+      runtimeUrl: databaseUrl(databaseName, true),
+      roles: this.fixtureWriterRoles,
+    }, runPnpm, false);
+  }
+
   async stop(): Promise<void> {
     await this.runtime?.end();
     await this.admin?.end();
@@ -142,6 +154,9 @@ export class ReturningCheckInTestContext {
       }
       if (this.roleCreated)
         await bootstrap.query(`DROP ROLE IF EXISTS "${runtimeRole}"`);
+      for (const role of this.fixtureWriterRoles) {
+        await dropFixtureCreatedRole(bootstrap, role);
+      }
     } finally {
       await bootstrap.end();
     }
