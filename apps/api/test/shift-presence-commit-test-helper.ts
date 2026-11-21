@@ -76,7 +76,7 @@ export async function observePresenceCommandWait(
   while (Date.now() < deadline) {
     const result = await db.adminPool.query(
       `SELECT pid FROM pg_stat_activity
-      WHERE datname=$1 AND usename=$2 AND wait_event_type='Lock'`,
+      WHERE datname=$1 AND usename=$2 AND cardinality(pg_blocking_pids(pid)) > 0`,
       [db.databaseName, db.runtimeRole],
     );
     if (result.rowCount !== 0) return;
