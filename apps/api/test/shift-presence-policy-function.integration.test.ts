@@ -1,7 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { StaffSessionContext } from "../src/modules/auth/staff-session-context";
-import { staffCredentialHash } from "../src/modules/auth/staff-auth-credential";
 import { PresenceServerTestContext } from "./shift-presence-server-test-context";
 import type { ShiftFixture } from "./shift-test-context";
 
@@ -26,6 +25,8 @@ async function setPolicy(
     readonly locationId?: string | null;
   },
 ) {
+  const bearer = actor.context.rawAccessToken;
+  if (!bearer) throw new Error("Presence policy fixture requires an authenticated Staff bearer.");
   return db.runtimePool.query<{ revision: number }>(
     `SELECT public.shift_presence_set_policy(
       $1::uuid,$2::uuid,$3::uuid,$4::text,$5::uuid,$6::uuid,
@@ -35,7 +36,7 @@ async function setPolicy(
       actor.userId,
       actor.membershipId,
       actor.context.staffAuthSessionId,
-      staffCredentialHash("access", actor.context.rawAccessToken ?? ""),
+      bearer,
       fixture.organizationId,
       input.locationId ?? null,
       input.value,
