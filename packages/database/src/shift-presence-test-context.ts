@@ -5,6 +5,7 @@ import { cp, mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import { join, resolve, sep } from "node:path";
 
 import { Pool } from "pg";
+import { dropFixtureDatabase } from "./drop-fixture-database.js";
 
 export interface PresenceFixture {
   organizationId: string;
@@ -31,6 +32,7 @@ export class PresenceTestContext {
   readonly runtimeUrl: string;
   admin!: Pool;
   runtime!: Pool;
+  private databaseCreated = false;
 
   constructor() {
     const migration = new URL(baseUrl);
@@ -47,7 +49,10 @@ export class PresenceTestContext {
 
   async setup(beforeForwardMigration?: () => Promise<void>, forwardMigration = "20261004005800") {
     const bootstrap = new Pool({ connectionString: baseUrl });
-    try { await bootstrap.query(`CREATE DATABASE "${this.databaseName}"`); }
+    try {
+      await bootstrap.query(`CREATE DATABASE "${this.databaseName}"`);
+      this.databaseCreated = true;
+    }
     finally { await bootstrap.end(); }
     this.admin = new Pool({ connectionString: this.migrationUrl });
     if (beforeForwardMigration !== undefined) {
@@ -96,9 +101,10 @@ export class PresenceTestContext {
   async teardown() {
     await this.runtime?.end();
     await this.admin?.end();
+    if (!this.databaseCreated) return;
     const bootstrap = new Pool({ connectionString: baseUrl });
     try {
-      await bootstrap.query(`DROP DATABASE IF EXISTS "${this.databaseName}" WITH (FORCE)`);
+      await dropFixtureDatabase(bootstrap, this.databaseName);
       await bootstrap.query(`DROP ROLE IF EXISTS "${this.runtimeRole}"`);
     } finally { await bootstrap.end(); }
   }

@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 
 import { Client } from "pg";
+import { dropFixtureDatabase } from "./drop-fixture-database.js";
 
 export const guestBrowserT1Migration =
   "20261007007000_guest_browser_session_continuity";
@@ -72,9 +73,7 @@ export async function dropDisposableDatabase(
   const bootstrap = new Client({ connectionString: databaseAdminUrl });
   await bootstrap.connect();
   try {
-    await bootstrap.query(
-      `DROP DATABASE IF EXISTS "${databaseName}" WITH (FORCE)`,
-    );
+    await dropFixtureDatabase(bootstrap, databaseName);
   } finally {
     await bootstrap.end();
   }
