@@ -83,7 +83,7 @@ beforeAll(async () => {
   process.env.MFA_TOTP_ENCRYPTION_KEY_B64URL =
     randomBytes(32).toString("base64url");
   try {
-    await context.setupGate();
+    await context.setupGate(true);
   } catch (error) {
     restoreMfaEnvironment();
     throw error;

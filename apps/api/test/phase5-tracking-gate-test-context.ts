@@ -30,7 +30,7 @@ export class Phase5TrackingGateContext extends Phase4RetrievalHandoffGateContext
     super(`007h_${label}`);
   }
 
-  override async setupGate(): Promise<void> {
+  override async setupGate(protectedMfa = false): Promise<void> {
     this.priorStaffAllowedOrigins = process.env.STAFF_AUTH_ALLOWED_ORIGINS;
     this.priorProviderSecret = process.env.PROVIDER_SECRET_SENTINEL;
 
@@ -47,7 +47,7 @@ export class Phase5TrackingGateContext extends Phase4RetrievalHandoffGateContext
       version: 19,
     });
 
-    await super.setupGate();
+    await super.setupGate(protectedMfa);
   }
 
   override async teardownGate(): Promise<void> {

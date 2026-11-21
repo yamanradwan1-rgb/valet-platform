@@ -74,9 +74,9 @@ export class Phase3OperationsGateContext extends ConfirmParkedTestContext {
     super(`005h_${label}`);
   }
 
-  async setupGate(): Promise<void> {
+  async setupGate(protectedMfa = false): Promise<void> {
     await this.setup();
-    const writer = await this.provisionFixtureStaffAuthWriter();
+    const writer = await this.provisionFixtureStaffAuthWriter(protectedMfa);
     const fixtureEnvironment = {
       DATABASE_URL: this.runtimeUrl,
       MIGRATION_DATABASE_URL: this.migrationUrl,
@@ -84,6 +84,7 @@ export class Phase3OperationsGateContext extends ConfirmParkedTestContext {
       STAFF_AUTH_WRITER_ROLE: writer.role,
       ANTI_ABUSE_HMAC_SECRET_B64URL: randomBytes(32).toString("base64url"),
       ...ciFixtureManagementWriterEnvironment(this.runtimeUrl),
+      ...writer.mfaEnvironment,
     };
     for (const [key, value] of Object.entries(fixtureEnvironment)) {
       this.previousEnvironment.set(key, process.env[key]);

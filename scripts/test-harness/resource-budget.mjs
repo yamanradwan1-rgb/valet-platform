@@ -2,8 +2,8 @@ export const DEFAULT_NON_TEST_ALLOWANCE = 20;
 export const POSTGRES_RESOURCE_PROFILES = Object.freeze({
   // Native Staff Auth keeps fixture admin, application Runtime and two Writers.
   "api-standard": profile("api-standard", 4, 4, 2, 1, 10, 1),
-  // Mounted Phase 6 keeps fixture admin/runtime plus application Runtime and two Writers.
-  "api-compound": profile("api-compound", 4, 5, 2, 1, 10, 1),
+  // Mounted operations keep fixture admin/runtime plus application Runtime and three Writers.
+  "api-compound": profile("api-compound", 4, 6, 2, 1, 10, 1),
   "api-race": profile("api-race", 6, 4, 4, 1, 10, 2),
   // Photo HTTP fixtures mount dedicated Writer pools alongside Runtime and probes.
   "api-issue215": profile("api-issue215", 6, 6, 4, 1, 10, 1),

@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 import { Pool } from "pg";
 
 import { createRuntimePostgresPool } from "../src/common/database/postgres";
-import { createFixtureStaffAuthWriterIdentity, provisionStaffAuthWriter } from "./staff-auth-native-test-environment";
+import { provisionMountedStaffWriters } from "./mounted-staff-writer-test-fixture";
 import { dropFixtureCreatedRole } from "./staff-auth-native-writer-role-lifecycle";
 
 export type TestRole =
@@ -99,7 +99,7 @@ export class ShiftTestContext {
   readonly runtimeUrl: string;
   runtimePool!: Pool;
   private databaseCreated = false;
-  private staffAuthWriterRole: string | undefined;
+  private readonly fixtureWriterRoles: string[] = [];
 
   constructor(label: string) {
     const labelKey = createHash("sha256")
@@ -154,8 +154,8 @@ export class ShiftTestContext {
           `DROP DATABASE "${this.databaseName}" WITH (FORCE)`,
         );
         await bootstrap.query(`DROP ROLE IF EXISTS "${this.runtimeRole}"`);
-        if (this.staffAuthWriterRole !== undefined) {
-          await dropFixtureCreatedRole(bootstrap, this.staffAuthWriterRole);
+        for (const role of this.fixtureWriterRoles) {
+          await dropFixtureCreatedRole(bootstrap, role);
         }
       } finally {
         await bootstrap.end();
@@ -163,18 +163,11 @@ export class ShiftTestContext {
     });
   }
 
-  protected async provisionFixtureStaffAuthWriter() {
-    const writer = createFixtureStaffAuthWriterIdentity(this.runtimeUrl);
-    const existing = await this.adminPool.query(
-      "SELECT 1 FROM pg_catalog.pg_roles WHERE rolname = $1", [writer.role],
-    );
-    if (existing.rowCount !== 0) throw new Error("Fixture Staff Auth writer role already exists.");
-    this.staffAuthWriterRole = writer.role;
-    await provisionStaffAuthWriter(runPnpm, this.migrationUrl, this.runtimeUrl, {
-      STAFF_AUTH_WRITER_DATABASE_URL: writer.url,
-      STAFF_AUTH_WRITER_ROLE: writer.role,
-    });
-    return writer;
+  protected provisionFixtureStaffAuthWriter(protectedMfa = false) {
+    return provisionMountedStaffWriters({
+      admin: this.adminPool, migrationUrl: this.migrationUrl,
+      runtimeUrl: this.runtimeUrl, roles: this.fixtureWriterRoles,
+    }, runPnpm, protectedMfa);
   }
 
   async createFixture(
