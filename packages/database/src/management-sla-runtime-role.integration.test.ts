@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
 
-import { Client, Pool } from "pg";
+import { Client, Pool, type PoolClient } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 interface PgError extends Error { code?: string }
@@ -60,19 +60,19 @@ async function createMembership(role: "LOCATION_MANAGER" | "ORG_ADMIN", organiza
   return membershipId;
 }
 
-async function waitForLockWait(queryFragment: string): Promise<void> {
+async function backendPid(client: PoolClient): Promise<number> {
+  return (await client.query<{ pid: number }>("SELECT pg_backend_pid() AS pid")).rows[0]!.pid;
+}
+
+async function waitForLockWait(blocker: number, waiter: number): Promise<void> {
   for (let attempt = 0; attempt < 1000; attempt += 1) {
     const result = await adminPool.query<{ waiting: boolean }>(
-      `SELECT EXISTS (
-         SELECT 1 FROM pg_stat_activity
-         WHERE datname=current_database() AND state='active'
-           AND wait_event_type='Lock' AND query ILIKE $1
-       ) AS waiting`,
-      [`%${queryFragment}%`],
+      "SELECT $1::int = ANY(pg_blocking_pids($2::int)) AS waiting",
+      [blocker, waiter],
     );
     if (result.rows[0]?.waiting === true) return;
   }
-  throw new Error(`Expected PostgreSQL lock wait for ${queryFragment}.`);
+  throw new Error(`Expected PostgreSQL backend ${waiter} to wait for backend ${blocker}.`);
 }
 
 async function seedRequestedSession(label: string): Promise<string> {
@@ -249,12 +249,13 @@ describe("MGT-BE-10 SLA runtime database authority", () => {
     );
     const settingClient = await runtimePool.connect();
     await settingClient.query("BEGIN");
+    const [requestPid, settingPid] = await Promise.all([backendPid(requestClient), backendPid(settingClient)]);
     const pendingSetting = settingClient.query(
       `SELECT * FROM management_settings_set_location_sla_target($1,$2,$3,420,$4)`,
       [adminMembershipId, organizationId, locationId, seeded],
     );
     void pendingSetting.catch(() => undefined);
-    await waitForLockWait("management_settings_set_location_sla_target");
+    await waitForLockWait(requestPid, settingPid);
     await requestClient.query("COMMIT");
     requestClient.release();
     await pendingSetting;
@@ -277,6 +278,7 @@ describe("MGT-BE-10 SLA runtime database authority", () => {
     );
     const secondClient = await adminPool.connect();
     await secondClient.query("BEGIN");
+    const [targetPid, secondPid] = await Promise.all([backendPid(targetClient), backendPid(secondClient)]);
     const secondRequest = randomUUID();
     const pendingRequest = secondClient.query(
       `INSERT INTO retrieval_requests(id,organization_id,valet_session_id,requested_by_type,status,requested_at)
@@ -285,7 +287,7 @@ describe("MGT-BE-10 SLA runtime database authority", () => {
       [secondRequest, organizationId, secondSession],
     );
     void pendingRequest.catch(() => undefined);
-    await waitForLockWait("INSERT INTO retrieval_requests");
+    await waitForLockWait(targetPid, secondPid);
     await targetClient.query("COMMIT");
     targetClient.release();
     await pendingRequest;

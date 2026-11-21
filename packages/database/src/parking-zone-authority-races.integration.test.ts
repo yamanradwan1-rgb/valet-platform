@@ -13,19 +13,23 @@ beforeAll(startPhysicalResourceRuntime, 120_000);
 afterAll(stopPhysicalResourceRuntime, 60_000);
 const sql =
   "SELECT * FROM public.management_physical_resource_create_parking_zone($1,$2,$3,$4,$5,$6,$7)";
-async function waitForLock(pid: number) {
+async function backendPid(client: PoolClient): Promise<number> {
+  return (await client.query<{ pid: number }>("SELECT pg_backend_pid() AS pid")).rows[0]!.pid;
+}
+
+async function waitForLock(blocker: number, waiter: number) {
   await expect
     .poll(
       async () =>
         (
           await adminPool.query(
-            "SELECT wait_event_type FROM pg_stat_activity WHERE pid=$1",
-            [pid],
+            "SELECT $1::int = ANY(pg_blocking_pids($2::int)) AS waiting",
+            [blocker, waiter],
           )
-        ).rows[0]?.wait_event_type,
+        ).rows[0]?.waiting,
       { timeout: 5000 },
     )
-    .toBe("Lock");
+    .toBe(true);
 }
 const revocations = {
   actor:
@@ -66,14 +70,12 @@ describe("Issue #236 persisted authority races", () => {
       try {
         await revoker.query("BEGIN");
         await revoke(revoker, statement, authority);
-        const pid = Number(
-          (await creator.query("SELECT pg_backend_pid() AS pid")).rows[0]?.pid,
-        );
+        const [revokerPid, creatorPid] = await Promise.all([backendPid(revoker), backendPid(creator)]);
         const pending = creator.query(sql, params).then(
           () => "CREATED",
           (error: { code: string }) => error.code,
         );
-        await waitForLock(pid);
+        await waitForLock(revokerPid, creatorPid);
         await revoker.query("COMMIT");
         expect(await pending).toBe("42501");
         const counts = await adminPool.query(
@@ -108,14 +110,12 @@ describe("Issue #236 persisted authority races", () => {
       expect((await creator.query(sql, params)).rows[0]?.result_code).toBe(
         "OK",
       );
-      const pid = Number(
-        (await revoker.query("SELECT pg_backend_pid() AS pid")).rows[0]?.pid,
-      );
+      const [creatorPid, revokerPid] = await Promise.all([backendPid(creator), backendPid(revoker)]);
       const pending = revoker.query(
         "UPDATE organization_subscriptions SET dashboard_access_enabled=FALSE WHERE organization_id=$1",
         [f.organizationId],
       );
-      await waitForLock(pid);
+      await waitForLock(creatorPid, revokerPid);
       await creator.query("COMMIT");
       await pending;
       await expect(creator.query(sql, params)).rejects.toMatchObject({
