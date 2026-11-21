@@ -168,6 +168,7 @@ jobs:
         env:
           TEST_PG_CONTAINER: ${{ job.services.postgres.id }}
           EXPECTED_RUN_ID: ${{ github.run_id }}
+          POSTGRES_LANE: ${{ matrix.lane }}
         shell: bash
         run: |
           test "$CI" = "true"
@@ -192,6 +193,13 @@ jobs:
           printf 'VAYLET_CI_MANAGEMENT_WRITER_PASSWORD=%s\n' "$management_password" >> "$GITHUB_ENV"
           printf 'VAYLET_CI_POSTGRES_BOOTSTRAP_URL=%s\n' "$TEST_DATABASE_URL" >> "$GITHUB_ENV"
           printf 'ANTI_ABUSE_SQL_PROOF_SECRET_B64URL=%s\n' "$s04_key" >> "$GITHUB_ENV"
+          if [[ "$POSTGRES_LANE" == "issue215" ]]; then
+            observer_password="$(openssl rand -hex 32)"
+            printf '::add-mask::%s\n' "$observer_password"
+            printf "CREATE ROLE valet_ci_photo_observer LOGIN PASSWORD '%s' NOINHERIT;\nGRANT pg_read_all_stats TO valet_ci_photo_observer WITH INHERIT TRUE, SET FALSE;\n" "$observer_password" |
+              docker exec -i "$TEST_PG_CONTAINER" psql -X -v ON_ERROR_STOP=1 -U valet_ci_bootstrap -d valet
+            printf 'VAYLET_CI_PHOTO_OBSERVER_PASSWORD=%s\n' "$observer_password" >> "$GITHUB_ENV"
+          fi
           docker exec "$TEST_PG_CONTAINER" psql -X -v ON_ERROR_STOP=1 -U valet_ci_bootstrap -d valet -c \
             'CREATE ROLE vaylet_staff_session_lock_owner NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS'
           # Scratch migrations and Runtime provisioning use the restricted

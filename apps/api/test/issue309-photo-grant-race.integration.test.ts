@@ -21,10 +21,9 @@ async function waitForBlockedReader(
   const deadline = Date.now() + waitMs;
   while (Date.now() < deadline) {
     const result = await client.query<{ count: number }>(`
-      SELECT count(*)::int AS count FROM pg_stat_activity
-      WHERE datname = current_database()
-        AND pid <> pg_backend_pid()
-        AND wait_event_type='Lock' AND wait_event='advisory'
+      SELECT count(*)::int AS count FROM pg_locks pending
+      WHERE pending.locktype = 'advisory' AND NOT pending.granted
+        AND pg_backend_pid() = ANY(pg_blocking_pids(pending.pid))
     `);
     if ((result.rows[0]?.count ?? 0) > 0) return true;
     await delay(40);
