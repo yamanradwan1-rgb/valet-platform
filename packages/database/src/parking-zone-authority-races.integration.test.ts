@@ -8,27 +8,15 @@ import {
   startPhysicalResourceRuntime,
   stopPhysicalResourceRuntime,
 } from "./physical-resource-runtime-test-fixture";
+import { backendPid, waitsForBackend } from "./postgres-lock-test-support";
 
 beforeAll(startPhysicalResourceRuntime, 120_000);
 afterAll(stopPhysicalResourceRuntime, 60_000);
 const sql =
   "SELECT * FROM public.management_physical_resource_create_parking_zone($1,$2,$3,$4,$5,$6,$7)";
-async function backendPid(client: PoolClient): Promise<number> {
-  return (await client.query<{ pid: number }>("SELECT pg_backend_pid() AS pid")).rows[0]!.pid;
-}
-
 async function waitForLock(blocker: number, waiter: number) {
   await expect
-    .poll(
-      async () =>
-        (
-          await adminPool.query(
-            "SELECT $1::int = ANY(pg_blocking_pids($2::int)) AS waiting",
-            [blocker, waiter],
-          )
-        ).rows[0]?.waiting,
-      { timeout: 5000 },
-    )
+    .poll(() => waitsForBackend(adminPool, blocker, waiter), { timeout: 5000 })
     .toBe(true);
 }
 const revocations = {

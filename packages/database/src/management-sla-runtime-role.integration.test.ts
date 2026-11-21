@@ -2,8 +2,9 @@ import { execFileSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
 
-import { Client, Pool, type PoolClient } from "pg";
+import { Client, Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { backendPid, waitsForBackend } from "./postgres-lock-test-support";
 
 interface PgError extends Error { code?: string }
 
@@ -60,17 +61,9 @@ async function createMembership(role: "LOCATION_MANAGER" | "ORG_ADMIN", organiza
   return membershipId;
 }
 
-async function backendPid(client: PoolClient): Promise<number> {
-  return (await client.query<{ pid: number }>("SELECT pg_backend_pid() AS pid")).rows[0]!.pid;
-}
-
 async function waitForLockWait(blocker: number, waiter: number): Promise<void> {
   for (let attempt = 0; attempt < 1000; attempt += 1) {
-    const result = await adminPool.query<{ waiting: boolean }>(
-      "SELECT $1::int = ANY(pg_blocking_pids($2::int)) AS waiting",
-      [blocker, waiter],
-    );
-    if (result.rows[0]?.waiting === true) return;
+    if (await waitsForBackend(adminPool, blocker, waiter)) return;
   }
   throw new Error(`Expected PostgreSQL backend ${waiter} to wait for backend ${blocker}.`);
 }
