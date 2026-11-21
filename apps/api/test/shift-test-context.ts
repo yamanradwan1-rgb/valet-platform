@@ -7,6 +7,7 @@ import { Pool } from "pg";
 import { createRuntimePostgresPool } from "../src/common/database/postgres";
 import { provisionMountedStaffWriters } from "./mounted-staff-writer-test-fixture";
 import { dropFixtureCreatedRole } from "./staff-auth-native-writer-role-lifecycle";
+import { dropShiftFixtureDatabase } from "./shift-test-database-cleanup";
 
 export type TestRole =
   "LOCATION_MANAGER" | "ORG_ADMIN" | "VALET_EMPLOYEE" | "VALET_SUPERVISOR";
@@ -150,9 +151,7 @@ export class ShiftTestContext {
       if (!this.databaseCreated) return;
       const bootstrap = new Pool({ connectionString: baseDatabaseUrl });
       try {
-        await bootstrap.query(
-          `DROP DATABASE "${this.databaseName}" WITH (FORCE)`,
-        );
+        await dropShiftFixtureDatabase(bootstrap, this.databaseName);
         await bootstrap.query(`DROP ROLE IF EXISTS "${this.runtimeRole}"`);
         for (const role of this.fixtureWriterRoles) {
           await dropFixtureCreatedRole(bootstrap, role);
