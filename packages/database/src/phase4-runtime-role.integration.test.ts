@@ -6,6 +6,7 @@ import { Client, Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { expectedCurrentMigrationDirectories } from "./issue304-migration-source-appendix.js";
+import { dropFixtureDatabase } from "./drop-fixture-database.js";
 
 const adminUrl =
   process.env.TEST_DATABASE_URL ??
@@ -20,6 +21,7 @@ const prismaCli = fileURLToPath(
   new URL("../node_modules/prisma/build/index.js", import.meta.url),
 );
 let adminPool: Pool;
+let databaseCreated = false;
 
 function scopedUrl(role?: string, password?: string): string {
   const url = new URL(adminUrl);
@@ -59,8 +61,12 @@ async function runDatabaseScript(
 beforeAll(async () => {
   const bootstrap = new Client({ connectionString: adminUrl });
   await bootstrap.connect();
-  await bootstrap.query(`CREATE DATABASE "${databaseName}"`);
-  await bootstrap.end();
+  try {
+    await bootstrap.query(`CREATE DATABASE "${databaseName}"`);
+    databaseCreated = true;
+  } finally {
+    await bootstrap.end();
+  }
 
   const migrationUrl = scopedUrl();
   const runtimeUrl = scopedUrl(runtimeRole, runtimePassword);
@@ -80,11 +86,15 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await adminPool?.end();
+  if (!databaseCreated) return;
   const bootstrap = new Client({ connectionString: adminUrl });
   await bootstrap.connect();
-  await bootstrap.query(`DROP DATABASE "${databaseName}" WITH (FORCE)`);
-  await bootstrap.query(`DROP ROLE IF EXISTS "${runtimeRole}"`);
-  await bootstrap.end();
+  try {
+    await dropFixtureDatabase(bootstrap, databaseName);
+    await bootstrap.query(`DROP ROLE IF EXISTS "${runtimeRole}"`);
+  } finally {
+    await bootstrap.end();
+  }
 }, 60_000);
 
 describe("DEC-039 Phase 4 runtime persistence privileges", () => {

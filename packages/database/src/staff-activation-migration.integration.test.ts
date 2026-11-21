@@ -8,6 +8,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { expectedMigrationDirectories } from "./migration-manifest.js";
 import { expectedCurrentMigrationDirectories } from "./issue304-migration-source-appendix.js";
 import { installDec103NonemptyTestIndexes } from "./dec103-nonempty-test-rollout.js";
+import { dropFixtureDatabase } from "./drop-fixture-database.js";
 const root = fileURLToPath(new URL("../", import.meta.url));
 const cli = join(root, "node_modules/prisma/build/index.js");
 const migration = "20261001005300_mgt_240d_staff_activation";
@@ -19,6 +20,7 @@ const adminUrl =
 const suffix = randomUUID().replaceAll("-", "");
 const upgradeName = `valet_staff_activation_upgrade_${suffix}`;
 const freshName = `valet_staff_activation_fresh_${suffix}`;
+const createdDatabases: string[] = [];
 let upgrade: Pool;
 let fresh: Client;
 let scratch: string;
@@ -62,8 +64,10 @@ beforeAll(async () => {
   const bootstrap = new Client({ connectionString: adminUrl });
   await bootstrap.connect();
   try {
-    await bootstrap.query(`CREATE DATABASE "${upgradeName}"`);
-    await bootstrap.query(`CREATE DATABASE "${freshName}"`);
+    for (const name of [upgradeName, freshName]) {
+      await bootstrap.query(`CREATE DATABASE "${name}"`);
+      createdDatabases.push(name);
+    }
   } finally {
     await bootstrap.end();
   }
@@ -175,10 +179,9 @@ afterAll(async () => {
   const bootstrap = new Client({ connectionString: adminUrl });
   await bootstrap.connect();
   try {
-    await bootstrap.query(
-      `DROP DATABASE IF EXISTS "${upgradeName}" WITH(FORCE)`,
-    );
-    await bootstrap.query(`DROP DATABASE IF EXISTS "${freshName}" WITH(FORCE)`);
+    for (const name of createdDatabases) {
+      await dropFixtureDatabase(bootstrap, name);
+    }
   } finally {
     await bootstrap.end();
   }
