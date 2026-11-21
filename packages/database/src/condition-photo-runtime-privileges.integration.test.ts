@@ -160,6 +160,7 @@ describe("Issue #215 condition-photo restricted PostgreSQL roles", () => {
   });
 
   it("detects unsafe mutation grants without persisting the test grant", async () => {
+    const reserve = "public.condition_photo_reserve_upload(uuid,uuid,uuid,uuid,bytea,integer,integer,text)";
     await client.query("BEGIN");
     try {
       await client.query(
@@ -173,7 +174,7 @@ describe("Issue #215 condition-photo restricted PostgreSQL roles", () => {
     await client.query("BEGIN");
     try {
       await client.query(
-        `GRANT EXECUTE ON FUNCTION ${photoRuntimeFunctions[0]}
+        `GRANT EXECUTE ON FUNCTION ${reserve}
          TO "${maintenanceRole}"`,
       );
       await expect(verifyConditionPhotoMaintenancePrivileges(client, maintenanceRole))
@@ -181,6 +182,7 @@ describe("Issue #215 condition-photo restricted PostgreSQL roles", () => {
     } finally {
       await client.query("ROLLBACK");
     }
+    expect(await functionPrivilege(maintenanceRole, reserve)).toBe(false);
   });
 
   it("reconciles stale PUBLIC and column/function grants on repeat provisioning", async () => {

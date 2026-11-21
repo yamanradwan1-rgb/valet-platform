@@ -240,7 +240,7 @@ describe("SEC-002 runtime authority privileges", () => {
          TO "${runtimeRole}" WITH GRANT OPTION`,
       );
       await expect(verifyRuntimeTablePrivileges(client, runtimeRole)).rejects.toThrow(
-        "Runtime Staff management function privileges are unsafe.",
+        "Ordinary runtime must not execute protected Staff management mutations.",
       );
       await client.query("ROLLBACK");
     } finally {
