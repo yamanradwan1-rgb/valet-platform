@@ -18,7 +18,6 @@ import { inPostgresTransaction } from "../src/common/database/postgres-transacti
 import { queryPresenceReviewAlertCases } from "../src/modules/dashboard/management-alert-sources/presence-review-alert-reader";
 import { queryIncidentAlertCases } from "../src/modules/dashboard/management-alert-sources/incident-alert-reader";
 import { PresenceServerTestContext } from "./shift-presence-server-test-context";
-import { staffCredentialHash } from "../src/modules/auth/staff-auth-credential";
 
 const db = new PresenceServerTestContext("414-alert-w8-perf");
 const families: AlertPerfFamily[] = ["ALT-01", "ALT-08", "ALT-12"];
@@ -90,13 +89,22 @@ async function sourceCounts(scenario: AlertPerfFixture) {
 
 async function proveCommercialScope(scenario: AlertPerfFixture) {
   const config = reader(scenario, "LM", "ALT-12");
+  // Option C's immutable entitlement SQL now accepts the original raw
+  // session bearer and derives its digest inside the protected function.
+  // A prehashed token is deliberately rejected as unauthenticated.
+  const bearer = config.context.rawAccessToken;
+  if (bearer === undefined || !/^vsa1\.[A-Za-z0-9_-]{43}$/.test(bearer)) {
+    throw new Error(
+      "Alert performance fixture is missing an actual Staff bearer.",
+    );
+  }
   const live = await inPostgresTransaction(db.runtimePool, async (tx) => {
     const entitlement = await tx.query<{ enabled: boolean }>(
       "SELECT shift_presence_lock_management_entitlement($1,$2,$3,$4) AS enabled",
       [
         config.context.userId,
         config.context.staffAuthSessionId,
-        staffCredentialHash("access", config.context.rawAccessToken ?? ""),
+        bearer,
         config.scope.organizationId,
       ],
     );
@@ -121,7 +129,7 @@ async function proveCommercialScope(scenario: AlertPerfFixture) {
         [
           config.context.userId,
           config.context.staffAuthSessionId,
-          staffCredentialHash("access", config.context.rawAccessToken ?? ""),
+          bearer,
           config.scope.organizationId,
         ],
       ),
