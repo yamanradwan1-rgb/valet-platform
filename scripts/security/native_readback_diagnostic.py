@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
-from urllib.request import Request, build_opener, HTTPRedirectHandler
+from urllib.request import Request, build_opener, HTTPRedirectHandler, ProxyHandler
 
 REPO = "/repos/yamanradwan1-rgb/valet-platform"
 REF = "refs/pull/466/merge"
@@ -26,7 +26,7 @@ def get(path, params=None, sarif=False):
                   "Accept": "application/sarif+json" if sarif else "application/vnd.github+json",
                   "X-GitHub-Api-Version": "2022-11-28",
                   "User-Agent": "vaylet-native-readback"})
-    with build_opener(NoRedirect).open(req, timeout=20) as r:
+    with build_opener(ProxyHandler({}), NoRedirect).open(req, timeout=20) as r:
         if r.status != 200 or r.headers.get("Link"):
             raise ValueError("incomplete API response")
         raw = r.read(MAX + 1)
@@ -37,6 +37,17 @@ def sha(value):
     return hashlib.sha256(value.encode()).hexdigest() if isinstance(value, str) else None
 def emit(label, data):
     print(label + " " + json.dumps(data, sort_keys=True, ensure_ascii=True), flush=True)
+def complete(a, upload_state, current, enriched):
+    runs = enriched.get("runs", [])
+    return (a.get("error") == "" and a.get("warning", "") == ""
+            and a.get("tool", {}).get("version") == "2.27.6"
+            and a.get("category") in ("/language:javascript-typescript", "/language:javascript-typescript/")
+            and a.get("results_count") == 61
+            and upload_state.get("processing_status") == "complete"
+            and len(current) == 1 and current[0] == a
+            and enriched.get("version") == "2.1.0"
+            and len(runs) == 1 and len(runs[0].get("results", [])) == 61)
+
 def main():
     cat = json.loads(Path(__file__).with_name("native_disposition_reference.json").read_bytes())
     refs = {int(r["id"][3:]): r for r in cat}
@@ -74,7 +85,8 @@ def main():
         raise ValueError("unexpected SARIF runs")
     results = runs[0].get("results",[])
     emit("ENRICHED_RESULT_COUNT",len(results))
-    allgood = True
+    allgood = complete(a, upload_state, current, enriched)
+    emit("MANDATORY_ANALYSIS_EVIDENCE", allgood)
     for n in IDS:
         r = refs[n]
         matches = [x for x in results if str(x.get("properties",{}).get("github/alertNumber"))==str(n)]

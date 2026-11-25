@@ -3,16 +3,6 @@ name: Manual Security Audit
 # Temporary isolated readback branch only. No scans, uploads or writes.
 on:
   workflow_dispatch:
-    inputs:
-      scope:
-        type: choice
-        required: true
-        default: static
-        options: [all, static, dast]
-      active_api_scan:
-        type: boolean
-        required: true
-        default: false
 permissions:
   contents: read
   pull-requests: read
@@ -23,7 +13,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
       - name: Read historical CodeQL analysis without mutations
