@@ -1,0 +1,101 @@
+[
+  {
+    "id": "FP-50",
+    "rule": "js/insufficient-password-hash",
+    "severity": "HIGH",
+    "path": "apps/api/src/modules/auth/vap1/vap1-a01-ceremony-binding.ts",
+    "line": 93,
+    "git_blob": "46d85735b5207cb73a164241b8650ad3316eda9a",
+    "source_sha256": "d8260274862a7d9df392a2ed89ba2d211e31408fda224d49995fa7527e88bdec",
+    "fingerprint_sha256": "e0064fc0a177a86d1a03998a987f0593f703c9d2dee005c95e5a6181bae48578",
+    "message_sha256": "c144073124aabb295d8a4629060b73ed5cfd75ed97a4118f05192533536dd97d"
+  },
+  {
+    "id": "FP-51",
+    "rule": "js/insufficient-password-hash",
+    "severity": "HIGH",
+    "path": "apps/api/src/modules/auth/vap1/vap1-a01-ceremony-binding.ts",
+    "line": 95,
+    "git_blob": "46d85735b5207cb73a164241b8650ad3316eda9a",
+    "source_sha256": "d8260274862a7d9df392a2ed89ba2d211e31408fda224d49995fa7527e88bdec",
+    "fingerprint_sha256": "b63b31b7bf384e856d68687f10d66f00bd3f29436bef51ad76da9eef48231dd0",
+    "message_sha256": "52ae7bbced2195c6b6441af4cdd1e3120b9e7394e6082cf60d8854e3138564de"
+  },
+  {
+    "id": "FP-52",
+    "rule": "js/insufficient-password-hash",
+    "severity": "HIGH",
+    "path": "apps/api/src/modules/auth/vap1-typed/u2-staff-login.ts",
+    "line": 96,
+    "git_blob": "22af8611e0b78b58a93d225212ee674bff68f772",
+    "source_sha256": "8123f7591858ba345a49099579cdc0b8d63113e885c2965f739bc73c98a020a3",
+    "fingerprint_sha256": "1d00b616c63004a06701bdfd078552cef7ceac6602c57048ee5ea6204ef2ee51",
+    "message_sha256": "fb666da1e620b40828d62148e6f0123f4d3be06cb2a576756fd95758cf9034eb"
+  },
+  {
+    "id": "FP-53",
+    "rule": "js/insufficient-password-hash",
+    "severity": "HIGH",
+    "path": "apps/api/test/issue416-vap1-a01-ceremony-binding.test.ts",
+    "line": 40,
+    "git_blob": "4cc7cdf05c33058282f62f9c51da063c70292335",
+    "source_sha256": "855a9787b5c05b110ca2c6b2ed0ad78d1a6829a3ca5ea85ac4c1191a34559302",
+    "fingerprint_sha256": "fb84e8ed18425a654c39403c6ba5e095fcdf9991a483b2dbe0f99b925a10f09d",
+    "message_sha256": "52ae7bbced2195c6b6441af4cdd1e3120b9e7394e6082cf60d8854e3138564de"
+  },
+  {
+    "id": "FP-54",
+    "rule": "js/insufficient-password-hash",
+    "severity": "HIGH",
+    "path": "apps/api/test/vap1-typed-a01-contract.test.ts",
+    "line": 206,
+    "git_blob": "1f7715dba8a207a79ff57f9af1b62e4660bd10da",
+    "source_sha256": "14a2af2b34ae177adfe98d043b3da949d845620073f9e0d6ac15fa76e327db71",
+    "fingerprint_sha256": "92e6833d8df01d0ea2e06613e6a62290596886ef93095e45984255bca31d4670",
+    "message_sha256": "52ae7bbced2195c6b6441af4cdd1e3120b9e7394e6082cf60d8854e3138564de"
+  },
+  {
+    "id": "FP-55",
+    "rule": "js/insufficient-password-hash",
+    "severity": "HIGH",
+    "path": "apps/api/test/vap1-typed-a01-contract.test.ts",
+    "line": 207,
+    "git_blob": "1f7715dba8a207a79ff57f9af1b62e4660bd10da",
+    "source_sha256": "14a2af2b34ae177adfe98d043b3da949d845620073f9e0d6ac15fa76e327db71",
+    "fingerprint_sha256": "80c1be9cc39b085d78ff818955c8b36d175a5ef35f5dc1dbd2bd0e67bf811033",
+    "message_sha256": "52ae7bbced2195c6b6441af4cdd1e3120b9e7394e6082cf60d8854e3138564de"
+  },
+  {
+    "id": "FP-56",
+    "rule": "js/insufficient-password-hash",
+    "severity": "HIGH",
+    "path": "apps/api/test/vap1-typed-state.test.ts",
+    "line": 141,
+    "git_blob": "888b40dc4ec71fe4f8ea179f75b338082a18da74",
+    "source_sha256": "b6eb66cc577e71e796843c56196a7f695f5a63f83519af307c6cb32bedf6a20e",
+    "fingerprint_sha256": "acb2865eb111492c96365c5a01479d5748f1edd46780f5d2522a0923a8b134f4",
+    "message_sha256": "fb666da1e620b40828d62148e6f0123f4d3be06cb2a576756fd95758cf9034eb"
+  },
+  {
+    "id": "FP-57",
+    "rule": "js/insufficient-password-hash",
+    "severity": "HIGH",
+    "path": "apps/api/test/vap1-typed-state.test.ts",
+    "line": 153,
+    "git_blob": "888b40dc4ec71fe4f8ea179f75b338082a18da74",
+    "source_sha256": "b6eb66cc577e71e796843c56196a7f695f5a63f83519af307c6cb32bedf6a20e",
+    "fingerprint_sha256": "c78fa9900ee83e3cb1de1551030bb69ca96bd053d1f880e33412f51b173939f3",
+    "message_sha256": "fb666da1e620b40828d62148e6f0123f4d3be06cb2a576756fd95758cf9034eb"
+  },
+  {
+    "id": "FP-61",
+    "rule": "js/insufficient-password-hash",
+    "severity": "HIGH",
+    "path": "apps/api/src/modules/auth/vap1/issue416-a01-protected-login.ts",
+    "line": 161,
+    "git_blob": "afccd676cd7e5f0a2ed82e3f2425ee4965c7cce5",
+    "source_sha256": "8d02204b61ba6805c5a83c2b9c3162ed24bbba29f051f93f21378130c9a30a5c",
+    "fingerprint_sha256": "07a8f487b0c925132ea8953e23efa60871f72001467fd18e221ce36b07c18821",
+    "message_sha256": "c144073124aabb295d8a4629060b73ed5cfd75ed97a4118f05192533536dd97d"
+  }
+]
