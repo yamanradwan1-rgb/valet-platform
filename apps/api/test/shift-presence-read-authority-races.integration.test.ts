@@ -67,7 +67,7 @@ describe("Issue 406: retried reads always re-prove current authority", () => {
     ).toBeGreaterThan(1);
     expect(
       probe.statements.filter((sql) =>
-        sql.includes("FROM staff_auth_sessions AS session"),
+        sql.includes("FROM public.staff_auth_lock_current_session("),
       ).length,
     ).toBeGreaterThan(1);
   });

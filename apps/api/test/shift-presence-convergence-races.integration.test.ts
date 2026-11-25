@@ -39,9 +39,9 @@ describe("distinct-operation committed result survives losing acknowledgement", 
       );
       expect(second.operationId).not.toBe(c.challenge.operationId);
       const gate = presenceCommitBarrier(db.runtimePool);
-      const winner = c.run(gate.pool);
-      gate.trackFirst(winner);
-      await gate.atCommit;
+      const startWinner = () => gate.trackFirst(c.run(gate.pool));
+      let winner = snapshot ? undefined : startWinner();
+      if (winner !== undefined) await gate.atCommit;
       const probe = convergenceSnapshotPool(db.runtimePool);
       const old = await presenceHttp(
         db,
@@ -68,13 +68,22 @@ describe("distinct-operation committed result survives losing acknowledgement", 
       trackPresenceRaceRequest(lost);
       let original: Awaited<typeof winner>;
       try {
-      await observePresenceCommandWait(db, gate.holderPid());
-      gate.finish("COMMIT");
-      original = await winner;
-      expect(await lost).toBeInstanceOf(Error);
+        let waiterPid: number | undefined;
+        if (snapshot) {
+          waiterPid = await probe.waitForSnapshot(lost);
+          winner = startWinner();
+          await gate.atCommit;
+          probe.resume();
+        }
+        if (winner === undefined) throw new Error("Convergence winner not started.");
+        await observePresenceCommandWait(db, gate.holderPid(), "runtime", waiterPid);
+        gate.finish("COMMIT");
+        original = await winner;
+        expect(await lost).toBeInstanceOf(Error);
       } finally {
+        probe.resume();
         await abortPresenceCommitBarriers();
-      await old.app.close();
+        await old.app.close();
       }
       expect(probe.uniqueViolations).toHaveLength(snapshot ? 1 : 0);
       const fresh = await presenceHttp(db);

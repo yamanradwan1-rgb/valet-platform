@@ -120,6 +120,7 @@ export async function observePresenceCommandWait(
   db: PresenceServerTestContext,
   holderPid?: number,
   waiterRole: "runtime" | "management" = "runtime",
+  waiterPid?: number,
 ) {
   const role = waiterRole === "management" ? "vaylet_management_writer" : db.runtimeRole;
   if (waiterRole === "management" && holderPid === undefined) {
@@ -137,10 +138,11 @@ export async function observePresenceCommandWait(
              AND holder.datname=waiter.datname
            WHERE waiter.datname=$1 AND waiter.usename=$2
              AND waiter.pid<>$3
+             AND ($4::int IS NULL OR waiter.pid=$4)
              AND $3::int = ANY(pg_blocking_pids(waiter.pid))`,
       holderPid === undefined
         ? [db.databaseName, role]
-        : [db.databaseName, role, holderPid],
+        : [db.databaseName, role, holderPid, waiterPid ?? null],
     );
     if (result.rowCount !== 0) return;
     await setImmediate();

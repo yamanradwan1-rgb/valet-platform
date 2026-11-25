@@ -5,6 +5,11 @@ import type { Pool } from "pg";
  */
 export function convergenceSnapshotPool(pool: Pool) {
   const uniqueViolations: string[] = [];
+  let first = true;
+  let reached!: (pid: number) => void;
+  let resume!: () => void;
+  const snapshot = new Promise<number>((resolve) => { reached = resolve; });
+  const released = new Promise<void>((resolve) => { resume = resolve; });
   const gated = new Proxy(pool, {
     get(target, property) {
       if (property === "connect")
@@ -15,12 +20,22 @@ export function convergenceSnapshotPool(pool: Pool) {
               if (key === "query")
                 return async (sql: string, ...args: unknown[]) => {
                   try {
-                    return await Reflect.apply(connection.query, connection, [
-                      sql === "BEGIN"
-                        ? "BEGIN ISOLATION LEVEL REPEATABLE READ"
-                        : sql,
-                      ...args,
-                    ]);
+                    if (sql === "BEGIN" && first) {
+                      first = false;
+                      const result = await connection.query("BEGIN ISOLATION LEVEL REPEATABLE READ");
+                      // Pin the real snapshot before the competing writer starts.
+                      const pinned = await connection.query<{ pid: number }>(
+                        "SELECT pg_backend_pid() AS pid, pg_current_snapshot()",
+                      );
+                      const pid = pinned.rows[0]?.pid;
+                      if (pid === undefined || !Number.isSafeInteger(pid) || pid <= 0)
+                        throw new Error("Convergence snapshot requires a real backend PID.");
+                      reached(pid);
+                      await released;
+                      return result;
+                    }
+                    // Recovery must use a fresh ordinary transaction.
+                    return await Reflect.apply(connection.query, connection, [sql, ...args]);
                   } catch (error) {
                     const failure = error as {
                       code?: string;
@@ -46,5 +61,15 @@ export function convergenceSnapshotPool(pool: Pool) {
       return typeof value === "function" ? value.bind(target) : value;
     },
   });
-  return { pool: gated, uniqueViolations };
+  return {
+    pool: gated,
+    uniqueViolations,
+    resume,
+    waitForSnapshot(request: Promise<unknown>) {
+      return Promise.race([
+        snapshot,
+        request.then(() => { throw new Error("Convergence request settled before snapshot."); }),
+      ]);
+    },
+  };
 }

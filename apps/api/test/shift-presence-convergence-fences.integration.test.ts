@@ -32,9 +32,9 @@ describe("distinct convergence never changes a different target or cash intent",
       const other = { ...c.f, locationId: await db.addLocation(c.f) };
       const second = await db.challenge(other, c.auth.context);
       const gate = presenceCommitBarrier(db.runtimePool);
-      const first = c.run(gate.pool);
-      gate.trackFirst(first);
-      await gate.atCommit;
+      const startWinner = () => gate.trackFirst(c.run(gate.pool));
+      let first = snapshot ? undefined : startWinner();
+      if (first !== undefined) await gate.atCommit;
       const probe = convergenceSnapshotPool(db.runtimePool);
       const app = await presenceHttp(
         db,
@@ -51,7 +51,15 @@ describe("distinct convergence never changes a different target or cash intent",
           },
         );
         trackPresenceRaceRequest(loser);
-        await observePresenceCommandWait(db, gate.holderPid());
+        let waiterPid: number | undefined;
+        if (snapshot) {
+          waiterPid = await probe.waitForSnapshot(loser);
+          first = startWinner();
+          await gate.atCommit;
+          probe.resume();
+        }
+        if (first === undefined) throw new Error("Convergence winner not started.");
+        await observePresenceCommandWait(db, gate.holderPid(), "runtime", waiterPid);
         gate.finish("COMMIT");
         await first;
         const response = await loser;
@@ -68,6 +76,7 @@ describe("distinct convergence never changes a different target or cash intent",
           decisions: 0,
         });
       } finally {
+        probe.resume();
         await abortPresenceCommitBarriers();
         await app.app.close();
       }
