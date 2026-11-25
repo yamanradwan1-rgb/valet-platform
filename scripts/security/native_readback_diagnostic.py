@@ -103,12 +103,31 @@ def main():
                 "fp_match":sha(fp)==r["fingerprint_sha256"],"message_present":isinstance(msg,str),
                 "message_match":sha(msg)==r["message_sha256"],"alert_number_integer":type(x.get("properties",{}).get("github/alertNumber")) is int})
         alert = get(REPO + "/code-scanning/alerts/" + str(n))
+        info["alert_shape"] = {"number_match":alert.get("number")==n,
+            "state":alert.get("state") if alert.get("state") in ("open","dismissed","fixed") else "OTHER",
+            "rule_match":alert.get("rule",{}).get("id")==r["rule"],
+            "security_severity":alert.get("rule",{}).get("security_severity_level") if alert.get("rule",{}).get("security_severity_level") in ("critical","high","medium","low",None) else "OTHER",
+            "rule_severity":alert.get("rule",{}).get("severity") if alert.get("rule",{}).get("severity") in ("error","warning","note",None) else "OTHER",
+            "rule_keys":sorted(k for k in alert.get("rule",{}) if k in ("id","severity","security_severity_level","security_severity","name","description","tags")),
+            "top_severity":alert.get("severity") if alert.get("severity") in ("critical","high","medium","low","error","warning","note",None) else "OTHER",
+            "tool_match":alert.get("tool",{}).get("name")=="CodeQL",
+            "dismissal_fields_present":all(k in alert for k in ("dismissed_by","dismissed_reason","dismissed_at","dismissed_comment"))}
         info["alert_open_high_rule"] = alert.get("number")==n and alert.get("state")=="open" and alert.get("rule",{}).get("id")==r["rule"] and alert.get("rule",{}).get("security_severity_level")=="high"
         instances = get(REPO + "/code-scanning/alerts/" + str(n) + "/instances",{"ref":REF,"per_page":100})
         exact = [i for i in instances if i.get("ref")==REF and i.get("commit_sha")==SHA and i.get("analysis_key")==KEY and i.get("category")==category]
         info["instance_exact_count"]=len(exact)
         if len(exact)==1:
             i=exact[0]
+            msg=i.get("message")
+            m=msg.get("text") if isinstance(msg,dict) else msg
+            em=x.get("message",{}).get("text") if len(matches)==1 else None
+            info["message_shape"]={"type":type(msg).__name__,"has_text":isinstance(msg,dict) and "text" in msg,
+                "has_markdown":isinstance(msg,dict) and "markdown" in msg,
+                "text_match":sha(m)==r["message_sha256"],
+                "trim_match":isinstance(m,str) and sha(m.strip())==r["message_sha256"],
+                "newline_match":isinstance(m,str) and sha(m.replace("\r\n","\n"))==r["message_sha256"],
+                "markdown_match":isinstance(msg,dict) and sha(msg.get("markdown"))==r["message_sha256"],
+                "enriched_plain_matches":isinstance(m,str) and isinstance(em,str) and m==em}
             info.update({"instance_open":i.get("state")=="open","instance_path_match":i.get("location",{}).get("path")==r["path"],"instance_line_match":i.get("location",{}).get("start_line")==r["line"],"instance_message_match":sha(i.get("message",{}).get("text"))==r["message_sha256"]})
         emit("ALERT",info)
         required=("rule_match","path_match","line_match","fp_match","message_match","alert_number_integer","alert_open_high_rule","instance_open","instance_path_match","instance_line_match","instance_message_match")
