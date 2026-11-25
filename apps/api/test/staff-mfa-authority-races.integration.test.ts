@@ -56,11 +56,11 @@ async function enroll(accessToken: string) {
   };
 }
 
-async function holdUser(userId: string): Promise<PoolClient> {
+async function holdRow(sql: string, id: string): Promise<PoolClient> {
   const client = await fixture.databasePool().connect();
   try {
     await client.query("BEGIN");
-    const held = await client.query(`SELECT id FROM users WHERE id = $1 FOR UPDATE`, [userId]);
+    const held = await client.query(sql, [id]);
     expect(held.rowCount).toBe(1);
     return client;
   } catch (error) {
@@ -69,21 +69,8 @@ async function holdUser(userId: string): Promise<PoolClient> {
   }
 }
 
-async function holdSession(sessionId: string): Promise<PoolClient> {
-  const client = await fixture.databasePool().connect();
-  try {
-    await client.query("BEGIN");
-    const held = await client.query(
-    `SELECT id FROM staff_auth_sessions WHERE id = $1 FOR UPDATE`,
-    [sessionId],
-  );
-    expect(held.rowCount).toBe(1);
-    return client;
-  } catch (error) {
-    await staffRacePoolBarrierCloser(client).close("ROLLBACK").catch(() => undefined);
-    throw error;
-  }
-}
+const holdUser = (id: string) => holdRow("SELECT id FROM users WHERE id = $1 FOR UPDATE", id);
+const holdSession = (id: string) => holdRow("SELECT id FROM staff_auth_sessions WHERE id = $1 FOR UPDATE", id);
 
 describe("MGT-BE-02 authority races", () => {
   it("makes refresh replay revocation authoritative over a concurrent TOTP step-up", async () => {
