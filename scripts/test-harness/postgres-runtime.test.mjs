@@ -9,6 +9,17 @@ import { postgresProfile } from "./resource-budget.mjs";
 
 function fakePg(queryEvents = []) {
   class FakeClient {
+    constructor(config = {}) {
+      const url = new URL(
+        config.connectionString ??
+          "postgresql://fixture:secret@127.0.0.1:5432/valet",
+      );
+      this.connectionParameters = {
+        host: url.hostname,
+        port: Number(url.port || 5432),
+        database: url.pathname.slice(1),
+      };
+    }
     end() {
       return Promise.resolve();
     }
@@ -25,7 +36,7 @@ function fakePg(queryEvents = []) {
   }
   class FakePool extends FakeClient {
     constructor(config = {}) {
-      super();
+      super(config);
       this.options = config;
     }
   }
@@ -60,6 +71,7 @@ test("race writer topology admits six distinct pools within the reserved slot bu
     pg,
     profile: postgresProfile("api-race"),
     projectName: "api-postgres-race",
+    ownershipDatabaseUrl: "postgresql://fixture:secret@127.0.0.1:5432/valet",
   });
   const pool = new pg.Pool({ connectionString: "postgresql://example" });
   assert.equal(pool.options.max, 6);
@@ -77,7 +89,11 @@ test("race writer topology admits six distinct pools within the reserved slot bu
   assert.equal(events.at(-1).reservedPoolConnections, 20);
   const replacement = new pg.Pool({ max: 4 });
   assert.equal(replacement.options.max, 4);
-  await Promise.all([pool.end(), ...otherPools.slice(1).map((p) => p.end()), replacement.end()]);
+  await Promise.all([
+    pool.end(),
+    ...otherPools.slice(1).map((p) => p.end()),
+    replacement.end(),
+  ]);
   assert.equal(events.at(-1).reservedPoolConnections, 0);
 });
 
@@ -90,13 +106,17 @@ test("race pool slots reject overcommit, then recover after asynchronous end", a
     pg,
     profile: postgresProfile("api-race"),
     projectName: "api-postgres-race",
+    ownershipDatabaseUrl: "postgresql://fixture:secret@127.0.0.1:5432/valet",
   });
   const pools = Array.from({ length: 4 }, () => new pg.Pool({ max: 6 }));
   assert.throws(
     () => new pg.Pool({ max: 1 }),
     /exceeded poolConnectionBudget=24/,
   );
-  assert.equal(events.filter((event) => event.type === "pool-registered").length, 4);
+  assert.equal(
+    events.filter((event) => event.type === "pool-registered").length,
+    4,
+  );
   await pools[0].end();
   const fifth = new pg.Pool({ max: 6 });
   assert.equal(events.at(-1).reservedPoolConnections, 24);
@@ -119,6 +139,7 @@ test("failed registration releases a constructed pool's reservation", async () =
     pg,
     profile: postgresProfile("api-race"),
     projectName: "api-postgres-race",
+    ownershipDatabaseUrl: "postgresql://fixture:secret@127.0.0.1:5432/valet",
   });
   assert.throws(() => new pg.Pool({ max: 6 }), /ledger unavailable/);
   rejectRegistration = false;
@@ -143,6 +164,7 @@ test("resource ownership is written before CREATE DATABASE executes", async () =
     pg,
     profile: postgresProfile("database-direct"),
     projectName: "database-postgres-direct",
+    ownershipDatabaseUrl: "postgresql://fixture:secret@127.0.0.1:5432/valet",
   });
   await new pg.Client().query('CREATE DATABASE "owned_before_create"');
   assert.deepEqual(order.slice(-3), [
@@ -161,6 +183,7 @@ test("unquoted runtime roles are tracked as owned resources", async () => {
     pg,
     profile: postgresProfile("database-provision"),
     projectName: "database-postgres-provision",
+    ownershipDatabaseUrl: "postgresql://fixture:secret@127.0.0.1:5432/valet",
   });
   await new pg.Client().query("CREATE ROLE valet_runtime_owned WITH LOGIN");
   assert.ok(
@@ -181,6 +204,7 @@ test("direct client profile count is enforced across live connections", async ()
     pg,
     profile: postgresProfile("database-direct"),
     projectName: "database-postgres-direct",
+    ownershipDatabaseUrl: "postgresql://fixture:secret@127.0.0.1:5432/valet",
   });
   const clients = [new pg.Client(), new pg.Client(), new pg.Client()];
   await Promise.all(clients.map((client) => client.connect()));
@@ -197,6 +221,7 @@ test("sync DB children consume the subprocess profile and inherit the ownership 
     pg,
     profile: postgresProfile("database-provision"),
     projectName: "database-postgres-provision",
+    ownershipDatabaseUrl: "postgresql://fixture:secret@127.0.0.1:5432/valet",
   });
   childProcess.execFileSync(process.execPath, ["prisma", "migrate", "deploy"], {
     env: { NODE_ENV: "test" },
@@ -205,10 +230,30 @@ test("sync DB children consume the subprocess profile and inherit the ownership 
     childProcess.syncCalls[0].options.env.NODE_OPTIONS,
     /child-postgres-hook\.mjs/,
   );
+  assert.equal(
+    childProcess.syncCalls[0].options.env.TEST_DATABASE_URL,
+    "postgresql://fixture:secret@127.0.0.1:5432/valet",
+  );
   childProcess.execFileSync(process.execPath, ["prisma", "migrate", "deploy"], {
     env: { VAYLET_TEST_RUN_ID: "run_explicit_env" },
   });
   assert.equal("NODE_ENV" in childProcess.syncCalls[1].options.env, false);
+  const secondaryUrl = "postgresql://fixture:secret@127.0.0.1:55473/valet";
+  childProcess.execFileSync(process.execPath, ["prisma", "migrate", "deploy"], {
+    env: {
+      VAYLET_TEST_RUN_ID: "run_secondary_attested",
+      TEST_DATABASE_URL: secondaryUrl,
+      MIGRATION_DATABASE_URL: secondaryUrl,
+    },
+  });
+  assert.equal(
+    childProcess.syncCalls[2].options.env.TEST_DATABASE_URL,
+    secondaryUrl,
+  );
+  assert.equal(
+    childProcess.syncCalls[2].options.env.VAYLET_TEST_RUN_ID,
+    "run_secondary_attested",
+  );
 
   const directChildren = fakeChildProcess();
   installPostgresTestRuntime({
@@ -217,6 +262,7 @@ test("sync DB children consume the subprocess profile and inherit the ownership 
     pg: fakePg(),
     profile: postgresProfile("database-direct"),
     projectName: "database-postgres-direct",
+    ownershipDatabaseUrl: "postgresql://fixture:secret@127.0.0.1:5432/valet",
   });
   assert.throws(
     () => directChildren.execFileSync(process.execPath, ["child.mjs"]),

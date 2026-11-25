@@ -24,6 +24,7 @@ import {
 } from "./staff-auth-native-test-environment";
 import { createStaffAuthNativeUser } from "./staff-auth-native-user";
 import { cleanupStaffAuthNativeFixture } from "./staff-auth-native-fixture-cleanup";
+import { assertStaffAuthFixtureEndpoints } from "./staff-auth-native-database-drop";
 import { fixtureSessionLockRoles } from "./staff-auth-native-session-lock-owner";
 export type {
   AuthHttpResult,
@@ -109,6 +110,13 @@ export class StaffAuthNativeFixture {
       activityRoot,
     );
     const { protectedMode, writers } = resolvedWriters;
+    assertStaffAuthFixtureEndpoints(
+      this.databaseName,
+      applicationUrl,
+      adminDatabaseUrl,
+      databaseUrl(this.databaseName),
+      { ...writers, ...ciFixtureManagementWriterEnvironment(applicationUrl) },
+    );
     const bootstrap = new Pool({ connectionString: adminDatabaseUrl });
     try {
       this.writerRoleSnapshots = await captureFixtureWriterRoleBaseline(
@@ -151,7 +159,8 @@ export class StaffAuthNativeFixture {
     await this.afterRuntimeProvisioning(applicationUrl, writers);
     this.adminPool = new Pool({ connectionString: this.migrationUrl });
     for (const [key, value] of Object.entries({
-      ...ciFixtureManagementWriterEnvironment(applicationUrl), ...writers,
+      ...ciFixtureManagementWriterEnvironment(applicationUrl),
+      ...writers,
     })) {
       this.optionalWriterPrevious.set(key, process.env[key]);
       process.env[key] = value;
@@ -249,6 +258,11 @@ export class StaffAuthNativeFixture {
         adminDatabaseUrl,
         databaseCreated: this.databaseCreated,
         databaseName: this.databaseName,
+        fixtureDatabaseUrl: runtimeUrl(
+          this.databaseName,
+          this.runtimeRole,
+          this.runtimePassword,
+        ),
         ...(databaseOwnerRole === undefined ? {} : { databaseOwnerRole }),
         ...(this.roleCreated ? { runtimeRole: this.runtimeRole } : {}),
         writerRoleSnapshots: this.writerRoleSnapshots,

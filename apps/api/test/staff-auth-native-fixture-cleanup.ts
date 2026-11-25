@@ -5,6 +5,11 @@ import {
   restoreFixtureWriterRoles,
   type FixtureWriterRoleSnapshot,
 } from "./staff-auth-native-writer-role-lifecycle";
+import {
+  assertStaffAuthFixtureEndpoints,
+  closeStaffAuthFixturePools,
+  dropStaffAuthFixtureDatabase,
+} from "./staff-auth-native-database-drop";
 
 interface CleanupState {
   readonly app: INestApplication | undefined;
@@ -12,6 +17,7 @@ interface CleanupState {
   readonly adminDatabaseUrl: string;
   readonly databaseCreated: boolean;
   readonly databaseName: string;
+  readonly fixtureDatabaseUrl: string;
   readonly databaseOwnerRole?: string;
   readonly runtimeRole?: string;
   readonly writerRoleSnapshots: FixtureWriterRoleSnapshot[];
@@ -20,6 +26,15 @@ interface CleanupState {
 export async function cleanupStaffAuthNativeFixture(
   state: CleanupState,
 ): Promise<void> {
+  // Re-attest even after an interrupted setup; the cleanup must never send
+  // DROP/role statements to a server other than this fixture's creator.
+  assertStaffAuthFixtureEndpoints(
+    state.databaseName,
+    state.fixtureDatabaseUrl,
+    state.adminDatabaseUrl,
+    state.fixtureDatabaseUrl,
+    {},
+  );
   const errors: unknown[] = [];
   for (const close of [
     state.app === undefined ? undefined : () => state.app!.close(),
@@ -28,6 +43,16 @@ export async function cleanupStaffAuthNativeFixture(
     if (!close) continue;
     try {
       await close();
+    } catch (error) {
+      errors.push(error);
+    }
+  }
+  if (state.databaseCreated) {
+    try {
+      await closeStaffAuthFixturePools(
+        state.databaseName,
+        state.fixtureDatabaseUrl,
+      );
     } catch (error) {
       errors.push(error);
     }
@@ -62,9 +87,7 @@ export async function cleanupStaffAuthNativeFixture(
             throw new Error("Fixture database has an unexpected owner.");
           }
         }
-        await bootstrap.query(
-          `DROP DATABASE IF EXISTS "${state.databaseName}" WITH (FORCE)`,
-        );
+        await dropStaffAuthFixtureDatabase(bootstrap, state.databaseName);
         databaseDropped = true;
         if (state.runtimeRole && assumedDatabaseOwner) {
           await dropFixtureCreatedRole(bootstrap, state.runtimeRole);

@@ -1,17 +1,31 @@
 import {
+  assertClusterLeaseOwner,
   isProcessAlive,
   readOwnershipEvents,
   removeRunState,
 } from "./ownership-state.mjs";
+import { postgresEndpointIdentity } from "./postgres-endpoint.mjs";
+
+const sharedProtectedRoles = new Set([
+  "vap1_proof_owner",
+  "vaylet_staff_session_lock_owner",
+  "vaylet_management_writer",
+  "vaylet_staff_auth_writer",
+  "vaylet_mfa_writer",
+]);
 import { preflightIssue215BeforeHarnessCleanup } from "./issue215-target-preflight.mjs";
 import { ISSUE215_PROJECT } from "./issue215-test-manifest.mjs";
 
 export function hasIssue215OwnedResources(events) {
-  return events.some((event) =>
-    event.type === "issue215-protected-run" ||
-    (["resource-created", "resource-planned"].includes(event.type) &&
-      ((event.kind === "database" && /^vlt_t_db_215_[a-f0-9]{32}$/.test(event.name)) ||
-        (event.kind === "role" && /^vlt_t_role_215_[a-f0-9]{32}$/.test(event.name)))));
+  return events.some(
+    (event) =>
+      event.type === "issue215-protected-run" ||
+      (["resource-created", "resource-planned"].includes(event.type) &&
+        ((event.kind === "database" &&
+          /^vlt_t_db_215_[a-f0-9]{32}$/.test(event.name)) ||
+          (event.kind === "role" &&
+            /^vlt_t_role_215_[a-f0-9]{32}$/.test(event.name)))),
+  );
 }
 
 export function buildOwnedCleanupPlan(events) {
@@ -73,14 +87,31 @@ export async function cleanupOwnedRun({
   databaseUrl,
   preserveRunState = false,
   recoverCoordinatorChildren = false,
+  requireAttestedTarget = false,
   runId,
   stateRoot,
 }) {
+  const initialPlan = buildOwnedCleanupPlan(
+    readOwnershipEvents({ databaseUrl, runId, stateRoot }),
+  );
+  assertSafeCleanupPlan(initialPlan, databaseUrl, requireAttestedTarget);
+  if (requireAttestedTarget) {
+    if (
+      adapter?.ownershipEndpoint !== postgresEndpointIdentity(databaseUrl).key
+    ) {
+      throw new Error("Attested PostgreSQL cleanup adapter endpoint mismatch.");
+    }
+    assertClusterLeaseOwner({ databaseUrl, runId, stateRoot });
+  }
   // An unrelated project's global setup may recover a stale P1 run before
   // the P1 global setup starts during direct mixed Vitest execution. Never
   // terminate its child or DROP any task-owned P1 artifact without attesting
   // the actual Issue215 target, even when the new project was not selected.
-  if (hasIssue215OwnedResources(readOwnershipEvents({ databaseUrl, runId, stateRoot }))) {
+  if (
+    hasIssue215OwnedResources(
+      readOwnershipEvents({ databaseUrl, runId, stateRoot }),
+    )
+  ) {
     await preflightIssue215BeforeHarnessCleanup([ISSUE215_PROJECT]);
   }
   const childCount = await quiesceOwnedChildren({
@@ -90,14 +121,29 @@ export async function cleanupOwnedRun({
     runId,
     stateRoot,
   });
-  const postQuiescenceEvents = readOwnershipEvents({ databaseUrl, runId, stateRoot });
+  const postQuiescenceEvents = readOwnershipEvents({
+    databaseUrl,
+    runId,
+    stateRoot,
+  });
   if (hasIssue215OwnedResources(postQuiescenceEvents)) {
     await preflightIssue215BeforeHarnessCleanup([ISSUE215_PROJECT]);
   }
   const plan = buildOwnedCleanupPlan(postQuiescenceEvents);
-  for (const database of plan.databases)
+  assertSafeCleanupPlan(plan, databaseUrl, requireAttestedTarget);
+  if (requireAttestedTarget) {
+    assertClusterLeaseOwner({ databaseUrl, runId, stateRoot });
+  }
+  for (const database of plan.databases) {
+    if (requireAttestedTarget)
+      assertClusterLeaseOwner({ databaseUrl, runId, stateRoot });
     await adapter.dropDatabase(database.name);
-  for (const role of plan.roles) await adapter.dropRole(role.name);
+  }
+  for (const role of plan.roles) {
+    if (requireAttestedTarget)
+      assertClusterLeaseOwner({ databaseUrl, runId, stateRoot });
+    await adapter.dropRole(role.name);
+  }
 
   const databases = await adapter.findExistingDatabases(
     plan.databases.map((item) => item.name),
@@ -117,6 +163,28 @@ export async function cleanupOwnedRun({
     databaseCount: plan.databases.length,
     roleCount: plan.roles.length,
   };
+}
+
+function assertSafeCleanupPlan(plan, databaseUrl, requireAttestedTarget) {
+  const parsed = new URL(databaseUrl);
+  const adminRole = decodeURIComponent(parsed.username);
+  const adminDatabase = postgresEndpointIdentity(databaseUrl).database;
+  if (
+    plan.roles.some((role) => role.name === adminRole) ||
+    plan.databases.some((database) => database.name === adminDatabase)
+  ) {
+    throw new Error(
+      "PostgreSQL cleanup cannot drop its own administrative identity.",
+    );
+  }
+  if (
+    !requireAttestedTarget &&
+    plan.roles.some((role) => sharedProtectedRoles.has(role.name))
+  ) {
+    throw new Error(
+      "PostgreSQL cleanup refuses protected shared roles from an unattested ownership ledger.",
+    );
+  }
 }
 
 async function quiesceOwnedChildren({

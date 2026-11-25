@@ -2,12 +2,14 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
 import { isProcessAlive } from "./ownership-state.mjs";
+import { postgresEndpointIdentity } from "./postgres-endpoint.mjs";
 import { linuxProcessIdentity } from "./process-identity.mjs";
 
 const execFileAsync = promisify(execFile);
 
 export function createPostgresCleanupAdapter({ adminDatabaseUrl, pg }) {
   return {
+    ownershipEndpoint: postgresEndpointIdentity(adminDatabaseUrl).key,
     async dropDatabase(name) {
       await withAdminClient(pg, adminDatabaseUrl, (client) =>
         client.query(

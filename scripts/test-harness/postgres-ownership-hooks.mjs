@@ -1,34 +1,62 @@
 import { createHash } from "node:crypto";
+import { createPostgresOwnershipRouter } from "./postgres-ownership-target-router.mjs";
 
 // These exact migrations verify their cluster-scoped NOLOGIN owners.
 // The isolated service provisions them before scratch migrations fan out.
 const pinnedSharedRoles = new Map([
-  ["vap1_proof_owner", "4978f3388b650211a6d588af0c67dcd46a0e31cc2bbecda2589338b44aafffba"],
-  ["vaylet_staff_session_lock_owner", "4a7c9fb4ee924a9b350cce8948b41fcbfd254b745c26346eaebd2906e617686d"],
+  [
+    "vap1_proof_owner",
+    "4978f3388b650211a6d588af0c67dcd46a0e31cc2bbecda2589338b44aafffba",
+  ],
+  [
+    "vaylet_staff_session_lock_owner",
+    "4a7c9fb4ee924a9b350cce8948b41fcbfd254b745c26346eaebd2906e617686d",
+  ],
 ]);
 
 const ownershipInstallSymbol = Symbol.for(
   "vaylet.test.postgres.ownership-runtime.installed",
 );
 
-export function installPostgresOwnershipRuntime({ appendEvent, pg }) {
+export function installPostgresOwnershipRuntime({
+  appendEvent,
+  pg,
+  primaryDatabaseUrl,
+}) {
   if (pg[ownershipInstallSymbol]) return;
   pg[ownershipInstallSymbol] = true;
-  patchPostgresOwnershipQueries({ appendEvent, pg });
+  patchPostgresOwnershipQueries({ appendEvent, pg, primaryDatabaseUrl });
 }
 
 export function patchPostgresOwnershipQueries({
   appendEvent,
   connectionLimit,
   pg,
+  primaryDatabaseUrl,
 }) {
-  patchQuery(pg.Pool.prototype, appendEvent, connectionLimit);
-  patchQuery(pg.Client.prototype, appendEvent, connectionLimit);
+  const router = createPostgresOwnershipRouter({
+    pg,
+    primaryDatabaseUrl,
+    appendPrimaryEvent: appendEvent,
+  });
+  patchQuery(pg.Pool.prototype, router, connectionLimit);
+  patchQuery(pg.Client.prototype, router, connectionLimit);
+  patchConnect(pg.Pool.prototype, router);
+  patchConnect(pg.Client.prototype, router);
 }
 
-function patchQuery(prototype, appendEvent, connectionLimit) {
+function patchConnect(prototype, router) {
+  const original = prototype.connect;
+  prototype.connect = function ownershipConnect(...args) {
+    router.resolve(this);
+    return original.apply(this, args);
+  };
+}
+
+function patchQuery(prototype, router, connectionLimit) {
   const originalQuery = prototype.query;
   prototype.query = function ownershipQuery(...args) {
+    const appendEvent = router.resolve(this);
     const text = queryText(args[0]);
     const created = text === undefined ? [] : createdResources(text);
     const dropped = text === undefined ? [] : droppedResources(text);

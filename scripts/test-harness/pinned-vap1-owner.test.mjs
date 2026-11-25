@@ -16,6 +16,11 @@ function fixture(roleExists) {
   const events = [];
   const statements = [];
   class Client {
+    connectionParameters = {
+      host: "127.0.0.1",
+      port: 5432,
+      database: "valet",
+    };
     query(text, params) {
       statements.push({ text, params });
       if (text.startsWith("SELECT EXISTS")) {
@@ -28,6 +33,8 @@ function fixture(roleExists) {
   patchPostgresOwnershipQueries({
     appendEvent: (event) => events.push(event),
     pg: { Client, Pool },
+    primaryDatabaseUrl:
+      "postgresql://fixture:secret@127.0.0.1:5432/valet",
   });
   return { client: new Client(), events, statements };
 }

@@ -1,11 +1,85 @@
+import { setTimeout as pause } from "node:timers/promises";
+
 import { withRelease } from "./postgres-test-release.mjs";
+import { postgresEndpointIdentity } from "./postgres-endpoint.mjs";
+import { postgresEffectiveQueryTarget } from "./postgres-ownership-target-router.mjs";
+
+const poolCloserSymbol = Symbol.for("vaylet.test.postgres.close-owned-pools");
+
+function registeredEndpoint(pool, Client) {
+  try {
+    return postgresEffectiveQueryTarget(pool, Client).key;
+  } catch {
+    return undefined;
+  }
+}
+
+async function closeWithDeadline(pool, timeoutMs) {
+  if (pool.ended) return;
+  const controller = new AbortController();
+  const timeout = pause(timeoutMs, undefined, {
+    signal: controller.signal,
+  }).then(() => {
+    throw new Error(
+      "Owned PostgreSQL test pool did not close before deadline.",
+    );
+  });
+  try {
+    if (pool.ending) {
+      await Promise.race([
+        (async () => {
+          while (!pool.ended && !controller.signal.aborted) {
+            await pause(20, undefined, { signal: controller.signal }).catch(
+              () => undefined,
+            );
+          }
+        })(),
+        timeout,
+      ]);
+    } else {
+      await Promise.race([pool.end(), timeout]);
+    }
+  } finally {
+    controller.abort();
+  }
+}
 
 // Pool instances can be numerous when separately privileged writers coexist.
 // The hard capacity guarantee is the sum of their declared connection maxima.
 export function installBoundedPostgresPools({ appendEvent, pg, profile }) {
   const OriginalPool = pg.Pool;
+  const OriginalClient = pg.Client;
   let activePools = 0;
   let reservedPoolConnections = 0;
+  const trackedPools = new Map();
+
+  // Shared test-only hook: closes only live pools connected to one exact
+  // generated fixture DB, including providers created before Nest boot fails.
+  globalThis[poolCloserSymbol] = async (targetUrl) => {
+    const target = postgresEndpointIdentity(targetUrl);
+    const owned = [];
+    for (const [pool, registered] of trackedPools) {
+      const effective = registeredEndpoint(pool, OriginalClient);
+      if (registered === target.key || effective === target.key) {
+        if (registered !== effective) {
+          throw new Error("PostgreSQL owned pool endpoint changed after registration.");
+        }
+        owned.push(pool);
+      }
+    }
+    const results = await Promise.allSettled(
+      owned.map((pool) => closeWithDeadline(pool, 5_000)),
+    );
+    const errors = results
+      .filter((result) => result.status === "rejected")
+      .map((result) => result.reason);
+    if (errors.length > 0) {
+      throw new AggregateError(
+        errors,
+        "Owned PostgreSQL test pool cleanup incomplete.",
+      );
+    }
+  };
 
   class BoundedTestPool extends OriginalPool {
     #counted = false;
@@ -47,6 +121,7 @@ export function installBoundedPostgresPools({ appendEvent, pg, profile }) {
           appliedMax,
           requestedMax: requested ?? null,
         });
+        trackedPools.set(this, registeredEndpoint(this, OriginalClient));
       } catch (error) {
         this.#counted = false;
         activePools -= 1;
@@ -60,6 +135,7 @@ export function installBoundedPostgresPools({ appendEvent, pg, profile }) {
       return withRelease(super.end.bind(this), args, () => {
         if (!this.#counted) return;
         this.#counted = false;
+        trackedPools.delete(this);
         activePools -= 1;
         reservedPoolConnections -= this.#reserved;
         appendEvent({

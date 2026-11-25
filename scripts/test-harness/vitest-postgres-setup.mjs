@@ -33,4 +33,5 @@ installPostgresTestRuntime({
   pg,
   profile: postgresProfile(profileName),
   projectName,
+  ownershipDatabaseUrl: databaseUrl,
 });

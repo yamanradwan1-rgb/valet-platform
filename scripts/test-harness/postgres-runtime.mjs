@@ -14,6 +14,7 @@ export function installPostgresTestRuntime({
   pg,
   profile,
   projectName,
+  ownershipDatabaseUrl,
 }) {
   if (pg[installSymbol]) return;
   pg[installSymbol] = true;
@@ -22,6 +23,7 @@ export function installPostgresTestRuntime({
     appendEvent,
     connectionLimit: profile.connectionEnvelope,
     pg,
+    primaryDatabaseUrl: ownershipDatabaseUrl,
   });
 
   installBoundedPostgresPools({ appendEvent, pg, profile });
@@ -62,7 +64,7 @@ export function installPostgresTestRuntime({
   }
 
   pg.Client = BoundedTestClient;
-  patchSpawn({ appendEvent, childProcess, profile });
+  patchSpawn({ appendEvent, childProcess, profile, ownershipDatabaseUrl });
   appendEvent({
     type: "profile-registered",
     profile: profile.name,
@@ -117,7 +119,12 @@ export function installNonPostgresGuard({ childProcess, pg, projectName }) {
   syncBuiltinESMExports();
 }
 
-function patchSpawn({ appendEvent, childProcess, profile }) {
+function patchSpawn({
+  appendEvent,
+  childProcess,
+  profile,
+  ownershipDatabaseUrl,
+}) {
   const originalSpawn = childProcess.spawn;
   const originalExecFileSync = childProcess.execFileSync;
   let activeChildren = 0;
@@ -129,7 +136,12 @@ function patchSpawn({ appendEvent, childProcess, profile }) {
     }
     const normalized = normalizeSpawn(args, options);
     const text = `${String(command)} ${normalized.args.join(" ")}`;
-    const childOptions = injectChildHook(normalized.options, profile, false);
+    const childOptions = injectChildHook(
+      normalized.options,
+      profile,
+      false,
+      ownershipDatabaseUrl,
+    );
     activeChildren += 1;
     let child;
     try {
@@ -179,7 +191,12 @@ function patchSpawn({ appendEvent, childProcess, profile }) {
         this,
         command,
         normalized.args,
-        injectChildHook(normalized.options, profile, true),
+        injectChildHook(
+          normalized.options,
+          profile,
+          true,
+          ownershipDatabaseUrl,
+        ),
       );
     } finally {
       activeChildren -= 1;
@@ -188,9 +205,21 @@ function patchSpawn({ appendEvent, childProcess, profile }) {
   syncBuiltinESMExports();
 }
 
-function injectChildHook(options, profile, selfLedger) {
+function injectChildHook(options, profile, selfLedger, ownershipDatabaseUrl) {
   const environment =
     options.env === undefined ? { ...process.env } : { ...options.env };
+  if (
+    environment.VAYLET_TEST_RUN_ID === undefined &&
+    process.env.VAYLET_TEST_RUN_ID !== undefined
+  ) {
+    environment.VAYLET_TEST_RUN_ID = process.env.VAYLET_TEST_RUN_ID;
+  }
+  if (
+    environment.TEST_DATABASE_URL === undefined &&
+    ownershipDatabaseUrl !== undefined
+  ) {
+    environment.TEST_DATABASE_URL = ownershipDatabaseUrl;
+  }
   const existing = environment.NODE_OPTIONS ?? "";
   const hook = `--import=${childHookUrl}`;
   if (!existing.includes(childHookUrl)) {

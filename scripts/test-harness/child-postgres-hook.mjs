@@ -2,6 +2,7 @@ import { createRequire } from "node:module";
 import { resolve } from "node:path";
 
 import { appendOwnershipEvent } from "./ownership-state.mjs";
+import { assertClusterLeaseOwner } from "./ownership-state.mjs";
 import { installPostgresOwnershipRuntime } from "./postgres-ownership-hooks.mjs";
 import { currentProcessIdentity } from "./process-identity.mjs";
 import { prepareCiManagementWriter } from "./ci-management-writer.mjs";
@@ -17,6 +18,7 @@ if (runId) {
     "postgresql://valet:valet@127.0.0.1:5432/valet";
   const appendEvent = (event) =>
     appendOwnershipEvent({ databaseUrl, event, runId });
+  assertClusterLeaseOwner({ databaseUrl, runId });
   if (process.env.VAYLET_SELF_LEDGER_CHILD === "1") {
     appendEvent({
       type: "child-started",
@@ -42,10 +44,11 @@ if (runId) {
     pg = undefined;
   }
   if (pg !== undefined) {
-    await prepareCiManagementWriter(pg);
     installPostgresOwnershipRuntime({
       appendEvent,
       pg,
+      primaryDatabaseUrl: databaseUrl,
     });
+    await prepareCiManagementWriter(pg);
   }
 }
