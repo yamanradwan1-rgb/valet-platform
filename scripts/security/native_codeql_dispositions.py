@@ -1,13 +1,17 @@
 """Inactive prototype: reconcile raw CodeQL delta with individual GitHub alerts.
 
-No API mutations, workflow integration, signing infrastructure or new dependencies.
+No API mutations, signing infrastructure or new dependencies.
+Only the exact approved same-repository PR may reconcile raw blockers.
 GitHub-native state is the decision source, not this historical identity catalog.
 The protected GitHub workflow/credential boundary must be established before use.
 """
 from datetime import datetime, timedelta, timezone
+import argparse
 import hashlib
 import http.client
 import json
+import os
+import sys
 from pathlib import Path
 import re
 import ssl
@@ -21,10 +25,13 @@ REPO_ID = 1327249029
 OWNER_ID = 295649470
 PR = 466
 REF = "refs/pull/466/merge"
+REVIEWED_BASE = "bfb4fdccf9d557c371313c9e357faa52e0a71014"
+ANALYSIS_KEY = ".github/workflows/security-ci.yml:sast-codeql"
+CATEGORY = "/language:javascript-typescript"
 IDS = {50, 51, 52, 53, 54, 55, 56, 57, 61}
 API = "/repos/" + REPO
 SHA = re.compile(r"[0-9a-f]{40}\Z")
-UPLOAD = re.compile(r"[0-9a-fA-F-]{36}\Z")
+UPLOAD = re.compile(r"[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}\Z")
 
 
 def require(ok):
@@ -117,7 +124,7 @@ def _blocked(head, base, summary):
 
 
 def _scope(api, root, scanned, base):
-    require(SHA.fullmatch(scanned) and SHA.fullmatch(base))
+    require(SHA.fullmatch(scanned) and base == REVIEWED_BASE)
     require(telemetry._git(root, "rev-parse", "HEAD").decode().strip() == scanned)
     repo = api.get(API)
     require(repo["id"] == REPO_ID and repo["full_name"] == REPO
@@ -182,7 +189,7 @@ def evaluate(*, head_path, base_path, root, scanned, base, upload, api,
         require(Path(head_path).resolve() != Path(base_path).resolve())
         head_scan, base_scan = gate.load_scan(head_path), gate.load_scan(base_path)
         summary = gate.compare(head_scan, base_scan)
-        result = {"raw": summary, "native_false_positive": 0,
+        result = {"raw": summary, "approved_alert_numbers": [], "native_false_positive": 0,
                   "remaining_blocked": summary["blocked"]}
         if not summary["blocked"]:
             return result
@@ -198,6 +205,7 @@ def evaluate(*, head_path, base_path, root, scanned, base, upload, api,
                 and category in ("/language:javascript-typescript", "/language:javascript-typescript/"))
         _scope(api, root, scanned, base)
         mapping = _native_mapping(api, upload, scanned, head_scan, analysis_key, category)
+        accepted = []
         for row, (number, reference) in eligible:
             require(telemetry._source_pin(root, row["path"], row["line"], {})
                     == reference["source_sha256"])
@@ -211,9 +219,13 @@ def evaluate(*, head_path, base_path, root, scanned, base, upload, api,
             require(alert["number"] == number and alert["rule"]["id"] == row["ruleId"]
                     and alert["rule"]["security_severity_level"] == "high"
                     and alert["tool"]["name"] == "CodeQL")
-            if alert["state"] != "dismissed":
+            # GitHub returns null aggregate state for PR-only alerts. The
+            # dismissal metadata AND exact dismissed instance remain mandatory.
+            if alert["state"] not in ("dismissed", None):
                 continue
-            if alert["dismissed_reason"] != "false positive" or alert["dismissed_by"]["id"] != OWNER_ID:
+            actor = alert["dismissed_by"]
+            if (alert["dismissed_reason"] != "false positive" or not isinstance(actor, dict)
+                    or type(actor.get("id")) is not int or actor["id"] != OWNER_ID):
                 continue
             require(isinstance(alert["dismissed_comment"], str)
                     and bool(alert["dismissed_comment"].strip()))
@@ -229,13 +241,68 @@ def evaluate(*, head_path, base_path, root, scanned, base, upload, api,
             require(instance["state"] == "dismissed"
                     and instance["location"]["path"] == row["path"]
                     and instance["location"]["start_line"] == row["line"]
-                    and digest(instance["message"]["text"]) == row["messageSha256"])
+                    and isinstance(instance["message"], dict)
+                    and isinstance(instance["message"].get("text"), str)
+                    and bool(instance["message"]["text"].strip()))
+            # The exact raw message hash is already required in the enriched
+            # analysis mapping. Instance text is a separate rendered form.
+            accepted.append((alert_path, alert, instance))
+            result["approved_alert_numbers"].append(number)
             result["native_false_positive"] += 1
             result["remaining_blocked"] -= 1
         _scope(api, root, scanned, base)
+        for alert_path, alert, instance in accepted:
+            fresh = api.get(alert_path)
+            require(all(fresh[k] == alert[k] for k in
+                        ("number","state","rule","tool","dismissed_by","dismissed_reason",
+                         "dismissed_at","dismissed_comment")))
+            refreshed = api.get(alert_path + "/instances", {"ref": REF, "per_page": 100})
+            exact = [i for i in refreshed if i["ref"] == REF and i["commit_sha"] == scanned
+                     and i["analysis_key"] == analysis_key and i["category"] == category]
+            require(exact == [instance])
+        result["approved_alert_numbers"].sort()
         return result
     except gate.InvalidScan:
         raise
     except (KeyError, IndexError, TypeError, ValueError, AttributeError, OSError,
             RuntimeError, UnicodeError, RecursionError):
         raise gate.InvalidScan("native CodeQL disposition evidence incomplete") from None
+
+
+def main():
+    """Invoked only after original raw gate returned finding status 1."""
+    parser = argparse.ArgumentParser()
+    for name in ("head", "base", "raw-summary", "out"):
+        parser.add_argument("--" + name, required=True)
+    args = parser.parse_args()
+    try:
+        env = os.environ
+        require(env["GITHUB_EVENT_NAME"] == "pull_request"
+                and env["GITHUB_REPOSITORY"] == REPO
+                and env["GITHUB_REF"] == REF
+                and env["SECURITY_PR_NUMBER"] == str(PR)
+                and env["SECURITY_PR_HEAD_REPO"] == REPO)
+        raw_summary = parse(Path(args.raw_summary).read_bytes())
+        require(type(raw_summary) is dict and type(raw_summary.get("blocked")) is int
+                and raw_summary["blocked"] > 0)
+        output = evaluate(head_path=Path(args.head), base_path=Path(args.base),
+                          root=Path(env["GITHUB_WORKSPACE"]).resolve(strict=True),
+                          scanned=env["GITHUB_SHA"], base=env["SECURITY_BASE_SHA"],
+                          upload=env["CODEQL_SARIF_ID"], api=GitHubRead(env["GITHUB_TOKEN"]),
+                          analysis_key=ANALYSIS_KEY, category=CATEGORY,
+                          now=datetime.now(timezone.utc))
+        require(output["raw"] == raw_summary)
+        target = Path(args.out)
+        require(target.resolve() != Path(args.raw_summary).resolve())
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps(output, sort_keys=True) + "\n", encoding="utf-8")
+        print("CodeQL raw blocked={}; native false positives={}; remaining blocked={}".format(
+              output["raw"]["blocked"], output["native_false_positive"], output["remaining_blocked"]))
+        return 1 if output["remaining_blocked"] else 0
+    except (gate.InvalidScan, OSError, ValueError, KeyError, TypeError, RuntimeError):
+        print("Native CodeQL reconciliation INCOMPLETE (fail closed)", file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())

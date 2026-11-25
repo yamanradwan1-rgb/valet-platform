@@ -324,17 +324,38 @@ jobs:
               --output="$RUNNER_TEMP/codeql-$revision.sarif"
           done
       - name: Upload CodeQL head to GitHub Code Scanning
+        id: codeql-upload
         if: ${{ steps.codeql-analyze.outcome == 'success' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
         uses: github/codeql-action/upload-sarif@5895b2c9be147bc7f1c75ce72c5cb577febb1907 # v4
         with:
           sarif_file: ${{ runner.temp }}/codeql-head.sarif
           category: /language:javascript-typescript
+          wait-for-processing: true
       - name: Gate new CodeQL high and critical findings
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          CODEQL_SARIF_ID: ${{ steps.codeql-upload.outputs.sarif-id }}
+          SECURITY_PR_NUMBER: ${{ github.event.pull_request.number }}
+          SECURITY_PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
         run: |
+          set +e
           python3 scripts/security/codeql_gate.py \
             --head "$RUNNER_TEMP/codeql-head.sarif" \
             --base "$RUNNER_TEMP/codeql-base.sarif" \
             --out security-reports/codeql-sanitized.json
+          status=$?
+          set -e
+          # Only a valid raw finding failure on the explicitly reviewed PR
+          # may consult native dispositions. Parser/scan failures never qualify.
+          if [[ "$status" != 1 || "$GITHUB_EVENT_NAME" != pull_request ||
+                "$SECURITY_PR_NUMBER" != 466 || "$SECURITY_PR_HEAD_REPO" != "$GITHUB_REPOSITORY" ]]; then
+            exit "$status"
+          fi
+          python3 scripts/security/native_codeql_dispositions.py \
+            --head "$RUNNER_TEMP/codeql-head.sarif" \
+            --base "$RUNNER_TEMP/codeql-base.sarif" \
+            --raw-summary security-reports/codeql-sanitized.json \
+            --out security-reports/codeql-dispositions-sanitized.json
       - name: Add sanitized source-pinned CodeQL delta telemetry
         if: ${{ always() && steps.codeql-analyze.outcome == 'success' }}
         continue-on-error: true
@@ -348,10 +369,13 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: security-codeql-${{ github.run_id }}
-          path: security-reports/codeql-sanitized.json
+          path: |
+            security-reports/codeql-sanitized.json
+            security-reports/codeql-dispositions-sanitized.json
           retention-days: 7
 
   security-gate:
+    name: ${{ github.event_name == 'pull_request' && 'security-gate' || 'security-gate-push' }}
     if: always()
     needs: [secrets-gitleaks, sast-semgrep, dependencies-trivy, dependencies-osv, sast-codeql]
     runs-on: ubuntu-24.04

@@ -175,3 +175,61 @@ python -B -m unittest discover -s scripts/security -p 'test_codeql*.py' -v
 
 No live alert mutation, repository settings, visibility, scan, push, merge,
 deployment or exception activation.
+
+
+## Final native live evidence and reviewed integration candidate (not activated)
+
+- Ruleset 28117363 active on main: deletion, non_fast_forward, pull_request
+  (zero mandatory approvals), strict required quality/security-gate from
+  GitHub Actions integration 15368, CodeQL high_or_higher/errors.
+  No permanent update lock. Current PR466 remains draft, unmerged.
+- Official historical PR CodeQL analysis 2251480290, SARIF upload
+  12f23694-e912-11f1-8699-db835979fe74. Read-only diagnostic
+  45719024830/job139572354460 on isolated ebdc075513d2bbaa76e9e0d627f6106ea0369c13:
+  SUCCESS, MANDATORY_ANALYSIS_EVIDENCE=true, EXACT_NINE_MAPPING=true.
+  61 results, 61 enriched, completed upload, exact ref/analysis key/commit/
+  category/tool CLI 2.27.6; merge parent order [base,head], scanned tree
+  59e8a27fca227d35408d64778d1f2107dad4785a and base tree
+  383b5e15d165a6a097606d966f372d3ffadfc2d7; exact six Git blob bytes and
+  nine catalog source/line/fingerprint/message matches. All nine PR
+  instances OPEN, no dismissals. W13 independent live log review and
+  14/14 diagnostic tests PASS. Historical raw head/base bytes and historical
+  runner content attestation remain unavailable; the native enriched
+  results corroborate the original raw comparator and sanitized identities,
+  not an external signature or raw SARIF byte archive.
+- Actual API returns alert.state=null for all nine PR-only alerts; all
+  dismissal fields are present and null. Instance message.text is rendered
+  differently from enriched SARIF message.text. Integration accepts no
+  result merely because state is null: require Owner actor ID, reason
+  false positive, nonempty comment, valid time <30 days, exact PR instance
+  dismissed, exact raw/enriched hash and source pin. Never substitute
+  SARIF rule severity warning for native security severity high.
+  Recheck scope and each accepted dismissal/instance before returning;
+  this reduces but cannot eliminate post-check revocation races.
+- Candidate workflow keeps original comparator invocation and raw report,
+  consults native reconciliation only for status 1 on exact same-repo
+  PR466, leaves all other raw exits unchanged, preserves all five scans,
+  adds separate sanitized disposition report. No gate modifications on
+  current PR until explicit Owner approval. Exact comparison base
+  bfb4fdccf9d557c371313c9e357faa52e0a71014 is pinned for reconciliation.
+  Pinned upload-sarif action returns sarif-id; wait-for-processing explicit.
+- Current merge UI labels both push security-gate SUCCESS and PR
+  security-gate FAILURE as Required; exact check names/app/head match.
+  The minimal candidate changes ONLY display name for non-PR event to
+  security-gate-push (job ID, if:always(), needs and triggers unchanged).
+  Required context stays security-gate. Verify actual check-run names,
+  event provenance and UI labels on the final candidate, not merely YAML.
+- Actual access: collaborator veletpro0-lgtm WRITE, Owner ADMIN inherent
+  to ownership; connected account list only Owner. Owner-scoped Codex
+  Connector installation All repositories; Devin also observed all repos,
+  pending requested permission changes not approved. No verified distinct
+  agent fork replacement, no visible public forks. App repo selection does
+  not remove workflow write on selected repo. No credentials revoked.
+  GitHub Free personal repository has no separate no-dismiss writer role.
+  For technical Owner-only dismissal, establish separate nonowner agent
+  access (local/fork + Owner-reviewed promotion) and verify it before
+  reducing grants. Otherwise Owner must explicitly accept procedural
+  separation: Owner personally approves/dismisses; agents never do so,
+  Owner reviews workflow changes, no claim of independent trust boundary.
+  Do not implement new infrastructure. No gate success may be treated as
+  approval for merge; PR remains draft. No merge or deployment authorized.
