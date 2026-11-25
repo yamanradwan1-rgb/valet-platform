@@ -11,6 +11,7 @@ import {
 import { persistControlledMfaRecovery } from "../tools/mfa-recovery/persistence";
 import type { RecoveryDatabaseClient } from "../tools/mfa-recovery/types";
 import { StaffMfaTestFixture } from "./staff-mfa-test-fixture";
+import { staffRacePoolBarrierCloser, trackStaffRaceRequest } from "./staff-race-lock-observer";
 
 const fixture = new StaffMfaTestFixture();
 const routes = {
@@ -57,19 +58,31 @@ async function enroll(accessToken: string) {
 
 async function holdUser(userId: string): Promise<PoolClient> {
   const client = await fixture.databasePool().connect();
-  await client.query("BEGIN");
-  await client.query(`SELECT id FROM users WHERE id = $1 FOR UPDATE`, [userId]);
-  return client;
+  try {
+    await client.query("BEGIN");
+    const held = await client.query(`SELECT id FROM users WHERE id = $1 FOR UPDATE`, [userId]);
+    expect(held.rowCount).toBe(1);
+    return client;
+  } catch (error) {
+    await staffRacePoolBarrierCloser(client).close("ROLLBACK").catch(() => undefined);
+    throw error;
+  }
 }
 
 async function holdSession(sessionId: string): Promise<PoolClient> {
   const client = await fixture.databasePool().connect();
-  await client.query("BEGIN");
-  await client.query(
+  try {
+    await client.query("BEGIN");
+    const held = await client.query(
     `SELECT id FROM staff_auth_sessions WHERE id = $1 FOR UPDATE`,
     [sessionId],
   );
-  return client;
+    expect(held.rowCount).toBe(1);
+    return client;
+  } catch (error) {
+    await staffRacePoolBarrierCloser(client).close("ROLLBACK").catch(() => undefined);
+    throw error;
+  }
 }
 
 describe("MGT-BE-02 authority races", () => {
@@ -81,21 +94,23 @@ describe("MGT-BE-02 authority races", () => {
     expect(rotated.status).toBe(200);
     const nextAccess = String(rotated.body?.accessToken);
     const sessionLock = await holdSession(auth.sessionId);
+    const barrier = staffRacePoolBarrierCloser(sessionLock);
+    const pending: Promise<unknown>[] = [];
     try {
       const replay = fixture.refresh(auth.refreshToken);
+      trackStaffRaceRequest(pending, replay);
       const stepUp = fixture.postMfa(routes.stepUp, nextAccess, {
         code: await totp(begin.provisioning.secretBase32, 1),
       });
+      trackStaffRaceRequest(pending, stepUp);
       await fixture.waitForBlockedMfaQueries(sessionLock, 2);
-      await sessionLock.query("COMMIT");
-      sessionLock.release();
+      await barrier.close("COMMIT");
 
       expect((await replay).status).toBe(401);
       expect([200, 401]).toContain((await stepUp).status);
-    } catch (error) {
-      await sessionLock.query("ROLLBACK").catch(() => undefined);
-      sessionLock.release();
-      throw error;
+    } finally {
+      await barrier.close("ROLLBACK").catch(() => undefined);
+      await Promise.allSettled(pending);
     }
     expect(
       (await fixture.sessionSnapshot(auth.sessionId)).rows[0]?.revoked_at,
@@ -123,21 +138,23 @@ describe("MGT-BE-02 authority races", () => {
     });
     expect(push.status).toBe(200);
     const sessionLock = await holdSession(auth.sessionId);
+    const barrier = staffRacePoolBarrierCloser(sessionLock);
+    const pending: Promise<unknown>[] = [];
     try {
       const logout = fixture.logout(auth.refreshToken);
+      trackStaffRaceRequest(pending, logout);
       const stepUp = fixture.postMfa(routes.stepUp, auth.accessToken, {
         code: await totp(begin.provisioning.secretBase32, 1),
       });
+      trackStaffRaceRequest(pending, stepUp);
       await fixture.waitForBlockedMfaQueries(sessionLock, 2);
-      await sessionLock.query("COMMIT");
-      sessionLock.release();
+      await barrier.close("COMMIT");
 
       expect((await logout).status).toBe(204);
       expect([200, 401]).toContain((await stepUp).status);
-    } catch (error) {
-      await sessionLock.query("ROLLBACK").catch(() => undefined);
-      sessionLock.release();
-      throw error;
+    } finally {
+      await barrier.close("ROLLBACK").catch(() => undefined);
+      await Promise.allSettled(pending);
     }
     expect(
       (await fixture.sessionSnapshot(auth.sessionId)).rows[0]?.revoked_at,
@@ -161,23 +178,25 @@ describe("MGT-BE-02 authority races", () => {
     const second = await fixture.nativeLogin(admin);
     const { begin, confirmation } = await enroll(first.accessToken);
     const userLock = await holdUser(admin.userId);
+    const barrier = staffRacePoolBarrierCloser(userLock);
+    const pending: Promise<unknown>[] = [];
     try {
       const recovery = fixture.postMfa(routes.recover, first.accessToken, {
         recoveryCode: confirmation.recoveryCodes[0],
       });
+      trackStaffRaceRequest(pending, recovery);
       const stepUp = fixture.postMfa(routes.stepUp, second.accessToken, {
         code: await totp(begin.provisioning.secretBase32, 1),
       });
+      trackStaffRaceRequest(pending, stepUp);
       await fixture.waitForBlockedMfaQueries(userLock, 2);
-      await userLock.query("COMMIT");
-      userLock.release();
+      await barrier.close("COMMIT");
 
       expect((await recovery).status).toBe(200);
       expect([200, 403]).toContain((await stepUp).status);
-    } catch (error) {
-      await userLock.query("ROLLBACK").catch(() => undefined);
-      userLock.release();
-      throw error;
+    } finally {
+      await barrier.close("ROLLBACK").catch(() => undefined);
+      await Promise.allSettled(pending);
     }
     const factors = await fixture.factors(admin.userId);
     expect(factors.rows.filter((row) => row.state === "RETIRED")).toHaveLength(
@@ -198,12 +217,16 @@ describe("MGT-BE-02 authority races", () => {
     const auth = await fixture.nativeLogin(admin);
     const { confirmation } = await enroll(auth.accessToken);
     const operationId = randomUUID();
-    const operatorClient = await fixture.databasePool().connect();
     const userLock = await holdUser(admin.userId);
+    const barrier = staffRacePoolBarrierCloser(userLock);
+    const pending: Promise<unknown>[] = [];
+    let operatorClient: PoolClient | undefined;
     try {
+      operatorClient = await fixture.databasePool().connect();
       const selfRecovery = fixture.postMfa(routes.recover, auth.accessToken, {
         recoveryCode: confirmation.recoveryCodes[0],
       });
+      trackStaffRaceRequest(pending, selfRecovery);
       const operatorRecovery = persistControlledMfaRecovery(
         operatorClient as unknown as RecoveryDatabaseClient,
         {
@@ -213,9 +236,9 @@ describe("MGT-BE-02 authority races", () => {
           userId: admin.userId,
         },
       );
+      trackStaffRaceRequest(pending, operatorRecovery);
       await fixture.waitForBlockedMfaQueries(userLock, 2);
-      await userLock.query("COMMIT");
-      userLock.release();
+      await barrier.close("COMMIT");
 
       await expect(operatorRecovery).resolves.toEqual({
         operationId,
@@ -233,12 +256,12 @@ describe("MGT-BE-02 authority races", () => {
           },
         ),
       ).resolves.toEqual({ operationId, userId: admin.userId });
-    } catch (error) {
-      await userLock.query("ROLLBACK").catch(() => undefined);
-      userLock.release();
-      throw error;
     } finally {
-      operatorClient.release();
+      await barrier.close("ROLLBACK").catch(() => undefined);
+      await Promise.allSettled(pending);
+      // The recovery helper preserves its primary error even if rollback fails.
+      // This dedicated operator connection must not be recycled in that case.
+      operatorClient?.release(true);
     }
 
     const factors = await fixture.factors(admin.userId);

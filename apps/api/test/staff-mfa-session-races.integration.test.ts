@@ -10,6 +10,7 @@ import {
   staffMfaSelfRecoveryBeginResponseSchema,
 } from "@valet/contracts";
 import { StaffMfaTestFixture } from "./staff-mfa-test-fixture";
+import { staffRacePoolBarrierCloser, trackStaffRaceRequest } from "./staff-race-lock-observer";
 
 const routes = {
   begin: "/v1/staff/auth/mfa/enrollment/begin",
@@ -60,12 +61,18 @@ async function enroll(accessToken: string) {
 
 async function lockRefresh(refreshToken: string): Promise<PoolClient> {
   const client = await fixture.databasePool().connect();
-  await client.query("BEGIN");
-  await client.query(
-    `SELECT id FROM staff_refresh_credentials WHERE token_hash = $1 FOR UPDATE`,
-    [refreshHash(refreshToken)],
-  );
-  return client;
+  try {
+    await client.query("BEGIN");
+    const locked = await client.query(
+      `SELECT id FROM staff_refresh_credentials WHERE token_hash = $1 FOR UPDATE`,
+      [refreshHash(refreshToken)],
+    );
+    expect(locked.rowCount).toBe(1);
+    return client;
+  } catch (error) {
+    await staffRacePoolBarrierCloser(client).close("ROLLBACK").catch(() => undefined);
+    throw error;
+  }
 }
 
 describe("MGT-BE-02 Staff MFA session races", () => {
@@ -74,9 +81,10 @@ describe("MGT-BE-02 Staff MFA session races", () => {
     const auth = await fixture.nativeLogin(admin);
     const { begin } = await enroll(auth.accessToken);
     const refreshLock = await lockRefresh(auth.refreshToken);
-    let lockOpen = true;
+    const barrier = staffRacePoolBarrierCloser(refreshLock);
+    const pending: Promise<unknown>[] = [];
     try {
-      const refreshing = fixture.refresh(auth.refreshToken);
+      const refreshing = trackStaffRaceRequest(pending, fixture.refresh(auth.refreshToken));
       await fixture.waitForBlockedMfaQueries(refreshLock);
       const stepped = await fixture.postMfa(routes.stepUp, auth.accessToken, {
         code: await totp(begin.provisioning.secretBase32, 1),
@@ -85,9 +93,7 @@ describe("MGT-BE-02 Staff MFA session races", () => {
       const afterStepUp = (await fixture.sessionSnapshot(auth.sessionId))
         .rows[0]!;
 
-      await refreshLock.query("COMMIT");
-      lockOpen = false;
-      refreshLock.release();
+      await barrier.close("COMMIT");
       const refreshed = await refreshing;
       expect(refreshed.status).toBe(200);
       const afterRefresh = (await fixture.sessionSnapshot(auth.sessionId))
@@ -102,12 +108,9 @@ describe("MGT-BE-02 Staff MFA session races", () => {
       expect(afterRefresh.absolute_expires_at).toEqual(
         afterStepUp.absolute_expires_at,
       );
-    } catch (error) {
-      if (lockOpen) {
-        await refreshLock.query("ROLLBACK").catch(() => undefined);
-        refreshLock.release();
-      }
-      throw error;
+    } finally {
+      await barrier.close("ROLLBACK").catch(() => undefined);
+      await Promise.allSettled(pending);
     }
   });
 
@@ -158,28 +161,25 @@ describe("MGT-BE-02 Staff MFA session races", () => {
     const auth = await fixture.nativeLogin(admin);
     const { begin } = await enroll(auth.accessToken);
     const userLock = await fixture.databasePool().connect();
-    await userLock.query("BEGIN");
-    await userLock.query(`SELECT id FROM users WHERE id = $1 FOR UPDATE`, [
-      admin.userId,
-    ]);
-    let lockOpen = true;
+    const barrier = staffRacePoolBarrierCloser(userLock);
+    const pending: Promise<unknown>[] = [];
     try {
-      const state = fixture.getMfa(routes.state, auth.accessToken);
+      await userLock.query("BEGIN");
+      const locked = await userLock.query(`SELECT id FROM users WHERE id = $1 FOR UPDATE`, [
+        admin.userId,
+      ]);
+      expect(locked.rowCount).toBe(1);
+      const state = trackStaffRaceRequest(pending, fixture.getMfa(routes.state, auth.accessToken));
       await fixture.waitForBlockedMfaQueries(userLock);
       await userLock.query(
         `UPDATE users SET status = 'DISABLED' WHERE id = $1`,
         [admin.userId],
       );
-      await userLock.query("COMMIT");
-      lockOpen = false;
-      userLock.release();
+      await barrier.close("COMMIT");
       expect((await state).status).toBe(401);
-    } catch (error) {
-      if (lockOpen) {
-        await userLock.query("ROLLBACK").catch(() => undefined);
-        userLock.release();
-      }
-      throw error;
+    } finally {
+      await barrier.close("ROLLBACK").catch(() => undefined);
+      await Promise.allSettled(pending);
     }
     expect(
       (
