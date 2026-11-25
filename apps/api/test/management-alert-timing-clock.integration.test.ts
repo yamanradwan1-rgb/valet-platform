@@ -46,7 +46,7 @@ async function blockedWrite(
     });
     void pending.catch(() => undefined);
     // The API transaction has started and is waiting for the preference lock.
-    await waitForAlertTimingAdvisoryWait(fixture, blocker);
+    await waitForAlertTimingAdvisoryWait(fixture, blocker, "ExclusiveLock");
     const clock = await blocker.query<{ now: Date }>(
       "SELECT clock_timestamp() AS now",
     );
@@ -72,8 +72,7 @@ async function blockedWrite(
     return updatedAt;
   } finally {
     if (!released) {
-      await blocker.query("ROLLBACK").catch(() => undefined);
-      blocker.release();
+      await releaseAlertTimingBlock(blocker, "ROLLBACK").catch(() => undefined);
     }
     await pending?.catch(() => undefined);
   }

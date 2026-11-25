@@ -2,12 +2,13 @@ import type { PoolClient } from "pg";
 
 import type { ManagementControlPlaneTestFixture } from "./management-control-plane-test-fixture";
 import { waitForPostgresBlockingEdge } from "./postgres-lock-observer";
-import { waitForAdvisoryLock } from "./management-settings-lock-observer";
+import { racePoolTransaction } from "./postgres-race-pool-client";
 
 /** Deterministic wait witness on real PostgreSQL; no timing-based race guess. */
 export async function waitForAlertTimingAdvisoryWait(
   fixture: ManagementControlPlaneTestFixture,
   blocker: PoolClient | number,
+  mode: "ExclusiveLock" | "ShareLock",
 ): Promise<number> {
   const blockerPid =
     typeof blocker === "number"
@@ -18,12 +19,26 @@ export async function waitForAlertTimingAdvisoryWait(
     fixture.databasePool(),
     { blockerPid },
   );
-  await waitForAdvisoryLock(
-    fixture.databasePool(),
-    { backendPid: waiterPid! },
-    "ExclusiveLock",
-    false,
+  // Verify the same advisory lock tag on the exact holder and waiter, not
+  // another advisory lock held or requested by either transaction.
+  const witness = await fixture.query<{ matched: boolean }>(
+    `SELECT EXISTS (
+       SELECT 1 FROM pg_locks AS waiting
+       JOIN pg_locks AS held
+         ON held.locktype=waiting.locktype
+         AND held.database=waiting.database
+         AND held.classid=waiting.classid
+         AND held.objid=waiting.objid
+         AND held.objsubid=waiting.objsubid
+       WHERE waiting.pid=$1 AND held.pid=$2
+         AND waiting.locktype='advisory' AND NOT waiting.granted
+         AND waiting.mode=$3 AND held.granted AND held.mode='ExclusiveLock'
+     ) AS matched`,
+    [waiterPid, blockerPid, mode],
   );
+  if (witness.rows[0]?.matched !== true) {
+    throw new Error("Expected the exact held alert-timing advisory lock dependency.");
+  }
   return waiterPid!;
 }
 
@@ -44,18 +59,11 @@ export async function blockAlertTimingPreference(
     );
     return client;
   } catch (error) {
-    await client.query("ROLLBACK").catch(() => undefined);
-    client.release();
+    await racePoolTransaction(client).close("ROLLBACK").catch(() => undefined);
     throw error;
   }
 }
 
-export async function releaseAlertTimingBlock(client: PoolClient) {
-  try {
-    await client.query("COMMIT");
-  } catch (error) {
-    client.release(true);
-    throw error;
-  }
-  client.release();
+export async function releaseAlertTimingBlock(client: PoolClient, outcome: "COMMIT" | "ROLLBACK" = "COMMIT") {
+  await racePoolTransaction(client).close(outcome);
 }

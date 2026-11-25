@@ -4,6 +4,8 @@ import { createAssignKeySlotCommandExecutor } from "../src/modules/keys/assign-k
 import { lockAuthorizedKeySession } from "../src/modules/keys/key-session-authorization";
 import { expectKeyError, KeyTestContext } from "./key-test-context";
 import { waitForPostgresBlockingEdge } from "./postgres-lock-observer";
+import { waitForStaffRaceBlockingTree } from "./staff-race-lock-observer";
+import { racePoolTransaction } from "./postgres-race-pool-client";
 
 const context = new KeyTestContext("eligibility");
 
@@ -16,15 +18,17 @@ describe("VAL-005C authorization and concurrency", () => {
     const secondSessionId = await context.addSession(fixture);
     const execute = createAssignKeySlotCommandExecutor(context.runtimePool);
     const blocker = await context.adminPool.connect();
+    const barrier = racePoolTransaction(blocker);
     let race: Promise<PromiseSettledResult<unknown>[]> | undefined;
     try {
       await blocker.query("BEGIN");
       const blockerPid = (
         await blocker.query<{ pid: number }>("SELECT pg_backend_pid() AS pid")
       ).rows[0]!.pid;
-      await blocker.query("SELECT id FROM key_slots WHERE id = $1 FOR UPDATE", [
+      const held = await blocker.query("SELECT id FROM key_slots WHERE id = $1 FOR UPDATE", [
         fixture.slotId,
       ]);
+      expect(held.rowCount).toBe(1);
       race = Promise.allSettled([
         execute({
           authenticatedUserId: fixture.userId,
@@ -39,14 +43,10 @@ describe("VAL-005C authorization and concurrency", () => {
           sessionId: secondSessionId,
         }),
       ]);
-      await waitForPostgresBlockingEdge(context.adminPool, {
-        blockerPid,
-        expectedWaiters: 2,
-      });
-      await blocker.query("COMMIT");
+      await waitForStaffRaceBlockingTree(context.adminPool, blockerPid, 2);
+      await barrier.close("COMMIT");
     } finally {
-      await blocker.query("ROLLBACK").catch(() => undefined);
-      blocker.release();
+      await barrier.close("ROLLBACK").catch(() => undefined);
       await race?.catch(() => undefined);
     }
     const settled = await race!;

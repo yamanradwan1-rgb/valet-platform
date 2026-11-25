@@ -59,22 +59,22 @@ async function contestedFirstSave(
   try {
     firstRequest = save(subject, firstValues);
     void firstRequest.catch(() => undefined);
-    const firstWaiter = await waitForAlertTimingAdvisoryWait(fixture, blocker);
+    const firstWaiter = await waitForAlertTimingAdvisoryWait(fixture, blocker, "ExclusiveLock");
     secondRequest = fixture.managementPut(subject.path, second.accessToken, {
       expectedRevision: 0,
       values: secondValues,
     });
     void secondRequest.catch(() => undefined);
-    // The second valid session is truly pending, but cannot pass the
-    // accepted user-security lock while the first session holds it.
-    await waitForAlertTimingAdvisoryWait(fixture, firstWaiter);
+    // The second HTTP request resolves its bearer with the SHARED
+    // staff-user-security lock before entering the write transaction.
+    // The first request holds that same lock exclusively while blocked.
+    await waitForAlertTimingAdvisoryWait(fixture, firstWaiter, "ShareLock");
     released = true;
     await releaseAlertTimingBlock(blocker);
     return await Promise.all([firstRequest, secondRequest]);
   } finally {
     if (!released) {
-      await blocker.query("ROLLBACK").catch(() => undefined);
-      blocker.release();
+      await releaseAlertTimingBlock(blocker, "ROLLBACK").catch(() => undefined);
     }
     await firstRequest?.catch(() => undefined);
     await secondRequest?.catch(() => undefined);
