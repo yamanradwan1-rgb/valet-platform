@@ -197,6 +197,10 @@ def main():
                 "markdown_match":isinstance(msg,dict) and sha(msg.get("markdown"))==r["message_sha256"],
                 "enriched_plain_matches":isinstance(m,str) and isinstance(em,str) and m==em}
             info["instance_identity"] = instance_identity(i,r)
+            state=i.get("state")
+            info["instance_state_enum"]=state if state in ("open","dismissed","fixed","closed","auto_dismissed","not_applicable",None) else "OTHER"
+            info["instance_state_present"]="state" in i
+            info["instance_message_nonempty"]=isinstance(m,str) and bool(m.strip())
             info.update({"instance_dismissed":i.get("state")=="dismissed","instance_path_match":i.get("location",{}).get("path")==r["path"],"instance_line_match":i.get("location",{}).get("start_line")==r["line"],"instance_message_match":sha(i.get("message",{}).get("text"))==r["message_sha256"]})
         emit("ALERT",info)
         required=("rule_match","path_match","line_match","fp_match","message_match","alert_number_integer","owner_dismissal_verified","instance_identity","instance_dismissed","instance_path_match","instance_line_match")
