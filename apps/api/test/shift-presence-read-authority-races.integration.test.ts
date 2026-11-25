@@ -24,7 +24,7 @@ describe("Issue 406: retried reads always re-prove current authority", () => {
     const f = await db.createFixture();
     const ca = await db.manager(f);
     const lm = await db.manager(f, "LOCATION_MANAGER");
-    const gate = presenceCommitBarrier(db.runtimePool);
+    const gate = presenceCommitBarrier(db.managementWriterPool());
     const staff = new StaffManagementMutationService(gate.pool);
     const invalidator = (
       kind === "grant"
@@ -75,7 +75,7 @@ describe("Issue 406: retried reads always re-prove current authority", () => {
       const f = await db.createFixture();
       const ca = await db.manager(f);
       const subject = await db.manager(f);
-      const gate = presenceCommitBarrier(db.runtimePool);
+      const gate = presenceCommitBarrier(db.managementWriterPool());
       const invalidator = new StaffManagementMutationService(gate.pool)
         .status(
           ca.context,
@@ -140,7 +140,7 @@ describe("Issue 406: retried reads always re-prove current authority", () => {
     );
     await gate.atCommit;
     const revoke = new StaffManagementMutationService(
-      db.runtimePool,
+      db.managementWriterPool(),
     ).locationAccess(
       ca.context,
       f.organizationId,
@@ -148,7 +148,7 @@ describe("Issue 406: retried reads always re-prove current authority", () => {
       { expectedVersion: 1, locationIds: [f.locationId] },
       false,
     );
-    await observePresenceCommandWait(db);
+    await observePresenceCommandWait(db, gate.holderPid());
     gate.finish("COMMIT");
     expect((await read).locationId).toBe(f.locationId);
     await revoke;
@@ -161,7 +161,7 @@ describe("Issue 406: retried reads always re-prove current authority", () => {
     const f = await db.createFixture();
     const ca = await db.manager(f);
     const lm = await db.manager(f, "LOCATION_MANAGER");
-    const gate = presenceCommitBarrier(db.runtimePool);
+    const gate = presenceCommitBarrier(db.managementWriterPool());
     const invalidator = new StaffManagementMutationService(gate.pool)
       .status(
         ca.context,

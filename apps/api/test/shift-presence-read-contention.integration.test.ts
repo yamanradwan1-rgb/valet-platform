@@ -94,7 +94,7 @@ describe("Issue 406: concurrent authorized configuration reads recover", () => {
     const f = await db.createFixture();
     const a = await db.manager(f);
     const b = await db.manager(f, "LOCATION_MANAGER");
-    const gate = presenceCommitBarrier(db.runtimePool);
+    const gate = presenceCommitBarrier(db.managementWriterPool());
     const writer = new StaffManagementMutationService(gate.pool)
       .status(
         a.context,

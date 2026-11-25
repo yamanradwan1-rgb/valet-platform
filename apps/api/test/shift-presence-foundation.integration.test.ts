@@ -68,10 +68,10 @@ describe("real PostgreSQL foundation races, synthetic evidence only", () => {
     const second = await context.runtimePool.connect();
     try {
       await first.query("BEGIN"); await second.query("BEGIN");
-      const pid = await waitForPresenceLock(context.adminPool, second);
+      const edge = await waitForPresenceLock(second, first);
       const initial = await allocatePresenceChallenge(first, op);
       const waiting = allocatePresenceChallenge(second, op);
-      await observePresenceLock(context.adminPool, pid);
+      await observePresenceLock(context.adminPool, edge);
       await first.query(finish);
       const winner = await waiting;
       await second.query("COMMIT");
@@ -86,10 +86,10 @@ describe("real PostgreSQL foundation races, synthetic evidence only", () => {
     const second = await context.runtimePool.connect();
     try {
       await first.query("BEGIN"); await second.query("BEGIN");
-      const pid = await waitForPresenceLock(context.adminPool, second);
+      const edge = await waitForPresenceLock(second, first);
       await allocatePresenceChallenge(first, op);
       const waiting = allocatePresenceChallenge(second, { ...op, targetFingerprint: "d".repeat(64) }).catch((e: unknown) => e);
-      await observePresenceLock(context.adminPool, pid);
+      await observePresenceLock(context.adminPool, edge);
       await first.query(finish);
       if (finish === "COMMIT") {
         expect(await waiting).toMatchObject({ code: "PRESENCE_OPERATION_CONFLICT" });
@@ -108,10 +108,10 @@ describe("real PostgreSQL foundation races, synthetic evidence only", () => {
     const second = await context.runtimePool.connect();
     try {
       await first.query("BEGIN"); await second.query("BEGIN");
-      const pid = await waitForPresenceLock(context.adminPool, second);
+      const edge = await waitForPresenceLock(second, first);
       await bindPresenceAttempt(first, op, "b".repeat(64));
       const waiting = bindPresenceAttempt(second, op, "d".repeat(64)).catch((error: unknown) => error);
-      await observePresenceLock(context.adminPool, pid);
+      await observePresenceLock(context.adminPool, edge);
       await first.query(finish);
       if (finish === "COMMIT") {
         expect(await waiting).toMatchObject({ code: "PRESENCE_OPERATION_CONFLICT" });
@@ -139,10 +139,10 @@ describe("real PostgreSQL foundation races, synthetic evidence only", () => {
     const second = await context.runtimePool.connect();
     try {
       await first.query("BEGIN"); await second.query("BEGIN");
-      const pid = await waitForPresenceLock(context.adminPool, second);
+      const edge = await waitForPresenceLock(second, first);
       const initial = await consumePresenceChallenge(first, op, decision(op, challenge.id), "b".repeat(64));
       const waiting = consumePresenceChallenge(second, op, decision(op, challenge.id), "b".repeat(64)).catch((e: unknown) => e);
-      await observePresenceLock(context.adminPool, pid);
+      await observePresenceLock(context.adminPool, edge);
       await first.query(finish);
       const result = await waiting;
       if (finish === "COMMIT") {
@@ -163,10 +163,10 @@ describe("real PostgreSQL foundation races, synthetic evidence only", () => {
     const second = await context.runtimePool.connect();
     try {
       await first.query("BEGIN"); await second.query("BEGIN");
-      const pid = await waitForPresenceLock(context.adminPool, second);
+      const edge = await waitForPresenceLock(second, first);
       await updatePresenceZone(first, { ...zone, label: "First" });
       const waiting = updatePresenceZone(second, { ...zone, label: "Second" }).catch((e: unknown) => e);
-      await observePresenceLock(context.adminPool, pid);
+      await observePresenceLock(context.adminPool, edge);
       await first.query(finish);
       const result = await waiting;
       if (finish === "COMMIT") { expect(result).toMatchObject({ code: "PRESENCE_CAS_CONFLICT" }); await second.query("ROLLBACK"); }
@@ -181,14 +181,14 @@ describe("real PostgreSQL foundation races, synthetic evidence only", () => {
     const second = await context.adminPool.connect();
     try {
       await first.query("BEGIN"); await second.query("BEGIN");
-      const pid = await waitForPresenceLock(context.adminPool, second);
+      const edge = await waitForPresenceLock(second, first);
       await lockManagementSettingsOrganization(first, op.organizationId, "EXCLUSIVE");
       await first.query(`UPDATE organizations SET shift_presence_max_accuracy_meters=25 WHERE id=$1 AND shift_presence_revision=1`, [op.organizationId]);
       const waiting = (async () => {
         await lockManagementSettingsOrganization(second, op.organizationId, "EXCLUSIVE");
         return second.query(`UPDATE organizations SET shift_presence_max_accuracy_meters=40 WHERE id=$1 AND shift_presence_revision=1 RETURNING id`, [op.organizationId]);
       })();
-      await observePresenceLock(context.adminPool, pid);
+      await observePresenceLock(context.adminPool, edge);
       await first.query(finish);
       expect((await waiting).rowCount).toBe(finish === "COMMIT" ? 0 : 1);
       await second.query("COMMIT");

@@ -45,7 +45,7 @@ describe("current authority is protected through configuration commit", () => {
         .catch((error) => error);
       await gate.atCommit;
       const revoke = new StaffManagementMutationService(
-        db.runtimePool,
+        db.managementWriterPool(),
       ).locationAccess(
         ca.context,
         f.organizationId,
@@ -53,7 +53,7 @@ describe("current authority is protected through configuration commit", () => {
         { expectedVersion: 1, locationIds: [f.locationId] },
         false,
       );
-      await observePresenceCommandWait(db);
+      await observePresenceCommandWait(db, gate.holderPid());
       gate.finish(outcome);
       await first;
       await revoke;
@@ -101,7 +101,7 @@ describe("current authority is protected through configuration commit", () => {
         .catch((error) => error);
       await gate.atCommit;
       const deactivate = new StaffManagementMutationService(
-        db.runtimePool,
+        db.managementWriterPool(),
       ).status(
         ca.context,
         f.organizationId,
@@ -109,7 +109,7 @@ describe("current authority is protected through configuration commit", () => {
         { expectedVersion: 1 },
         "INACTIVE",
       );
-      await observePresenceCommandWait(db);
+      await observePresenceCommandWait(db, gate.holderPid());
       gate.finish(outcome);
       await first;
       await deactivate;
@@ -172,7 +172,7 @@ describe("current authority is protected through configuration commit", () => {
           state: "ACTIVE",
         })
         .catch((error) => error);
-      await observePresenceCommandWait(db);
+      await observePresenceCommandWait(db, gate.holderPid());
       gate.finish(outcome);
       await first;
       const result = await pending;

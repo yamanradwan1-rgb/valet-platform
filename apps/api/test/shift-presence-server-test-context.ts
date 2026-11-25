@@ -1,6 +1,8 @@
 import { randomBytes, randomUUID } from "node:crypto";
 
 import type { ShiftPresenceMode } from "@valet/contracts";
+import type { Pool } from "pg";
+import { createManagementWriterPool } from "../src/modules/management/management-writer-database.module";
 import {
   generateStaffCredential,
   staffCredentialHash,
@@ -16,6 +18,7 @@ import {
   type ShiftFixture,
   type TestRole,
 } from "./shift-test-context";
+import { ciFixtureManagementWriterEnvironment } from "./staff-auth-native-test-environment";
 
 export class PresenceServerTestContext extends ShiftTestContext {
   private readonly previousKey = process.env.SHIFT_PRESENCE_FINGERPRINT_KEY;
@@ -23,6 +26,7 @@ export class PresenceServerTestContext extends ShiftTestContext {
     process.env.SHIFT_PRESENCE_PREVIOUS_FINGERPRINT_KEYS;
   private readonly previousAbuseKey = process.env.ANTI_ABUSE_HMAC_SECRET_B64URL;
   readonly key = randomBytes(32);
+  private protectedWriterPool: Pool | undefined;
   presence!: ShiftPresenceService;
   management!: PresenceManagementService;
 
@@ -36,17 +40,48 @@ export class PresenceServerTestContext extends ShiftTestContext {
     this.management = new PresenceManagementService(this.runtimePool);
   }
   override async teardown() {
-    await super.teardown();
-    if (this.previousAbuseKey === undefined)
-      delete process.env.ANTI_ABUSE_HMAC_SECRET_B64URL;
-    else process.env.ANTI_ABUSE_HMAC_SECRET_B64URL = this.previousAbuseKey;
-    if (this.previousKey === undefined)
-      delete process.env.SHIFT_PRESENCE_FINGERPRINT_KEY;
-    else process.env.SHIFT_PRESENCE_FINGERPRINT_KEY = this.previousKey;
-    if (this.previousKeys === undefined)
-      delete process.env.SHIFT_PRESENCE_PREVIOUS_FINGERPRINT_KEYS;
-    else
-      process.env.SHIFT_PRESENCE_PREVIOUS_FINGERPRINT_KEYS = this.previousKeys;
+    try {
+      try {
+        await this.protectedWriterPool?.end();
+      } finally {
+        await super.teardown();
+      }
+    } finally {
+      if (this.previousAbuseKey === undefined)
+        delete process.env.ANTI_ABUSE_HMAC_SECRET_B64URL;
+      else process.env.ANTI_ABUSE_HMAC_SECRET_B64URL = this.previousAbuseKey;
+      if (this.previousKey === undefined)
+        delete process.env.SHIFT_PRESENCE_FINGERPRINT_KEY;
+      else process.env.SHIFT_PRESENCE_FINGERPRINT_KEY = this.previousKey;
+      if (this.previousKeys === undefined)
+        delete process.env.SHIFT_PRESENCE_PREVIOUS_FINGERPRINT_KEYS;
+      else
+        process.env.SHIFT_PRESENCE_PREVIOUS_FINGERPRINT_KEYS = this.previousKeys;
+    }
+  }
+
+  /** The Option C Staff Management SQL functions are revoked from runtime.
+   * Exercise them through the real dedicated writer on this disposable DB.
+   */
+  managementWriterPool(): Pool {
+    if (this.protectedWriterPool !== undefined) return this.protectedWriterPool;
+    const supplied =
+      ciFixtureManagementWriterEnvironment(this.runtimeUrl)
+        .MANAGEMENT_WRITER_DATABASE_URL ??
+      process.env.MANAGEMENT_WRITER_DATABASE_URL;
+    if (supplied === undefined) {
+      throw new Error("Presence race fixture requires dedicated Management writer credentials.");
+    }
+    const target = new URL(supplied);
+    target.pathname = new URL(this.runtimeUrl).pathname;
+    this.protectedWriterPool = createManagementWriterPool({
+      ...process.env,
+      DATABASE_URL: this.runtimeUrl,
+      MIGRATION_DATABASE_URL: this.migrationUrl,
+      MANAGEMENT_WRITER_DATABASE_URL: target.toString(),
+      NODE_ENV: "test",
+    });
+    return this.protectedWriterPool;
   }
   async policy(
     fixture: ShiftFixture,

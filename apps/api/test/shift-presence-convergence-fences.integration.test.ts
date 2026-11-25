@@ -48,7 +48,7 @@ describe("distinct convergence never changes a different target or cash intent",
             operationId: second.operationId,
           },
         );
-        await observePresenceCommandWait(db);
+        await observePresenceCommandWait(db, gate.holderPid());
         gate.finish("COMMIT");
         await first;
         const response = await loser;
@@ -87,7 +87,7 @@ describe("distinct convergence never changes a different target or cash intent",
       c.auth.token,
       { cashReported: "8", operationId: second.operationId },
     );
-    await observePresenceCommandWait(db);
+    await observePresenceCommandWait(db, gate.holderPid());
     gate.finish("COMMIT");
     const original = await first;
     const response = await loser;
@@ -160,7 +160,7 @@ describe("distinct convergence never changes a different target or cash intent",
       ).catch((error) => error);
       await gate.atCommit;
       const read = db.presence.status(c.auth.context, second.operationId);
-      await observePresenceCommandWait(db);
+      await observePresenceCommandWait(db, gate.holderPid());
       gate.finish("ROLLBACK");
       const [error, status] = await Promise.all([loser, read]);
       expect(error).toMatchObject({ message: "TEST_ROLLBACK" });

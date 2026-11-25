@@ -19,6 +19,7 @@ export function abortPresenceCommitBarriers() {
 export function presenceCommitBarrier(pool: Pool) {
   let reached!: () => void;
   let finish!: (outcome: CommitOutcome) => void;
+  let holderPid: number | undefined;
   const atCommit = new Promise<void>((resolve) => {
     reached = resolve;
   });
@@ -39,6 +40,14 @@ export function presenceCommitBarrier(pool: Pool) {
               if (key === "query")
                 return async (text: string, ...args: unknown[]) => {
                   if (text === "COMMIT") {
+                    const observed = await connection.query<{ pid: number }>(
+                      "SELECT pg_backend_pid() AS pid",
+                    );
+                    const pid = observed.rows[0]?.pid;
+                    if (!Number.isSafeInteger(pid)) {
+                      throw new Error("Presence commit barrier requires a real backend PID.");
+                    }
+                    holderPid = pid;
                     reached();
                     const decision = await outcome;
                     if (decision === "ROLLBACK") {
@@ -66,24 +75,45 @@ export function presenceCommitBarrier(pool: Pool) {
       return typeof value === "function" ? value.bind(target) : value;
     },
   });
-  return { pool: gated, atCommit, finish };
+  return {
+    pool: gated,
+    atCommit,
+    finish,
+    holderPid() {
+      if (holderPid === undefined) {
+        throw new Error("Presence commit barrier has not reached its PostgreSQL transaction.");
+      }
+      return holderPid;
+    },
+  };
 }
 
 export async function observePresenceCommandWait(
   db: PresenceServerTestContext,
+  holderPid?: number,
 ) {
-  const deadline = Date.now() + 10_000;
+  const deadline = Date.now() + (holderPid === undefined ? 10_000 : 2_000);
   while (Date.now() < deadline) {
     const result = await db.adminPool.query(
-      `SELECT pid FROM pg_stat_activity
-      WHERE datname=$1 AND usename=$2 AND cardinality(pg_blocking_pids(pid)) > 0`,
-      [db.databaseName, db.runtimeRole],
+      holderPid === undefined
+        ? `SELECT pid FROM pg_stat_activity
+           WHERE datname=$1 AND usename=$2
+             AND cardinality(pg_blocking_pids(pid)) > 0`
+        : `SELECT waiter.pid FROM pg_stat_activity AS waiter
+           JOIN pg_stat_activity AS holder ON holder.pid=$3
+             AND holder.datname=waiter.datname
+           WHERE waiter.datname=$1 AND waiter.usename=$2
+             AND waiter.pid<>$3
+             AND $3::int = ANY(pg_blocking_pids(waiter.pid))`,
+      holderPid === undefined
+        ? [db.databaseName, db.runtimeRole]
+        : [db.databaseName, db.runtimeRole, holderPid],
     );
     if (result.rowCount !== 0) return;
     await setImmediate();
   }
   throw new Error(
-    "Expected current-authority or configuration PostgreSQL barrier",
+    `Expected current-authority/configuration PostgreSQL barrier${holderPid === undefined ? "" : ` behind PID ${holderPid}`}`,
   );
 }
 

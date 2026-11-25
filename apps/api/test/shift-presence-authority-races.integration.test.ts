@@ -44,7 +44,7 @@ describe("R07/R09/R11 actual staff invalidators compose with protected presence 
           "REJECTED",
         )
         .catch((error) => error);
-      await observePresenceCommandWait(db);
+      await observePresenceCommandWait(db, gate.holderPid());
       gate.finish(outcome);
       await first;
       const loser = await second;
@@ -96,7 +96,7 @@ describe("R07/R09/R11 actual staff invalidators compose with protected presence 
     async (outcome) => {
       const a = await pendingPresenceException(db);
       const invalidator = await db.manager(a.fixture);
-      const gate = presenceCommitBarrier(db.runtimePool);
+      const gate = presenceCommitBarrier(db.managementWriterPool());
       const first = new StaffManagementMutationService(gate.pool)
         .locationAccess(
           invalidator.context,
@@ -151,7 +151,7 @@ describe("R07/R09/R11 actual staff invalidators compose with protected presence 
       const a = await pendingPresenceException(db, action, "LOCATION_MANAGER");
       await a.approve();
       const invalidator = await db.manager(a.fixture);
-      const gate = presenceCommitBarrier(db.runtimePool);
+      const gate = presenceCommitBarrier(db.managementWriterPool());
       const first = new StaffManagementMutationService(gate.pool)
         .locationAccess(
           invalidator.context,
@@ -215,7 +215,7 @@ describe("R07/R09/R11 actual staff invalidators compose with protected presence 
       const first = a.consume(gate.pool).catch((error) => error);
       await gate.atCommit;
       const revoke = new StaffManagementMutationService(
-        db.runtimePool,
+        db.managementWriterPool(),
       ).locationAccess(
         invalidator.context,
         a.fixture.organizationId,
@@ -223,7 +223,7 @@ describe("R07/R09/R11 actual staff invalidators compose with protected presence 
         { expectedVersion: 1, locationIds: [a.fixture.locationId] },
         false,
       );
-      await observePresenceCommandWait(db);
+      await observePresenceCommandWait(db, gate.holderPid());
       gate.finish(outcome);
       await first;
       await revoke;

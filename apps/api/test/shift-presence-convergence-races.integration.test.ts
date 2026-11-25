@@ -63,7 +63,7 @@ describe("distinct-operation committed result survives losing acknowledgement", 
       const lost = old
         .request("POST", path, c.auth.token, body, "DISCONNECT")
         .catch((error) => error);
-      await observePresenceCommandWait(db);
+      await observePresenceCommandWait(db, gate.holderPid());
       gate.finish("COMMIT");
       const original = await winner;
       expect(await lost).toBeInstanceOf(Error);

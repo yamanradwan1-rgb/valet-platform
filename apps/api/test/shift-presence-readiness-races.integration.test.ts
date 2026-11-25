@@ -182,11 +182,14 @@ describe("R04/R05 fanout, phantoms and strict readiness", () => {
         f.locationId,
         { newCurrency: "USD", expectedUpdatedAt: location.updatedAt },
       );
-      await observePresenceCommandWait(db);
-      const wait = await db.adminPool.query(
-        `SELECT query FROM pg_stat_activity WHERE usename=$1 AND wait_event_type='Lock'`,
-        [db.runtimeRole],
+      await observePresenceCommandWait(db, gate.holderPid());
+      const wait = await db.runtimePool.query(
+        `SELECT query FROM pg_stat_activity
+         WHERE datname=$1 AND usename=$2
+           AND $3::int = ANY(pg_blocking_pids(pid))`,
+        [db.databaseName, db.runtimeRole, gate.holderPid()],
       );
+      expect(wait.rows).toHaveLength(1);
       expect(wait.rows[0].query).toContain("management-settings-org:");
       gate.finish(outcome);
       await first;
