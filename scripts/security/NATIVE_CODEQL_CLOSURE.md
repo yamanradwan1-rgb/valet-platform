@@ -107,7 +107,7 @@ connected GitHub fetch disallows that endpoint. No credential extraction.
    elevated credentials. Protected branch review and the actor check are
    defense-in-depth, not an independent trust proof.
 2. Settings > Rulesets > New branch ruleset: main (refs/heads/main), Active,
-   no bypass, require PR, restrict deletions and non-fast-forward updates,
+   no bypass, require PR, Restrict deletions and Block force pushes (NOT Restrict updates),
    require current approved CI/security checks, strict up-to-date checks.
    Require code scanning results, tool CodeQL, Security alerts High or
    higher, standard Alerts Only errors. API code_scanning rule parameters:
@@ -125,8 +125,14 @@ connected GitHub fetch disallows that endpoint. No credential extraction.
    observed on the candidate branch and another review branch. No dismissal.
    Before activation, correlate each native alert instance against
    exact current raw identity and source (not historical alert number alone).
-   Verify actual GitHub analysis readback using GITHUB_TOKEN with only
-   security-events:read in a trusted context. Keep raw head/base SARIF on
+   Verify actual GitHub analysis readback in a separately Owner-controlled
+   read-only context with security-events:read. In the current scan/upload
+   job, GITHUB_TOKEN is job-scoped and necessarily security-events:write;
+   a later step cannot downgrade it. The proposed reader makes GET calls
+   only but does not reduce that token permission. Before live integration,
+   Owner must control all executable workflow/scripts in the privileged job
+   and withhold upstream write/Owner credentials from agents. Do not split
+   raw SARIF into public artifacts. Without that control, activation is NO-GO. Keep raw head/base SARIF on
    runner; native upload retains GitHub's analysis/alert history and
    sanitized artifact is currently retained 7 days. Do NOT upload raw
    sensitive SARIF as public Actions artifact. GitHub does not preserve
