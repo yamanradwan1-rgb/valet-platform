@@ -10,6 +10,7 @@ import {
   presenceCommitBarrier,
   observePresenceCommandWait,
   abortPresenceCommitBarriers,
+  trackPresenceRaceRequest,
 } from "./shift-presence-commit-test-helper";
 
 const db = new PresenceServerTestContext("issue406-read-contention");
@@ -33,6 +34,7 @@ describe("Issue 406: concurrent authorized configuration reads recover", () => {
       const first = new PresenceManagementService(gate.pool)
         .location(firstActor.context, firstActor.target)
         .catch((error) => error);
+      gate.trackFirst(first);
       await gate.atCommit;
       const probe = presenceReadProbe(db.runtimePool);
       const service = new PresenceManagementService(probe.pool);
@@ -43,6 +45,7 @@ describe("Issue 406: concurrent authorized configuration reads recover", () => {
               limit: 50,
             })
       ).catch((error) => error);
+      trackPresenceRaceRequest(second);
       await probe.atBusy; // Real false try-lock result, not an injected exception.
       gate.finish(outcome);
       await first;
@@ -79,9 +82,11 @@ describe("Issue 406: concurrent authorized configuration reads recover", () => {
           value: "WARN_ONLY",
         })
         .catch((error) => error);
+      gate.trackFirst(writer);
       await gate.atCommit;
       const read = db.management.location(b.context, b.target);
-      await observePresenceCommandWait(db);
+      trackPresenceRaceRequest(read);
+      await observePresenceCommandWait(db, gate.holderPid());
       gate.finish(outcome);
       await writer;
       expect((await read).effective.startMode).toBe(
@@ -104,12 +109,14 @@ describe("Issue 406: concurrent authorized configuration reads recover", () => {
         "INACTIVE",
       )
       .catch((error) => error);
+    gate.trackFirst(writer);
     await gate.atCommit;
     const probe = presenceReadProbe(db.runtimePool);
     const read = new PresenceManagementService(probe.pool).location(
       b.context,
       b.target,
     );
+    trackPresenceRaceRequest(read);
     await probe.atBusy;
     gate.finish("COMMIT");
     await writer;
@@ -127,6 +134,7 @@ describe("Issue 406: concurrent authorized configuration reads recover", () => {
       const first = new PresenceManagementService(gate.pool)
         .location(a.context, a.target)
         .catch((error) => error);
+      gate.trackFirst(first);
       await gate.atCommit;
       const probe = presenceReadProbe(db.runtimePool);
       const service = new PresenceManagementService(probe.pool);
@@ -134,6 +142,7 @@ describe("Issue 406: concurrent authorized configuration reads recover", () => {
         kind === "company"
           ? service.company(b.context, b.companyTarget)
           : service.zone(b.context, b.target, zoneId);
+      trackPresenceRaceRequest(read);
       await probe.atBusy;
       gate.finish("COMMIT");
       await first;
@@ -156,9 +165,11 @@ describe("Issue 406: concurrent authorized configuration reads recover", () => {
       a.context,
       a.target,
     );
+    gate.trackFirst(first);
     await gate.atCommit;
     const read = db.management.zones(a.context, a.target, { limit: 50 });
-    await observePresenceCommandWait(db);
+    trackPresenceRaceRequest(read);
+    await observePresenceCommandWait(db, gate.holderPid());
     gate.finish("COMMIT");
     await first;
     expect((await read).items).toEqual([]);
@@ -173,6 +184,7 @@ describe("Issue 406: concurrent authorized configuration reads recover", () => {
     const first = new PresenceManagementService(gate.pool)
       .location(a.context, a.target)
       .catch((error) => error);
+    gate.trackFirst(first);
     await gate.atCommit;
     expect((await db.management.location(b.context, b.target)).locationId).toBe(
       other.locationId,
@@ -189,6 +201,7 @@ describe("Issue 406: concurrent authorized configuration reads recover", () => {
     const first = new PresenceManagementService(gate.pool)
       .location(a.context, a.target)
       .catch((error) => error);
+    gate.trackFirst(first);
     await gate.atCommit;
     const probe = presenceReadProbe(db.runtimePool);
     const started = performance.now();

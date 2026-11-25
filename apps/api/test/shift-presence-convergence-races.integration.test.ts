@@ -7,6 +7,7 @@ import {
   abortPresenceCommitBarriers,
   observePresenceCommandWait,
   presenceCommitBarrier,
+  trackPresenceRaceRequest,
 } from "./shift-presence-commit-test-helper";
 import { shiftPresenceRecoveryResponseSchema } from "@valet/contracts";
 
@@ -39,6 +40,7 @@ describe("distinct-operation committed result survives losing acknowledgement", 
       expect(second.operationId).not.toBe(c.challenge.operationId);
       const gate = presenceCommitBarrier(db.runtimePool);
       const winner = c.run(gate.pool);
+      gate.trackFirst(winner);
       await gate.atCommit;
       const probe = convergenceSnapshotPool(db.runtimePool);
       const old = await presenceHttp(
@@ -63,11 +65,17 @@ describe("distinct-operation committed result survives losing acknowledgement", 
       const lost = old
         .request("POST", path, c.auth.token, body, "DISCONNECT")
         .catch((error) => error);
+      trackPresenceRaceRequest(lost);
+      let original: Awaited<typeof winner>;
+      try {
       await observePresenceCommandWait(db, gate.holderPid());
       gate.finish("COMMIT");
-      const original = await winner;
+      original = await winner;
       expect(await lost).toBeInstanceOf(Error);
+      } finally {
+        await abortPresenceCommitBarriers();
       await old.app.close();
+      }
       expect(probe.uniqueViolations).toHaveLength(snapshot ? 1 : 0);
       const fresh = await presenceHttp(db);
       try {

@@ -9,6 +9,7 @@ import {
   abortPresenceCommitBarriers,
   observePresenceCommandWait,
   presenceCommitBarrier,
+  trackPresenceRaceRequest,
 } from "./shift-presence-commit-test-helper";
 
 const db = new PresenceServerTestContext("presence-convergence-fences");
@@ -32,6 +33,7 @@ describe("distinct convergence never changes a different target or cash intent",
       const second = await db.challenge(other, c.auth.context);
       const gate = presenceCommitBarrier(db.runtimePool);
       const first = c.run(gate.pool);
+      gate.trackFirst(first);
       await gate.atCommit;
       const probe = convergenceSnapshotPool(db.runtimePool);
       const app = await presenceHttp(
@@ -48,6 +50,7 @@ describe("distinct convergence never changes a different target or cash intent",
             operationId: second.operationId,
           },
         );
+        trackPresenceRaceRequest(loser);
         await observePresenceCommandWait(db, gate.holderPid());
         gate.finish("COMMIT");
         await first;
@@ -65,6 +68,7 @@ describe("distinct convergence never changes a different target or cash intent",
           decisions: 0,
         });
       } finally {
+        await abortPresenceCommitBarriers();
         await app.app.close();
       }
     },
@@ -80,6 +84,7 @@ describe("distinct convergence never changes a different target or cash intent",
     );
     const gate = presenceCommitBarrier(db.runtimePool);
     const first = c.run(gate.pool);
+    gate.trackFirst(first);
     await gate.atCommit;
     const loser = http.request(
       "POST",
@@ -87,6 +92,7 @@ describe("distinct convergence never changes a different target or cash intent",
       c.auth.token,
       { cashReported: "8", operationId: second.operationId },
     );
+    trackPresenceRaceRequest(loser);
     await observePresenceCommandWait(db, gate.holderPid());
     gate.finish("COMMIT");
     const original = await first;
@@ -158,8 +164,10 @@ describe("distinct convergence never changes a different target or cash intent",
               cashReported: "7",
             })
       ).catch((error) => error);
+      gate.trackFirst(loser);
       await gate.atCommit;
       const read = db.presence.status(c.auth.context, second.operationId);
+      trackPresenceRaceRequest(read);
       await observePresenceCommandWait(db, gate.holderPid());
       gate.finish("ROLLBACK");
       const [error, status] = await Promise.all([loser, read]);

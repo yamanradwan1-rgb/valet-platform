@@ -10,6 +10,7 @@ import {
   observePresenceCommandWait,
   mutationAuditCount,
   abortPresenceCommitBarriers,
+  trackPresenceRaceRequest,
 } from "./shift-presence-commit-test-helper";
 
 const db = new PresenceServerTestContext("presence-current-authority-races");
@@ -43,6 +44,7 @@ describe("current authority is protected through configuration commit", () => {
           id,
         )
         .catch((error) => error);
+      gate.trackFirst(first);
       await gate.atCommit;
       const revoke = new StaffManagementMutationService(
         db.managementWriterPool(),
@@ -53,7 +55,8 @@ describe("current authority is protected through configuration commit", () => {
         { expectedVersion: 1, locationIds: [f.locationId] },
         false,
       );
-      await observePresenceCommandWait(db, gate.holderPid());
+      trackPresenceRaceRequest(revoke);
+      await observePresenceCommandWait(db, gate.holderPid(), "management");
       gate.finish(outcome);
       await first;
       await revoke;
@@ -99,6 +102,7 @@ describe("current authority is protected through configuration commit", () => {
       const first = new PresenceManagementService(gate.pool)
         .setCompany(subject.context, subject.companyTarget, command)
         .catch((error) => error);
+      gate.trackFirst(first);
       await gate.atCommit;
       const deactivate = new StaffManagementMutationService(
         db.managementWriterPool(),
@@ -109,7 +113,8 @@ describe("current authority is protected through configuration commit", () => {
         { expectedVersion: 1 },
         "INACTIVE",
       );
-      await observePresenceCommandWait(db, gate.holderPid());
+      trackPresenceRaceRequest(deactivate);
+      await observePresenceCommandWait(db, gate.holderPid(), "management");
       gate.finish(outcome);
       await first;
       await deactivate;
@@ -159,6 +164,7 @@ describe("current authority is protected through configuration commit", () => {
           expectedUpdatedAt: stopped.updatedAt,
         })
         .catch((error) => error);
+      gate.trackFirst(first);
       await gate.atCommit;
       const pending = db.management
         .saveZone(lm.context, lm.target, {
@@ -172,6 +178,7 @@ describe("current authority is protected through configuration commit", () => {
           state: "ACTIVE",
         })
         .catch((error) => error);
+      trackPresenceRaceRequest(pending);
       await observePresenceCommandWait(db, gate.holderPid());
       gate.finish(outcome);
       await first;

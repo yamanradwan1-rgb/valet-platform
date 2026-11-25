@@ -12,17 +12,30 @@ export async function finishPresenceBoundary(
   if (outcome === "UNKNOWN") throw new Error("TEST_COMMIT_OUTCOME_UNKNOWN");
 }
 const pendingBarriers = new Set<(outcome: CommitOutcome) => void>();
-export function abortPresenceCommitBarriers() {
+const pendingRequests = new Set<Promise<unknown>>();
+export async function abortPresenceCommitBarriers() {
   for (const finish of pendingBarriers) finish("ROLLBACK");
+  await Promise.allSettled([...pendingRequests]);
+}
+export function trackPresenceRaceRequest<T extends Promise<unknown>>(request: T): T {
+  pendingRequests.add(request);
+  void request.then(
+    () => { pendingRequests.delete(request); },
+    () => { pendingRequests.delete(request); },
+  );
+  return request;
 }
 /** Pause the actual protected transaction immediately before COMMIT, never by sleeping. */
 export function presenceCommitBarrier(pool: Pool) {
   let reached!: () => void;
+  let failReached!: (error: unknown) => void;
   let finish!: (outcome: CommitOutcome) => void;
   let holderPid: number | undefined;
-  const atCommit = new Promise<void>((resolve) => {
+  const atCommit = new Promise<void>((resolve, reject) => {
     reached = resolve;
+    failReached = reject;
   });
+  void atCommit.catch(() => undefined);
   const outcome = new Promise<CommitOutcome>((resolve) => {
     finish = (decision) => {
       pendingBarriers.delete(finish);
@@ -40,14 +53,19 @@ export function presenceCommitBarrier(pool: Pool) {
               if (key === "query")
                 return async (text: string, ...args: unknown[]) => {
                   if (text === "COMMIT") {
-                    const observed = await connection.query<{ pid: number }>(
-                      "SELECT pg_backend_pid() AS pid",
-                    );
-                    const pid = observed.rows[0]?.pid;
-                    if (!Number.isSafeInteger(pid)) {
-                      throw new Error("Presence commit barrier requires a real backend PID.");
+                    try {
+                      const observed = await connection.query<{ pid: number }>(
+                        "SELECT pg_backend_pid() AS pid",
+                      );
+                      const pid = observed.rows[0]?.pid;
+                      if (!Number.isSafeInteger(pid) || pid === undefined || pid <= 0) {
+                        throw new Error("Presence commit barrier requires a real backend PID.");
+                      }
+                      holderPid = pid;
+                    } catch (error) {
+                      failReached(error);
+                      throw error;
                     }
-                    holderPid = pid;
                     reached();
                     const decision = await outcome;
                     if (decision === "ROLLBACK") {
@@ -79,6 +97,16 @@ export function presenceCommitBarrier(pool: Pool) {
     pool: gated,
     atCommit,
     finish,
+    trackFirst<T>(request: Promise<T>): Promise<T> {
+      const tracked = trackPresenceRaceRequest(request);
+      void tracked.then(
+        () => {
+          if (holderPid === undefined) failReached(new Error("Presence operation settled before its commit barrier."));
+        },
+        (error: unknown) => { if (holderPid === undefined) failReached(error); },
+      );
+      return tracked;
+    },
     holderPid() {
       if (holderPid === undefined) {
         throw new Error("Presence commit barrier has not reached its PostgreSQL transaction.");
@@ -91,7 +119,12 @@ export function presenceCommitBarrier(pool: Pool) {
 export async function observePresenceCommandWait(
   db: PresenceServerTestContext,
   holderPid?: number,
+  waiterRole: "runtime" | "management" = "runtime",
 ) {
+  const role = waiterRole === "management" ? "vaylet_management_writer" : db.runtimeRole;
+  if (waiterRole === "management" && holderPid === undefined) {
+    throw new Error("Management race witness requires an exact held backend PID.");
+  }
   const deadline = Date.now() + (holderPid === undefined ? 10_000 : 2_000);
   while (Date.now() < deadline) {
     const result = await db.adminPool.query(
@@ -106,8 +139,8 @@ export async function observePresenceCommandWait(
              AND waiter.pid<>$3
              AND $3::int = ANY(pg_blocking_pids(waiter.pid))`,
       holderPid === undefined
-        ? [db.databaseName, db.runtimeRole]
-        : [db.databaseName, db.runtimeRole, holderPid],
+        ? [db.databaseName, role]
+        : [db.databaseName, role, holderPid],
     );
     if (result.rowCount !== 0) return;
     await setImmediate();

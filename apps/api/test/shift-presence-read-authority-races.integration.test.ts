@@ -8,6 +8,7 @@ import {
   presenceCommitBarrier,
   observePresenceCommandWait,
   abortPresenceCommitBarriers,
+  trackPresenceRaceRequest,
 } from "./shift-presence-commit-test-helper";
 
 const db = new PresenceServerTestContext("issue406-read-authority-races");
@@ -43,11 +44,13 @@ describe("Issue 406: retried reads always re-prove current authority", () => {
             "INACTIVE",
           )
     ).catch((error) => error);
+    gate.trackFirst(invalidator);
     await gate.atCommit;
     const probe = presenceReadProbe(db.runtimePool);
     const read = new PresenceManagementService(probe.pool)
       .location(lm.context, lm.target)
       .catch((error) => error);
+    trackPresenceRaceRequest(read);
     await probe.atBusy;
     gate.finish(outcome);
     await invalidator;
@@ -85,11 +88,13 @@ describe("Issue 406: retried reads always re-prove current authority", () => {
           "INACTIVE",
         )
         .catch((error) => error);
+      gate.trackFirst(invalidator);
       await gate.atCommit;
       const probe = presenceReadProbe(db.runtimePool);
       const read = new PresenceManagementService(probe.pool)
         .company(subject.context, subject.companyTarget)
         .catch((error) => error);
+      trackPresenceRaceRequest(read);
       await probe.atBusy;
       if (kind === "session")
         await db.adminPool.query(
@@ -138,6 +143,7 @@ describe("Issue 406: retried reads always re-prove current authority", () => {
       lm.context,
       lm.target,
     );
+    gate.trackFirst(read);
     await gate.atCommit;
     const revoke = new StaffManagementMutationService(
       db.managementWriterPool(),
@@ -148,7 +154,8 @@ describe("Issue 406: retried reads always re-prove current authority", () => {
       { expectedVersion: 1, locationIds: [f.locationId] },
       false,
     );
-    await observePresenceCommandWait(db, gate.holderPid());
+    trackPresenceRaceRequest(revoke);
+    await observePresenceCommandWait(db, gate.holderPid(), "management");
     gate.finish("COMMIT");
     expect((await read).locationId).toBe(f.locationId);
     await revoke;
@@ -171,6 +178,7 @@ describe("Issue 406: retried reads always re-prove current authority", () => {
         "INACTIVE",
       )
       .catch((error) => error);
+    gate.trackFirst(invalidator);
     await gate.atCommit;
     const zoneId = randomUUID();
     for (const kind of ["mutation", "result"] as const) {

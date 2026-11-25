@@ -9,6 +9,7 @@ import {
   observePresenceCommandWait,
   mutationAuditCount,
   abortPresenceCommitBarriers,
+  trackPresenceRaceRequest,
 } from "./shift-presence-commit-test-helper";
 
 const db = new PresenceServerTestContext("presence-readiness-races");
@@ -43,6 +44,7 @@ describe("R04/R05 fanout, phantoms and strict readiness", () => {
           id,
         )
         .catch((error) => error);
+      gate.trackFirst(first);
       await gate.atCommit;
       const strict = db.management
         .setCompany(m.context, m.companyTarget, {
@@ -100,6 +102,7 @@ describe("R04/R05 fanout, phantoms and strict readiness", () => {
           currency: "JOD",
         })
         .catch((error) => error);
+      gate.trackFirst(first);
       await gate.atCommit;
       const strict = db.management
         .setCompany(m.context, m.companyTarget, {
@@ -175,6 +178,7 @@ describe("R04/R05 fanout, phantoms and strict readiness", () => {
           id,
         )
         .catch((error) => error);
+      gate.trackFirst(first);
       await gate.atCommit;
       const correction = locations.correctCurrency(
         m.context,
@@ -182,6 +186,7 @@ describe("R04/R05 fanout, phantoms and strict readiness", () => {
         f.locationId,
         { newCurrency: "USD", expectedUpdatedAt: location.updatedAt },
       );
+      trackPresenceRaceRequest(correction);
       await observePresenceCommandWait(db, gate.holderPid());
       const wait = await db.runtimePool.query(
         `SELECT query FROM pg_stat_activity

@@ -9,6 +9,7 @@ import {
   observePresenceCommandWait,
   mutationAuditCount,
   abortPresenceCommitBarriers,
+  trackPresenceRaceRequest,
 } from "./shift-presence-commit-test-helper";
 
 const db = new PresenceServerTestContext("presence-authority-races");
@@ -34,6 +35,7 @@ describe("R07/R09/R11 actual staff invalidators compose with protected presence 
           "APPROVED",
         )
         .catch((error) => error);
+      gate.trackFirst(first);
       await gate.atCommit;
       const second = db.management
         .review(
@@ -44,6 +46,7 @@ describe("R07/R09/R11 actual staff invalidators compose with protected presence 
           "REJECTED",
         )
         .catch((error) => error);
+      trackPresenceRaceRequest(second);
       await observePresenceCommandWait(db, gate.holderPid());
       gate.finish(outcome);
       await first;
@@ -106,6 +109,7 @@ describe("R07/R09/R11 actual staff invalidators compose with protected presence 
           false,
         )
         .catch((error) => error);
+      gate.trackFirst(first);
       await gate.atCommit;
       await expect(a.approve()).rejects.toMatchObject({
         code: "PRESENCE_AUTHORITY_BUSY",
@@ -161,6 +165,7 @@ describe("R07/R09/R11 actual staff invalidators compose with protected presence 
           false,
         )
         .catch((error) => error);
+      gate.trackFirst(first);
       await gate.atCommit;
       await expect(a.consume()).rejects.toMatchObject({
         code: "PRESENCE_AUTHORITY_BUSY",
@@ -213,6 +218,7 @@ describe("R07/R09/R11 actual staff invalidators compose with protected presence 
       const invalidator = await db.manager(a.fixture);
       const gate = presenceCommitBarrier(db.runtimePool);
       const first = a.consume(gate.pool).catch((error) => error);
+      gate.trackFirst(first);
       await gate.atCommit;
       const revoke = new StaffManagementMutationService(
         db.managementWriterPool(),
@@ -223,7 +229,8 @@ describe("R07/R09/R11 actual staff invalidators compose with protected presence 
         { expectedVersion: 1, locationIds: [a.fixture.locationId] },
         false,
       );
-      await observePresenceCommandWait(db, gate.holderPid());
+      trackPresenceRaceRequest(revoke);
+      await observePresenceCommandWait(db, gate.holderPid(), "management");
       gate.finish(outcome);
       await first;
       await revoke;
