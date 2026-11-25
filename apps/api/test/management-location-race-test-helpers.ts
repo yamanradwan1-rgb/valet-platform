@@ -90,31 +90,24 @@ export async function locationRaceBarrierClient(connectionString: string) {
 export async function waitForLocationRaceBlocked(
   fixture: ManagementAuditTestFixture,
   expected: number,
-  barrier?: Client,
+  barrier: Client,
 ) {
-  const blockerPid =
-    barrier === undefined
-      ? null
-      : (await barrier.query<{ pid: number }>("SELECT pg_backend_pid() AS pid"))
-          .rows[0]!.pid;
+  const blockerPid = (
+    await barrier.query<{ pid: number }>("SELECT pg_backend_pid() AS pid")
+  ).rows[0]!.pid;
   const deadline = performance.now() + 10_000;
   while (performance.now() < deadline) {
     const result = await fixture.query<{ count: string }>(
-      blockerPid === null
-        ? `SELECT count(*)::text AS count FROM pg_stat_activity
-           WHERE datname=current_database() AND pid<>pg_backend_pid()
-             AND wait_event_type='Lock'`
-        : `WITH RECURSIVE blocked(pid) AS (
+      `WITH RECURSIVE blocked(pid) AS (
              SELECT $1::integer
              UNION
              SELECT activity.pid FROM pg_stat_activity AS activity
              JOIN blocked AS parent
                ON parent.pid = ANY(pg_blocking_pids(activity.pid))
              WHERE activity.datname=current_database()
-               AND activity.wait_event_type='Lock'
            )
            SELECT (count(*) - 1)::text AS count FROM blocked`,
-      blockerPid === null ? [] : [blockerPid],
+      [blockerPid],
     );
     if (
       Number(result.rows[0]?.count ?? 0) >= expected &&
@@ -127,7 +120,9 @@ export async function waitForLocationRaceBlocked(
     "Timed out waiting for " +
       expected +
       " blocked transactions" +
-      (blockerPid === null ? "." : " behind PID " + blockerPid + "."),
+      " behind PID " +
+      blockerPid +
+      ".",
   );
 }
 

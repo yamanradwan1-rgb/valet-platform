@@ -1,32 +1,30 @@
 import type { PoolClient } from "pg";
 
 import type { ManagementControlPlaneTestFixture } from "./management-control-plane-test-fixture";
+import { waitForPostgresBlockingEdge } from "./postgres-lock-observer";
+import { waitForAdvisoryLock } from "./management-settings-lock-observer";
 
 /** Deterministic wait witness on real PostgreSQL; no timing-based race guess. */
 export async function waitForAlertTimingAdvisoryWait(
   fixture: ManagementControlPlaneTestFixture,
-  lockFamily: "management-alert-timing:" | "staff-user-security:",
-  minimum = 1,
-): Promise<void> {
-  for (let attempt = 0; attempt < 500; attempt += 1) {
-    const blocked = await fixture.query<{ blocked: number }>(
-      `SELECT count(DISTINCT activity.pid)::int AS blocked
-       FROM pg_stat_activity AS activity
-       JOIN pg_locks AS wait ON wait.pid = activity.pid
-       WHERE activity.datname = current_database()
-         AND activity.state = 'active'
-         AND activity.wait_event_type = 'Lock'
-         AND wait.locktype = 'advisory'
-         AND NOT wait.granted
-         AND activity.query LIKE '%' || $1::text || '%'`,
-      [lockFamily],
-    );
-    if ((blocked.rows[0]?.blocked ?? 0) >= minimum) return;
-    await new Promise((resolve) => setTimeout(resolve, 20));
-  }
-  throw new Error(
-    `Expected a pending ${lockFamily} advisory lock (PG wait not seen).`,
+  blocker: PoolClient | number,
+): Promise<number> {
+  const blockerPid =
+    typeof blocker === "number"
+      ? blocker
+      : (await blocker.query<{ pid: number }>("SELECT pg_backend_pid() AS pid"))
+          .rows[0]!.pid;
+  const [waiterPid] = await waitForPostgresBlockingEdge(
+    fixture.databasePool(),
+    { blockerPid },
   );
+  await waitForAdvisoryLock(
+    fixture.databasePool(),
+    { backendPid: waiterPid! },
+    "ExclusiveLock",
+    false,
+  );
+  return waiterPid!;
 }
 
 /** External lock is test-only; real API must still reauthorize normally. */
@@ -55,7 +53,9 @@ export async function blockAlertTimingPreference(
 export async function releaseAlertTimingBlock(client: PoolClient) {
   try {
     await client.query("COMMIT");
-  } finally {
-    client.release();
+  } catch (error) {
+    client.release(true);
+    throw error;
   }
+  client.release();
 }

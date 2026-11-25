@@ -4,10 +4,8 @@ import type { PoolClient } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { Phase4RetrievalCancellationTestContext } from "./phase4-retrieval-cancellation-test-context";
-import {
-  waitForAdvisoryLock,
-  waitForLockWait,
-} from "./management-settings-race-test-helpers";
+import { waitForAdvisoryLock } from "./management-settings-race-test-helpers";
+import { waitForPostgresBlockingEdge } from "./postgres-lock-observer";
 
 const context = new Phase4RetrievalCancellationTestContext("be10-sla-race");
 
@@ -41,20 +39,27 @@ async function currentTarget(locationId: string, value: number | null) {
 }
 
 async function snapshots(sessionId: string) {
-  return (await context.adminPool.query<{
-    snapshot: number | null;
-    status: string;
-  }>(
-    `SELECT sla_target_seconds_snapshot AS snapshot,status::text
+  return (
+    await context.adminPool.query<{
+      snapshot: number | null;
+      status: string;
+    }>(
+      `SELECT sla_target_seconds_snapshot AS snapshot,status::text
      FROM retrieval_requests WHERE valet_session_id=$1
      ORDER BY requested_at,id`,
-    [sessionId],
-  )).rows;
+      [sessionId],
+    )
+  ).rows;
 }
 
 async function close(client: PoolClient, resolution: "COMMIT" | "ROLLBACK") {
-  try { await client.query(resolution); }
-  finally { client.release(); }
+  try {
+    await client.query(resolution);
+  } catch (error) {
+    client.release(true);
+    throw error;
+  }
+  client.release();
 }
 
 describe("MGT-BE-10 SLA target versus Guest Retrieval serialization", () => {
@@ -63,37 +68,73 @@ describe("MGT-BE-10 SLA target versus Guest Retrieval serialization", () => {
     const actor = await createAdmin(parked.organizationId);
     const revision = await currentTarget(parked.locationId, 300);
     const auditBlocker = await context.adminPool.connect();
-    await auditBlocker.query("BEGIN");
-    await auditBlocker.query("LOCK TABLE audit_events IN ACCESS EXCLUSIVE MODE");
-    const request = context.guestPost(
-      parked.guestToken,
-      "/v1/guest/session/request-retrieval",
-    );
-    await waitForLockWait(context.adminPool, "INSERT INTO audit_events");
-    await waitForAdvisoryLock(
-      context.adminPool,
-      "INSERT INTO audit_events",
-      "ShareLock",
-      true,
-    );
-
-    const setting = await context.runtimePool.connect();
-    await setting.query("BEGIN");
-    const mutation = setting.query(
-      `SELECT * FROM management_settings_set_location_sla_target($1,$2,$3,420,$4)`,
-      [actor, parked.organizationId, parked.locationId, revision],
-    );
-    void mutation.catch(() => undefined);
-    await waitForAdvisoryLock(
-      context.adminPool,
-      "management_settings_set_location_sla_target",
-      "ExclusiveLock",
-      false,
-    );
-    await close(auditBlocker, "COMMIT");
-    expect(await request).toMatchObject({ status: 200, body: { state: "REQUESTED" } });
-    await mutation;
-    await close(setting, "COMMIT");
+    let auditClosed = false;
+    let setting: PoolClient | undefined;
+    let settingClosed = false;
+    let request: ReturnType<typeof context.guestPost> | undefined;
+    let mutation: Promise<unknown> | undefined;
+    try {
+      await auditBlocker.query("BEGIN");
+      await auditBlocker.query(
+        "LOCK TABLE audit_events IN ACCESS EXCLUSIVE MODE",
+      );
+      const blockerPid = (
+        await auditBlocker.query<{ pid: number }>(
+          "SELECT pg_backend_pid() AS pid",
+        )
+      ).rows[0]!.pid;
+      request = context.guestPost(
+        parked.guestToken,
+        "/v1/guest/session/request-retrieval",
+      );
+      void request.catch(() => undefined);
+      const [requestPid] = await waitForPostgresBlockingEdge(
+        context.adminPool,
+        { blockerPid },
+      );
+      await waitForAdvisoryLock(
+        context.adminPool,
+        { backendPid: requestPid! },
+        "ShareLock",
+        true,
+      );
+      setting = await context.runtimePool.connect();
+      await setting.query("BEGIN");
+      const settingPid = (
+        await setting.query<{ pid: number }>("SELECT pg_backend_pid() AS pid")
+      ).rows[0]!.pid;
+      mutation = setting.query(
+        `SELECT * FROM management_settings_set_location_sla_target($1,$2,$3,420,$4)`,
+        [actor, parked.organizationId, parked.locationId, revision],
+      );
+      void mutation.catch(() => undefined);
+      await waitForPostgresBlockingEdge(context.adminPool, {
+        blockerPid: requestPid!,
+        waiterPid: settingPid,
+      });
+      await waitForAdvisoryLock(
+        context.adminPool,
+        { backendPid: settingPid },
+        "ExclusiveLock",
+        false,
+      );
+      auditClosed = true;
+      await close(auditBlocker, "COMMIT");
+      expect(await request).toMatchObject({
+        status: 200,
+        body: { state: "REQUESTED" },
+      });
+      await mutation;
+      settingClosed = true;
+      await close(setting, "COMMIT");
+    } finally {
+      if (!auditClosed)
+        await close(auditBlocker, "ROLLBACK").catch(() => undefined);
+      await request?.catch(() => undefined);
+      await mutation?.catch(() => undefined);
+      if (setting && !settingClosed)
+        await close(setting, "ROLLBACK").catch(() => undefined);
+    }
     expect(await snapshots(parked.sessionId)).toEqual([
       { snapshot: 300, status: "OPEN" },
     ]);
@@ -104,24 +145,44 @@ describe("MGT-BE-10 SLA target versus Guest Retrieval serialization", () => {
     const actor = await createAdmin(parked.organizationId);
     const revision = await currentTarget(parked.locationId, 420);
     const setting = await context.runtimePool.connect();
-    await setting.query("BEGIN");
-    const changed = await setting.query<{ changed: boolean }>(
-      `SELECT * FROM management_settings_set_location_sla_target($1,$2,$3,600,$4)`,
-      [actor, parked.organizationId, parked.locationId, revision],
-    );
-    expect(changed.rows[0]?.changed).toBe(true);
-    const request = context.guestPost(
-      parked.guestToken,
-      "/v1/guest/session/request-retrieval",
-    );
-    await waitForAdvisoryLock(
-      context.adminPool,
-      "pg_advisory_xact_lock_shared",
-      "ShareLock",
-      false,
-    );
-    await close(setting, "COMMIT");
-    expect(await request).toMatchObject({ status: 200, body: { state: "REQUESTED" } });
+    let settingClosed = false;
+    let request: ReturnType<typeof context.guestPost> | undefined;
+    try {
+      await setting.query("BEGIN");
+      const changed = await setting.query<{ changed: boolean }>(
+        `SELECT * FROM management_settings_set_location_sla_target($1,$2,$3,600,$4)`,
+        [actor, parked.organizationId, parked.locationId, revision],
+      );
+      expect(changed.rows[0]?.changed).toBe(true);
+      const blockerPid = (
+        await setting.query<{ pid: number }>("SELECT pg_backend_pid() AS pid")
+      ).rows[0]!.pid;
+      request = context.guestPost(
+        parked.guestToken,
+        "/v1/guest/session/request-retrieval",
+      );
+      void request.catch(() => undefined);
+      const [requestPid] = await waitForPostgresBlockingEdge(
+        context.adminPool,
+        { blockerPid },
+      );
+      await waitForAdvisoryLock(
+        context.adminPool,
+        { backendPid: requestPid! },
+        "ShareLock",
+        false,
+      );
+      settingClosed = true;
+      await close(setting, "COMMIT");
+      expect(await request).toMatchObject({
+        status: 200,
+        body: { state: "REQUESTED" },
+      });
+    } finally {
+      if (!settingClosed)
+        await close(setting, "ROLLBACK").catch(() => undefined);
+      await request?.catch(() => undefined);
+    }
     expect(await snapshots(parked.sessionId)).toEqual([
       { snapshot: 600, status: "OPEN" },
     ]);
@@ -135,7 +196,8 @@ describe("MGT-BE-10 SLA target versus Guest Retrieval serialization", () => {
       { snapshot: 300, status: "OPEN" },
     ]);
     expect(await context.cancel(first)).toMatchObject({
-      body: { state: "PARKED" }, status: 200,
+      body: { state: "PARKED" },
+      status: 200,
     });
     await currentTarget(parked.locationId, 420);
     await context.requestRetrieval(parked);

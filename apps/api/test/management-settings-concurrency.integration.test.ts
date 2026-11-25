@@ -2,6 +2,8 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
 import type { AuthHttpResult } from "./staff-auth-native-fixture";
 import { ManagementControlPlaneTestFixture } from "./management-control-plane-test-fixture";
+import { waitForPostgresBlockingEdge } from "./postgres-lock-observer";
+import { waitForAdvisoryLock } from "./management-settings-lock-observer";
 
 const fixture = new ManagementControlPlaneTestFixture();
 
@@ -44,23 +46,23 @@ async function actors() {
   return { firstAuth, location, membership, secondAuth };
 }
 
-async function waitForQueuedSettingsLocks(count: number): Promise<void> {
-  for (let attempt = 0; attempt < 1000; attempt += 1) {
-    const result = await fixture.query<{ n: number }>(
-      `SELECT count(DISTINCT activity.pid)::int AS n
-       FROM pg_stat_activity AS activity
-       INNER JOIN pg_locks AS lock ON lock.pid=activity.pid
-       WHERE activity.datname=current_database()
-         AND activity.state='active'
-         AND activity.wait_event_type='Lock'
-         AND activity.query ILIKE '%pg_advisory_xact_lock(%'
-         AND lock.locktype='advisory'
-         AND lock.mode='ExclusiveLock'
-         AND NOT lock.granted`,
+async function waitForQueuedSettingsLocks(
+  blockerPid: number,
+  count: number,
+): Promise<number[]> {
+  const waiters = await waitForPostgresBlockingEdge(fixture.databasePool(), {
+    blockerPid,
+    expectedWaiters: count,
+  });
+  for (const backendPid of waiters) {
+    await waitForAdvisoryLock(
+      fixture.databasePool(),
+      { backendPid },
+      "ExclusiveLock",
+      false,
     );
-    if ((result.rows[0]?.n ?? 0) >= count) return;
   }
-  throw new Error(`Expected ${count} queued Management settings writers.`);
+  return waiters;
 }
 
 async function queuedRace(
@@ -80,12 +82,16 @@ async function queuedRace(
        )`,
       [organizationId],
     );
+    const blockerPid = (
+      await blocker.query<{ pid: number }>("SELECT pg_backend_pid() AS pid")
+    ).rows[0]!.pid;
     firstRequest = first();
     void firstRequest.catch(() => undefined);
-    await waitForQueuedSettingsLocks(1);
+    const [firstPid] = await waitForQueuedSettingsLocks(blockerPid, 1);
     secondRequest = second();
     void secondRequest.catch(() => undefined);
-    await waitForQueuedSettingsLocks(2);
+    const waiters = await waitForQueuedSettingsLocks(blockerPid, 2);
+    expect(waiters).toContain(firstPid);
     await blocker.query("COMMIT");
     released = true;
     return await Promise.all([firstRequest, secondRequest]);

@@ -6,10 +6,8 @@ import {
   seedCompanySession,
   type CompanySeedScope,
 } from "./management-company-analytics-test-seed";
-import {
-  waitForAdvisoryLock,
-  waitForLockWait,
-} from "./management-settings-race-test-helpers";
+import { waitForAdvisoryLock } from "./management-settings-race-test-helpers";
+import { waitForPostgresBlockingEdge } from "./postgres-lock-observer";
 
 const fixture = new ManagementControlPlaneTestFixture();
 const requestedAt = "2026-07-10T09:00:00Z";
@@ -59,10 +57,17 @@ describe("MGT-BE-11 company DAILY report snapshot concurrency", () => {
       await blocker.query("BEGIN");
       await blocker.query("LOCK TABLE vehicle_photos IN ACCESS EXCLUSIVE MODE");
       firstRequest = fixture.managementGet(path, state.auth.accessToken);
-      await waitForLockWait(fixture.databasePool(), "sla_cohort AS");
+      void firstRequest.catch(() => undefined);
+      const blockerPid = (
+        await blocker.query<{ pid: number }>("SELECT pg_backend_pid() AS pid")
+      ).rows[0]!.pid;
+      const [backendPid] = await waitForPostgresBlockingEdge(
+        fixture.databasePool(),
+        { blockerPid },
+      );
       await waitForAdvisoryLock(
         fixture.databasePool(),
-        "sla_cohort AS",
+        { backendPid: backendPid! },
         "ExclusiveLock",
         true,
       );

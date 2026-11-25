@@ -59,7 +59,7 @@ async function contestedFirstSave(
   try {
     firstRequest = save(subject, firstValues);
     void firstRequest.catch(() => undefined);
-    await waitForAlertTimingAdvisoryWait(fixture, "management-alert-timing:");
+    const firstWaiter = await waitForAlertTimingAdvisoryWait(fixture, blocker);
     secondRequest = fixture.managementPut(subject.path, second.accessToken, {
       expectedRevision: 0,
       values: secondValues,
@@ -67,9 +67,9 @@ async function contestedFirstSave(
     void secondRequest.catch(() => undefined);
     // The second valid session is truly pending, but cannot pass the
     // accepted user-security lock while the first session holds it.
-    await waitForAlertTimingAdvisoryWait(fixture, "staff-user-security:");
-    await releaseAlertTimingBlock(blocker);
+    await waitForAlertTimingAdvisoryWait(fixture, firstWaiter);
     released = true;
+    await releaseAlertTimingBlock(blocker);
     return await Promise.all([firstRequest, secondRequest]);
   } finally {
     if (!released) {

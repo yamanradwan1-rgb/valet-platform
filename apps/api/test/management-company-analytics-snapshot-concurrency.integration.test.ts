@@ -6,10 +6,8 @@ import {
   seedCompanySession,
   type CompanySeedScope,
 } from "./management-company-analytics-test-seed";
-import {
-  waitForAdvisoryLock,
-  waitForLockWait,
-} from "./management-settings-race-test-helpers";
+import { waitForAdvisoryLock } from "./management-settings-race-test-helpers";
+import { waitForPostgresBlockingEdge } from "./postgres-lock-observer";
 
 const fixture = new ManagementControlPlaneTestFixture();
 
@@ -61,10 +59,17 @@ describe("MGT-BE-11 company analytics snapshot concurrency", () => {
       await blocker.query("BEGIN");
       await blocker.query("LOCK TABLE locations IN ACCESS EXCLUSIVE MODE");
       firstRequest = fixture.managementGet(path, state.auth.accessToken);
-      await waitForLockWait(fixture.databasePool(), "FROM locations AS location");
+      void firstRequest.catch(() => undefined);
+      const blockerPid = (
+        await blocker.query<{ pid: number }>("SELECT pg_backend_pid() AS pid")
+      ).rows[0]!.pid;
+      const [backendPid] = await waitForPostgresBlockingEdge(
+        fixture.databasePool(),
+        { blockerPid },
+      );
       await waitForAdvisoryLock(
         fixture.databasePool(),
-        "FROM locations AS location",
+        { backendPid: backendPid! },
         "ExclusiveLock",
         true,
       );
@@ -94,7 +99,11 @@ describe("MGT-BE-11 company analytics snapshot concurrency", () => {
             distinctAttributedEmployeeCount: 0,
             missingAttributionCount: 0,
           },
-          carsPerActiveEmployee: { denominator: 1, numerator: 0, value: "0.000" },
+          carsPerActiveEmployee: {
+            denominator: 1,
+            numerator: 0,
+            value: "0.000",
+          },
         },
         operational: {
           carsHandledPerDay: [{ date: "2026-07-10", handledCount: 0 }],
@@ -118,7 +127,11 @@ describe("MGT-BE-11 company analytics snapshot concurrency", () => {
             distinctAttributedEmployeeCount: 0,
             missingAttributionCount: 1,
           },
-          carsPerActiveEmployee: { denominator: 1, numerator: 1, value: "1.000" },
+          carsPerActiveEmployee: {
+            denominator: 1,
+            numerator: 1,
+            value: "1.000",
+          },
         },
         operational: {
           carsHandledPerDay: [{ date: "2026-07-10", handledCount: 1 }],

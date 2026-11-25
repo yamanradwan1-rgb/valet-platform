@@ -46,15 +46,15 @@ async function blockedWrite(
     });
     void pending.catch(() => undefined);
     // The API transaction has started and is waiting for the preference lock.
-    await waitForAlertTimingAdvisoryWait(fixture, "management-alert-timing:");
+    await waitForAlertTimingAdvisoryWait(fixture, blocker);
     const clock = await blocker.query<{ now: Date }>(
       "SELECT clock_timestamp() AS now",
     );
     const afterStartBeforeRelease = clock.rows[0]!.now;
     // Cross PostgreSQL timestamptz(3) precision deterministically.
     await new Promise((resolve) => setTimeout(resolve, 40));
-    await releaseAlertTimingBlock(blocker);
     released = true;
+    await releaseAlertTimingBlock(blocker);
     const result = await pending;
     expect(result.status).toBe(200);
     const updatedAt = new Date(String(result.body?.updatedAt));
