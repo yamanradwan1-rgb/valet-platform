@@ -4,6 +4,7 @@ import {
   createFixtureStaffAuthWriterIdentity,
   fixtureProtectedMfaSelection,
   provisionStaffAuthWriter,
+  resolveAttestedFixtureWriterEnvironment,
   resolveProtectedWriterEnvironment,
 } from "./staff-auth-native-test-environment";
 
@@ -84,6 +85,41 @@ describe("Staff Auth native fixture writer setup", () => {
       "vaylet_staff_auth_writer_test_123",
     );
     expect(resolved.writers.STAFF_AUTH_WRITER_DATABASE_URL).toBe(writerUrl);
+  });
+
+  it("preserves protected-writer resolution and attests endpoints before fixture setup", () => {
+    const name = "valet_mob007_auth_123_abc123ef";
+    const runtime = applicationUrl.replace("/fixture_db", `/${name}`);
+    const staffWriter = writerUrl.replace("/fixture_db", `/${name}`);
+    const input = {
+      activityRoot: "test-activity-proof",
+      adminDatabaseUrl: "postgresql://admin:secret@127.0.0.1:5432/valet",
+      applicationUrl: runtime,
+      databaseName: name,
+      explicitWriters: { STAFF_AUTH_WRITER_DATABASE_URL: staffWriter },
+      mfaWriterPassword: "mfa-secret",
+      mfaWriterRole: "vaylet_mfa_writer_test",
+      migrationDatabaseUrl: `postgresql://migrator:secret@127.0.0.1:5432/${name}`,
+    };
+    const actual = resolveAttestedFixtureWriterEnvironment(input);
+    expect(actual.writers.STAFF_AUTH_WRITER_DATABASE_URL).toBe(staffWriter);
+    expect(actual.writers.STAFF_AUTH_WRITER_ROLE).toBe(
+      "vaylet_staff_auth_writer_test_123",
+    );
+    if (actual.protectedMode) {
+      expect(new URL(actual.writers.MFA_WRITER_DATABASE_URL!).username).toBe(
+        "vaylet_mfa_writer_test",
+      );
+    }
+    expect(() =>
+      resolveAttestedFixtureWriterEnvironment({
+        ...input,
+        migrationDatabaseUrl: input.migrationDatabaseUrl.replace(
+          ":5432/",
+          ":65432/",
+        ),
+      }),
+    ).toThrow(/database endpoints do not match/);
   });
 
   it("provisions the dedicated URL and role without a DATABASE_URL fallback", async () => {

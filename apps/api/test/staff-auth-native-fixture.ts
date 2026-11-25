@@ -17,14 +17,12 @@ import {
 import {
   createFixtureStaffAuthWriterIdentity,
   ciFixtureManagementWriterEnvironment,
-  fixtureProtectedMfaSelection,
   provisionStaffAuthWriter,
-  resolveProtectedWriterEnvironment,
+  resolveAttestedFixtureWriterEnvironment,
   StaffAuthNativeProofKeys,
 } from "./staff-auth-native-test-environment";
 import { createStaffAuthNativeUser } from "./staff-auth-native-user";
 import { cleanupStaffAuthNativeFixture } from "./staff-auth-native-fixture-cleanup";
-import { assertStaffAuthFixtureEndpoints } from "./staff-auth-native-database-drop";
 import { fixtureSessionLockRoles } from "./staff-auth-native-session-lock-owner";
 export type {
   AuthHttpResult,
@@ -46,17 +44,6 @@ function databaseUrl(name: string): string {
 function runtimeUrl(name: string, role: string, password: string): string {
   const url = new URL(adminDatabaseUrl);
   url.pathname = `/${name}`;
-  url.username = role;
-  url.password = password;
-  return url.toString();
-}
-
-function writerUrl(
-  applicationUrl: string,
-  role: string,
-  password: string,
-): string {
-  const url = new URL(applicationUrl);
   url.username = role;
   url.password = password;
   return url.toString();
@@ -103,20 +90,16 @@ export class StaffAuthNativeFixture {
       this.runtimeRole,
       this.runtimePassword,
     );
-    const resolvedWriters = resolveProtectedWriterEnvironment(
-      this.protectedWriterTestEnvironment(applicationUrl),
-      writerUrl(applicationUrl, this.mfaWriterRole, this.mfaWriterPassword),
-      fixtureProtectedMfaSelection(),
+    const { protectedMode, writers } = resolveAttestedFixtureWriterEnvironment({
       activityRoot,
-    );
-    const { protectedMode, writers } = resolvedWriters;
-    assertStaffAuthFixtureEndpoints(
-      this.databaseName,
-      applicationUrl,
       adminDatabaseUrl,
-      databaseUrl(this.databaseName),
-      { ...writers, ...ciFixtureManagementWriterEnvironment(applicationUrl) },
-    );
+      applicationUrl,
+      databaseName: this.databaseName,
+      explicitWriters: this.protectedWriterTestEnvironment(applicationUrl),
+      mfaWriterPassword: this.mfaWriterPassword,
+      mfaWriterRole: this.mfaWriterRole,
+      migrationDatabaseUrl: databaseUrl(this.databaseName),
+    });
     const bootstrap = new Pool({ connectionString: adminDatabaseUrl });
     try {
       this.writerRoleSnapshots = await captureFixtureWriterRoleBaseline(

@@ -1,4 +1,5 @@
 import { randomBytes, randomUUID } from "node:crypto";
+import { assertStaffAuthFixtureEndpoints } from "./staff-auth-native-database-drop";
 
 type RunPnpm = (
   args: string[],
@@ -14,10 +15,17 @@ export function createFixtureStaffAuthWriterIdentity(applicationUrl: string) {
   return { role, url: url.toString() };
 }
 
-export function ciFixtureManagementWriterEnvironment(applicationUrl: string): Record<string, string> {
+export function ciFixtureManagementWriterEnvironment(
+  applicationUrl: string,
+): Record<string, string> {
   const password = process.env.VAYLET_CI_MANAGEMENT_WRITER_PASSWORD;
-  if (process.env.GITHUB_ACTIONS !== "true" || process.env.GITHUB_JOB !== "postgres" ||
-      password === undefined || !/^[a-f0-9]{64}$/.test(password)) return {};
+  if (
+    process.env.GITHUB_ACTIONS !== "true" ||
+    process.env.GITHUB_JOB !== "postgres" ||
+    password === undefined ||
+    !/^[a-f0-9]{64}$/.test(password)
+  )
+    return {};
   const url = new URL(applicationUrl);
   url.username = "vaylet_management_writer";
   url.password = password;
@@ -130,6 +138,44 @@ export function resolveProtectedWriterEnvironment(
     ? decodeURIComponent(new URL(writers.MFA_WRITER_DATABASE_URL!).username)
     : undefined;
   return { protectedMode, protectedMfaRole, writers };
+}
+
+export function resolveAttestedFixtureWriterEnvironment({
+  activityRoot,
+  adminDatabaseUrl,
+  applicationUrl,
+  databaseName,
+  explicitWriters,
+  mfaWriterPassword,
+  mfaWriterRole,
+  migrationDatabaseUrl,
+}: {
+  activityRoot: string;
+  adminDatabaseUrl: string;
+  applicationUrl: string;
+  databaseName: string;
+  explicitWriters: Record<string, string>;
+  mfaWriterPassword: string;
+  mfaWriterRole: string;
+  migrationDatabaseUrl: string;
+}) {
+  const mfaWriterUrl = new URL(applicationUrl);
+  mfaWriterUrl.username = mfaWriterRole;
+  mfaWriterUrl.password = mfaWriterPassword;
+  const { protectedMode, writers } = resolveProtectedWriterEnvironment(
+    explicitWriters,
+    mfaWriterUrl.toString(),
+    fixtureProtectedMfaSelection(),
+    activityRoot,
+  );
+  assertStaffAuthFixtureEndpoints(
+    databaseName,
+    applicationUrl,
+    adminDatabaseUrl,
+    migrationDatabaseUrl,
+    { ...writers, ...ciFixtureManagementWriterEnvironment(applicationUrl) },
+  );
+  return { protectedMode, writers };
 }
 
 export async function provisionStaffAuthWriter(
