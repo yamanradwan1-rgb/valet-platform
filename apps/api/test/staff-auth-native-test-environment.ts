@@ -24,6 +24,17 @@ export function ciFixtureManagementWriterEnvironment(applicationUrl: string): Re
   return { MANAGEMENT_WRITER_DATABASE_URL: url.toString() };
 }
 
+export function fixtureProtectedMfaSelection(
+  env: NodeJS.ProcessEnv = process.env,
+): string | undefined {
+  // PostgreSQL CI has already cut over S02 ACLs. Every mounted fixture must
+  // exercise its protected writer there, even if older tests omit the flag.
+  if (env.GITHUB_ACTIONS === "true" && env.GITHUB_JOB === "postgres") {
+    return "1";
+  }
+  return env.ISSUE416_S02_PROTECTED_TEST;
+}
+
 export class StaffAuthNativeProofKeys {
   readonly antiAbuseHmac = randomBytes(32).toString("base64url");
   readonly sqlProof = randomBytes(32).toString("base64url");

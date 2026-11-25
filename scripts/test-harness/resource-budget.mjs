@@ -1,10 +1,13 @@
 export const DEFAULT_NON_TEST_ALLOWANCE = 20;
 export const POSTGRES_RESOURCE_PROFILES = Object.freeze({
-  // Native Staff Auth keeps fixture admin, application Runtime and two Writers.
-  "api-standard": profile("api-standard", 4, 4, 2, 1, 10, 1),
+  // CI-mounted apps need fixture admin, Runtime and three protected Writers.
+  "api-standard": profile("api-standard", 4, 6, 2, 1, 10, 1),
   // Mounted operations keep fixture admin/runtime plus application Runtime and three Writers.
   "api-compound": profile("api-compound", 4, 6, 2, 1, 10, 1),
-  "api-race": profile("api-race", 6, 4, 4, 1, 10, 2),
+  // Role-isolated runtime, Staff Auth, MFA and Management pools coexist with
+  // fixture admin and a competing pool. Reserve their actual summed maxima,
+  // not six times the per-pool ceiling.
+  "api-race": profile("api-race", 6, 6, 4, 1, 10, 2, 24),
   // Photo HTTP fixtures mount dedicated Writer pools alongside Runtime and probes.
   "api-issue215": profile("api-issue215", 6, 6, 4, 1, 10, 1),
   // One isolated Next subprocess plus one Chromium process, no parallel files.
@@ -37,16 +40,18 @@ function profile(
   subprocessMax,
   subprocessReserve,
   fileWorkers,
+  poolConnectionBudget = poolMax * poolCount,
 ) {
   return Object.freeze({
     name,
     poolMax,
     poolCount,
+    poolConnectionBudget,
     directClients,
     fileWorkers,
     subprocessMax,
     subprocessReserve,
-    connectionEnvelope: poolMax * poolCount + directClients + subprocessReserve,
+    connectionEnvelope: poolConnectionBudget + directClients + subprocessReserve,
   });
 }
 

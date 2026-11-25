@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   createFixtureStaffAuthWriterIdentity,
+  fixtureProtectedMfaSelection,
   provisionStaffAuthWriter,
   resolveProtectedWriterEnvironment,
 } from "./staff-auth-native-test-environment";
@@ -12,6 +13,48 @@ const writerUrl =
   "postgresql://vaylet_staff_auth_writer_test_123:writer-secret@127.0.0.1:5432/fixture_db";
 
 describe("Staff Auth native fixture writer setup", () => {
+  it("enables protected S02 in PostgreSQL CI even without a per-test switch", () => {
+    expect(
+      fixtureProtectedMfaSelection({
+        GITHUB_ACTIONS: "true",
+        GITHUB_JOB: "postgres",
+      }),
+    ).toBe("1");
+    expect(
+      fixtureProtectedMfaSelection({
+        GITHUB_ACTIONS: "true",
+        GITHUB_JOB: "postgres",
+        ISSUE416_S02_PROTECTED_TEST: "0",
+      }),
+    ).toBe("1");
+    expect(
+      fixtureProtectedMfaSelection({
+        GITHUB_ACTIONS: "true",
+        GITHUB_JOB: "other",
+      }),
+    ).toBeUndefined();
+  });
+
+  it("maps PostgreSQL CI protection to a separate MFA role and key", () => {
+    const mfaWriterUrl =
+      "postgresql://vaylet_mfa_writer_test:another-secret@127.0.0.1:5432/fixture_db";
+    const selected = resolveProtectedWriterEnvironment(
+      { STAFF_AUTH_WRITER_DATABASE_URL: writerUrl },
+      mfaWriterUrl,
+      fixtureProtectedMfaSelection({
+        GITHUB_ACTIONS: "true",
+        GITHUB_JOB: "postgres",
+      }),
+      "independent-test-activity-key",
+    );
+    expect(selected.protectedMode).toBe(true);
+    expect(selected.writers).toMatchObject({
+      MFA_PROTECTED_WRITER_ENABLED: "true",
+      MFA_WRITER_DATABASE_URL: mfaWriterUrl,
+      MFA_ACTIVITY_PROOF_SECRET_B64URL: "independent-test-activity-key",
+    });
+    expect(selected.writers.MFA_WRITER_DATABASE_URL).not.toBe(writerUrl);
+  });
   it("creates a unique writer role and secret for each fixture instance", () => {
     const first = createFixtureStaffAuthWriterIdentity(applicationUrl);
     const second = createFixtureStaffAuthWriterIdentity(applicationUrl);

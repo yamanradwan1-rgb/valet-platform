@@ -51,7 +51,7 @@ function fakeChildProcess() {
   };
 }
 
-test("PostgreSQL project applies its test-only pool cap and registers it", () => {
+test("race writer topology admits six distinct pools within the reserved slot budget", async () => {
   const events = [];
   const pg = fakePg();
   installPostgresTestRuntime({
@@ -69,12 +69,64 @@ test("PostgreSQL project applies its test-only pool cap and registers it", () =>
     ),
   );
   assert.throws(() => new pg.Pool({ max: 7 }), /above api-race cap=6/);
-  assert.throws(() => {
-    new pg.Pool();
-    new pg.Pool();
-    new pg.Pool();
-    new pg.Pool();
-  }, /exceeded poolCount=4/);
+  const otherPools = [4, 2, 4, 2, 6].map((max) => new pg.Pool({ max }));
+  assert.equal(otherPools.length + 1, postgresProfile("api-race").poolCount);
+  assert.equal(events.at(-1).reservedPoolConnections, 24);
+  assert.throws(() => new pg.Pool({ max: 1 }), /exceeded poolCount=6/);
+  await otherPools[0].end();
+  assert.equal(events.at(-1).reservedPoolConnections, 20);
+  const replacement = new pg.Pool({ max: 4 });
+  assert.equal(replacement.options.max, 4);
+  await Promise.all([pool.end(), ...otherPools.slice(1).map((p) => p.end()), replacement.end()]);
+  assert.equal(events.at(-1).reservedPoolConnections, 0);
+});
+
+test("race pool slots reject overcommit, then recover after asynchronous end", async () => {
+  const events = [];
+  const pg = fakePg();
+  installPostgresTestRuntime({
+    appendEvent: (event) => events.push(event),
+    childProcess: fakeChildProcess(),
+    pg,
+    profile: postgresProfile("api-race"),
+    projectName: "api-postgres-race",
+  });
+  const pools = Array.from({ length: 4 }, () => new pg.Pool({ max: 6 }));
+  assert.throws(
+    () => new pg.Pool({ max: 1 }),
+    /exceeded poolConnectionBudget=24/,
+  );
+  assert.equal(events.filter((event) => event.type === "pool-registered").length, 4);
+  await pools[0].end();
+  const fifth = new pg.Pool({ max: 6 });
+  assert.equal(events.at(-1).reservedPoolConnections, 24);
+  await Promise.all([...pools.slice(1), fifth].map((pool) => pool.end()));
+  assert.equal(events.at(-1).activePools, 0);
+});
+
+test("failed registration releases a constructed pool's reservation", async () => {
+  const pg = fakePg();
+  let rejectRegistration = true;
+  const events = [];
+  installPostgresTestRuntime({
+    appendEvent: (event) => {
+      if (event.type === "pool-registered" && rejectRegistration) {
+        throw new Error("test ledger unavailable");
+      }
+      events.push(event);
+    },
+    childProcess: fakeChildProcess(),
+    pg,
+    profile: postgresProfile("api-race"),
+    projectName: "api-postgres-race",
+  });
+  assert.throws(() => new pg.Pool({ max: 6 }), /ledger unavailable/);
+  rejectRegistration = false;
+  const pool = new pg.Pool({ max: 6 });
+  assert.equal(events.at(-1).reservedPoolConnections, 6);
+  assert.equal(events.at(-1).activePools, 1);
+  await pool.end();
+  assert.equal(events.at(-1).reservedPoolConnections, 0);
 });
 
 test("resource ownership is written before CREATE DATABASE executes", async () => {

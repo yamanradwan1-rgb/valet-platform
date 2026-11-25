@@ -17,6 +17,7 @@ import {
 import {
   createFixtureStaffAuthWriterIdentity,
   ciFixtureManagementWriterEnvironment,
+  fixtureProtectedMfaSelection,
   provisionStaffAuthWriter,
   resolveProtectedWriterEnvironment,
   StaffAuthNativeProofKeys,
@@ -104,7 +105,7 @@ export class StaffAuthNativeFixture {
     const resolvedWriters = resolveProtectedWriterEnvironment(
       this.protectedWriterTestEnvironment(applicationUrl),
       writerUrl(applicationUrl, this.mfaWriterRole, this.mfaWriterPassword),
-      process.env.ISSUE416_S02_PROTECTED_TEST,
+      fixtureProtectedMfaSelection(),
       activityRoot,
     );
     const { protectedMode, writers } = resolvedWriters;
@@ -136,6 +137,7 @@ export class StaffAuthNativeFixture {
       MIGRATION_DATABASE_URL: this.migrationUrl,
       ...this.proofKeys.environment(),
       ...writers,
+      ...ciFixtureManagementWriterEnvironment(applicationUrl),
       NODE_ENV: "test",
     });
     await this.captureWriterRolePostState();

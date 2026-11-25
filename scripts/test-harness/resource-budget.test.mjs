@@ -17,6 +17,9 @@ const localCluster = {
 
 test("race profile admits exactly two safe local file workers", () => {
   const profile = postgresProfile("api-race");
+  assert.equal(profile.poolCount, 6);
+  assert.equal(profile.poolMax, 6);
+  assert.equal(profile.poolConnectionBudget, 24);
   assert.equal(profile.connectionEnvelope, 38);
   assert.equal(supportedWorkerCount({ ...localCluster, profile }), 2);
   assert.equal(profile.fileWorkers, 2);
@@ -61,7 +64,7 @@ test("profiles include pool, direct client, and subprocess envelopes", () => {
       ].map((name) => [name, postgresProfile(name).connectionEnvelope]),
     ),
     {
-      "api-standard": 28,
+      "api-standard": 36,
       "api-compound": 36,
       "api-race": 38,
       "api-issue215": 50,

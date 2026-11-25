@@ -1,15 +1,21 @@
 import { randomUUID } from "node:crypto";
-import { performance } from "node:perf_hooks";
-import { setTimeout as pause } from "node:timers/promises";
 
 import type { Pool, PoolClient } from "pg";
+
+export {
+  waitForLockWait,
+  waitForAdvisoryLock,
+} from "./management-settings-lock-observer";
+import {
+  waitForLockWait,
+  waitForAdvisoryLock,
+} from "./management-settings-lock-observer";
 
 export const COMPANY_SETTING_MUTATION_QUERY =
   "management_settings_set_company_scalar";
 
-type AdvisoryMode = "ExclusiveLock" | "ShareLock";
-
 export interface PendingCompanySettingMutation {
+  readonly backendPid: number;
   commit(): Promise<void>;
   rollback(): Promise<void>;
 }
@@ -50,74 +56,15 @@ async function organizationUpdatedAt(
   return updatedAt;
 }
 
-async function waitForDatabaseCondition(
-  check: () => Promise<boolean>,
-  description: string,
-): Promise<void> {
-  const deadline = performance.now() + 10_000;
-  while (performance.now() < deadline) {
-    if ((await check()) && performance.now() <= deadline) return;
-    await pause(Math.min(20, Math.max(1, deadline - performance.now())));
-  }
-  throw new Error(
-    "Timed out waiting for PostgreSQL state: " + description + ".",
-  );
-}
-
-export function waitForLockWait(
-  pool: Pool,
-  queryFragment: string,
-): Promise<void> {
-  return waitForDatabaseCondition(async () => {
-    const result = await pool.query<{ waiting: boolean }>(
-      `SELECT EXISTS (
-         SELECT 1 FROM pg_stat_activity
-         WHERE datname = current_database()
-           AND state = 'active'
-           AND wait_event_type = 'Lock'
-           AND query ILIKE $1
-       ) AS waiting`,
-      [`%${queryFragment}%`],
-    );
-    return result.rows[0]?.waiting === true;
-  }, `lock wait for ${queryFragment}`);
-}
-
-export function waitForAdvisoryLock(
-  pool: Pool,
-  queryFragment: string,
-  mode: AdvisoryMode,
-  granted: boolean,
-): Promise<void> {
-  return waitForDatabaseCondition(
-    async () => {
-      const result = await pool.query<{ matched: boolean }>(
-        `SELECT EXISTS (
-         SELECT 1
-         FROM pg_stat_activity AS activity
-         INNER JOIN pg_locks AS held ON held.pid = activity.pid
-         WHERE activity.datname = current_database()
-           AND activity.state = 'active'
-           AND activity.query ILIKE $1
-           AND held.locktype = 'advisory'
-           AND held.mode = $2
-           AND held.granted = $3
-       ) AS matched`,
-        [`%${queryFragment}%`, mode, granted],
-      );
-      return result.rows[0]?.matched === true;
-    },
-    `${granted ? "granted" : "waiting"} ${mode} for ${queryFragment}`,
-  );
-}
-
 function pendingMutation(
   client: PoolClient,
   mutation: Promise<unknown>,
+  backendPid: number,
 ): PendingCompanySettingMutation {
   let closed = false;
   void mutation.catch(() => undefined);
   return {
+    backendPid,
     async commit() {
       if (closed) return;
       try {
@@ -177,6 +124,9 @@ async function beginPreparedCompanySettingMutation(
 ): Promise<PendingCompanySettingMutation> {
   const client = await input.runtimePool.connect();
   try {
+    const backendPid = (
+      await client.query<{ pid: number }>("SELECT pg_backend_pid() AS pid")
+    ).rows[0]!.pid;
     await client.query("BEGIN");
     const mutation = client.query(
       `SELECT * FROM management_settings_set_company_scalar(
@@ -189,7 +139,7 @@ async function beginPreparedCompanySettingMutation(
         expectedUpdatedAt,
       ],
     );
-    return pendingMutation(client, mutation);
+    return pendingMutation(client, mutation, backendPid);
   } catch (error) {
     await client.query("ROLLBACK").catch(() => undefined);
     client.release();
@@ -215,6 +165,9 @@ export async function beginBlockedCompanySettingMutation(input: {
   const blocker = await input.adminPool.connect();
   let writer: PendingCompanySettingMutation | undefined;
   try {
+    const blockerPid = (
+      await blocker.query<{ pid: number }>("SELECT pg_backend_pid() AS pid")
+    ).rows[0]!.pid;
     await blocker.query("BEGIN");
     await blocker.query(
       "SELECT id FROM organizations WHERE id = $1 FOR UPDATE",
@@ -227,11 +180,14 @@ export async function beginBlockedCompanySettingMutation(input: {
     );
     await waitForAdvisoryLock(
       input.adminPool,
-      COMPANY_SETTING_MUTATION_QUERY,
+      { backendPid: writer.backendPid },
       "ExclusiveLock",
       true,
     );
-    await waitForLockWait(input.adminPool, COMPANY_SETTING_MUTATION_QUERY);
+    await waitForLockWait(input.adminPool, {
+      blockerPid,
+      waiterPid: writer.backendPid,
+    });
   } catch (error) {
     await blocker.query("ROLLBACK").catch(() => undefined);
     blocker.release();
@@ -249,6 +205,7 @@ export async function beginBlockedCompanySettingMutation(input: {
     }
   };
   return {
+    backendPid: writer.backendPid,
     async commit() {
       await releaseBlocker("COMMIT");
       await writer!.commit();

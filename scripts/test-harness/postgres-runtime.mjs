@@ -2,6 +2,8 @@ import { syncBuiltinESMExports } from "node:module";
 
 import { assertExecutableDatabaseAccessAllowed } from "./test-classification.mjs";
 import { patchPostgresOwnershipQueries } from "./postgres-ownership-hooks.mjs";
+import { installBoundedPostgresPools } from "./postgres-pool-cap.mjs";
+import { withFailureRelease, withRelease } from "./postgres-test-release.mjs";
 import { linuxProcessIdentity } from "./process-identity.mjs";
 const installSymbol = Symbol.for("vaylet.test.postgres.runtime.installed");
 const childHookUrl = new URL("./child-postgres-hook.mjs", import.meta.url).href;
@@ -15,7 +17,6 @@ export function installPostgresTestRuntime({
 }) {
   if (pg[installSymbol]) return;
   pg[installSymbol] = true;
-  const OriginalPool = pg.Pool;
   const OriginalClient = pg.Client;
   patchPostgresOwnershipQueries({
     appendEvent,
@@ -23,43 +24,8 @@ export function installPostgresTestRuntime({
     pg,
   });
 
-  let activePools = 0;
+  installBoundedPostgresPools({ appendEvent, pg, profile });
   let activeDirectClients = 0;
-  class BoundedTestPool extends OriginalPool {
-    #counted = false;
-
-    constructor(config = {}) {
-      const requested = config.max;
-      if (requested !== undefined && requested > profile.poolMax) {
-        throw new Error(
-          `PostgreSQL test pool requested max=${requested} above ${profile.name} cap=${profile.poolMax}.`,
-        );
-      }
-      if (activePools >= profile.poolCount) {
-        throw new Error(
-          `PostgreSQL test profile ${profile.name} exceeded poolCount=${profile.poolCount}.`,
-        );
-      }
-      super({ ...config, max: requested ?? profile.poolMax });
-      activePools += 1;
-      this.#counted = true;
-      appendEvent({
-        type: "pool-registered",
-        profile: profile.name,
-        activePools,
-        appliedMax: requested ?? profile.poolMax,
-        requestedMax: requested ?? null,
-      });
-    }
-
-    end(...args) {
-      return withRelease(super.end.bind(this), args, () => {
-        if (!this.#counted) return;
-        this.#counted = false;
-        activePools -= 1;
-      });
-    }
-  }
 
   class BoundedTestClient extends OriginalClient {
     #counted = false;
@@ -95,7 +61,6 @@ export function installPostgresTestRuntime({
     }
   }
 
-  pg.Pool = BoundedTestPool;
   pg.Client = BoundedTestClient;
   patchSpawn({ appendEvent, childProcess, profile });
   appendEvent({
@@ -255,46 +220,4 @@ function safeCommand(text) {
   return text
     .replace(/postgres(?:ql)?:\/\/[^\s]+/gi, "postgresql://[REDACTED]")
     .slice(0, 240);
-}
-
-function withRelease(action, args, release) {
-  const callbackIndex = args.findIndex((value) => typeof value === "function");
-  if (callbackIndex >= 0) {
-    const nextArgs = [...args];
-    const callback = nextArgs[callbackIndex];
-    nextArgs[callbackIndex] = (...values) => {
-      release();
-      callback(...values);
-    };
-    return action(...nextArgs);
-  }
-  const result = action(...args);
-  return result && typeof result.finally === "function"
-    ? result.finally(release)
-    : result;
-}
-
-function withFailureRelease(action, args, release) {
-  const callbackIndex = args.findIndex((value) => typeof value === "function");
-  if (callbackIndex >= 0) {
-    const nextArgs = [...args];
-    const callback = nextArgs[callbackIndex];
-    nextArgs[callbackIndex] = (error, ...values) => {
-      if (error != null) release();
-      callback(error, ...values);
-    };
-    return action(...nextArgs);
-  }
-  try {
-    const result = action(...args);
-    return result && typeof result.catch === "function"
-      ? result.catch((error) => {
-          release();
-          throw error;
-        })
-      : result;
-  } catch (error) {
-    release();
-    throw error;
-  }
 }
