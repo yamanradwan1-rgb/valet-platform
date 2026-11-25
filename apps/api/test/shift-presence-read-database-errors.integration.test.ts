@@ -44,19 +44,23 @@ describe("Issue 406: real PostgreSQL origins are distinct from advisory refusal"
     try {
       await holder.query("BEGIN");
       // Only this disposable test's admin connection inverts the production graph.
-      // Delay its detector so the application's waiting statement detects the cycle.
-      await holder.query("SET LOCAL deadlock_timeout = '10s'");
+      // Start the runtime wait first, then close the cycle from the holder.
+      // The earlier waiter reaches the ordinary deadlock detector first.
+      const pid = await holder.query<{ pid: number }>("SELECT pg_backend_pid() AS pid");
+      const holderPid = pid.rows[0]?.pid;
+      if (holderPid === undefined) throw new Error("Missing holder PID");
       await holder.query("SELECT id FROM locations WHERE id=$1 FOR UPDATE", [
         f.locationId,
       ]);
       read = new PresenceManagementService(probe.pool)
         .location(a.context, a.target)
         .catch((error) => error);
-      await observePresenceCommandWait(db);
+      await observePresenceCommandWait(db, holderPid);
       competing = holder.query(
         "UPDATE organizations SET name=name WHERE id=$1",
         [f.organizationId],
       );
+      void competing.catch(() => undefined);
       expect(await read).toMatchObject({
         code: "PRESENCE_AUTHORITY_BUSY",
         origin: "POSTGRES_DEADLOCK_40P01",

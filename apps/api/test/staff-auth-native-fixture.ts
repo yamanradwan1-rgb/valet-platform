@@ -63,8 +63,8 @@ export class StaffAuthNativeFixture {
   private readonly mfaWriterRole = `valet_mfa_writer_mob007_${this.suffix}`;
   private readonly mfaWriterPassword = `mfa-writer-${randomUUID()}`;
   private adminPool: Pool | undefined;
-  private app: INestApplication | undefined;
-  private baseUrl = "";
+  protected app: INestApplication | undefined;
+  protected baseUrl = "";
   private databaseCreated = false;
   private roleCreated = false;
   private writerRoleSnapshots: FixtureWriterRoleSnapshot[] = [];

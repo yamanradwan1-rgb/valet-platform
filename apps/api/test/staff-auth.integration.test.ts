@@ -1,10 +1,7 @@
-import { spawn } from "node:child_process";
 import { randomBytes, randomUUID } from "node:crypto";
 import { request as httpRequest } from "node:http";
-import { resolve } from "node:path";
 
 import { type INestApplication } from "@nestjs/common";
-import { NestFactory } from "@nestjs/core";
 import argon2 from "argon2";
 import { Pool } from "pg";
 import {
@@ -17,7 +14,7 @@ import {
   vi,
 } from "vitest";
 
-import { AppModule } from "../src/app.module";
+import { StaffAuthNativeFixture } from "./staff-auth-native-fixture";
 import { AntiAbuseKeyDeriver } from "../src/modules/anti-abuse/anti-abuse-key";
 import {
   AntiAbuseService,
@@ -38,83 +35,22 @@ interface HttpResult {
   readonly status: number;
 }
 
-const allowedOrigin = "https://staff.valet.test";
-const adminDatabaseUrl =
-  process.env.TEST_DATABASE_URL ??
-  process.env.MIGRATION_DATABASE_URL ??
-  "postgresql://valet:valet@127.0.0.1:5432/valet";
-const suffix = `${process.pid}_${randomBytes(4).toString("hex")}`;
-const testDatabaseName = `valet_004l_auth_${suffix}`;
-const runtimeRole = `valet_runtime_004l_${suffix}`;
-const runtimePassword = `runtime-${randomUUID()}`;
-const repositoryRoot = resolve(process.cwd(), "../..");
-const pnpmExecutable = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
-
+class MountedStaffAuthFixture extends StaffAuthNativeFixture {
+  application(): INestApplication {
+    if (!this.app) throw new Error("Staff Auth fixture is not started.");
+    return this.app;
+  }
+  httpBaseUrl(): string {
+    if (!this.baseUrl) throw new Error("Staff Auth fixture is not listening.");
+    return this.baseUrl;
+  }
+}
+const mounted = new MountedStaffAuthFixture();
+const allowedOrigin = mounted.allowedOrigin;
 let adminPool: Pool;
 let app: INestApplication;
 let baseUrl: string;
-let databaseCreated = false;
-let runtimeRoleCreated = false;
-let testMigrationUrl: string;
 let testRuntimeUrl: string;
-
-function connectionUrlFor(databaseName: string): string {
-  const url = new URL(adminDatabaseUrl);
-  url.pathname = `/${databaseName}`;
-  return url.toString();
-}
-
-function runtimeUrlFor(databaseName: string): string {
-  const url = new URL(adminDatabaseUrl);
-  url.pathname = `/${databaseName}`;
-  url.username = runtimeRole;
-  url.password = runtimePassword;
-  return url.toString();
-}
-
-function redact(value: string): string {
-  return [adminDatabaseUrl, testMigrationUrl, testRuntimeUrl, runtimePassword]
-    .filter((secret): secret is string => secret !== undefined && secret !== "")
-    .reduce(
-      (redacted, secret) => redacted.replaceAll(secret, "[REDACTED]"),
-      value,
-    );
-}
-
-async function runPnpm(
-  args: string[],
-  environment: NodeJS.ProcessEnv,
-): Promise<void> {
-  const npmExecPath = process.env.npm_execpath;
-  const command = npmExecPath === undefined ? pnpmExecutable : process.execPath;
-  const commandArgs = npmExecPath === undefined ? args : [npmExecPath, ...args];
-  const childEnvironment = { ...process.env };
-  for (const [key, value] of Object.entries(environment)) {
-    if (value === undefined) delete childEnvironment[key];
-    else childEnvironment[key] = value;
-  }
-  await new Promise<void>((resolvePromise, reject) => {
-    const child = spawn(command, commandArgs, {
-      cwd: repositoryRoot,
-      env: childEnvironment,
-      shell: npmExecPath === undefined && process.platform === "win32",
-      windowsHide: true,
-    });
-    let output = "";
-    child.stdout.on("data", (chunk: Buffer) => {
-      output += chunk.toString("utf8");
-    });
-    child.stderr.on("data", (chunk: Buffer) => {
-      output += chunk.toString("utf8");
-    });
-    child.on("error", reject);
-    child.on("close", (code) => {
-      if (code === 0) resolvePromise();
-      else
-        reject(new Error(redact(`pnpm failed (${String(code)}): ${output}`)));
-    });
-  });
-}
 
 async function request(
   path: string,
@@ -324,55 +260,19 @@ async function intakeWithDuplicateAuthorization(
 }
 
 beforeAll(async () => {
-  const bootstrap = new Pool({ connectionString: adminDatabaseUrl });
-  try {
-    await bootstrap.query(`CREATE DATABASE "${testDatabaseName}"`);
-    databaseCreated = true;
-  } finally {
-    await bootstrap.end();
-  }
-  testMigrationUrl = connectionUrlFor(testDatabaseName);
-  testRuntimeUrl = runtimeUrlFor(testDatabaseName);
-  await runPnpm(["--filter", "@valet/database", "migrate:deploy"], {
-    MIGRATION_DATABASE_URL: testMigrationUrl,
-    NODE_ENV: "test",
-  });
-  runtimeRoleCreated = true;
-  await runPnpm(["--filter", "@valet/database", "runtime:provision"], {
-    DATABASE_URL: testRuntimeUrl,
-    MIGRATION_DATABASE_URL: testMigrationUrl,
-    NODE_ENV: "test",
-  });
-  adminPool = new Pool({ connectionString: testMigrationUrl });
-  process.env.DATABASE_URL = testRuntimeUrl;
-  process.env.STAFF_AUTH_ALLOWED_ORIGINS = allowedOrigin;
-  process.env.ANTI_ABUSE_HMAC_SECRET_B64URL =
-    randomBytes(32).toString("base64url");
-  process.env.ANTI_ABUSE_TRUSTED_PROXY_CIDRS = "";
-  app = await NestFactory.create(AppModule, { logger: false });
-  await app.listen(0, "127.0.0.1");
-  const address = app.getHttpServer().address() as { port: number };
-  baseUrl = `http://127.0.0.1:${address.port}`;
+  await mounted.start();
+  adminPool = mounted.databasePool();
+  app = mounted.application();
+  baseUrl = mounted.httpBaseUrl();
+  testRuntimeUrl = mounted.runtimeDatabaseUrl();
 }, 120_000);
 
 beforeEach(async () => {
-  await adminPool.query("DELETE FROM anti_abuse_events");
+  await mounted.resetLimits();
 });
 
 afterAll(async () => {
-  if (app !== undefined) await app.close();
-  if (adminPool !== undefined) await adminPool.end();
-  const bootstrap = new Pool({ connectionString: adminDatabaseUrl });
-  try {
-    if (databaseCreated) {
-      await bootstrap.query(`DROP DATABASE "${testDatabaseName}" WITH (FORCE)`);
-    }
-    if (runtimeRoleCreated) {
-      await bootstrap.query(`DROP ROLE IF EXISTS "${runtimeRole}"`);
-    }
-  } finally {
-    await bootstrap.end();
-  }
+  await mounted.stop();
 }, 60_000);
 
 describe("production staff authentication", () => {
@@ -680,16 +580,19 @@ describe("production staff authentication", () => {
 
   it("uses an exact 2,592,000-second lifetime in a DST-observing database timezone", async () => {
     const fixture = await createUser();
-    const dstPool = new Pool({
-      connectionString: testRuntimeUrl,
+    const writerUrl = process.env.STAFF_AUTH_WRITER_DATABASE_URL;
+    if (!writerUrl) throw new Error("Missing fixture Staff Auth writer URL.");
+    const dstWriter = new Pool({
+      connectionString: writerUrl,
+      max: 1,
       options: "-c timezone=America/New_York",
     });
     try {
       const service = new StaffAuthService(
-        dstPool, new Argon2StaffPasswordVerifier(), dstPool,
+        mounted.runtimeDatabasePool(), new Argon2StaffPasswordVerifier(), dstWriter,
       );
       await service.login(fixture.email, fixture.password);
-      const persisted = await dstPool.query<{
+      const persisted = await adminPool.query<{
         refresh_matches_session: boolean;
         session_seconds: number;
       }>(
@@ -705,15 +608,17 @@ describe("production staff authentication", () => {
         refresh_matches_session: true,
         session_seconds: 2_592_000,
       });
-      const dstTransition = await dstPool.query<{ elapsed_seconds: number }>(
-        `SELECT EXTRACT(EPOCH FROM (
+      const dstTransition = await dstWriter.query<{ elapsed_seconds: number; timezone: string }>(
+        `SELECT current_setting('TimeZone') AS timezone, EXTRACT(EPOCH FROM (
            TIMESTAMPTZ '2026-10-15 12:00:00 America/New_York' + INTERVAL '720 hours'
            - TIMESTAMPTZ '2026-10-15 12:00:00 America/New_York'
          ))::integer AS elapsed_seconds`,
       );
-      expect(dstTransition.rows[0]?.elapsed_seconds).toBe(2_592_000);
+      expect(dstTransition.rows[0]).toEqual({
+        timezone: "America/New_York", elapsed_seconds: 2_592_000,
+      });
     } finally {
-      await dstPool.end();
+      await dstWriter.end();
     }
   });
 
