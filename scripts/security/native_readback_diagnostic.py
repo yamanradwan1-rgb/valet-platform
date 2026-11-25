@@ -154,8 +154,25 @@ def main():
     emit("ENRICHED_RESULT_COUNT",len(results))
     allgood = source_ok and complete(a, upload_state, current, enriched)
     emit("MANDATORY_ANALYSIS_EVIDENCE", allgood)
+    scoped = get(REPO + "/code-scanning/alerts", {"ref":REF,"state":"dismissed","tool_name":"CodeQL","per_page":100})
+    opened = get(REPO + "/code-scanning/alerts", {"ref":REF,"state":"open","tool_name":"CodeQL","per_page":100})
+    emit("SCOPED_STATE_COUNTS",{"dismissed":len(scoped),"open":len(opened),
+         "nine_dismissed":all(sum(a.get("number")==n for a in scoped)==1 for n in IDS),
+         "nine_not_open":all(not any(a.get("number")==n for a in opened) for n in IDS)})
     for n in IDS:
         r = refs[n]
+        matches_scoped=[a for a in scoped if a.get("number")==n]
+        d={"number":n,"singleton":len(matches_scoped)==1,"not_open":not any(a.get("number")==n for a in opened)}
+        if len(matches_scoped)==1:
+            a_scoped=matches_scoped[0]
+            mi=a_scoped.get("most_recent_instance") or {}
+            d.update({"state_dismissed":a_scoped.get("state")=="dismissed","owner_checks":dismissal_checks(a_scoped,n,r),
+                      "recent_ref":mi.get("ref")==REF,"recent_commit":mi.get("commit_sha")==SHA,
+                      "recent_key":mi.get("analysis_key")==KEY,"recent_category":mi.get("category")==category,
+                      "recent_path":mi.get("location",{}).get("path")==r["path"],
+                      "recent_line":mi.get("location",{}).get("start_line")==r["line"],
+                      "recent_state":mi.get("state") if mi.get("state") in ("open","dismissed","fixed",None) else "OTHER"})
+        emit("SCOPED_ALERT",d)
         matches = [x for x in results if str(x.get("properties",{}).get("github/alertNumber"))==str(n)]
         info = {"number":n,"enriched_matches":len(matches)}
         if len(matches)==1:
