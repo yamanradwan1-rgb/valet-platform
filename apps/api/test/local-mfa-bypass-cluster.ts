@@ -3,6 +3,7 @@ import { randomBytes } from "node:crypto";
 import { Pool } from "pg";
 
 import { startProductionDatabaseSafetyContainer } from "./production-database-safety-container";
+import { ciFixtureManagementWriterEnvironment } from "./staff-auth-native-test-environment";
 
 type FixtureEnvironmentKey =
   | "TEST_DATABASE_URL"
@@ -127,13 +128,25 @@ export async function startLocalMfaBypassCluster() {
     adminClosed = true;
     return {
       writerEnvironment(applicationUrl: string): Record<string, string> {
+        const target = new URL(applicationUrl);
+        const owned = new URL(migratorUrl);
+        if (target.protocol !== owned.protocol || target.host !== owned.host ||
+            !/^\/valet_mob007_auth_[0-9]+_[a-f0-9]{8}$/.test(target.pathname)) {
+          throw new Error("Local MFA writer target is outside its attested fixture database.");
+        }
+        const managementUrl = writerUrl(applicationUrl, "vaylet_management_writer", managementSecret);
+        const shared = ciFixtureManagementWriterEnvironment(applicationUrl).MANAGEMENT_WRITER_DATABASE_URL;
+        if (shared !== undefined && shared !== managementUrl) {
+          throw new Error("Local MFA cluster Management writer identity does not match.");
+        }
         return {
           STAFF_AUTH_WRITER_DATABASE_URL: writerUrl(
             applicationUrl, "vaylet_staff_auth_writer", staffWriterSecret,
           ),
-          MANAGEMENT_WRITER_DATABASE_URL: writerUrl(
-            applicationUrl, "vaylet_management_writer", managementSecret,
-          ),
+          // The CI-owned writer already belongs to this dedicated cluster.
+          // The ordinary fixture injects it separately, so don't claim it as
+          // a per-scratch role whose password needs a pg_authid snapshot.
+          ...(shared === undefined ? { MANAGEMENT_WRITER_DATABASE_URL: managementUrl } : {}),
         };
       },
       async stop() {
