@@ -1,4 +1,5 @@
 """Temporary native read-only diagnostic. Print safe metadata only; never raw SARIF."""
+import base64
 import hashlib
 import json
 import os
@@ -48,6 +49,53 @@ def complete(a, upload_state, current, enriched):
             and enriched.get("version") == "2.1.0"
             and len(runs) == 1 and len(runs[0].get("results", [])) == 61)
 
+def alert_identity(alert, n, r):
+    return (type(alert.get("number")) is int and alert["number"] == n
+            and alert.get("rule", {}).get("id") == r["rule"]
+            and alert.get("rule", {}).get("security_severity_level") == "high"
+            and alert.get("tool", {}).get("name") == "CodeQL"
+            and all(k in alert and alert[k] is None for k in
+                    ("dismissed_by", "dismissed_reason", "dismissed_at", "dismissed_comment")))
+
+def instance_identity(instance, r):
+    message = instance.get("message")
+    return (instance.get("state") == "open"
+            and instance.get("location", {}).get("path") == r["path"]
+            and instance.get("location", {}).get("start_line") == r["line"]
+            and isinstance(message, dict)
+            and isinstance(message.get("text"), str) and bool(message["text"].strip()))
+
+def source_pins(refs, pr):
+    head = pr["head"]["sha"]
+    base = pr["base"]["sha"]
+    merge = get(REPO + "/git/commits/" + SHA)
+    candidate = get(REPO + "/git/commits/" + head)
+    baseline = get(REPO + "/git/commits/" + base)
+    tree = merge["tree"]["sha"]
+    if not (merge["sha"] == SHA and candidate["sha"] == head and baseline["sha"] == base
+            and [p["sha"] for p in merge["parents"]] == [base, head]
+            and tree == candidate["tree"]["sha"]):
+        raise ValueError("scanned tree mismatch")
+    listing = get(REPO + "/git/trees/" + tree, {"recursive":"1"})
+    if listing["sha"] != tree or listing["truncated"] is not False:
+        raise ValueError("incomplete tree")
+    verified = {}
+    for n,r in refs.items():
+        rows = [x for x in listing["tree"] if x["path"] == r["path"]]
+        if len(rows) != 1 or rows[0]["mode"] != "100644" or rows[0]["type"] != "blob" or rows[0]["sha"] != r["git_blob"]:
+            raise ValueError("source blob identity")
+        oid = r["git_blob"]
+        if oid not in verified:
+            blob = get(REPO + "/git/blobs/" + oid)
+            raw = base64.b64decode("".join(blob["content"].split()), validate=True)
+            if blob["sha"] != oid or blob["encoding"] != "base64" or blob["size"] != len(raw):
+                raise ValueError("source bytes unavailable")
+            verified[oid] = (hashlib.sha256(raw).hexdigest(), len(raw.splitlines()))
+        if verified[oid][0] != r["source_sha256"] or verified[oid][1] < r["line"]:
+            raise ValueError("source bytes mismatch")
+    emit("SOURCE_PINS", {"exact_rows":len(refs),"unique_blobs":len(verified),"scanned_tree":tree,"base_tree":baseline["tree"]["sha"]})
+    return True
+
 def main():
     cat = json.loads(Path(__file__).with_name("native_disposition_reference.json").read_bytes())
     refs = {int(r["id"][3:]): r for r in cat}
@@ -58,6 +106,7 @@ def main():
         pr.get("head", {}).get("sha") != "2bc6c983762457454d1bc055b3f4630731fc4058" or
         pr.get("base", {}).get("sha") != "bfb4fdccf9d557c371313c9e357faa52e0a71014"):
         raise ValueError("PR scope changed")
+    source_ok = source_pins(refs, pr)
     analyses = get(REPO + "/code-scanning/analyses", {"ref": REF, "per_page": 100})
     matches = [a for a in analyses if a.get("commit_sha")==SHA and a.get("ref")==REF and
                a.get("analysis_key")==KEY and a.get("tool",{}).get("name")=="CodeQL"]
@@ -85,7 +134,7 @@ def main():
         raise ValueError("unexpected SARIF runs")
     results = runs[0].get("results",[])
     emit("ENRICHED_RESULT_COUNT",len(results))
-    allgood = complete(a, upload_state, current, enriched)
+    allgood = source_ok and complete(a, upload_state, current, enriched)
     emit("MANDATORY_ANALYSIS_EVIDENCE", allgood)
     for n in IDS:
         r = refs[n]
@@ -104,15 +153,17 @@ def main():
                 "message_match":sha(msg)==r["message_sha256"],"alert_number_integer":type(x.get("properties",{}).get("github/alertNumber")) is int})
         alert = get(REPO + "/code-scanning/alerts/" + str(n))
         info["alert_shape"] = {"number_match":alert.get("number")==n,
-            "state":alert.get("state") if alert.get("state") in ("open","dismissed","fixed") else "OTHER",
+            "state":alert.get("state") if alert.get("state") in ("open","dismissed","fixed","closed","auto_dismissed","not_applicable") else "OTHER",
             "rule_match":alert.get("rule",{}).get("id")==r["rule"],
             "security_severity":alert.get("rule",{}).get("security_severity_level") if alert.get("rule",{}).get("security_severity_level") in ("critical","high","medium","low",None) else "OTHER",
             "rule_severity":alert.get("rule",{}).get("severity") if alert.get("rule",{}).get("severity") in ("error","warning","note",None) else "OTHER",
             "rule_keys":sorted(k for k in alert.get("rule",{}) if k in ("id","severity","security_severity_level","security_severity","name","description","tags")),
             "top_severity":alert.get("severity") if alert.get("severity") in ("critical","high","medium","low","error","warning","note",None) else "OTHER",
             "tool_match":alert.get("tool",{}).get("name")=="CodeQL",
-            "dismissal_fields_present":all(k in alert for k in ("dismissed_by","dismissed_reason","dismissed_at","dismissed_comment"))}
-        info["alert_open_high_rule"] = alert.get("number")==n and alert.get("state")=="open" and alert.get("rule",{}).get("id")==r["rule"] and alert.get("rule",{}).get("security_severity_level")=="high"
+            "dismissal_fields_present":all(k in alert for k in ("dismissed_by","dismissed_reason","dismissed_at","dismissed_comment")),
+            "dismissal_fields_null":all(k in alert and alert[k] is None for k in ("dismissed_by","dismissed_reason","dismissed_at","dismissed_comment")),
+            "state_is_null":alert.get("state") is None,"state_present":"state" in alert}
+        info["alert_identity_no_dismissal"] = alert_identity(alert,n,r)
         instances = get(REPO + "/code-scanning/alerts/" + str(n) + "/instances",{"ref":REF,"per_page":100})
         exact = [i for i in instances if i.get("ref")==REF and i.get("commit_sha")==SHA and i.get("analysis_key")==KEY and i.get("category")==category]
         info["instance_exact_count"]=len(exact)
@@ -128,9 +179,10 @@ def main():
                 "newline_match":isinstance(m,str) and sha(m.replace("\r\n","\n"))==r["message_sha256"],
                 "markdown_match":isinstance(msg,dict) and sha(msg.get("markdown"))==r["message_sha256"],
                 "enriched_plain_matches":isinstance(m,str) and isinstance(em,str) and m==em}
+            info["instance_identity"] = instance_identity(i,r)
             info.update({"instance_open":i.get("state")=="open","instance_path_match":i.get("location",{}).get("path")==r["path"],"instance_line_match":i.get("location",{}).get("start_line")==r["line"],"instance_message_match":sha(i.get("message",{}).get("text"))==r["message_sha256"]})
         emit("ALERT",info)
-        required=("rule_match","path_match","line_match","fp_match","message_match","alert_number_integer","alert_open_high_rule","instance_open","instance_path_match","instance_line_match","instance_message_match")
+        required=("rule_match","path_match","line_match","fp_match","message_match","alert_number_integer","alert_identity_no_dismissal","instance_identity","instance_open","instance_path_match","instance_line_match")
         allgood = allgood and len(matches)==1 and len(exact)==1 and all(info.get(k) is True for k in required)
     emit("EXACT_NINE_MAPPING",allgood)
     # A diagnostic success does not authorize or unblock anything.

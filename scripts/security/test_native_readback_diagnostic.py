@@ -1,6 +1,6 @@
 import unittest
 from copy import deepcopy
-from native_readback_diagnostic import complete
+from native_readback_diagnostic import complete, alert_identity, instance_identity
 
 class DiagnosticTests(unittest.TestCase):
     def setUp(self):
@@ -35,3 +35,30 @@ class DiagnosticTests(unittest.TestCase):
     def test_enriched_incomplete(self):
         self.e["runs"][0]["results"].pop()
         self.assertFalse(complete(self.a,self.u,self.c,self.e))
+
+
+class NativeSchemaTests(unittest.TestCase):
+    def setUp(self):
+        self.r={"rule":"js/insufficient-password-hash","path":"src/a.ts","line":10}
+        self.a={"number":50,"rule":{"id":self.r["rule"],"security_severity_level":"high","severity":"warning"},
+                "tool":{"name":"CodeQL"},"state":"closed","dismissed_by":None,"dismissed_reason":None,
+                "dismissed_at":None,"dismissed_comment":None}
+        self.i={"state":"open","location":{"path":"src/a.ts","start_line":10},"message":{"text":"Rendered instance message"}}
+    def test_aggregate_state_not_instance_state(self):
+        self.assertTrue(alert_identity(self.a,50,self.r))
+        self.assertTrue(instance_identity(self.i,self.r))
+    def test_dismissal_not_allowed_in_preapproval_diagnostic(self):
+        self.a["dismissed_by"]={"id":123}
+        self.assertFalse(alert_identity(self.a,50,self.r))
+    def test_wrong_severity(self):
+        self.a["rule"]["security_severity_level"]="medium"
+        self.assertFalse(alert_identity(self.a,50,self.r))
+    def test_wrong_instance_line(self):
+        self.i["location"]["start_line"]=11
+        self.assertFalse(instance_identity(self.i,self.r))
+    def test_empty_instance_message(self):
+        self.i["message"]["text"]=" "
+        self.assertFalse(instance_identity(self.i,self.r))
+    def test_wrong_instance_state(self):
+        self.i["state"]="dismissed"
+        self.assertFalse(instance_identity(self.i,self.r))
