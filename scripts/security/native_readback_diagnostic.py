@@ -188,7 +188,43 @@ def main():
         allgood = allgood and len(matches)==1 and len(exact)==1 and all(info.get(k) is True for k in required)
     # Exercise the exact candidate production API adapter (read-only), with
     # authenticated historical head analysis count. Not raw base evaluation.
-    adapter = native._native_mapping(native.GitHubRead(os.environ["GITHUB_TOKEN"]),
+    # Count representation differences without exposing any result contents.
+    from collections import Counter
+    keys, numbers, issues = Counter(), Counter(), Counter()
+    for result in results:
+        try:
+            path = native.gate._location(result)
+        except (ValueError, KeyError, TypeError):
+            issues["location"] += 1
+            continue
+        try:
+            line = result["locations"][0]["physicalLocation"]["region"]["startLine"]
+            fp = result["partialFingerprints"]["primaryLocationLineHash"]
+            msg = result["message"]["text"]
+            number = result["properties"]["github/alertNumber"]
+            if type(line) is not int or line <= 0 or type(number) is not int or number <= 0:
+                issues["line_or_number"] += 1
+                continue
+            key = (result["ruleId"],path,line,sha(fp),sha(msg))
+            keys[key]+=1
+            numbers[number]+=1
+        except (KeyError, IndexError, TypeError, AttributeError):
+            issues["identity_field"] += 1
+    emit("ADAPTER_SHAPE",{"valid_rows":sum(keys.values()),"unique_keys":len(keys),
+         "unique_numbers":len(numbers),"duplicate_keys":sum(v>1 for v in keys.values()),
+         "duplicate_numbers":sum(v>1 for v in numbers.values()),"issues":dict(issues),
+         "eligible_keys_exact":all(keys[(r["rule"],r["path"],r["line"],r["fingerprint_sha256"],r["message_sha256"])]==1 and numbers[n]==1 for n,r in refs.items())})
+    class TraceRead(native.GitHubRead):
+        def get(self,path,query=None,sarif=False):
+            label="upload" if "/sarifs/" in path else "enriched" if sarif else "analyses"
+            try:
+                data=super().get(path,query,sarif)
+            except native.gate.InvalidScan:
+                emit("ADAPTER_GET_FAILED",label)
+                raise
+            emit("ADAPTER_GET_OK",label)
+            return data
+    adapter = native._native_mapping(TraceRead(os.environ["GITHUB_TOKEN"]),
                     upload, SHA, SimpleNamespace(version="2.27.6", alerts=(None,)*61),
                     KEY, category)
     adapter_ok = len(adapter)==61 and all(adapter.get((r["rule"],r["path"],r["line"],
