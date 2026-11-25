@@ -14,6 +14,7 @@ import { ShiftTestContext } from "./shift-test-context";
 import { RuntimeDatabaseLifecycle } from "../src/common/database/runtime-database.module";
 import { mapApiError } from "../src/common/http/api-errors";
 import { insertGuestT3Probe } from "./guest-t3-s04-transaction-probe";
+import { GuestT3PostgresActivityObserver } from "./guest-t3-postgres-activity-observer";
 
 describe("T3 real PostgreSQL server deadlines and bounded admission", () => {
   const context = new ShiftTestContext("t3_runtime_deadlines");
@@ -43,21 +44,24 @@ describe("T3 real PostgreSQL server deadlines and bounded admission", () => {
         )
       ).rows[0].count,
     ).toBe(0);
-    let active: unknown[] = [];
+    const observer = new GuestT3PostgresActivityObserver(
+      context.runtimeUrl,
+      context.databaseName,
+      context.runtimeRole,
+    );
     // PostgreSQL can still be finishing the server-side cancellation when
     // the driver's bounded query rejects. Require it to stop within 1s,
     // rather than mistaking that in-flight cancellation for abandoned work.
-    for (let attempt = 0; attempt < 40; attempt += 1) {
-      const observed = await context.adminPool.query(
-        `SELECT state, wait_event, EXTRACT(epoch FROM (clock_timestamp()-query_start)) AS query_age,
-       EXTRACT(epoch FROM (clock_timestamp()-xact_start)) AS transaction_age,
-       CASE WHEN query LIKE 'SELECT pg_sleep%' THEN 'PG_SLEEP' WHEN query='ROLLBACK' THEN 'ROLLBACK' ELSE 'OTHER' END AS command
-       FROM pg_stat_activity WHERE usename=$1 AND (state='active' OR state='idle in transaction' OR state='idle in transaction (aborted)')`,
-        [context.runtimeRole],
-      );
-      active = observed.rows;
-      if (active.length === 0) break;
-      await new Promise<void>((resolve) => setTimeout(resolve, 25));
+    let active: Awaited<ReturnType<typeof observer.active>> = [];
+    try {
+      await observer.connect();
+      for (let attempt = 0; attempt < 40; attempt += 1) {
+        active = await observer.active();
+        if (active.length === 0) break;
+        await new Promise<void>((resolve) => setTimeout(resolve, 25));
+      }
+    } finally {
+      await observer.end();
     }
     expect(active).toEqual([]);
     expect(
@@ -235,15 +239,8 @@ describe("T3 real PostgreSQL server deadlines and bounded admission", () => {
     expect(nativeBudgetMs).toBeLessThan(4500);
     expect(performance.now() - started).toBeGreaterThan(5800);
     expect(performance.now() - started).toBeLessThan(6700);
-    // A cancelled connection's close/rollback completes asynchronously.
-    for (let index = 0; index < 20; index += 1) {
-      const active = await context.adminPool.query(
-        "SELECT count(*)::int AS count FROM pg_stat_activity WHERE usename=$1 AND (state='active' OR state LIKE '%transaction%')",
-        [context.runtimeRole],
-      );
-      if (active.rows[0].count === 0) break;
-      await new Promise((resolve) => setTimeout(resolve, 25));
-    }
+    // The same-role observer below verifies that no transaction or server
+    // statement remains, not just that the driver's pool is available.
     await noPersistedEffect();
   }, 10_000);
 

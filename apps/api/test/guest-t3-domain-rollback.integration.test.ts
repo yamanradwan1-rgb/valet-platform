@@ -8,6 +8,7 @@ import { hashGuestAccessToken } from "../src/modules/valet-sessions/guest-access
 import { ConfirmParkedTestContext } from "./confirm-parked-test-context";
 import { loadGuestRetrievalEffects } from "./guest-retrieval-effects";
 import { syntheticStaffPushPolicy } from "./staff-push-policy-test-value";
+import { GuestT3PostgresActivityObserver } from "./guest-t3-postgres-activity-observer";
 
 describe("T3 authoritative precommit failure rolls back the physical domain", () => {
   const context = new ConfirmParkedTestContext("t3_native_domain_rollback");
@@ -56,14 +57,23 @@ describe("T3 authoritative precommit failure rolls back the physical domain", ()
       expect(
         await loadGuestRetrievalEffects(context.adminPool, fixture.sessionId),
       ).toEqual(before);
-      expect(
-        (
-          await context.adminPool.query(
-            "SELECT count(*)::int AS count FROM pg_stat_activity WHERE usename=$1 AND (state='active' OR state LIKE '%transaction%')",
-            [context.runtimeRole],
-          )
-        ).rows[0].count,
-      ).toBe(0);
+      const observer = new GuestT3PostgresActivityObserver(
+        context.runtimeUrl,
+        context.databaseName,
+        context.runtimeRole,
+      );
+      let active: Awaited<ReturnType<typeof observer.active>> = [];
+      try {
+        await observer.connect();
+        for (let attempt = 0; attempt < 40; attempt += 1) {
+          active = await observer.active();
+          if (active.length === 0) break;
+          await new Promise<void>((resolve) => setTimeout(resolve, 25));
+        }
+      } finally {
+        await observer.end();
+      }
+      expect(active).toEqual([]);
       expect(
         (await context.runtimePool.query("SELECT 1 AS healthy")).rows[0]
           .healthy,
