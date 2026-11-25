@@ -6,6 +6,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { PostgresTransaction } from "../src/common/database/postgres";
 import { recordAdminActivityInTransaction } from "../src/modules/auth/mfa/mfa-assurance-policy";
 import { StaffMfaTestFixture } from "./staff-mfa-test-fixture";
+import { racePoolTransaction } from "./postgres-race-pool-client";
 
 const fixture = new StaffMfaTestFixture();
 
@@ -63,18 +64,16 @@ async function recordActivity(
   context: Awaited<ReturnType<typeof enroll>>["context"],
 ) {
   const client = await fixture.runtimeDatabasePool().connect();
+  const transaction = racePoolTransaction(client);
   try {
     await client.query("BEGIN");
     await recordAdminActivityInTransaction(
       client as unknown as PostgresTransaction,
       context,
     );
-    await client.query("COMMIT");
-  } catch (error) {
-    await client.query("ROLLBACK");
-    throw error;
+    await transaction.close("COMMIT");
   } finally {
-    client.release();
+    await transaction.close("ROLLBACK").catch(() => undefined);
   }
 }
 
@@ -164,9 +163,12 @@ describe("MGT-BE-02 admin activity recording", () => {
       `UPDATE staff_auth_sessions SET revoked_at = clock_timestamp() WHERE id = $1`,
       [revoked.auth.sessionId],
     );
+    const before = (await fixture.sessionSnapshot(revoked.auth.sessionId)).rows[0]!;
+    // Invalid base credentials fail before the MFA assurance boundary.
     await expect(recordActivity(revoked.context)).rejects.toMatchObject({
-      code: "MFA_STEP_UP_REQUIRED",
+      name: "UnauthorizedException", status: 401,
     });
+    expect((await fixture.sessionSnapshot(revoked.auth.sessionId)).rows[0]).toEqual(before);
   });
 
   it("fails closed after session expiry", async () => {
@@ -177,9 +179,11 @@ describe("MGT-BE-02 admin activity recording", () => {
        WHERE id = $1`,
       [expired.auth.sessionId],
     );
+    const before = (await fixture.sessionSnapshot(expired.auth.sessionId)).rows[0]!;
     await expect(recordActivity(expired.context)).rejects.toMatchObject({
-      code: "MFA_STEP_UP_REQUIRED",
+      name: "UnauthorizedException", status: 401,
     });
+    expect((await fixture.sessionSnapshot(expired.auth.sessionId)).rows[0]).toEqual(before);
   });
 
   it("fails closed after factor retirement", async () => {
