@@ -1,5 +1,6 @@
 """Temporary native read-only diagnostic. Print safe metadata only; never raw SARIF."""
 import base64
+from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 import os
@@ -51,17 +52,30 @@ def complete(a, upload_state, current, enriched):
             and enriched.get("version") == "2.1.0"
             and len(runs) == 1 and len(runs[0].get("results", [])) == 61)
 
-def alert_identity(alert, n, r):
-    return (type(alert.get("number")) is int and alert["number"] == n
-            and alert.get("rule", {}).get("id") == r["rule"]
-            and alert.get("rule", {}).get("security_severity_level") == "high"
-            and alert.get("tool", {}).get("name") == "CodeQL"
-            and all(k in alert and alert[k] is None for k in
-                    ("dismissed_by", "dismissed_reason", "dismissed_at", "dismissed_comment")))
+def dismissal_checks(alert, n, r):
+    actor=alert.get("dismissed_by")
+    comment=alert.get("dismissed_comment")
+    try:
+        date=datetime.strptime(alert.get("dismissed_at"),"%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+        recent=timedelta(0)<=datetime.now(timezone.utc)-date<timedelta(days=30)
+    except (ValueError,TypeError):
+        recent=False
+    return {"number_rule_tool_high":type(alert.get("number")) is int and alert["number"]==n
+            and alert.get("rule",{}).get("id")==r["rule"]
+            and alert.get("rule",{}).get("security_severity_level")=="high"
+            and alert.get("tool",{}).get("name")=="CodeQL",
+            "aggregate_state_allowed":"state" in alert and alert["state"] in ("dismissed",None),
+            "owner":isinstance(actor,dict) and type(actor.get("id")) is int and actor["id"]==native.OWNER_ID,
+            "reason":alert.get("dismissed_reason")=="false positive",
+            "rationale":isinstance(comment,str) and bool(comment.strip()),
+            "recent":recent}
+
+def alert_identity(alert,n,r):
+    return all(dismissal_checks(alert,n,r).values())
 
 def instance_identity(instance, r):
     message = instance.get("message")
-    return (instance.get("state") == "open"
+    return (instance.get("state") == "dismissed"
             and instance.get("location", {}).get("path") == r["path"]
             and instance.get("location", {}).get("start_line") == r["line"]
             and isinstance(message, dict)
@@ -165,7 +179,8 @@ def main():
             "dismissal_fields_present":all(k in alert for k in ("dismissed_by","dismissed_reason","dismissed_at","dismissed_comment")),
             "dismissal_fields_null":all(k in alert and alert[k] is None for k in ("dismissed_by","dismissed_reason","dismissed_at","dismissed_comment")),
             "state_is_null":alert.get("state") is None,"state_present":"state" in alert}
-        info["alert_identity_no_dismissal"] = alert_identity(alert,n,r)
+        info["owner_dismissal_checks"] = dismissal_checks(alert,n,r)
+        info["owner_dismissal_verified"] = alert_identity(alert,n,r)
         instances = get(REPO + "/code-scanning/alerts/" + str(n) + "/instances",{"ref":REF,"per_page":100})
         exact = [i for i in instances if i.get("ref")==REF and i.get("commit_sha")==SHA and i.get("analysis_key")==KEY and i.get("category")==category]
         info["instance_exact_count"]=len(exact)
@@ -182,9 +197,9 @@ def main():
                 "markdown_match":isinstance(msg,dict) and sha(msg.get("markdown"))==r["message_sha256"],
                 "enriched_plain_matches":isinstance(m,str) and isinstance(em,str) and m==em}
             info["instance_identity"] = instance_identity(i,r)
-            info.update({"instance_open":i.get("state")=="open","instance_path_match":i.get("location",{}).get("path")==r["path"],"instance_line_match":i.get("location",{}).get("start_line")==r["line"],"instance_message_match":sha(i.get("message",{}).get("text"))==r["message_sha256"]})
+            info.update({"instance_dismissed":i.get("state")=="dismissed","instance_path_match":i.get("location",{}).get("path")==r["path"],"instance_line_match":i.get("location",{}).get("start_line")==r["line"],"instance_message_match":sha(i.get("message",{}).get("text"))==r["message_sha256"]})
         emit("ALERT",info)
-        required=("rule_match","path_match","line_match","fp_match","message_match","alert_number_integer","alert_identity_no_dismissal","instance_identity","instance_open","instance_path_match","instance_line_match")
+        required=("rule_match","path_match","line_match","fp_match","message_match","alert_number_integer","owner_dismissal_verified","instance_identity","instance_dismissed","instance_path_match","instance_line_match")
         allgood = allgood and len(matches)==1 and len(exact)==1 and all(info.get(k) is True for k in required)
     # Exercise the exact candidate production API adapter (read-only), with
     # authenticated historical head analysis count. Not raw base evaluation.
