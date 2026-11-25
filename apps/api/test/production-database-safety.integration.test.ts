@@ -10,11 +10,9 @@ import {
   verifyProductionRuntimeDatabaseSafety,
 } from "../src/common/database/postgres";
 import { RuntimeDatabaseLifecycle } from "../src/common/database/runtime-database.module";
+import { startProductionDatabaseSafetyContainer } from "./production-database-safety-container";
 
-const adminDatabaseUrl =
-  process.env.TEST_DATABASE_URL ??
-  process.env.MIGRATION_DATABASE_URL ??
-  "postgresql://valet:valet@127.0.0.1:5432/valet";
+let adminDatabaseUrl: string;
 const suffix = `${process.pid}_${randomBytes(4).toString("hex")}`;
 const databaseName = `valet_004n_runtime_${suffix}`;
 const runtimeRole = `valet_runtime_004n_${suffix}`;
@@ -27,6 +25,9 @@ let roleCreated = false;
 let runtimePool: Pool;
 let testAdminUrl: string;
 let testRuntimeUrl: string;
+let disposablePostgres:
+  | Awaited<ReturnType<typeof startProductionDatabaseSafetyContainer>>
+  | undefined;
 
 function databaseUrlFor(database: string): string {
   const url = new URL(adminDatabaseUrl);
@@ -44,6 +45,8 @@ function runtimeUrlFor(database: string): string {
 }
 
 beforeAll(async () => {
+  disposablePostgres = await startProductionDatabaseSafetyContainer();
+  adminDatabaseUrl = disposablePostgres.adminUrl;
   expect(runtimeRole).toMatch(safeIdentifier);
   const bootstrap = new Pool({ connectionString: adminDatabaseUrl });
   try {
@@ -71,21 +74,27 @@ beforeAll(async () => {
   await adminPool.query(`REVOKE ALL ON SCHEMA public FROM "${runtimeRole}"`);
   await adminPool.query(`GRANT USAGE ON SCHEMA public TO "${runtimeRole}"`);
   runtimePool = createRuntimePostgresPool(testRuntimeUrl);
-}, 30_000);
+}, 60_000);
 
 afterAll(async () => {
-  await runtimePool?.end();
-  await adminPool?.end();
-  const bootstrap = new Pool({ connectionString: adminDatabaseUrl });
   try {
-    if (databaseCreated) {
-      await bootstrap.query(`DROP DATABASE "${databaseName}" WITH (FORCE)`);
-    }
-    if (roleCreated) {
-      await bootstrap.query(`DROP ROLE IF EXISTS "${runtimeRole}"`);
+    await runtimePool?.end();
+    await adminPool?.end();
+    if (disposablePostgres !== undefined) {
+      const bootstrap = new Pool({ connectionString: adminDatabaseUrl });
+      try {
+        if (databaseCreated) {
+          await bootstrap.query(`DROP DATABASE "${databaseName}" WITH (FORCE)`);
+        }
+        if (roleCreated) {
+          await bootstrap.query(`DROP ROLE IF EXISTS "${runtimeRole}"`);
+        }
+      } finally {
+        await bootstrap.end();
+      }
     }
   } finally {
-    await bootstrap.end();
+    await disposablePostgres?.stop();
   }
 }, 30_000);
 

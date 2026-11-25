@@ -19,27 +19,28 @@ import { GuestAccessService } from "../src/modules/guest-access/guest-access.ser
 import { GuestAuthOriginPolicy } from "../src/modules/guest-access/guest-browser-transport";
 import { GuestRequestAdmission } from "../src/modules/guest-access/guest-request-admission";
 import { GuestCredentialAuthorizer } from "../src/modules/guest-access/guest-credential-authorizer";
-import { ShiftTestContext } from "./shift-test-context";
+import type { ShiftTestContext } from "./shift-test-context";
+import { GuestT3CostIsolation } from "./guest-t3-cost-isolation";
 import {
   createSessionHelper,
   createVehicleHelper,
 } from "./staff-valet-session-fixture-helpers";
 
 describe("T3 measured immutable T1 baseline versus classified read", () => {
-  const context = new ShiftTestContext("t3_measured_cost");
+  let context: ShiftTestContext;
+  const isolation = new GuestT3CostIsolation();
   let baselinePool: Pool;
   beforeAll(async () => {
     prepareT1Source();
-    await context.setup();
-    await context.runtimePool.end();
-    baselinePool = new Pool({ connectionString: context.runtimeUrl, max: 4 });
-    context.runtimePool = baselinePool;
+    await isolation.setup();
+    context = isolation.context;
+    baselinePool = isolation.baselinePool;
     process.env.ANTI_ABUSE_HMAC_SECRET_B64URL = Buffer.alloc(32, 75).toString(
       "base64url",
     );
-  }, 120_000);
+  }, 240_000);
   afterAll(async () => {
-    await context.teardown();
+    await isolation.teardown();
   }, 60_000);
 
   it("measures explicit statements, round trips, acquisitions, writes and query plan", async () => {
@@ -67,6 +68,16 @@ describe("T3 measured immutable T1 baseline versus classified read", () => {
       socket: { remoteAddress: "127.0.0.1" },
     };
     const controller = await createT1Controller(baselinePool, access);
+    const legacyRights = await baselinePool.query<{
+      role: string;
+      direct_insert: boolean;
+    }>(
+      "SELECT current_user AS role, has_column_privilege(current_user, 'anti_abuse_events', 'scope', 'INSERT') AS direct_insert",
+    );
+    expect(legacyRights.rows[0]).toMatchObject({
+      role: isolation.legacyRole,
+      direct_insert: true,
+    });
 
     const measurements: Record<string, unknown> = { baselineSha };
     await context.adminPool.query(
@@ -176,13 +187,23 @@ describe("T3 measured immutable T1 baseline versus classified read", () => {
     const before = await measure("before", baselinePool, () =>
       controller.getSession(request, {}, { setHeader: () => undefined }),
     );
-    await baselinePool.end();
     context.runtimePool = createRuntimePostgresPool(context.runtimeUrl);
+    const restrictedRights = await context.runtimePool.query<{
+      role: string;
+      direct_insert: boolean;
+    }>(
+      "SELECT current_user AS role, has_column_privilege(current_user, 'anti_abuse_events', 'scope', 'INSERT') AS direct_insert",
+    );
+    expect(restrictedRights.rows[0]).toMatchObject({
+      role: context.runtimeRole,
+      direct_insert: false,
+    });
     const current = new AntiAbuseService(context.runtimePool, keys);
+    const currentAccess = new GuestAccessService(context.runtimePool);
     const authorizer = new GuestCredentialAuthorizer(
       current,
       origins,
-      new GuestRequestAdmission(current, addresses, access),
+      new GuestRequestAdmission(current, addresses, currentAccess),
     );
     // Bind historical compatible rows outside the steady-state read sample.
     await withDatabaseOperationDeadline(() => authorizer.read(request));
