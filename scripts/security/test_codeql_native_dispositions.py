@@ -35,7 +35,8 @@ class FakeAPI:
 
     def get(self, path, query=None, sarif=False):
         self.calls.append((path, query, sarif))
-        value = self.responses[path]
+        key = (path, query.get("state")) if query and "state" in query else path
+        value = self.responses[key]
         if isinstance(value, Exception):
             raise value
         return deepcopy(value)
@@ -77,6 +78,15 @@ class NativeDispositionTests(unittest.TestCase):
                 "ref":native.REF,"commit_sha":HEAD,"analysis_key":ANALYSIS,
                 "category":CATEGORY,"state":"dismissed","location":{"path":path,"start_line":100},
                 "message":{"text":f["message"]["text"]}}]
+        self.scoped = []
+        self.opened = []
+        for number in sorted(native.IDS):
+            path = native.API+"/code-scanning/alerts/"+str(number)
+            scoped = deepcopy(self.api.responses[path])
+            scoped["most_recent_instance"] = deepcopy(self.api.responses[path+"/instances"][0])
+            self.scoped.append(scoped)
+        self.api.responses[(native.API+"/code-scanning/alerts","dismissed")] = self.scoped
+        self.api.responses[(native.API+"/code-scanning/alerts","open")] = self.opened
         self.api.responses[native.API] = {
             "id":native.REPO_ID,"full_name":native.REPO,"owner":{"id":native.OWNER_ID},"default_branch":"main"}
         self.api.responses[native.API+"/pulls/466"] = {
@@ -136,9 +146,10 @@ class NativeDispositionTests(unittest.TestCase):
         self.instance()["state"]="open"
         self.assertEqual(self.evaluate()["remaining_blocked"],1)
 
-    def test_null_state_with_owner_but_open_instance_fails(self):
+    def test_null_state_with_owner_but_effective_instance_open_fails(self):
         self.alert()["state"]=None
         self.instance()["state"]="open"
+        self.scoped[0]["most_recent_instance"]["state"]="open"
         with self.assertRaises(gate.InvalidScan):
             self.evaluate()
 
@@ -202,11 +213,59 @@ class NativeDispositionTests(unittest.TestCase):
         self.assertEqual(out["remaining_blocked"],9)
         self.assertEqual(self.api.calls,[])
 
-    def test_native_alert_state_is_not_pr_instance_state(self):
+    def test_native_alert_state_is_not_raw_occurrence_state(self):
         self.instance()["state"]="open"
+        self.assertEqual(self.evaluate()["remaining_blocked"],0)
+        self.assertIn((native.API+"/code-scanning/alerts/50", None, False), self.api.calls)
+        self.assertIn((native.API+"/code-scanning/alerts",
+                       {"ref":native.REF,"state":"dismissed","tool_name":"CodeQL","per_page":100},False),self.api.calls)
+
+    def test_missing_scoped_dismissal_fails(self):
+        self.scoped.pop(0)
         with self.assertRaises(gate.InvalidScan):
             self.evaluate()
-        self.assertIn((native.API+"/code-scanning/alerts/50", None, False), self.api.calls)
+
+    def test_duplicate_scoped_dismissal_fails(self):
+        self.scoped.append(deepcopy(self.scoped[0]))
+        with self.assertRaises(gate.InvalidScan):
+            self.evaluate()
+
+    def test_scoped_open_and_dismissed_conflict_fails(self):
+        entry=deepcopy(self.scoped[0])
+        entry["state"]="open"
+        self.opened.append(entry)
+        with self.assertRaises(gate.InvalidScan):
+            self.evaluate()
+
+    def test_scoped_wrong_current_commit_fails(self):
+        self.scoped[0]["most_recent_instance"]["commit_sha"]="f"*40
+        with self.assertRaises(gate.InvalidScan):
+            self.evaluate()
+
+    def test_scoped_wrong_current_ref_fails(self):
+        self.scoped[0]["most_recent_instance"]["ref"]="refs/heads/main"
+        with self.assertRaises(gate.InvalidScan):
+            self.evaluate()
+
+    def test_scoped_wrong_owner_comment_fails(self):
+        self.scoped[0]["dismissed_comment"]="different"
+        with self.assertRaises(gate.InvalidScan):
+            self.evaluate()
+
+    def test_scoped_reopened_on_second_read_fails(self):
+        original=self.api.get
+        count=0
+        def changed(path,query=None,sarif=False):
+            nonlocal count
+            value=original(path,query,sarif)
+            if path==native.API+"/code-scanning/alerts" and query["state"]=="dismissed":
+                count+=1
+                if count>1:
+                    value.pop(0)
+            return value
+        self.api.get=changed
+        with self.assertRaises(gate.InvalidScan):
+            self.evaluate()
 
     def test_native_missing_optional_warning(self):
         del self.analysis["warning"]
@@ -245,7 +304,7 @@ class NativeDispositionTests(unittest.TestCase):
             self.evaluate()
 
     def test_dismissed_alert_wrong_instance_state_fails(self):
-        self.instance()["state"]="open"
+        self.instance()["state"]="fixed"
         with self.assertRaises(gate.InvalidScan):
             self.evaluate()
 

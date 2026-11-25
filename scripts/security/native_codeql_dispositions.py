@@ -181,6 +181,46 @@ def _native_mapping(api, upload, scanned, scan, analysis_key, category):
     return mapping
 
 
+def _scoped_alert_states(api):
+    """Use effective PR alert state, not the raw occurrence lifecycle state."""
+    def read(state):
+        rows = api.get(API + "/code-scanning/alerts",
+                       {"ref": REF, "state": state, "tool_name": "CodeQL", "per_page": 100})
+        require(type(rows) is list)
+        indexed = {}
+        for row in rows:
+            number = row["number"]
+            require(type(number) is int and number > 0 and number not in indexed
+                    and row["state"] == state and row["tool"]["name"] == "CodeQL")
+            indexed[number] = row
+        return indexed
+    dismissed, opened = read("dismissed"), read("open")
+    require(not (dismissed.keys() & opened.keys()))
+    return dismissed, opened
+
+
+def _scoped_disposition(states, number, alert, row, scanned, analysis_key, category):
+    dismissed, opened = states
+    require(number in dismissed and number not in opened)
+    scoped = dismissed[number]
+    # The list endpoint is ref-specific. Its effective state must be
+    # dismissed and its current instance must identify this exact scan.
+    require(scoped["rule"]["id"] == row["ruleId"]
+            and scoped["rule"]["security_severity_level"] == "high"
+            and all(scoped[k] == alert[k] for k in
+                    ("dismissed_by", "dismissed_reason", "dismissed_at", "dismissed_comment")))
+    latest = scoped["most_recent_instance"]
+    require(latest["ref"] == REF and latest["commit_sha"] == scanned
+            and latest["analysis_key"] == analysis_key and latest["category"] == category
+            and latest["state"] == "dismissed"
+            and latest["location"]["path"] == row["path"]
+            and latest["location"]["start_line"] == row["line"]
+            and isinstance(latest["message"], dict)
+            and isinstance(latest["message"].get("text"), str)
+            and bool(latest["message"]["text"].strip()))
+    return scoped
+
+
 def evaluate(*, head_path, base_path, root, scanned, base, upload, api,
              analysis_key, category, now):
     """Candidate-only pure verdict with live GET readback; never alters alerts.
@@ -210,6 +250,7 @@ def evaluate(*, head_path, base_path, root, scanned, base, upload, api,
         _scope(api, root, scanned, base)
         mapping = _native_mapping(api, upload, scanned, head_scan, analysis_key, category)
         accepted = []
+        scoped_states = _scoped_alert_states(api)
         for row, (number, reference) in eligible:
             require(telemetry._source_pin(root, row["path"], row["line"], {})
                     == reference["source_sha256"])
@@ -224,7 +265,7 @@ def evaluate(*, head_path, base_path, root, scanned, base, upload, api,
                     and alert["rule"]["security_severity_level"] == "high"
                     and alert["tool"]["name"] == "CodeQL")
             # GitHub returns null aggregate state for PR-only alerts. The
-            # dismissal metadata AND exact dismissed instance remain mandatory.
+            # dismissal metadata AND ref-scoped effective dismissal remain mandatory.
             if alert["state"] not in ("dismissed", None):
                 continue
             actor = alert["dismissed_by"]
@@ -242,7 +283,10 @@ def evaluate(*, head_path, base_path, root, scanned, base, upload, api,
                         and i["analysis_key"] == analysis_key and i["category"] == category]
             require(len(matching) == 1)
             instance = matching[0]
-            require(instance["state"] == "dismissed"
+            # GitHub's instance history can retain "open" after dismissal;
+            # the ref-scoped alert list exposes the effective dismissed state.
+            # Require exact current occurrence and both authoritative readbacks.
+            require(instance["state"] in ("open", "dismissed")
                     and instance["location"]["path"] == row["path"]
                     and instance["location"]["start_line"] == row["line"]
                     and isinstance(instance["message"], dict)
@@ -250,12 +294,15 @@ def evaluate(*, head_path, base_path, root, scanned, base, upload, api,
                     and bool(instance["message"]["text"].strip()))
             # The exact raw message hash is already required in the enriched
             # analysis mapping. Instance text is a separate rendered form.
-            accepted.append((alert_path, alert, instance))
+            scoped = _scoped_disposition(scoped_states, number, alert, row, scanned,
+                                         analysis_key, category)
+            accepted.append((alert_path, alert, instance, row, scoped))
             result["approved_alert_numbers"].append(number)
             result["native_false_positive"] += 1
             result["remaining_blocked"] -= 1
         _scope(api, root, scanned, base)
-        for alert_path, alert, instance in accepted:
+        refreshed_states = _scoped_alert_states(api)
+        for alert_path, alert, instance, row, scoped in accepted:
             fresh = api.get(alert_path)
             require(all(fresh[k] == alert[k] for k in
                         ("number","state","rule","tool","dismissed_by","dismissed_reason",
@@ -264,6 +311,8 @@ def evaluate(*, head_path, base_path, root, scanned, base, upload, api,
             exact = [i for i in refreshed if i["ref"] == REF and i["commit_sha"] == scanned
                      and i["analysis_key"] == analysis_key and i["category"] == category]
             require(exact == [instance])
+            require(_scoped_disposition(refreshed_states, alert["number"], fresh, row,
+                                        scanned, analysis_key, category) == scoped)
         result["approved_alert_numbers"].sort()
         return result
     except gate.InvalidScan:

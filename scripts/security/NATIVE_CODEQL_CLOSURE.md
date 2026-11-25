@@ -245,3 +245,32 @@ duplicate alert numbers remain globally invalid and only a singleton
 equal to the exact reviewed number may reconcile. Unrelated existing
 duplicate identities do not manufacture an exception. The unchanged raw
 comparator still blocks every new unmatched High/Critical occurrence.
+
+
+### Effective PR dismissal state ? actual post-approval API behavior
+
+Owner independently dismissed the nine exact alerts with nonempty
+rationales. Read-only run 45724518392 verified fresh PR merge
+047667747925c0e0a8cabbd0945471efb4a2a31b, analysis 2252462374,
+upload e3b8184e-e92a-11f1-8616-3e7f8b305e93, 61 enriched results and
+nine exact source-locked identities. All nine had valid Owner dismissal
+metadata; the instance history endpoint nevertheless returned open for
+the fresh exact occurrence. Run 45724718544 confirmed the documented
+ref-scoped alert listing returns nine dismissed and 52 open, none of
+the nine in the open set, and all nine most_recent_instance states
+dismissed with the exact PR ref, scan commit, analysis key, category,
+path and line. GitHub documents dismissal across all branches and the
+ref-specific most_recent_instance field. The historical occurrence
+state is not the effective disposition. Require both the individual
+Owner dismissal and the exact ref-scoped effective dismissed state,
+including a current most_recent_instance, exclusion from the open
+list, unique identities, matching dismissal metadata and second
+readback. Keep exact instance history identity and reject other
+lifecycle states. No widening of the nine approved source identities,
+raw comparison or scanner coverage. All unmatched High/Critical
+findings continue to block.
+
+The aggregate checkout now fetches history so its existing exact
+reviewed source-lock test can resolve baseline 2bc6c983; the push
+aggregate failed that test with a default shallow checkout. No test
+or scanner is removed.
