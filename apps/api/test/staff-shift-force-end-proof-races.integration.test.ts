@@ -105,8 +105,8 @@ describe("T05-F exact session, factor and grant proof held through closure", () 
         const closing = staffRaceBarrierCloser(client);
         const pending: Promise<unknown>[] = [];
         try {
-          force = new StaffShiftForceEndService(gate.pool)
-            .execute(s.context, s.organizationId, s.shiftId, s.command)
+          force = gate.trackFirst(new StaffShiftForceEndService(gate.pool)
+            .execute(s.context, s.organizationId, s.shiftId, s.command))
             .catch((error: unknown) => error);
           await gate.held;
           await client.query("BEGIN");

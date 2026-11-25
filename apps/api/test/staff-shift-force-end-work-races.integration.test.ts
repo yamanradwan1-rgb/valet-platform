@@ -23,11 +23,11 @@ describe("T05-F immutable closure vs real operational commands", () => {
       let force: ReturnType<typeof fixture.force> | undefined;
       let failed = false;
       try {
-        first = createEndShiftCommandExecutor(gate.pool)({
+        first = gate.trackFirst(createEndShiftCommandExecutor(gate.pool)({
           authenticatedUserId: s.targetUser.id,
           shiftId: s.shiftId,
           cashReported: "7.000",
-        }).catch((error: unknown) => error);
+        })).catch((error: unknown) => error);
         await gate.held;
         force = fixture.force(s);
         void force.catch(() => undefined);
@@ -64,8 +64,8 @@ describe("T05-F immutable closure vs real operational commands", () => {
         self: Promise<unknown> | undefined;
       let failed = false;
       try {
-        first = new StaffShiftForceEndService(gate.pool)
-          .execute(s.context, s.organizationId, s.shiftId, s.command)
+        first = gate.trackFirst(new StaffShiftForceEndService(gate.pool)
+          .execute(s.context, s.organizationId, s.shiftId, s.command))
           .catch((error: unknown) => error);
         await gate.held;
         self = createEndShiftCommandExecutor(pool)({
@@ -110,11 +110,11 @@ describe("T05-F immutable closure vs real operational commands", () => {
       let force: ReturnType<typeof fixture.force> | undefined;
       let failed = false;
       try {
-        first = createAssignTaskCommandExecutor(gate.pool)({
+        first = gate.trackFirst(createAssignTaskCommandExecutor(gate.pool)({
           authenticatedUserId: s.targetUser.id,
           taskId: task.taskId,
           expectedVersion: 1,
-        }).catch((error: unknown) => error);
+        })).catch((error: unknown) => error);
         await gate.held;
         force = fixture.force(s);
         void force.catch(() => undefined);
@@ -163,8 +163,8 @@ describe("T05-F immutable closure vs real operational commands", () => {
         assign: Promise<unknown> | undefined;
       let failed = false;
       try {
-        first = new StaffShiftForceEndService(gate.pool)
-          .execute(s.context, s.organizationId, s.shiftId, s.command)
+        first = gate.trackFirst(new StaffShiftForceEndService(gate.pool)
+          .execute(s.context, s.organizationId, s.shiftId, s.command))
           .catch((error: unknown) => error);
         await gate.held;
         assign = createAssignTaskCommandExecutor(pool)({

@@ -5,7 +5,9 @@ import { waitForStaffRaceBlockingTree } from "./staff-race-lock-observer";
 /** Pause the real executor at COMMIT while its actual PostgreSQL locks remain held. */
 export function holdForceEndTestCommit(pool: Pool, rollback = false) {
   let heldBackendPid: number | undefined;
+  let reached = false;
   let entered!: () => void;
+  let failHeld!: (error: unknown) => void;
   let release!: () => void;
   const held = new Promise<void>((resolve, reject) => {
     const timeout = setTimeout(
@@ -14,10 +16,16 @@ export function holdForceEndTestCommit(pool: Pool, rollback = false) {
     );
     timeout.unref();
     entered = () => {
+      reached = true;
       clearTimeout(timeout);
       resolve();
     };
+    failHeld = (error) => {
+      clearTimeout(timeout);
+      reject(error);
+    };
   });
+  void held.catch(() => undefined);
   const gate = new Promise<void>((resolve) => {
     release = resolve;
   });
@@ -70,6 +78,17 @@ export function holdForceEndTestCommit(pool: Pool, rollback = false) {
     pool: wrapped,
     held,
     release: releaseOnce,
+    trackFirst<T>(request: Promise<T>): Promise<T> {
+      void request.then(
+        () => {
+          if (!reached) failHeld(new Error("Executor settled before the commit barrier."));
+        },
+        (error: unknown) => {
+          if (!reached) failHeld(error);
+        },
+      );
+      return request;
+    },
     get blockerPid() {
       if (heldBackendPid === undefined)
         throw new Error("Force End commit barrier is not currently held.");

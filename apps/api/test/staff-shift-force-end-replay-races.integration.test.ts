@@ -27,8 +27,8 @@ describe("T05-F concurrent logical operation replay", () => {
         let second: ReturnType<typeof fixture.force> | undefined;
         let failed = false;
         try {
-          first = new StaffShiftForceEndService(gate.pool)
-            .execute(s.context, s.organizationId, s.shiftId, s.command)
+          first = gate.trackFirst(new StaffShiftForceEndService(gate.pool)
+            .execute(s.context, s.organizationId, s.shiftId, s.command))
             .catch((error: unknown) => error);
           await gate.held;
           const command =

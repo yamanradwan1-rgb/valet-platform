@@ -43,8 +43,16 @@ export class StaffShiftForceEndTestFixture extends ManagementControlPlaneTestFix
       confirmation: "FORCE_END_SHIFT" as const,
       reason: "سبب — administrative closure <script>text</script>",
     };
+    const session = await this.query<{ created_at: Date }>(
+      "SELECT created_at FROM staff_auth_sessions WHERE id=$1 AND user_id=$2",
+      [auth.sessionId, actorUser.id],
+    );
+    const createdAt = session.rows[0]?.created_at;
+    if (session.rowCount !== 1 || !(createdAt instanceof Date) || !Number.isFinite(createdAt.getTime())) {
+      throw new Error("Force End fixture requires the persisted Staff session identity.");
+    }
     const context: StaffSessionContext = {
-      createdAt: new Date(),
+      createdAt,
       userId: actorUser.id,
       staffAuthSessionId: auth.sessionId,
       rawAccessToken: auth.accessToken,
