@@ -8,18 +8,12 @@ import { createProviderEventIngress } from "../src/modules/payments/provider-eve
 import type { ProviderEventAuthenticator } from "../src/modules/payments/provider-event-types";
 import { CompleteHandoffTestContext } from "./complete-handoff-test-context";
 import { waitForPostgresBlockingEdge } from "./postgres-lock-observer";
+import { rollbackAndDrain, settled } from "./financial-command-race-test-helpers";
 
 const context = new CompleteHandoffTestContext("financial_command_races");
 
 beforeAll(() => context.setup(), 120_000);
 afterAll(() => context.teardown(), 60_000);
-
-function settled<T>(operation: Promise<T>) {
-  return operation.then(
-    (value) => ({ kind: "FULFILLED" as const, value }),
-    (error: unknown) => ({ error, kind: "REJECTED" as const }),
-  );
-}
 
 async function waitForWaiter(blockerPid: number): Promise<number> {
   const waiters = await waitForPostgresBlockingEdge(context.adminPool, {
@@ -53,6 +47,7 @@ describe("VAL-008G release races with real financial commands", () => {
     await configure(fixture, "10.000");
     const payment = await initialize(fixture.sessionId);
     const blocker = await context.adminPool.connect();
+    const pending: Promise<unknown>[] = [];
     try {
       await blocker.query("BEGIN");
       await blocker.query(`SELECT id FROM payments WHERE id = $1 FOR UPDATE`, [
@@ -62,6 +57,7 @@ describe("VAL-008G release races with real financial commands", () => {
         "SELECT pg_backend_pid() AS pid",
       )).rows[0]!.pid;
       const cash = settled(
+        pending,
         createCashReceiptExecutor(context.runtimePool)({
           authenticatedUserId: fixture.userId,
           submissionIdempotencyKey: randomUUID(),
@@ -69,7 +65,7 @@ describe("VAL-008G release races with real financial commands", () => {
         }),
       );
       await waitForWaiter(blockerPid);
-      const completion = settled(context.complete(fixture));
+      const completion = settled(pending, context.complete(fixture));
       await blocker.query("COMMIT");
       await expect(cash).resolves.toMatchObject({
         kind: "FULFILLED",
@@ -80,8 +76,7 @@ describe("VAL-008G release races with real financial commands", () => {
         value: { state: "COMPLETED" },
       });
     } finally {
-      await blocker.query("ROLLBACK");
-      blocker.release();
+      await rollbackAndDrain(blocker, pending);
     }
   });
 
@@ -112,6 +107,7 @@ describe("VAL-008G release races with real financial commands", () => {
       authenticator,
     );
     const blocker = await context.adminPool.connect();
+    const pending: Promise<unknown>[] = [];
     try {
       await blocker.query("BEGIN");
       await blocker.query(`SELECT id FROM payments WHERE id = $1 FOR UPDATE`, [
@@ -121,6 +117,7 @@ describe("VAL-008G release races with real financial commands", () => {
         "SELECT pg_backend_pid() AS pid",
       )).rows[0]!.pid;
       const provider = settled(
+        pending,
         ingress({
           binding: {
             organizationId: fixture.organizationId,
@@ -137,7 +134,7 @@ describe("VAL-008G release races with real financial commands", () => {
         }),
       );
       const providerPid = await waitForWaiter(blockerPid);
-      const completion = settled(context.complete(fixture));
+      const completion = settled(pending, context.complete(fixture));
       await waitForWaiter(providerPid);
       await blocker.query("COMMIT");
       await expect(provider).resolves.toMatchObject({
@@ -153,8 +150,7 @@ describe("VAL-008G release races with real financial commands", () => {
         value: { state: "COMPLETED" },
       });
     } finally {
-      await blocker.query("ROLLBACK");
-      blocker.release();
+      await rollbackAndDrain(blocker, pending);
     }
   });
 
@@ -193,6 +189,7 @@ describe("VAL-008G release races with real financial commands", () => {
       authenticator,
     );
     const blocker = await context.adminPool.connect();
+    const pending: Promise<unknown>[] = [];
     try {
       await blocker.query("BEGIN");
       await blocker.query(`SELECT id FROM payments WHERE id = $1 FOR UPDATE`, [
@@ -202,6 +199,7 @@ describe("VAL-008G release races with real financial commands", () => {
         "SELECT pg_backend_pid() AS pid",
       )).rows[0]!.pid;
       const provider = settled(
+        pending,
         ingress({
           binding: {
             organizationId: fixture.organizationId,
@@ -218,7 +216,7 @@ describe("VAL-008G release races with real financial commands", () => {
         }),
       );
       const providerPid = await waitForWaiter(blockerPid);
-      const completion = settled(context.complete(fixture));
+      const completion = settled(pending, context.complete(fixture));
       await waitForWaiter(providerPid);
       await blocker.query("COMMIT");
       await expect(provider).resolves.toMatchObject({
@@ -230,8 +228,7 @@ describe("VAL-008G release races with real financial commands", () => {
         value: { state: "COMPLETED" },
       });
     } finally {
-      await blocker.query("ROLLBACK");
-      blocker.release();
+      await rollbackAndDrain(blocker, pending);
     }
   });
 
@@ -241,6 +238,7 @@ describe("VAL-008G release races with real financial commands", () => {
       const fixture = await context.prepareStandard("PICKUP_CODE");
       await configure(fixture, "0.000");
       const blocker = await context.adminPool.connect();
+      const pending: Promise<unknown>[] = [];
       try {
         await blocker.query("BEGIN");
         await blocker.query(
@@ -252,13 +250,13 @@ describe("VAL-008G release races with real financial commands", () => {
         )).rows[0]!.pid;
         const first =
           order === "INITIALIZE_FIRST"
-            ? settled(initialize(fixture.sessionId))
-            : settled(context.complete(fixture));
+            ? settled(pending, initialize(fixture.sessionId))
+            : settled(pending, context.complete(fixture));
         const firstPid = await waitForWaiter(blockerPid);
         const second =
           order === "INITIALIZE_FIRST"
-            ? settled(context.complete(fixture))
-            : settled(initialize(fixture.sessionId));
+            ? settled(pending, context.complete(fixture))
+            : settled(pending, initialize(fixture.sessionId));
         await waitForWaiter(firstPid);
         await blocker.query("COMMIT");
         const [firstResult, secondResult] = await Promise.all([first, second]);
@@ -285,8 +283,7 @@ describe("VAL-008G release races with real financial commands", () => {
           ).toBe("HANDOFF_PENDING");
         }
       } finally {
-        await blocker.query("ROLLBACK");
-        blocker.release();
+        await rollbackAndDrain(blocker, pending);
       }
     },
   );

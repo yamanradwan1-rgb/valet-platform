@@ -4,6 +4,7 @@ import { readCurrentUncoveredTaskAlerts } from "../src/modules/dispatch/uncovere
 import { requestGuestRetrieval } from "../src/modules/retrieval/guest-retrieval-request-command";
 import { resolveAndLockGuestSessionById } from "../src/modules/valet-sessions/guest-access-session-resolution";
 import { DispatchTestContext } from "./dispatch-test-context";
+import { waitForPostgresBlockingEdge } from "./postgres-lock-observer";
 
 const context = new DispatchTestContext("issue414_guest_queue_clock");
 
@@ -36,35 +37,25 @@ describe("Issue #414 initial guest Retrieval queue postlock timestamp", () => {
       sessionState: "PARKED",
     });
     const blocker = await context.adminPool.connect();
-    await blocker.query("BEGIN");
-    let held = true;
+    let held = false;
+    let pending: Promise<void> | undefined;
     try {
-      await blocker.query(
+      await blocker.query("BEGIN");
+      held = true;
+      const locked = await blocker.query(
         "SELECT id FROM valet_sessions WHERE id=$1 FOR UPDATE",
         [fixture.sessionId],
       );
-      const pending = requestInTransaction(fixture.sessionId);
+      expect(locked.rowCount).toBe(1);
+      const blockerPid = (await blocker.query<{ pid: number }>(
+        "SELECT pg_backend_pid() AS pid",
+      )).rows[0]!.pid;
+      pending = requestInTransaction(fixture.sessionId);
       // Keep the competing operation handled if this lock assertion fails.
       void pending.catch(() => undefined);
-      let blocked = false;
-      for (let attempt = 0; attempt < 150; attempt += 1) {
-        const activity = await context.adminPool.query<{ blocked: boolean }>(
-          `SELECT EXISTS (
-             SELECT 1 FROM pg_stat_activity
-             WHERE datname=current_database()
-               AND wait_event_type='Lock'
-               -- pg_stat_activity.query can truncate this long SQL statement
-               -- before its trailing FOR UPDATE OF session.
-               AND query LIKE '%FROM valet_sessions AS session%'
-           ) AS blocked`,
-        );
-        if (activity.rows[0]?.blocked) {
-          blocked = true;
-          break;
-        }
-        await context.adminPool.query("SELECT pg_sleep(0.01)");
-      }
-      expect(blocked).toBe(true);
+      expect(await waitForPostgresBlockingEdge(context.adminPool, {
+        blockerPid,
+      })).toHaveLength(1);
       await context.adminPool.query("SELECT pg_sleep(0.3)");
       const releasedAt = (
         await blocker.query<{ at: Date }>("SELECT clock_timestamp() AS at")
@@ -139,8 +130,12 @@ describe("Issue #414 initial guest Retrieval queue postlock timestamp", () => {
         readTx.release();
       }
     } finally {
-      if (held) await blocker.query("ROLLBACK");
-      blocker.release();
+      try {
+        if (held) await blocker.query("ROLLBACK");
+      } finally {
+        blocker.release();
+        await pending?.catch(() => undefined);
+      }
     }
   });
 });

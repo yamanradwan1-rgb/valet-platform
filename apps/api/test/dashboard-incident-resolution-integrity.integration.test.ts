@@ -1,5 +1,6 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { incidentResolutionFixture } from "./incident-resolution-test-fixture";
+import { waitForPostgresBlockingEdge } from "./postgres-lock-observer";
 
 const { fixture, actor, seed, command } = incidentResolutionFixture();
 beforeAll(() => fixture.start(), 120_000);
@@ -67,29 +68,23 @@ describe("#337 rollback, scoped pagination and least privilege", () => {
     let pending: ReturnType<typeof fixture.managementPost> | null = null;
     try {
       await blocker.query("BEGIN");
-      await blocker.query(
+      const locked = await blocker.query(
         `SELECT 1 FROM organization_subscriptions WHERE organization_id=$1 FOR UPDATE`,
         [owner.member.organizationId],
       );
+      expect(locked.rowCount).toBe(1);
+      const blockerPid = (await blocker.query<{ pid: number }>(
+        "SELECT pg_backend_pid() AS pid",
+      )).rows[0]!.pid;
       pending = fixture.managementPost(
         `${target.base}/${target.incident}/resolve`,
         owner.auth.accessToken,
         command(),
       );
-      let waiting = false;
-      for (let attempt = 0; attempt < 150; attempt++) {
-        const locks = await fixture.query<{ blocked: number }>(
-          `SELECT count(*)::int AS blocked FROM pg_stat_activity
-           WHERE datname=current_database() AND wait_event_type='Lock'
-             AND query LIKE '%shift_presence_lock_management_entitlement%'`,
-        );
-        if ((locks.rows[0]?.blocked ?? 0) > 0) {
-          waiting = true;
-          break;
-        }
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      }
-      expect(waiting).toBe(true);
+      void pending.catch(() => undefined);
+      expect(await waitForPostgresBlockingEdge(fixture.databasePool(), {
+        blockerPid,
+      })).toHaveLength(1);
       await blocker.query(
         `UPDATE organization_subscriptions SET dashboard_access_enabled=false
          WHERE organization_id=$1`,
@@ -104,9 +99,12 @@ describe("#337 rollback, scoped pagination and least privilege", () => {
       );
       expect(saved.rows).toEqual([{ status: "OPEN" }]);
     } finally {
-      if (!committed) await blocker.query("ROLLBACK");
-      blocker.release();
-      await pending?.catch(() => undefined);
+      try {
+        if (!committed) await blocker.query("ROLLBACK");
+      } finally {
+        blocker.release();
+        await pending?.catch(() => undefined);
+      }
     }
   }, 45_000);
   it("rolls back the actual runtime mutation if appending Audit fails", async () => {
