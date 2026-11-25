@@ -72,22 +72,6 @@ async function holdSession(sessionId: string): Promise<PoolClient> {
   return client;
 }
 
-async function waitForBlocked(fragment: string, minimum = 1): Promise<void> {
-  for (let attempt = 0; attempt < 150; attempt += 1) {
-    const result = await fixture.query<{ count: number }>(
-      `SELECT count(*)::integer AS count
-       FROM pg_stat_activity
-       WHERE datname = current_database()
-         AND state = 'active'
-         AND wait_event_type = 'Lock'
-         AND query LIKE $1`,
-      [`%${fragment}%`],
-    );
-    if ((result.rows[0]?.count ?? 0) >= minimum) return;
-  }
-  throw new Error(`Blocked-query barrier not reached: ${fragment}`);
-}
-
 describe("MGT-BE-02 authority races", () => {
   it("makes refresh replay revocation authoritative over a concurrent TOTP step-up", async () => {
     const admin = await fixture.createCompanyAdmin();
@@ -102,7 +86,7 @@ describe("MGT-BE-02 authority races", () => {
       const stepUp = fixture.postMfa(routes.stepUp, nextAccess, {
         code: await totp(begin.provisioning.secretBase32, 1),
       });
-      await waitForBlocked("staff_auth_sessions", 2);
+      await fixture.waitForBlockedMfaQueries(sessionLock, 2);
       await sessionLock.query("COMMIT");
       sessionLock.release();
 
@@ -144,7 +128,7 @@ describe("MGT-BE-02 authority races", () => {
       const stepUp = fixture.postMfa(routes.stepUp, auth.accessToken, {
         code: await totp(begin.provisioning.secretBase32, 1),
       });
-      await waitForBlocked("staff_auth_sessions", 2);
+      await fixture.waitForBlockedMfaQueries(sessionLock, 2);
       await sessionLock.query("COMMIT");
       sessionLock.release();
 
@@ -184,7 +168,7 @@ describe("MGT-BE-02 authority races", () => {
       const stepUp = fixture.postMfa(routes.stepUp, second.accessToken, {
         code: await totp(begin.provisioning.secretBase32, 1),
       });
-      await waitForBlocked("FOR UPDATE OF session, staff_user", 2);
+      await fixture.waitForBlockedMfaQueries(userLock, 2);
       await userLock.query("COMMIT");
       userLock.release();
 
@@ -229,7 +213,7 @@ describe("MGT-BE-02 authority races", () => {
           userId: admin.userId,
         },
       );
-      await waitForBlocked("FOR UPDATE", 2);
+      await fixture.waitForBlockedMfaQueries(userLock, 2);
       await userLock.query("COMMIT");
       userLock.release();
 

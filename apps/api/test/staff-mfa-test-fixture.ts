@@ -2,6 +2,7 @@ import { createHash, randomBytes, randomUUID } from "node:crypto";
 
 import type { PoolClient } from "pg";
 
+import { waitForPostgresBlockingEdge } from "./postgres-lock-observer";
 import { StaffAuthNativeFixture } from "./staff-auth-native-fixture";
 
 export interface CompanyAdminFixture {
@@ -173,6 +174,26 @@ export class StaffMfaTestFixture extends StaffAuthNativeFixture {
       [sessionId],
     );
     return client;
+  }
+
+  async waitForBlockedMfaQueries(
+    heldTransaction: PoolClient,
+    expectedWaiters = 1,
+  ): Promise<void> {
+    // Restricted runtime/MFA writers have masked pg_stat_activity.query,
+    // state and wait_event_type. Observe the actual lock owner PID instead
+    // of guessing a blocked SQL text across privilege boundaries.
+    const backend = await heldTransaction.query<{ pid: number }>(
+      "SELECT pg_backend_pid()::integer AS pid",
+    );
+    const blockerPid = backend.rows[0]?.pid;
+    if (blockerPid === undefined) {
+      throw new Error("MFA race lock holder backend PID is unavailable.");
+    }
+    await waitForPostgresBlockingEdge(this.databasePool(), {
+      blockerPid,
+      expectedWaiters,
+    });
   }
 
   private restoreMfaEnvironment(): void {

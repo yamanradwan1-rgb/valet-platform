@@ -58,25 +58,6 @@ async function enroll(accessToken: string) {
   return { begin, confirmation };
 }
 
-async function waitForBlockedQuery(fragment: string): Promise<void> {
-  for (let attempt = 0; attempt < 100; attempt += 1) {
-    const result = await fixture.query<{ blocked: boolean }>(
-      `SELECT EXISTS (
-         SELECT 1 FROM pg_stat_activity
-         WHERE datname = current_database()
-           AND state = 'active'
-           AND wait_event_type = 'Lock'
-           AND query LIKE $1
-       ) AS blocked`,
-      [`%${fragment}%`],
-    );
-    if (result.rows[0]?.blocked === true) return;
-  }
-  throw new Error(
-    `Timed out waiting for blocked PostgreSQL query: ${fragment}`,
-  );
-}
-
 async function lockRefresh(refreshToken: string): Promise<PoolClient> {
   const client = await fixture.databasePool().connect();
   await client.query("BEGIN");
@@ -96,7 +77,7 @@ describe("MGT-BE-02 Staff MFA session races", () => {
     let lockOpen = true;
     try {
       const refreshing = fixture.refresh(auth.refreshToken);
-      await waitForBlockedQuery("FROM staff_refresh_credentials AS refresh");
+      await fixture.waitForBlockedMfaQueries(refreshLock);
       const stepped = await fixture.postMfa(routes.stepUp, auth.accessToken, {
         code: await totp(begin.provisioning.secretBase32, 1),
       });
@@ -184,7 +165,7 @@ describe("MGT-BE-02 Staff MFA session races", () => {
     let lockOpen = true;
     try {
       const state = fixture.getMfa(routes.state, auth.accessToken);
-      await waitForBlockedQuery("FOR UPDATE OF session, staff_user");
+      await fixture.waitForBlockedMfaQueries(userLock);
       await userLock.query(
         `UPDATE users SET status = 'DISABLED' WHERE id = $1`,
         [admin.userId],
