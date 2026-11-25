@@ -1,4 +1,4 @@
-import type { PoolClient } from "pg";
+import { Pool, type PoolClient } from "pg";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
 import type { StaffSessionContext } from "../src/modules/auth/staff-session-context";
@@ -10,10 +10,20 @@ import type { MfaAuthSession } from "./staff-mfa-test-fixture";
 import { ManagementAuditTestFixture } from "./management-audit-test-fixture";
 
 const fixture = new ManagementAuditTestFixture();
+let runtimePool: Pool | undefined;
 
-beforeAll(() => fixture.start(), 120_000);
+beforeAll(async () => {
+  await fixture.start();
+  runtimePool = new Pool({ connectionString: fixture.runtimeDatabaseUrl(), max: 1 });
+}, 120_000);
 afterEach(() => fixture.resetLimits());
-afterAll(() => fixture.stop(), 60_000);
+afterAll(async () => {
+  try {
+    await runtimePool?.end();
+  } finally {
+    await fixture.stop();
+  }
+}, 60_000);
 
 async function context(
   auth: MfaAuthSession,
@@ -36,7 +46,9 @@ async function context(
 async function inTransaction<T>(
   operation: (transaction: PoolClient) => Promise<T>,
 ): Promise<T> {
-  const transaction = await fixture.databasePool().connect();
+  if (!runtimePool) throw new Error("Runtime authorization pool was not started.");
+  // Option C grants the session-lock entrypoint only to the runtime reader.
+  const transaction = await runtimePool.connect();
   try {
     await transaction.query("BEGIN");
     return await operation(transaction);

@@ -6,6 +6,7 @@ import {
   expectConfirmError,
   type ConfirmParkedFixture,
 } from "./confirm-parked-test-context";
+import { waitForPostgresBlockingEdge } from "./postgres-lock-observer";
 
 const context = new ConfirmParkedTestContext("be05_spot_policy");
 
@@ -29,22 +30,6 @@ function confirmZone(fixture: ConfirmParkedFixture, parkingZoneCode: string) {
     parkingZoneCode,
     sessionId: fixture.sessionId,
   });
-}
-
-async function waitForLockWait(queryFragment: string): Promise<void> {
-  for (let attempt = 0; attempt < 500; attempt += 1) {
-    const result = await context.adminPool.query<{ waiting: boolean }>(
-      `SELECT EXISTS (
-         SELECT 1 FROM pg_stat_activity
-         WHERE datname = current_database()
-           AND wait_event_type = 'Lock'
-           AND query ILIKE $1
-       ) AS waiting`,
-      [`%${queryFragment}%`],
-    );
-    if (result.rows[0]?.waiting === true) return;
-  }
-  throw new Error(`Expected a lock wait for ${queryFragment}.`);
 }
 
 async function organizationToken(organizationId: string): Promise<Date> {
@@ -113,6 +98,9 @@ describe("MGT-BE-05 Parking Spot required policy", () => {
     const admin = await context.addMember(fixture, "ORG_ADMIN", false);
     const writer = await context.runtimePool.connect();
     try {
+      const writerPid = (
+        await writer.query<{ pid: number }>("SELECT pg_backend_pid() AS pid")
+      ).rows[0]!.pid;
       await writer.query("BEGIN");
       await writer.query(
         `SELECT * FROM management_settings_set_company_scalar(
@@ -125,7 +113,9 @@ describe("MGT-BE-05 Parking Spot required policy", () => {
         ],
       );
       const completion = confirmZone(fixture, await zoneCode(fixture));
-      await waitForLockWait("pg_advisory_xact_lock_shared");
+      await waitForPostgresBlockingEdge(context.adminPool, {
+        blockerPid: writerPid,
+      });
       await writer.query("COMMIT");
       await expectConfirmError(
         completion,
@@ -150,15 +140,24 @@ describe("MGT-BE-05 Parking Spot required policy", () => {
     const blocker = await context.adminPool.connect();
     const writer = await context.runtimePool.connect();
     try {
+      const blockerPid = (
+        await blocker.query<{ pid: number }>("SELECT pg_backend_pid() AS pid")
+      ).rows[0]!.pid;
       await blocker.query("BEGIN");
       await blocker.query(
         "SELECT id FROM key_slots WHERE id = $1 FOR UPDATE",
         [fixture.keySlotId],
       );
       const completion = confirmZone(fixture, await zoneCode(fixture));
-      await waitForLockWait("FROM key_slots");
+      const blockedCompletionPids = await waitForPostgresBlockingEdge(
+        context.adminPool,
+        { blockerPid },
+      );
 
       await writer.query("BEGIN");
+      const writerPid = (
+        await writer.query<{ pid: number }>("SELECT pg_backend_pid() AS pid")
+      ).rows[0]!.pid;
       const mutation = writer.query(
         `SELECT * FROM management_settings_set_company_scalar(
            $1, $2, 'parkingSpotRequired', 'true', $3::timestamptz
@@ -169,7 +168,10 @@ describe("MGT-BE-05 Parking Spot required policy", () => {
           await organizationToken(fixture.organizationId),
         ],
       );
-      await waitForLockWait("management_settings_set_company_scalar");
+      await waitForPostgresBlockingEdge(context.adminPool, {
+        blockerPid: blockedCompletionPids[0]!,
+        waiterPid: writerPid,
+      });
       await blocker.query("COMMIT");
       await expect(completion).resolves.toMatchObject({
         parkingSpotId: null,

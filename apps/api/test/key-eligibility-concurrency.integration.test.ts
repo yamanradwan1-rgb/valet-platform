@@ -1,57 +1,14 @@
-import { performance } from "node:perf_hooks";
-import { setTimeout as pause } from "node:timers/promises";
-
-import type { Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { createAssignKeySlotCommandExecutor } from "../src/modules/keys/assign-key-slot-command";
 import { lockAuthorizedKeySession } from "../src/modules/keys/key-session-authorization";
 import { expectKeyError, KeyTestContext } from "./key-test-context";
+import { waitForPostgresBlockingEdge } from "./postgres-lock-observer";
 
 const context = new KeyTestContext("eligibility");
 
 beforeAll(() => context.setup(), 120_000);
 afterAll(() => context.teardown(), 60_000);
-
-async function waitForBlockedKeyQuery(
-  pool: Pool,
-  blockerPid: number,
-  queryFragment: string,
-  expected = 1,
-): Promise<void> {
-  const deadline = performance.now() + 10_000;
-  while (performance.now() < deadline) {
-    const result = await pool.query<{ count: number }>(
-      `WITH RECURSIVE blocked(pid) AS (
-         SELECT $1::integer
-         UNION
-         SELECT activity.pid FROM pg_stat_activity AS activity
-         JOIN blocked AS parent
-           ON parent.pid = ANY(pg_blocking_pids(activity.pid))
-         WHERE activity.datname = current_database()
-           AND activity.wait_event_type = 'Lock'
-       )
-       SELECT count(*)::integer AS count
-       FROM pg_stat_activity AS activity
-       INNER JOIN blocked ON blocked.pid = activity.pid
-       WHERE activity.pid <> $1 AND activity.query ILIKE $2`,
-      [blockerPid, "%" + queryFragment + "%"],
-    );
-    if (
-      (result.rows[0]?.count ?? 0) >= expected &&
-      performance.now() <= deadline
-    )
-      return;
-    await pause(Math.min(20, Math.max(1, deadline - performance.now())));
-  }
-  throw new Error(
-    "Expected " +
-      expected +
-      " blocked key query(s) matching " +
-      queryFragment +
-      ".",
-  );
-}
 
 describe("VAL-005C authorization and concurrency", () => {
   it("allows at most one winner when two sessions race for one slot", async () => {
@@ -82,12 +39,10 @@ describe("VAL-005C authorization and concurrency", () => {
           sessionId: secondSessionId,
         }),
       ]);
-      await waitForBlockedKeyQuery(
-        context.adminPool,
+      await waitForPostgresBlockingEdge(context.adminPool, {
         blockerPid,
-        "FROM key_slots",
-        2,
-      );
+        expectedWaiters: 2,
+      });
       await blocker.query("COMMIT");
     } finally {
       await blocker.query("ROLLBACK").catch(() => undefined);
@@ -222,16 +177,18 @@ describe("VAL-005C authorization and concurrency", () => {
         authenticatedUserId: fixture.userId,
         sessionId: fixture.sessionId,
       });
+      const revokerPid = (
+        await revoker.query<{ pid: number }>("SELECT pg_backend_pid() AS pid")
+      ).rows[0]!.pid;
       removal = revoker.query(
         "DELETE FROM membership_location_access WHERE membership_id = $1",
         [fixture.membershipId],
       );
       void removal.catch(() => undefined);
-      await waitForBlockedKeyQuery(
-        context.adminPool,
+      await waitForPostgresBlockingEdge(context.adminPool, {
         blockerPid,
-        "DELETE FROM membership_location_access",
-      );
+        waiterPid: revokerPid,
+      });
       await transaction.query("COMMIT");
       await removal;
     } finally {
@@ -262,11 +219,7 @@ describe("VAL-005C authorization and concurrency", () => {
         sessionId: fixture.sessionId,
       });
       void assignment.catch(() => undefined);
-      await waitForBlockedKeyQuery(
-        context.adminPool,
-        blockerPid,
-        "FROM valet_sessions",
-      );
+      await waitForPostgresBlockingEdge(context.adminPool, { blockerPid });
       await context.adminPool.query(
         "DELETE FROM membership_location_access WHERE membership_id = $1",
         [fixture.membershipId],

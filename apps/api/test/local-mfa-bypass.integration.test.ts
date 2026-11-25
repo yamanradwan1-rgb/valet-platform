@@ -1,50 +1,74 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
-import { ManagementControlPlaneTestFixture } from "./management-control-plane-test-fixture";
+import type { ManagementControlPlaneTestFixture } from "./management-control-plane-test-fixture";
+import { startLocalMfaBypassCluster } from "./local-mfa-bypass-cluster";
 
-class LocalMfaBypassFixture extends ManagementControlPlaneTestFixture {
-  private readonly localBypassEnvironment = {
-    bypass: process.env.VAYLET_LOCAL_DISABLE_MFA,
-    nodeEnv: process.env.NODE_ENV,
-  };
+let fixture: ManagementControlPlaneTestFixture;
+let localCluster: Awaited<ReturnType<typeof startLocalMfaBypassCluster>> | undefined;
 
-  override async start(): Promise<void> {
-    process.env.NODE_ENV = "development";
-    process.env.VAYLET_LOCAL_DISABLE_MFA = "true";
-    try {
-      await super.start();
-    } catch (error) {
-      this.restoreLocalBypassEnvironment();
-      throw error;
+beforeAll(async () => {
+  localCluster = await startLocalMfaBypassCluster();
+  try {
+    // StaffAuthNativeFixture captures TEST_DATABASE_URL during module load.
+    // Import only after the private PG17 cluster has replaced that URL.
+    const { ManagementControlPlaneTestFixture: BaseFixture } =
+      await import("./management-control-plane-test-fixture");
+    class LocalMfaBypassFixture extends BaseFixture {
+      private readonly originalBypass = process.env.VAYLET_LOCAL_DISABLE_MFA;
+      private readonly originalNodeEnv = process.env.NODE_ENV;
+
+      protected override protectedWriterTestEnvironment(applicationUrl: string) {
+        return localCluster!.writerEnvironment(applicationUrl);
+      }
+
+      override async start() {
+        process.env.NODE_ENV = "development";
+        process.env.VAYLET_LOCAL_DISABLE_MFA = "true";
+        await super.start();
+      }
+
+      override async stop() {
+        try {
+          await super.stop();
+        } finally {
+          if (this.originalNodeEnv === undefined) delete process.env.NODE_ENV;
+          else process.env.NODE_ENV = this.originalNodeEnv;
+          if (this.originalBypass === undefined) delete process.env.VAYLET_LOCAL_DISABLE_MFA;
+          else process.env.VAYLET_LOCAL_DISABLE_MFA = this.originalBypass;
+        }
+      }
     }
-  }
-
-  override async stop(): Promise<void> {
+    fixture = new LocalMfaBypassFixture();
+    await fixture.start();
+  } catch (error) {
+    const failedFixture = fixture;
+    fixture = undefined as unknown as ManagementControlPlaneTestFixture;
     try {
-      await super.stop();
+      if (failedFixture !== undefined) {
+        await failedFixture.stop().catch(() => undefined);
+      }
     } finally {
-      this.restoreLocalBypassEnvironment();
+      try {
+        await localCluster.stop();
+      } finally {
+        localCluster = undefined;
+      }
+    }
+    throw error;
+  }
+}, 180_000);
+afterEach(() => fixture.resetLimits());
+afterAll(async () => {
+  try {
+    if (fixture !== undefined) await fixture.stop();
+  } finally {
+    try {
+      await localCluster?.stop();
+    } finally {
+      localCluster = undefined;
     }
   }
-
-  private restoreLocalBypassEnvironment(): void {
-    const restore = (name: string, value: string | undefined) => {
-      if (value === undefined) delete process.env[name];
-      else process.env[name] = value;
-    };
-    restore("NODE_ENV", this.localBypassEnvironment.nodeEnv);
-    restore(
-      "VAYLET_LOCAL_DISABLE_MFA",
-      this.localBypassEnvironment.bypass,
-    );
-  }
-}
-
-const fixture = new LocalMfaBypassFixture();
-
-beforeAll(() => fixture.start(), 120_000);
-afterEach(() => fixture.resetLimits());
-afterAll(() => fixture.stop(), 60_000);
+}, 60_000);
 
 function brandingPath(organizationId: string) {
   return `/v1/staff/management/organizations/${organizationId}/branding`;

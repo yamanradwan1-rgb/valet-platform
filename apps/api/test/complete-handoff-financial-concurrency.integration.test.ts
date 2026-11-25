@@ -7,30 +7,13 @@ import { CompleteHandoffTestContext } from "./complete-handoff-test-context";
 import {
   beginBlockedCompanySettingMutation,
   beginCompanySettingMutation,
-  COMPANY_SETTING_MUTATION_QUERY,
-  waitForAdvisoryLock,
 } from "./management-settings-race-test-helpers";
+import { waitForPostgresBlockingEdge } from "./postgres-lock-observer";
 
 const context = new CompleteHandoffTestContext("financial_concurrency");
 
 beforeAll(() => context.setup(), 120_000);
 afterAll(() => context.teardown(), 60_000);
-
-async function waitForLockWait(queryFragment: string): Promise<void> {
-  for (let attempt = 0; attempt < 500; attempt += 1) {
-    const result = await context.adminPool.query<{ waiting: boolean }>(
-      `SELECT EXISTS (
-         SELECT 1 FROM pg_stat_activity
-         WHERE datname = current_database()
-           AND wait_event_type = 'Lock'
-           AND query ILIKE $1
-       ) AS waiting`,
-      [`%${queryFragment}%`],
-    );
-    if (result.rows[0]?.waiting === true) return;
-  }
-  throw new Error(`Expected a lock wait for ${queryFragment}.`);
-}
 
 async function setRequiredPolicy(
   fixture: { organizationId: string },
@@ -60,6 +43,9 @@ describe("VAL-008G financial release serialization", () => {
       });
       const blocker = await context.adminPool.connect();
       try {
+        const blockerPid = (
+          await blocker.query<{ pid: number }>("SELECT pg_backend_pid() AS pid")
+        ).rows[0]!.pid;
         await blocker.query("BEGIN");
         await blocker.query(
           `UPDATE payments
@@ -72,7 +58,7 @@ describe("VAL-008G financial release serialization", () => {
           (value) => ({ kind: "FULFILLED" as const, value }),
           (error: unknown) => ({ error, kind: "REJECTED" as const }),
         );
-        await waitForLockWait("FROM payments");
+        await waitForPostgresBlockingEdge(context.adminPool, { blockerPid });
         await blocker.query(resolution);
         if (resolution === "COMMIT") {
           await expect(completion).resolves.toMatchObject({
@@ -109,12 +95,9 @@ describe("VAL-008G financial release serialization", () => {
     });
     const completion = context.complete(fixture);
     try {
-      await waitForAdvisoryLock(
-        context.adminPool,
-        "pg_advisory_xact_lock_shared",
-        "ShareLock",
-        false,
-      );
+      await waitForPostgresBlockingEdge(context.adminPool, {
+        blockerPid: writer.backendPid,
+      });
       await writer.commit();
       await expect(completion).rejects.toMatchObject({
         code: "FINANCIAL_RELEASE_NOT_SATISFIED",
@@ -136,11 +119,17 @@ describe("VAL-008G financial release serialization", () => {
     let completion: Promise<unknown> | undefined;
     try {
       await blocker.query("BEGIN");
+      const blockerPid = (
+        await blocker.query<{ pid: number }>("SELECT pg_backend_pid() AS pid")
+      ).rows[0]!.pid;
       await blocker.query(`SELECT id FROM tasks WHERE id = $1 FOR UPDATE`, [
         fixture.retrievalTaskId,
       ]);
       completion = context.complete(fixture);
-      await waitForAdvisoryLock(context.adminPool, "FROM tasks", "ShareLock", true);
+      const blockedCompletions = await waitForPostgresBlockingEdge(
+        context.adminPool,
+        { blockerPid },
+      );
       writer = await beginCompanySettingMutation({
         adminPool: context.adminPool,
         organizationId: fixture.organizationId,
@@ -148,12 +137,10 @@ describe("VAL-008G financial release serialization", () => {
         setting: "releaseRequiresPayment",
         value: "true",
       });
-      await waitForAdvisoryLock(
-        context.adminPool,
-        COMPANY_SETTING_MUTATION_QUERY,
-        "ExclusiveLock",
-        false,
-      );
+      await waitForPostgresBlockingEdge(context.adminPool, {
+        blockerPid: blockedCompletions[0]!,
+        waiterPid: writer.backendPid,
+      });
       await blocker.query("COMMIT");
       blockerClosed = true;
       await expect(completion).resolves.toMatchObject({ state: "COMPLETED" });
