@@ -83,6 +83,11 @@ test("all discovered API and database tests have one exact, reviewed owner", () 
   assert.ok(
     api["api-non-postgres"].includes("shift-test-context-names.test.ts"),
   );
+  // The optional protected-writer contention fixture must not move ordinary
+  // Presence server tests into the bounded Race lane by transitive import.
+  assert.ok(api["api-postgres-standard"].includes("shift-presence-management.integration.test.ts"));
+  assert.ok(api["api-postgres-race"].includes("shift-presence-current-authority-races.integration.test.ts"));
+  assert.ok(api["api-postgres-race"].includes("shift-presence-zone-create-recovery.integration.test.ts"));
   assert.ok(
     Object.entries(api)
       .filter(([project]) => project.includes("postgres"))

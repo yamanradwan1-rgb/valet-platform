@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { shiftPresenceManagementResultSchema } from "@valet/contracts";
 import { PresenceServerTestContext } from "./shift-presence-server-test-context";
 import { presenceHttp } from "./shift-presence-http-test-helper";
@@ -8,6 +8,7 @@ import {
   abortPresenceCommitBarriers,
   observePresenceCommandWait,
   presenceCommitBarrier,
+  trackPresenceRaceRequest,
 } from "./shift-presence-commit-test-helper";
 
 const db = new PresenceServerTestContext("presence-zone-create-recovery");
@@ -16,10 +17,14 @@ beforeAll(async () => {
   await db.setup();
   http = await presenceHttp(db);
 }, 120_000);
+afterEach(abortPresenceCommitBarriers);
 afterAll(async () => {
-  abortPresenceCommitBarriers();
-  await http?.app.close();
-  await db.teardown();
+  try {
+    await abortPresenceCommitBarriers();
+    await http?.app.close();
+  } finally {
+    await db.teardown();
+  }
 }, 60_000);
 async function scenario() {
   const f = await db.createFixture();
@@ -133,20 +138,22 @@ describe("real HTTP stable Zone CREATE result identity", () => {
         a.m.token,
         a.body,
       );
+      barrier.trackFirst(write);
       await barrier.atCommit;
       let settled = false;
       const read = recover(a).then((result) => {
         settled = true;
         return result;
       });
-      await observePresenceCommandWait(db);
+      trackPresenceRaceRequest(read);
+      await observePresenceCommandWait(db, barrier.holderPid());
       expect(settled).toBe(false);
       barrier.finish("ROLLBACK");
       expect((await write).status).toBe(500);
       unknown(await read);
       expect(await facts(a)).toEqual({ zones: 0, audits: 0, receipts: 0 });
     } finally {
-      barrier.finish("ROLLBACK");
+      await abortPresenceCommitBarriers();
       await writing.app.close();
     }
   });

@@ -4,7 +4,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { PresenceManagementService } from "../src/modules/management/presence-management.service";
 import { StaffManagementMutationService } from "../src/modules/management/staff-management-mutation.service";
 import { presenceReadBudget } from "../src/modules/management/presence-management-read-recovery";
-import { PresenceServerTestContext } from "./shift-presence-server-test-context";
+import { PresenceProtectedWriterTestContext } from "./shift-presence-protected-writer-test-context";
 import { presenceReadProbe } from "./shift-presence-read-probe";
 import {
   presenceCommitBarrier,
@@ -13,7 +13,7 @@ import {
   trackPresenceRaceRequest,
 } from "./shift-presence-commit-test-helper";
 
-const db = new PresenceServerTestContext("issue406-read-contention");
+const db = new PresenceProtectedWriterTestContext("issue406-read-contention");
 beforeAll(() => db.setup(), 120_000);
 afterAll(() => db.teardown(), 60_000);
 afterEach(() => abortPresenceCommitBarriers());

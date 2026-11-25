@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { StaffManagementMutationService } from "../src/modules/management/staff-management-mutation.service";
 import { PresenceManagementService } from "../src/modules/management/presence-management.service";
-import { PresenceServerTestContext } from "./shift-presence-server-test-context";
+import { PresenceProtectedWriterTestContext } from "./shift-presence-protected-writer-test-context";
 import { pendingPresenceException } from "./shift-presence-exception-test-helper";
 import {
   presenceCommitBarrier,
@@ -12,7 +12,7 @@ import {
   trackPresenceRaceRequest,
 } from "./shift-presence-commit-test-helper";
 
-const db = new PresenceServerTestContext("presence-authority-races");
+const db = new PresenceProtectedWriterTestContext("presence-authority-races");
 beforeAll(async () => {
   await db.setup();
 }, 120_000);
