@@ -15,7 +15,7 @@ from urllib.request import Request, build_opener, HTTPRedirectHandler, ProxyHand
 
 REPO = "/repos/yamanradwan1-rgb/valet-platform"
 REF = "refs/pull/466/merge"
-SHA = "49e797035fb0f12406fdf73186cf0cf43817d8aa"
+SHA = "047667747925c0e0a8cabbd0945471efb4a2a31b"
 KEY = ".github/workflows/security-ci.yml:sast-codeql"
 IDS = (50, 51, 52, 53, 54, 55, 56, 57, 61)
 MAX = 64 * 1024 * 1024
@@ -119,7 +119,7 @@ def main():
         raise ValueError("reference scope")
     pr = get(REPO + "/pulls/466")
     if (pr.get("merge_commit_sha") != SHA or
-        pr.get("head", {}).get("sha") != "2bc6c983762457454d1bc055b3f4630731fc4058" or
+        pr.get("head", {}).get("sha") != "c1deeaabb42d68affc94a672f5f4cb766be2b9f3" or
         pr.get("base", {}).get("sha") != "bfb4fdccf9d557c371313c9e357faa52e0a71014"):
         raise ValueError("PR scope changed")
     source_ok = source_pins(refs, pr)
@@ -130,6 +130,8 @@ def main():
     if len(matches) != 1:
         raise ValueError("historical analysis ambiguous")
     a = matches[0]
+    if a.get("sarif_id") != "e3b8184e-e92a-11f1-8616-3e7f8b305e93":
+        raise ValueError("official upload mismatch")
     aid = a["id"]
     upload = a["sarif_id"]
     if type(aid) is not int or not isinstance(upload,str) or not re.fullmatch(r"[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}",upload):
