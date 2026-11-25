@@ -2,15 +2,13 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { reconcileStaleStaffPushRegistrations } from "../src/modules/staff-push/staff-push-maintenance-repository";
 import { StaffPushApiFixture } from "./staff-push-api-fixture";
+import { withStaffPushFixtureGuardsDisabled } from "./staff-push-fixture-guard";
 
 const fixture = new StaffPushApiFixture();
 let sequence = 0;
 
 async function ageRegistration(registrationId: string) {
-  const client = await fixture.databasePool().connect();
-  try {
-    await client.query("BEGIN");
-    await client.query("SET LOCAL session_replication_role = replica");
+  await withStaffPushFixtureGuardsDisabled(fixture.databasePool(), new URL(fixture.migrationDatabaseUrl()).pathname.slice(1), ["staff_push_registrations"], async (client) => {
     await client.query(
       `UPDATE staff_push_registrations
        SET created_at = clock_timestamp() - interval '31 days',
@@ -19,13 +17,7 @@ async function ageRegistration(registrationId: string) {
        WHERE id = $1`,
       [registrationId],
     );
-    await client.query("COMMIT");
-  } catch (error) {
-    await client.query("ROLLBACK");
-    throw error;
-  } finally {
-    client.release();
-  }
+  });
 }
 
 async function installBlockingTrigger(

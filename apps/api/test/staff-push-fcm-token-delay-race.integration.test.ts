@@ -4,6 +4,7 @@ import { FcmHttpV1Adapter } from "../src/modules/staff-push/fcm-http-v1-adapter"
 import { StaffPushDeliveryWorker } from "../src/modules/staff-push/staff-push-delivery-worker";
 import type { StaffPushProvider } from "../src/modules/staff-push/staff-push-provider";
 import { RetrievalPushTestContext } from "./retrieval-push-test-context";
+import { withStaffPushFixtureGuardsDisabled } from "./staff-push-fixture-guard";
 import { syntheticStaffPushPolicy } from "./staff-push-policy-test-value";
 
 const context = new RetrievalPushTestContext("issue357_fcm_token_delay");
@@ -67,23 +68,14 @@ async function prepared() {
 
 async function expireLease(deliveryId: string) {
   // Backdate the real SQL lease in this disposable test database only.
-  const client = await context.adminPool.connect();
-  try {
-    await client.query("BEGIN");
-    await client.query("SET LOCAL session_replication_role = replica");
+  await withStaffPushFixtureGuardsDisabled(context.adminPool, context.databaseName, ["staff_push_deliveries"], async (client) => {
     await client.query(
       `UPDATE staff_push_deliveries
        SET lease_expires_at = clock_timestamp() - interval '1 second'
        WHERE id = $1`,
       [deliveryId],
     );
-    await client.query("COMMIT");
-  } catch (error) {
-    await client.query("ROLLBACK");
-    throw error;
-  } finally {
-    client.release();
-  }
+  });
 }
 
 beforeAll(() => context.setup(), 120_000);

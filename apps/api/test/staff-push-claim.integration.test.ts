@@ -10,6 +10,7 @@ import {
   retryOrTerminalizeStaffPushDelivery,
 } from "../src/modules/staff-push/staff-push-finalization-repository";
 import { RetrievalPushTestContext } from "./retrieval-push-test-context";
+import { withStaffPushFixtureGuardsDisabled } from "./staff-push-fixture-guard";
 
 const context = new RetrievalPushTestContext("worker_claim");
 
@@ -27,18 +28,14 @@ async function delivery() {
 }
 
 async function bypassGuard(sql: string, values: unknown[]) {
-  const client = await context.adminPool.connect();
-  try {
-    await client.query("BEGIN");
-    await client.query("SET LOCAL session_replication_role = replica");
+  const table = /^\s*UPDATE\s+(staff_push_deliveries|staff_push_intents)\b/i.exec(sql)?.[1] as
+    | "staff_push_deliveries"
+    | "staff_push_intents"
+    | undefined;
+  if (table === undefined) throw new Error("Unexpected Staff Push fixture mutation.");
+  await withStaffPushFixtureGuardsDisabled(context.adminPool, context.databaseName, [table], async (client) => {
     await client.query(sql, values);
-    await client.query("COMMIT");
-  } catch (error) {
-    await client.query("ROLLBACK");
-    throw error;
-  } finally {
-    client.release();
-  }
+  });
 }
 
 beforeAll(() => context.setup(), 120_000);

@@ -8,7 +8,7 @@ import {
   releaseBarrier,
   rollbackBarrier,
   settled,
-  waitForLockWaiters,
+  waitForRatingLockEdge,
 } from "./guest-rating-race-test-helpers";
 
 const context = new CompleteHandoffTestContext("guest_rating_concurrency");
@@ -40,9 +40,9 @@ describe("MGT-BE-09 Guest Rating concurrency", () => {
     let released = false;
     try {
       const first = settled(firstSubmission.submit(5));
-      await waitForLockWaiters(context, "UPDATE anti_abuse_events");
+      const firstPid = await waitForRatingLockEdge(context, blocker);
       const second = settled(secondSubmission.submit(5));
-      await waitForLockWaiters(context, "FROM valet_sessions AS session");
+      await waitForRatingLockEdge(context, firstPid);
       await releaseBarrier(blocker);
       released = true;
       const [firstResult, secondResult] = await Promise.all([first, second]);
@@ -74,9 +74,9 @@ describe("MGT-BE-09 Guest Rating concurrency", () => {
     let released = false;
     try {
       const first = settled(firstSubmission.submit(4));
-      await waitForLockWaiters(context, "UPDATE anti_abuse_events");
+      const firstPid = await waitForRatingLockEdge(context, blocker);
       const second = settled(secondSubmission.submit(2));
-      await waitForLockWaiters(context, "FROM valet_sessions AS session");
+      await waitForRatingLockEdge(context, firstPid);
       await releaseBarrier(blocker);
       released = true;
       await expect(first).resolves.toMatchObject({
@@ -104,9 +104,9 @@ describe("MGT-BE-09 Guest Rating concurrency", () => {
     let released = false;
     try {
       const completion = settled(context.complete(fixture));
-      await waitForLockWaiters(context, "FROM tasks");
+      const firstPid = await waitForRatingLockEdge(context, blocker);
       const rating = settled(ratingSubmission.submit(5));
-      await waitForLockWaiters(context, "FROM valet_sessions AS session");
+      await waitForRatingLockEdge(context, firstPid);
       await releaseBarrier(blocker);
       released = true;
       await expect(completion).resolves.toMatchObject({
@@ -141,9 +141,9 @@ describe("MGT-BE-09 Guest Rating concurrency", () => {
     let released = false;
     try {
       const rating = settled(ratingSubmission.submit(3));
-      await waitForLockWaiters(context, "UPDATE anti_abuse_events");
+      const firstPid = await waitForRatingLockEdge(context, blocker);
       const completion = settled(context.complete(fixture));
-      await waitForLockWaiters(context, "FROM valet_sessions WHERE id");
+      await waitForRatingLockEdge(context, firstPid);
       await releaseBarrier(blocker);
       released = true;
       await expect(rating).resolves.toMatchObject({

@@ -11,6 +11,7 @@ import {
 import { StaffPushDeliveryWorker } from "../src/modules/staff-push/staff-push-delivery-worker";
 import type { StaffPushProvider } from "../src/modules/staff-push/staff-push-provider";
 import { RetrievalPushTestContext } from "./retrieval-push-test-context";
+import { withStaffPushFixtureGuardsDisabled } from "./staff-push-fixture-guard";
 import { syntheticStaffPushPolicy } from "./staff-push-policy-test-value";
 import { providerSendResult } from "./staff-push-provider-test-value";
 
@@ -78,18 +79,9 @@ async function deliveryState(deliveryId: string) {
 async function alterDeliveryClock(deliveryId: string, update: string) {
   // The database trigger protects real deliveries. Only this disposable
   // PostgreSQL fixture can backdate a lease/retry without waiting 30 seconds.
-  const client = await context.adminPool.connect();
-  try {
-    await client.query("BEGIN");
-    await client.query("SET LOCAL session_replication_role = replica");
+  await withStaffPushFixtureGuardsDisabled(context.adminPool, context.databaseName, ["staff_push_deliveries"], async (client) => {
     await client.query(update, [deliveryId]);
-    await client.query("COMMIT");
-  } catch (error) {
-    await client.query("ROLLBACK");
-    throw error;
-  } finally {
-    client.release();
-  }
+  });
 }
 
 function gate() {

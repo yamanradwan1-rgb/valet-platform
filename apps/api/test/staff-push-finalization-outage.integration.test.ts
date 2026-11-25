@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { StaffPushDeliveryWorker } from "../src/modules/staff-push/staff-push-delivery-worker";
 import type { StaffPushProvider } from "../src/modules/staff-push/staff-push-provider";
 import { RetrievalPushTestContext } from "./retrieval-push-test-context";
+import { withStaffPushFixtureGuardsDisabled } from "./staff-push-fixture-guard";
 import { syntheticStaffPushPolicy } from "./staff-push-policy-test-value";
 import { providerSendResult } from "./staff-push-provider-test-value";
 
@@ -122,23 +123,14 @@ describe("Staff Push database outage after provider acceptance", () => {
     );
     expect(stranded.rows[0]).toEqual({ attempt_count: 1, state: "LEASED" });
 
-    const bypass = await context.adminPool.connect();
-    try {
-      await bypass.query("BEGIN");
-      await bypass.query("SET LOCAL session_replication_role = replica");
-      await bypass.query(
+    await withStaffPushFixtureGuardsDisabled(context.adminPool, context.databaseName, ["staff_push_deliveries"], async (client) => {
+      await client.query(
         `UPDATE staff_push_deliveries
          SET lease_expires_at = clock_timestamp() - interval '1 second'
          WHERE id = $1`,
         [deliveryId],
       );
-      await bypass.query("COMMIT");
-    } catch (error) {
-      await bypass.query("ROLLBACK");
-      throw error;
-    } finally {
-      bypass.release();
-    }
+    });
 
     const replacement = new StaffPushDeliveryWorker(
       context.runtimePool,

@@ -13,6 +13,7 @@ import { runProviderIndependentStaffPushMaintenance } from "../src/modules/staff
 import { StaffPushDeliveryWorker } from "../src/modules/staff-push/staff-push-delivery-worker";
 import type { StaffPushProvider } from "../src/modules/staff-push/staff-push-provider";
 import { RetrievalPushTestContext } from "./retrieval-push-test-context";
+import { withStaffPushFixtureGuardsDisabled } from "./staff-push-fixture-guard";
 import { syntheticStaffPushPolicy } from "./staff-push-policy-test-value";
 import { providerSendResult } from "./staff-push-provider-test-value";
 
@@ -54,10 +55,11 @@ async function ageRows(
   fixture: Awaited<ReturnType<typeof prepared>>,
   days: number,
 ) {
-  const client = await context.adminPool.connect();
-  try {
-    await client.query("BEGIN");
-    await client.query("SET LOCAL session_replication_role = replica");
+  await withStaffPushFixtureGuardsDisabled(
+    context.adminPool,
+    context.databaseName,
+    ["staff_push_deliveries", "staff_push_intents", "staff_push_registrations"],
+    async (client) => {
     await client.query(
       `UPDATE staff_push_deliveries
        SET created_at = clock_timestamp() - make_interval(days => $2 + 1),
@@ -82,13 +84,8 @@ async function ageRows(
        WHERE id = $1`,
       [fixture.registrationId],
     );
-    await client.query("COMMIT");
-  } catch (error) {
-    await client.query("ROLLBACK");
-    throw error;
-  } finally {
-    client.release();
-  }
+    },
+  );
 }
 
 beforeAll(() => context.setup(), 120_000);
@@ -123,10 +120,7 @@ describe("Staff Push retention cleanup", () => {
     const fixture = await context.createGuestParkedFixture();
     const registration = await context.addRegistration(fixture.userId);
     const ageTerminal = async (days: number) => {
-      const client = await context.adminPool.connect();
-      try {
-        await client.query("BEGIN");
-        await client.query("SET LOCAL session_replication_role = replica");
+      await withStaffPushFixtureGuardsDisabled(context.adminPool, context.databaseName, ["staff_push_registrations"], async (client) => {
         await client.query(
           `UPDATE staff_push_registrations
            SET state = 'DISABLED', provider_token = NULL,
@@ -137,13 +131,7 @@ describe("Staff Push retention cleanup", () => {
            WHERE id = $1`,
           [registration.registrationId, days],
         );
-        await client.query("COMMIT");
-      } catch (error) {
-        await client.query("ROLLBACK");
-        throw error;
-      } finally {
-        client.release();
-      }
+      });
     };
     await ageTerminal(29);
     await expect(
@@ -200,10 +188,7 @@ describe("Staff Push retention cleanup", () => {
       { observe: () => undefined },
     );
     await expect(disabledWorker.runOnce()).resolves.toBe(false);
-    const client = await context.adminPool.connect();
-    try {
-      await client.query("BEGIN");
-      await client.query("SET LOCAL session_replication_role = replica");
+    await withStaffPushFixtureGuardsDisabled(context.adminPool, context.databaseName, ["staff_push_intents"], async (client) => {
       await client.query(
         `UPDATE staff_push_intents
          SET created_at = clock_timestamp() - interval '2 seconds',
@@ -211,10 +196,7 @@ describe("Staff Push retention cleanup", () => {
          WHERE id = $1`,
         [rows.rows[0]!.intent_id],
       );
-      await client.query("COMMIT");
-    } finally {
-      client.release();
-    }
+    });
     await runProviderIndependentStaffPushMaintenance(context.runtimePool, {
       ...syntheticStaffPushPolicy,
       sendingEnabled: false,
@@ -229,11 +211,8 @@ describe("Staff Push retention cleanup", () => {
       [rows.rows[0]!.delivery_id],
     );
     expect(expired.rows[0]).toEqual({ attempt_count: 0, state: "EXPIRED" });
-    const aged = await context.adminPool.connect();
-    try {
-      await aged.query("BEGIN");
-      await aged.query("SET LOCAL session_replication_role = replica");
-      await aged.query(
+    await withStaffPushFixtureGuardsDisabled(context.adminPool, context.databaseName, ["staff_push_deliveries", "staff_push_intents"], async (client) => {
+      await client.query(
         `UPDATE staff_push_deliveries
          SET created_at = clock_timestamp() - interval '8 days',
              terminal_at = clock_timestamp() - interval '8 days',
@@ -241,17 +220,14 @@ describe("Staff Push retention cleanup", () => {
          WHERE id = $1`,
         [rows.rows[0]!.delivery_id],
       );
-      await aged.query(
+      await client.query(
         `UPDATE staff_push_intents
          SET created_at = clock_timestamp() - interval '8 days 1 second',
              expires_at = clock_timestamp() - interval '8 days'
          WHERE id = $1`,
         [rows.rows[0]!.intent_id],
       );
-      await aged.query("COMMIT");
-    } finally {
-      aged.release();
-    }
+    });
     await expect(
       cleanupStaffPushPersistence(context.runtimePool),
     ).resolves.toMatchObject({

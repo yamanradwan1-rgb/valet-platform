@@ -18,6 +18,7 @@ import type {
 } from "../src/modules/staff-push/staff-push-observability";
 import type { StaffPushProvider } from "../src/modules/staff-push/staff-push-provider";
 import { RetrievalPushTestContext } from "./retrieval-push-test-context";
+import { withStaffPushFixtureGuardsDisabled } from "./staff-push-fixture-guard";
 import { syntheticStaffPushPolicy } from "./staff-push-policy-test-value";
 import { providerSendResult } from "./staff-push-provider-test-value";
 
@@ -202,21 +203,12 @@ describe("Staff Push send-time eligibility", () => {
           // negative reader test only, construct a deliberately corrupted
           // historical intent inside the disposable test DB as the admin
           // fixture role; normal runtime trigger enforcement remains intact.
-          const client = await context.adminPool.connect();
-          try {
-            await client.query("BEGIN");
-            await client.query("SET LOCAL session_replication_role = replica");
+          await withStaffPushFixtureGuardsDisabled(context.adminPool, context.databaseName, ["staff_push_intents"], async (client) => {
             await client.query(
               "UPDATE staff_push_intents SET task_id = $2 WHERE id = $1",
               [f.intent_id, parkingTaskId],
             );
-            await client.query("COMMIT");
-          } catch (error) {
-            await client.query("ROLLBACK");
-            throw error;
-          } finally {
-            client.release();
-          }
+          });
         },
       ],
       ...(["DISABLED", "SUPERSEDED", "PROVIDER_INVALID"] as const).map(

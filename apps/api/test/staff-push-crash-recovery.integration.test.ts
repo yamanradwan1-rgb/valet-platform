@@ -18,6 +18,7 @@ import { StaffPushDeliveryWorker } from "../src/modules/staff-push/staff-push-de
 import { finalizeStaffPushDelivery } from "../src/modules/staff-push/staff-push-finalization-repository";
 import type { StaffPushProvider } from "../src/modules/staff-push/staff-push-provider";
 import { RetrievalPushTestContext } from "./retrieval-push-test-context";
+import { withStaffPushFixtureGuardsDisabled } from "./staff-push-fixture-guard";
 import { syntheticStaffPushPolicy } from "./staff-push-policy-test-value";
 import { providerSendResult } from "./staff-push-provider-test-value";
 
@@ -94,23 +95,14 @@ function waitForExit(child: ReturnType<typeof spawn>) {
 }
 
 async function expireLease(deliveryId: string): Promise<void> {
-  const client = await context.adminPool.connect();
-  try {
-    await client.query("BEGIN");
-    await client.query("SET LOCAL session_replication_role = replica");
+  await withStaffPushFixtureGuardsDisabled(context.adminPool, context.databaseName, ["staff_push_deliveries"], async (client) => {
     await client.query(
       `UPDATE staff_push_deliveries
        SET lease_expires_at = clock_timestamp() - interval '1 second'
        WHERE id = $1`,
       [deliveryId],
     );
-    await client.query("COMMIT");
-  } catch (error) {
-    await client.query("ROLLBACK");
-    throw error;
-  } finally {
-    client.release();
-  }
+  });
 }
 
 beforeAll(() => context.setup(), 120_000);

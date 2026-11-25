@@ -6,6 +6,7 @@ import { GuestAccessService } from "../src/modules/guest-access/guest-access.ser
 import { GuestRatingService } from "../src/modules/guest-access/guest-rating.service";
 import type { CompleteHandoffTestContext } from "./complete-handoff-test-context";
 import type { HandoffFixture } from "./handoff-test-context";
+import { waitForPostgresBlockingEdge } from "./postgres-lock-observer";
 
 export function settled<T>(operation: Promise<T>) {
   return operation.then(
@@ -48,7 +49,10 @@ async function holdRow(
   const client = await context.adminPool.connect();
   try {
     await client.query("BEGIN");
-    await client.query(query, [id]);
+    const locked = await client.query(query, [id]);
+    if (locked.rowCount !== 1) {
+      throw new Error("Guest Rating causal lock fixture did not lock its target row.");
+    }
     return client;
   } catch (error) {
     await client.query("ROLLBACK").catch(() => undefined);
@@ -75,25 +79,27 @@ export function holdRetrievalTask(
   return holdRow(context, "SELECT id FROM tasks WHERE id = $1 FOR UPDATE", taskId);
 }
 
-export async function waitForLockWaiters(
+export async function waitForRatingLockEdge(
   context: CompleteHandoffTestContext,
-  queryFragment: string,
-  minimum = 1,
-): Promise<void> {
-  const deadline = Date.now() + 10_000;
-  while (Date.now() < deadline) {
-    const result = await context.adminPool.query<{ count: number }>(
-      `SELECT count(*)::integer AS count
-       FROM pg_stat_activity
-       WHERE datname = current_database() AND wait_event_type = 'Lock'
-         AND query ILIKE $1`,
-      [`%${queryFragment}%`],
-    );
-    if ((result.rows[0]?.count ?? 0) >= minimum) return;
+  blocker: PoolClient | number,
+): Promise<number> {
+  const blockerPid =
+    typeof blocker === "number"
+      ? blocker
+      : (await blocker.query<{ pid: number }>(
+          "SELECT pg_backend_pid() AS pid",
+        )).rows[0]?.pid;
+  if (blockerPid === undefined) {
+    throw new Error("Cannot identify the exact PostgreSQL lock holder.");
   }
-  throw new Error(
-    `Expected ${minimum} lock waiter(s) matching ${queryFragment}.`,
-  );
+  const waiters = await waitForPostgresBlockingEdge(context.adminPool, {
+    blockerPid,
+    expectedWaiters: 1,
+  });
+  if (waiters.length !== 1) {
+    throw new Error("Expected exactly one newly blocked Guest Rating operation.");
+  }
+  return waiters[0]!;
 }
 
 export async function releaseBarrier(client: PoolClient): Promise<void> {
