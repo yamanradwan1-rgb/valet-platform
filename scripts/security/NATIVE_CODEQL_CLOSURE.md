@@ -21,7 +21,9 @@ readback: zero rulesets, no classic branch protection, CodeQL advanced setup,
 security check threshold High or higher and standard Only errors. New
 branch ruleset form offers Require code scanning results. Currently
 connected agent integration reports admin and Owner browser exposes Dismiss.
-Collaborator roster requires Owner sudo authentication; not verified.
+W12 later verified the authenticated Collaborators page: one collaborator,
+veletpro0-lgtm. Its actual credentials and agent ownership must be checked
+by Owner; a personal repository collaborator normally has write access.
 No Prevent direct alert dismissals control seen on this personal repository.
 GitHub allows writers to dismiss, and Actions security-events:write can
 upload SARIF AND change alert state. Do not claim exclusive Owner authority
@@ -94,7 +96,9 @@ connected GitHub fetch disallows that endpoint. No credential extraction.
    identity. Owner alone maintains upstream settings and dismisses alerts.
    Safest Free-personal operating model: agents work locally or in forks,
    Owner reviews/pushes trusted changes to upstream; no upstream write
-   collaborator granted to agents. Inspect Collaborators, installed
+   collaborator granted to agents. Existing upload-sarif condition skips
+   fork PR uploads; therefore use an Owner-reviewed upstream candidate for
+   the current same-repo PR reconciliation, not a claimed green fork upload. Inspect Collaborators, installed
    integrations, PAT scopes and Actions settings yourself. If agents share
    Owner identity, owner-only dismissal cannot be enforced. Native Actions
    upload token also has alert-write capability; do not execute arbitrary
@@ -116,7 +120,10 @@ connected GitHub fetch disallows that endpoint. No credential extraction.
    during acceptance, Owner must explicitly accept its effect on all work.
    Verify active ruleset + effective main rules and actual native CodeQL
    check failure on current PR before considering raw gate integration.
-3. Identify the nine native alert instances read-only, compare each against
+3. W12 read-only checked all nine native alerts #50-57 and #61: all OPEN,
+   HIGH, exact rule and primary path/line matching the reference catalog;
+   observed on the candidate branch and another review branch. No dismissal.
+   Before activation, correlate each native alert instance against
    exact current raw identity and source (not historical alert number alone).
    Verify actual GitHub analysis readback using GITHUB_TOKEN with only
    security-events:read in a trusted context. Keep raw head/base SARIF on
