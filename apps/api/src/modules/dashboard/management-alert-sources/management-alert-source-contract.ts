@@ -53,8 +53,11 @@ export async function requireManagementAlertSourceScope(
   // The ordinary LM Dashboard read checks its grant, but does not revalidate
   // Staff tokens. Lock user/session BEFORE the management-org authorization
   // fence, even when this reader is invoked without the aggregate facade.
+  // Match the facade's canonical exclusive session lock: the CA path below
+  // requires MFA assurance under that same exclusive lock. Taking SHARED
+  // here and upgrading later deadlocks concurrent reads of one CA principal.
   if (
-    (await lockStaffSessionWithBearer(transaction, input.context, "SHARED")) ===
+    (await lockStaffSessionWithBearer(transaction, input.context, "EXCLUSIVE")) ===
     undefined
   ) {
     throw new DashboardOverviewError("AUTHORIZATION_DENIED");
