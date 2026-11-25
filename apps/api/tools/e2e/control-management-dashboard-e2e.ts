@@ -130,17 +130,33 @@ async function applyAction(
     if (!Number.isInteger(minutes) || minutes < 1 || minutes > 120) {
       throw new Error("age-mfa minutes must be an integer from 1 through 120.");
     }
-    await client.query(
-      `UPDATE staff_auth_sessions
-       SET created_at = LEAST(
-             created_at,
-             clock_timestamp() - (($2 + 1)::text || ' minutes')::interval
-           ),
-           mfa_authenticated_at = clock_timestamp() - ($2::text || ' minutes')::interval,
-           last_admin_activity_at = clock_timestamp() - ($2::text || ' minutes')::interval
-       WHERE user_id = $1 AND revoked_at IS NULL`,
-      [user.userId, minutes],
-    );
+    // Serialize this artificial identity change with the real session boundary.
+    await client.query("BEGIN");
+    try {
+      await client.query("SET LOCAL lock_timeout = '5s'");
+      await client.query(
+        "SELECT pg_advisory_xact_lock(hashtextextended('staff-user-security:' || $1::text, 0))",
+        [user.userId],
+      );
+      const aged = await client.query(
+        `UPDATE staff_auth_sessions
+         SET created_at = LEAST(
+               created_at,
+               clock_timestamp() - (($2 + 1)::text || ' minutes')::interval
+             ),
+             mfa_authenticated_at = clock_timestamp() - ($2::text || ' minutes')::interval,
+             last_admin_activity_at = clock_timestamp() - ($2::text || ' minutes')::interval
+         WHERE user_id = $1 AND revoked_at IS NULL
+           AND mfa_authenticated_at IS NOT NULL
+           AND mfa_factor_id IS NOT NULL`,
+        [user.userId, minutes],
+      );
+      if (aged.rowCount !== 1) throw new Error("Expected exactly one assured fixture session to age.");
+      await client.query("COMMIT");
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    }
     return;
   }
   if (action === "branding-reset") {

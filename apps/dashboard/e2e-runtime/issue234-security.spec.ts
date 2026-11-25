@@ -1,4 +1,5 @@
 import { expect, test } from "./support/runtime-test";
+import { trackStaffRequests } from "./support/staff-request-quiescence";
 import {
   assurePreEnrolled,
   controlFixture,
@@ -52,6 +53,7 @@ test("#234 real Security route is scopeless, shell-native, and uses real MFA", a
 test("#234 real sensitive freshness is independent from ordinary ASSURED state", async ({
   page,
 }) => {
+  const withStaffRequestsQuiesced = trackStaffRequests(page);
   await controlFixture("branding-reset");
   const accessToken = await signIn(page, f.emails.conflictAdmin);
   await assurePreEnrolled(page);
@@ -60,7 +62,7 @@ test("#234 real sensitive freshness is independent from ordinary ASSURED state",
   await expect(page.getByRole("heading", { name: "Branding" })).toBeVisible();
   await page.getByLabel("Display name").fill("Issue 234 Freshness Brand");
 
-  await controlFixture("age-mfa", "conflictAdmin", "6");
+  await withStaffRequestsQuiesced(() => controlFixture("age-mfa", "conflictAdmin", "6"));
   const ordinaryState = await page.evaluate(async ({ token }) => {
     const response = await fetch("/v1/staff/auth/mfa/state", {
       headers: { Authorization: `Bearer ${token}` },

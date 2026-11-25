@@ -163,6 +163,9 @@ test("Company Admin MFA enrollment, freshness loss, recovery, refresh and logout
   await expect(navigation.getByRole("link", { name: "Employees & Shifts" })).toBeVisible();
   await expect(navigation.getByRole("link", { name: "Reports" })).toBeVisible();
   await page.getByRole("button", { name: "Change scope" }).first().click();
+  await expect(page.getByRole("heading", {
+    name: "Choose your authorized workspace",
+  })).toBeVisible();
   await selectLocation(page, f.organizations.a.name, f.locations.a.name);
   await expect(page.locator(".topbar").getByText(f.locations.a.name)).toBeVisible();
 
@@ -180,6 +183,16 @@ test("Company Admin MFA enrollment, freshness loss, recovery, refresh and logout
   })).toHaveCount(0);
   expect(refreshes).toBe(1);
 
+  // The fixture backdates created_at to satisfy the MFA timestamp constraint.
+  // Do not change a live document's session identity under its background reads.
+  const restoreUrl = page.url();
+  // Replace, rather than append to, the history entry so the final
+  // logout/back-navigation check still exercises the original history.
+  await Promise.all([
+    page.waitForURL("about:blank"),
+    page.evaluate(() => window.location.replace("about:blank")),
+  ]);
+  expect(refreshes).toBe(1);
   await controlFixture("age-mfa", "companyAdmin", "31");
   // Keep failure evidence useful without recording recovery codes, tokens,
   // response bodies, DOM content, cookies, or full URLs.
@@ -194,9 +207,15 @@ test("Company Admin MFA enrollment, freshness loss, recovery, refresh and logout
   };
   page.on("response", recordAuthResponse);
   try {
-    await page.reload();
+    await Promise.all([
+      page.waitForURL((url) => url.href === restoreUrl),
+      page.evaluate((url) => window.location.replace(url), restoreUrl),
+    ]);
     await expect(page.getByRole("status").filter({ hasText: "MFA status:" }))
       .toContainText("Verification required");
+    expect(refreshes).toBe(2);
+    expect(authResponses).toContainEqual({ endpoint: "refresh", status: 200 });
+    expect(authResponses).toContainEqual({ endpoint: "mfa-state", status: 200 });
   } catch (error) {
     const [signInVisible, chooserVisible, managementVisible, mfaStatusVisible, alertVisible] =
       await Promise.all([
@@ -227,9 +246,17 @@ test("Company Admin MFA enrollment, freshness loss, recovery, refresh and logout
   await expect.poll(() => page.locator("ol li").count()).toBe(0);
   await expect.poll(() => page.getByRole("button", { name: f.organizations.a.name }).isVisible()).toBe(true);
 
+  // Establish real protected history after the fixture's document replacement.
+  await selectCompany(page);
+  await navigation.getByRole("link", { name: "Reports" }).click();
+  await expect(page).toHaveURL(/\/reports$/u);
+  await navigation.getByRole("link", { name: "Employees & Shifts" }).click();
+  await expect(page).toHaveURL(/\/employees$/u);
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
   await page.goBack();
+  await expect(page).toHaveURL(/\/reports$/u);
+  await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
   await expect(
     page.getByRole("navigation", { name: "Management navigation" }),
   ).toHaveCount(0);
