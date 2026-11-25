@@ -7,6 +7,7 @@ import { createInitializePaymentExecutor } from "../src/modules/payments/initial
 import { createProviderEventIngress } from "../src/modules/payments/provider-event-ingress";
 import type { ProviderEventAuthenticator } from "../src/modules/payments/provider-event-types";
 import { CompleteHandoffTestContext } from "./complete-handoff-test-context";
+import { waitForPostgresBlockingEdge } from "./postgres-lock-observer";
 
 const context = new CompleteHandoffTestContext("financial_command_races");
 
@@ -20,18 +21,12 @@ function settled<T>(operation: Promise<T>) {
   );
 }
 
-async function waitForWaiters(fragment: string, minimum: number) {
-  for (let attempt = 0; attempt < 500; attempt += 1) {
-    const result = await context.adminPool.query<{ count: number }>(
-      `SELECT count(*)::integer AS count
-       FROM pg_stat_activity
-       WHERE datname = current_database() AND wait_event_type = 'Lock'
-         AND query ILIKE $1`,
-      [`%${fragment}%`],
-    );
-    if ((result.rows[0]?.count ?? 0) >= minimum) return;
-  }
-  throw new Error(`Expected ${minimum} lock waiters for ${fragment}.`);
+async function waitForWaiter(blockerPid: number): Promise<number> {
+  const waiters = await waitForPostgresBlockingEdge(context.adminPool, {
+    blockerPid,
+  });
+  expect(waiters).toHaveLength(1);
+  return waiters[0]!;
 }
 
 async function configure(fixture: { organizationId: string }, fee: string) {
@@ -63,6 +58,9 @@ describe("VAL-008G release races with real financial commands", () => {
       await blocker.query(`SELECT id FROM payments WHERE id = $1 FOR UPDATE`, [
         payment.id,
       ]);
+      const blockerPid = (await blocker.query<{ pid: number }>(
+        "SELECT pg_backend_pid() AS pid",
+      )).rows[0]!.pid;
       const cash = settled(
         createCashReceiptExecutor(context.runtimePool)({
           authenticatedUserId: fixture.userId,
@@ -70,7 +68,7 @@ describe("VAL-008G release races with real financial commands", () => {
           valetSessionId: fixture.sessionId,
         }),
       );
-      await waitForWaiters("FROM payments", 1);
+      await waitForWaiter(blockerPid);
       const completion = settled(context.complete(fixture));
       await blocker.query("COMMIT");
       await expect(cash).resolves.toMatchObject({
@@ -119,6 +117,9 @@ describe("VAL-008G release races with real financial commands", () => {
       await blocker.query(`SELECT id FROM payments WHERE id = $1 FOR UPDATE`, [
         payment.id,
       ]);
+      const blockerPid = (await blocker.query<{ pid: number }>(
+        "SELECT pg_backend_pid() AS pid",
+      )).rows[0]!.pid;
       const provider = settled(
         ingress({
           binding: {
@@ -135,9 +136,9 @@ describe("VAL-008G release races with real financial commands", () => {
           },
         }),
       );
-      await waitForWaiters("FROM payments", 1);
+      const providerPid = await waitForWaiter(blockerPid);
       const completion = settled(context.complete(fixture));
-      await waitForWaiters("FROM valet_sessions", 1);
+      await waitForWaiter(providerPid);
       await blocker.query("COMMIT");
       await expect(provider).resolves.toMatchObject({
         kind: "FULFILLED",
@@ -197,6 +198,9 @@ describe("VAL-008G release races with real financial commands", () => {
       await blocker.query(`SELECT id FROM payments WHERE id = $1 FOR UPDATE`, [
         payment.id,
       ]);
+      const blockerPid = (await blocker.query<{ pid: number }>(
+        "SELECT pg_backend_pid() AS pid",
+      )).rows[0]!.pid;
       const provider = settled(
         ingress({
           binding: {
@@ -213,9 +217,9 @@ describe("VAL-008G release races with real financial commands", () => {
           },
         }),
       );
-      await waitForWaiters("FROM payments", 1);
+      const providerPid = await waitForWaiter(blockerPid);
       const completion = settled(context.complete(fixture));
-      await waitForWaiters("FROM valet_sessions", 1);
+      await waitForWaiter(providerPid);
       await blocker.query("COMMIT");
       await expect(provider).resolves.toMatchObject({
         kind: "FULFILLED",
@@ -243,16 +247,19 @@ describe("VAL-008G release races with real financial commands", () => {
           `SELECT id FROM valet_sessions WHERE id = $1 FOR UPDATE`,
           [fixture.sessionId],
         );
+        const blockerPid = (await blocker.query<{ pid: number }>(
+          "SELECT pg_backend_pid() AS pid",
+        )).rows[0]!.pid;
         const first =
           order === "INITIALIZE_FIRST"
             ? settled(initialize(fixture.sessionId))
             : settled(context.complete(fixture));
-        await waitForWaiters("FROM valet_sessions", 1);
+        const firstPid = await waitForWaiter(blockerPid);
         const second =
           order === "INITIALIZE_FIRST"
             ? settled(context.complete(fixture))
             : settled(initialize(fixture.sessionId));
-        await waitForWaiters("FROM valet_sessions", 2);
+        await waitForWaiter(firstPid);
         await blocker.query("COMMIT");
         const [firstResult, secondResult] = await Promise.all([first, second]);
         if (order === "INITIALIZE_FIRST") {

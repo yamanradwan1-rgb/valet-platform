@@ -1,4 +1,5 @@
 import { randomBytes, randomUUID } from "node:crypto";
+import { setTimeout as delay } from "node:timers/promises";
 
 import { Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -22,6 +23,7 @@ import {
   hasAcceptedPersistedVehicleIdentity,
 } from "../src/modules/valet-sessions/complete-check-in-command";
 import { beginBlockedCompanySettingMutation, waitForAdvisoryLock } from "./management-settings-race-test-helpers";
+import { waitForPostgresBlockingEdge } from "./postgres-lock-observer";
 
 interface Fixture {
   locationId: string;
@@ -520,9 +522,20 @@ afterAll(async () => {
   const bootstrapPool = new Pool({ connectionString: adminDatabaseUrl });
   try {
     if (databaseCreated) {
-      await bootstrapPool.query(
-        `DROP DATABASE "${testDatabaseName}" WITH (FORCE)`,
-      );
+      if (!/^valet_004h_app_\d+_\d+_[a-f0-9]{8}$/.test(testDatabaseName)) {
+        throw new Error("Refusing to drop a database outside the check-in fixture namespace.");
+      }
+      const deadline = Date.now() + 2_000;
+      for (;;) {
+        try {
+          await bootstrapPool.query(`DROP DATABASE "${testDatabaseName}"`);
+          break;
+        } catch (error) {
+          if (typeof error !== "object" || error === null ||
+              !("code" in error) || error.code !== "55006" || Date.now() >= deadline) throw error;
+          await delay(40);
+        }
+      }
     }
     if (runtimeRoleCreated) {
       await bootstrapPool.query(`DROP ROLE IF EXISTS "${runtimeRole}"`);
@@ -1009,10 +1022,13 @@ describe("VAL-004H complete-check-in command", () => {
     const completion = createCompleteCheckInCommandExecutor(runtimePool)(
       commandRequest(fixture),
     );
+    void completion.catch(() => undefined);
     try {
+      const waiters = await waitForPostgresBlockingEdge(adminPool, { blockerPid: writer.backendPid });
+      expect(waiters).toHaveLength(1);
       await waitForAdvisoryLock(
         adminPool,
-        "pg_advisory_xact_lock_shared",
+        { backendPid: waiters[0]! },
         "ShareLock",
         false,
       );

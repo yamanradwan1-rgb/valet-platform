@@ -6,6 +6,7 @@ import {
   GuestBrowserSessionTestContext,
   type GuestVisit,
 } from "./guest-browser-session-test-context";
+import { waitForPostgresBlockingEdge } from "./postgres-lock-observer";
 
 interface BrowserPair {
   readonly browser: string;
@@ -54,21 +55,6 @@ describe("Guest Browser Session T1 atomic context-switch races", () => {
       [targetToken, sourceBrowser, transition.enrollment, transition.browser],
     );
     return result.rows[0]?.result_code ?? "MISSING";
-  }
-
-  async function waitForPrepareLock(): Promise<void> {
-    for (let attempt = 0; attempt < 100; attempt += 1) {
-      const waiting = await context.adminPool.query<{ count: number }>(
-        `SELECT count(*)::int AS count
-           FROM pg_stat_activity
-          WHERE datname=current_database()
-            AND query LIKE '%guest_browser_prepare_context%'
-            AND wait_event_type='Lock'`,
-      );
-      if ((waiting.rows[0]?.count ?? 0) > 0) return;
-      await new Promise((resolve) => setTimeout(resolve, 10));
-    }
-    throw new Error("Context prepare did not reach the expected lock wait.");
   }
 
   it("serializes switch against source revoke/reissue without resurrecting the old Browser Session", async () => {
@@ -121,16 +107,34 @@ describe("Guest Browser Session T1 atomic context-switch races", () => {
           WHERE id=$1`,
         [target.sessionId, "Q".repeat(43)],
       );
-
-      const preparing = context.runtimePool.query<{ result_code: string }>(
-        `SELECT result_code
-           FROM guest_browser_prepare_context($1,$2,$3,$4)`,
-        [target.token, sourceBrowser.browser, transition.enrollment, transition.browser],
-      );
-      await waitForPrepareLock();
-      await rotation.query("COMMIT");
-      const prepared = await preparing;
-      expect(prepared.rows[0]?.result_code).toBe("INVALID_ACCESS");
+      const blockerPid = (await rotation.query<{ pid: number }>(
+        "SELECT pg_backend_pid() AS pid",
+      )).rows[0]!.pid;
+      const runtime = await context.runtimePool.connect();
+      try {
+        const waiterPid = (await runtime.query<{ pid: number }>(
+          "SELECT pg_backend_pid() AS pid",
+        )).rows[0]!.pid;
+        const preparing = runtime.query<{ result_code: string }>(
+          `SELECT result_code
+             FROM guest_browser_prepare_context($1,$2,$3,$4)`,
+          [target.token, sourceBrowser.browser, transition.enrollment, transition.browser],
+        );
+        // Attach a rejection handler immediately while observing the real SQL wait.
+        void preparing.catch(() => undefined);
+        try {
+          await waitForPostgresBlockingEdge(context.adminPool, { blockerPid, waiterPid });
+          await rotation.query("COMMIT");
+          const prepared = await preparing;
+          expect(prepared.rows[0]?.result_code).toBe("INVALID_ACCESS");
+        } catch (error) {
+          await rotation.query("ROLLBACK").catch(() => undefined);
+          await preparing.catch(() => undefined);
+          throw error;
+        }
+      } finally {
+        runtime.release();
+      }
     } catch (error) {
       await rotation.query("ROLLBACK").catch(() => undefined);
       throw error;

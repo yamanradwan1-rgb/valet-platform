@@ -3,41 +3,30 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createAssignTaskCommandExecutor } from "../src/modules/dispatch/assign-task-command";
 import { createDeclineTaskCommandExecutor } from "../src/modules/dispatch/decline-task-command";
 import { DispatchTestContext } from "./dispatch-test-context";
+import { waitForPostgresBlockingEdge } from "./postgres-lock-observer";
 
 const context = new DispatchTestContext("issue414_postlock");
 
 beforeAll(() => context.setup(), 120_000);
 afterAll(() => context.teardown(), 60_000);
 
-async function proveBlockedSql(queryFragment: string): Promise<void> {
-  for (let attempt = 0; attempt < 150; attempt += 1) {
-    const waiting = await context.adminPool.query<{ blocked: boolean }>(
-      `SELECT EXISTS (
-         SELECT 1 FROM pg_stat_activity
-         WHERE datname=current_database() AND wait_event_type='Lock'
-           AND query LIKE $1
-       ) AS blocked`,
-      [`%${queryFragment}%`],
-    );
-    if (waiting.rows[0]?.blocked) return;
-    await context.adminPool.query("SELECT pg_sleep(0.01)");
-  }
-  throw new Error("Real PostgreSQL row-lock contention not observed.");
-}
-
 async function lockedOperation<T>(
   lockSql: string,
   lockId: string,
-  commandSqlFragment: string,
   operation: () => Promise<T>,
 ): Promise<{ readonly result: T; readonly releasedAt: Date }> {
   const blocker = await context.adminPool.connect();
   await blocker.query("BEGIN");
   let held = true;
+  let pending: Promise<T> | undefined;
   try {
     await blocker.query(lockSql, [lockId]);
-    const pending = operation();
-    await proveBlockedSql(commandSqlFragment);
+    const blockerPid = (await blocker.query<{ pid: number }>(
+      "SELECT pg_backend_pid() AS pid",
+    )).rows[0]!.pid;
+    pending = operation();
+    void pending.catch(() => undefined);
+    expect(await waitForPostgresBlockingEdge(context.adminPool, { blockerPid })).toHaveLength(1);
     await context.adminPool.query("SELECT pg_sleep(0.3)");
     const releasedAt = (
       await blocker.query<{ at: Date }>("SELECT clock_timestamp() AS at")
@@ -46,8 +35,12 @@ async function lockedOperation<T>(
     held = false;
     return { result: await pending, releasedAt };
   } finally {
-    if (held) await blocker.query("ROLLBACK");
-    blocker.release();
+    try {
+      if (held) await blocker.query("ROLLBACK");
+    } finally {
+      blocker.release();
+      await pending?.catch(() => undefined);
+    }
   }
 }
 
@@ -57,7 +50,6 @@ describe("Issue #414 after-lock queue/requeue clock", () => {
     const { result: task, releasedAt } = await lockedOperation(
       "SELECT id FROM valet_sessions WHERE id=$1 FOR UPDATE",
       fixture.sessionId,
-      "FOR UPDATE OF session",
       () => context.queue(fixture),
     );
     const time = await context.adminPool.query<{
@@ -89,7 +81,6 @@ describe("Issue #414 after-lock queue/requeue clock", () => {
     const { result: declined, releasedAt } = await lockedOperation(
       "SELECT id FROM tasks WHERE id=$1 FOR UPDATE",
       queued.taskId,
-      "FROM tasks WHERE id = $1 FOR UPDATE",
       () =>
         createDeclineTaskCommandExecutor(context.runtimePool)({
           authenticatedUserId: fixture.userId,

@@ -4,24 +4,11 @@ import { createAcceptTaskCommandExecutor } from "../src/modules/dispatch/accept-
 import { createAssignTaskCommandExecutor } from "../src/modules/dispatch/assign-task-command";
 import { createInitiateHandoffExecutor } from "../src/modules/retrieval/initiate-handoff-command";
 import { MarkReadyTestContext } from "./mark-ready-test-context";
+import { waitForPostgresBlockingEdge } from "./postgres-lock-observer";
 
 const db = new MarkReadyTestContext("414-p2-postlock");
 beforeAll(() => db.setup(), 120_000);
 afterAll(() => db.teardown(), 120_000);
-
-async function proveLockWait(fragment: string): Promise<void> {
-  for (let attempt = 0; attempt < 150; attempt += 1) {
-    const probe = await db.adminPool.query<{ blocked: boolean }>(
-      `SELECT EXISTS (SELECT 1 FROM pg_stat_activity
-       WHERE datname=current_database() AND wait_event_type='Lock'
-         AND query LIKE $1) AS blocked`,
-      [`%${fragment}%`],
-    );
-    if (probe.rows[0]?.blocked) return;
-    await db.adminPool.query("SELECT pg_sleep(0.01)");
-  }
-  throw new Error("PostgreSQL did not observe a real phase-entry lock wait.");
-}
 
 async function contested<T>(
   table: "tasks" | "valet_sessions",
@@ -31,12 +18,15 @@ async function contested<T>(
   const blocker = await db.adminPool.connect();
   await blocker.query("BEGIN");
   let held = true;
+  let pending: Promise<T> | undefined;
   try {
     await blocker.query(`SELECT id FROM ${table} WHERE id=$1 FOR UPDATE`, [id]);
-    const pending = command();
-    await proveLockWait(table === "tasks"
-      ? "FROM tasks WHERE id = $1 FOR UPDATE"
-      : "FROM valet_sessions WHERE id = $1 FOR UPDATE");
+    const blockerPid = (await blocker.query<{ pid: number }>(
+      "SELECT pg_backend_pid() AS pid",
+    )).rows[0]!.pid;
+    pending = command();
+    void pending.catch(() => undefined);
+    expect(await waitForPostgresBlockingEdge(db.adminPool, { blockerPid })).toHaveLength(1);
     await db.adminPool.query("SELECT pg_sleep(0.3)");
     const releasedAt = (await blocker.query<{ at: Date }>(
       "SELECT clock_timestamp() AS at",
@@ -45,8 +35,12 @@ async function contested<T>(
     held = false;
     return { result: await pending, releasedAt };
   } finally {
-    if (held) await blocker.query("ROLLBACK");
-    blocker.release();
+    try {
+      if (held) await blocker.query("ROLLBACK");
+    } finally {
+      blocker.release();
+      await pending?.catch(() => undefined);
+    }
   }
 }
 
