@@ -5,6 +5,8 @@ import json
 import os
 import re
 import sys
+from types import SimpleNamespace
+import native_codeql_dispositions as native
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
@@ -184,6 +186,15 @@ def main():
         emit("ALERT",info)
         required=("rule_match","path_match","line_match","fp_match","message_match","alert_number_integer","alert_identity_no_dismissal","instance_identity","instance_open","instance_path_match","instance_line_match")
         allgood = allgood and len(matches)==1 and len(exact)==1 and all(info.get(k) is True for k in required)
+    # Exercise the exact candidate production API adapter (read-only), with
+    # authenticated historical head analysis count. Not raw base evaluation.
+    adapter = native._native_mapping(native.GitHubRead(os.environ["GITHUB_TOKEN"]),
+                    upload, SHA, SimpleNamespace(version="2.27.6", alerts=(None,)*61),
+                    KEY, category)
+    adapter_ok = len(adapter)==61 and all(adapter.get((r["rule"],r["path"],r["line"],
+                       r["fingerprint_sha256"],r["message_sha256"]))==n for n,r in refs.items())
+    emit("EXACT_CANDIDATE_ADAPTER",{"all_61":len(adapter)==61,"exact_nine":adapter_ok})
+    allgood = allgood and adapter_ok
     emit("EXACT_NINE_MAPPING",allgood)
     # A diagnostic success does not authorize or unblock anything.
     return 0 if allgood else 2
