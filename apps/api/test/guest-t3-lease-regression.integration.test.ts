@@ -7,7 +7,9 @@ import {
 import { inPostgresTransaction } from "../src/common/database/postgres-transaction";
 import { withDatabaseOperationDeadline } from "../src/common/database/runtime-database-deadline";
 import { ApiOperationRunner } from "../src/common/http/api-operation-runner";
+import { Client } from "pg";
 import { ShiftTestContext } from "./shift-test-context";
+import { insertGuestT3Probe } from "./guest-t3-s04-transaction-probe";
 
 const wait = (ms: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -79,9 +81,7 @@ describe("T3 scoped deadlines and real pool lease lifecycle", () => {
         request(),
         () => {
           settled = inPostgresTransaction(pool, async (transaction) => {
-            await transaction.query(
-              "INSERT INTO anti_abuse_events(scope,key_hash,state) VALUES('v1:guest-token','anti-abuse-hmac-sha256:v1:'||repeat('f',64),'COUNTED')",
-            );
+            await insertGuestT3Probe(transaction, "f");
             await suspended;
             await transaction.query("SELECT 1");
           }).catch((error: unknown) => error);
@@ -152,7 +152,17 @@ describe("T3 scoped deadlines and real pool lease lifecycle", () => {
     const pid = (await client.query("SELECT pg_backend_pid() AS pid")).rows[0]
       .pid;
     await client.query("BEGIN");
-    await context.adminPool.query("SELECT pg_terminate_backend($1)", [pid]);
+    // PostgreSQL permits one role to terminate another backend of that role.
+    const terminator = new Client({ connectionString: context.runtimeUrl });
+    await terminator.connect();
+    try {
+      const terminated = await terminator.query<{ terminated: boolean }>(
+        "SELECT pg_terminate_backend($1) AS terminated", [pid],
+      );
+      expect(terminated.rows[0]?.terminated).toBe(true);
+    } finally {
+      await terminator.end();
+    }
     for (let index = 0; index < 40 && pool.totalCount !== 0; index += 1)
       await wait(25);
     expect(pool.totalCount).toBe(0);
@@ -248,9 +258,7 @@ describe("T3 scoped deadlines and real pool lease lifecycle", () => {
     for (let index = 0; index < 30; index += 1) {
       await expect(
         inPostgresTransaction(pool, async (transaction) => {
-          await transaction.query(
-            "INSERT INTO anti_abuse_events(scope,key_hash,state) VALUES('v1:guest-token','anti-abuse-hmac-sha256:v1:'||repeat('d',64),'COUNTED')",
-          );
+          await insertGuestT3Probe(transaction, "d");
           throw new Error("rollback probe");
         }),
       ).rejects.toThrow("rollback probe");
@@ -277,9 +285,7 @@ describe("T3 scoped deadlines and real pool lease lifecycle", () => {
             throw new Error("Connection terminated unexpectedly");
           return result;
         }) as typeof transaction.query;
-        await transaction.query(
-          "INSERT INTO anti_abuse_events(scope,key_hash,state) VALUES('v1:guest-token','anti-abuse-hmac-sha256:v1:'||repeat('e',64),'COUNTED')",
-        );
+        await insertGuestT3Probe(transaction, "e");
       }),
     ).rejects.toThrow("Connection terminated unexpectedly");
     expect(actions).toBe(1);

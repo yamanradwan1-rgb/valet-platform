@@ -186,7 +186,7 @@ describe("T3 exact class boundaries, aggregate and rolling-version compatibility
     expect(
       (
         await inPostgresTransaction(context.runtimePool, (transaction) =>
-          countClassifiedGuest(transaction, key, "A", 1000, 864),
+          countClassifiedGuest(transaction, key, "A", 784, 864),
         )
       ).id,
     ).toBeUndefined();

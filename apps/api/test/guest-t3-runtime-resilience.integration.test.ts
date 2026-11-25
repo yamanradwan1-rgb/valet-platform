@@ -13,6 +13,7 @@ import {
 import { ShiftTestContext } from "./shift-test-context";
 import { RuntimeDatabaseLifecycle } from "../src/common/database/runtime-database.module";
 import { mapApiError } from "../src/common/http/api-errors";
+import { insertGuestT3Probe } from "./guest-t3-s04-transaction-probe";
 
 describe("T3 real PostgreSQL server deadlines and bounded admission", () => {
   const context = new ShiftTestContext("t3_runtime_deadlines");
@@ -128,12 +129,9 @@ describe("T3 real PostgreSQL server deadlines and bounded admission", () => {
     await noPersistedEffect();
   });
 
-  const insert =
-    "INSERT INTO anti_abuse_events(scope,key_hash,state) VALUES ('v1:guest-token','anti-abuse-hmac-sha256:v1:' || repeat('a',64),'COUNTED')";
-
   it("destroys a genuinely disconnected socket, rolls back and maps the untyped pg error safely", async () => {
     const error = await inPostgresTransaction(pool, async (transaction) => {
-      await transaction.query(insert);
+      await insertGuestT3Probe(transaction, "a");
       const disconnected = new Promise<void>((resolve) =>
         transaction.once("end", resolve),
       );
@@ -159,7 +157,7 @@ describe("T3 real PostgreSQL server deadlines and bounded admission", () => {
     const started = performance.now();
     await expect(
       inPostgresTransaction(pool, async (transaction) => {
-        await transaction.query(insert);
+        await insertGuestT3Probe(transaction, "a");
         await transaction.query("SELECT pg_sleep(10)");
       }),
     ).rejects.toMatchObject({ code: "57014" });
@@ -171,7 +169,7 @@ describe("T3 real PostgreSQL server deadlines and bounded admission", () => {
     const started = performance.now();
     let completedShortStatements = 0;
     const failure = await inPostgresTransaction(pool, async (transaction) => {
-      await transaction.query(insert);
+      await insertGuestT3Probe(transaction, "a");
       for (let index = 0; index < 4; index += 1) {
         await transaction.query("SELECT pg_sleep(1.8)");
         completedShortStatements += 1;
@@ -201,7 +199,7 @@ describe("T3 real PostgreSQL server deadlines and bounded admission", () => {
     try {
       await expect(
         inPostgresTransaction(pool, async (transaction) => {
-          await transaction.query(insert);
+          await insertGuestT3Probe(transaction, "a");
           await transaction.query("SELECT pg_advisory_xact_lock(700075,1)");
         }),
       ).rejects.toMatchObject({ code: "55P03" });
@@ -227,7 +225,7 @@ describe("T3 real PostgreSQL server deadlines and bounded admission", () => {
             "SELECT EXTRACT(epoch FROM current_setting('transaction_timeout')::interval)*1000 AS budget",
           );
           nativeBudgetMs = Number(native.rows[0].budget);
-          await transaction.query(insert);
+          await insertGuestT3Probe(transaction, "a");
           for (let index = 0; index < 4; index += 1)
             await transaction.query("SELECT pg_sleep(1.6)");
         });
@@ -253,7 +251,7 @@ describe("T3 real PostgreSQL server deadlines and bounded admission", () => {
     await expect(
       withDatabaseOperationDeadline(() =>
         inPostgresTransaction(pool, async (transaction) => {
-          await transaction.query(insert);
+          await insertGuestT3Probe(transaction, "a");
           await new Promise<void>(() => undefined);
         }),
       ),
