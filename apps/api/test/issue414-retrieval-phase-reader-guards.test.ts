@@ -156,7 +156,7 @@ describe("Issue #414 P2 restricted source-reader boundaries", () => {
       input.context.userId,
       rawAccessToken,
       input.context.createdAt,
-      "SHARED",
+      "EXCLUSIVE",
     ]);
 
     authorized.mockResolvedValue(null);
@@ -207,7 +207,7 @@ describe("Issue #414 P2 restricted source-reader boundaries", () => {
       input.context.userId,
       rawAccessToken,
       input.context.createdAt,
-      "SHARED",
+      "EXCLUSIVE",
     ]);
     expect(authorized).toHaveBeenCalledWith(
       tx,

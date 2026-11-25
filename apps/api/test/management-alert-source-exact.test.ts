@@ -101,7 +101,7 @@ describe("Issue #414 exact-source navigation lookup", () => {
       input.context.userId,
       rawAccessToken,
       input.context.createdAt,
-      "SHARED",
+      "EXCLUSIVE",
     ]);
   });
 

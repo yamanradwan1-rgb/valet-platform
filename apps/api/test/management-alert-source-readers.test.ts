@@ -97,7 +97,7 @@ describe("Issue #414 P1 management source authorization and query contracts", ()
       input.context.userId,
       rawAccessToken,
       input.context.createdAt,
-      "SHARED",
+      "EXCLUSIVE",
     ]);
     expect(authorize).not.toHaveBeenCalled();
     expect(statements).toHaveLength(0);
@@ -175,7 +175,7 @@ describe("Issue #414 P1 management source authorization and query contracts", ()
       input.context.userId,
       rawAccessToken,
       input.context.createdAt,
-      "SHARED",
+      "EXCLUSIVE",
     ]);
     expect(query.mock.invocationCallOrder[0]).toBeLessThan(
       authorize.mock.invocationCallOrder[0]!,
