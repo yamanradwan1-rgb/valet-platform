@@ -27,7 +27,7 @@ export function postgresEffectiveQueryTarget(instance, Client) {
   if (!parameters || typeof parameters.host !== "string") {
     throw new Error("PostgreSQL test query target cannot be verified.");
   }
-  if (!/^[a-zA-Z0-9_.:\[\]-]+$/.test(parameters.host)) {
+  if (!/^[a-zA-Z0-9_.:[\]-]+$/.test(parameters.host)) {
     throw new Error("PostgreSQL test query target cannot be verified.");
   }
   const host =
