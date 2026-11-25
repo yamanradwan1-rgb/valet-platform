@@ -75,7 +75,7 @@ def alert_identity(alert,n,r):
 
 def instance_identity(instance, r):
     message = instance.get("message")
-    return (instance.get("state") == "dismissed"
+    return (instance.get("state") in ("open","dismissed")
             and instance.get("location", {}).get("path") == r["path"]
             and instance.get("location", {}).get("start_line") == r["line"]
             and isinstance(message, dict)
@@ -159,6 +159,9 @@ def main():
     emit("SCOPED_STATE_COUNTS",{"dismissed":len(scoped),"open":len(opened),
          "nine_dismissed":all(sum(a.get("number")==n for a in scoped)==1 for n in IDS),
          "nine_not_open":all(not any(a.get("number")==n for a in opened) for n in IDS)})
+    api=native.GitHubRead(os.environ["GITHUB_TOKEN"])
+    effective=native._scoped_alert_states(api)
+    approved=[]
     for n in IDS:
         r = refs[n]
         matches_scoped=[a for a in scoped if a.get("number")==n]
@@ -200,6 +203,10 @@ def main():
             "state_is_null":alert.get("state") is None,"state_present":"state" in alert}
         info["owner_dismissal_checks"] = dismissal_checks(alert,n,r)
         info["owner_dismissal_verified"] = alert_identity(alert,n,r)
+        row={"ruleId":r["rule"],"path":r["path"],"line":r["line"]}
+        exact_scoped=native._scoped_disposition(effective,n,alert,row,SHA,KEY,category)
+        approved.append((n,alert,row,exact_scoped))
+        info["exact_scoped_helper"]=True
         instances = get(REPO + "/code-scanning/alerts/" + str(n) + "/instances",{"ref":REF,"per_page":100})
         exact = [i for i in instances if i.get("ref")==REF and i.get("commit_sha")==SHA and i.get("analysis_key")==KEY and i.get("category")==category]
         info["instance_exact_count"]=len(exact)
@@ -222,7 +229,7 @@ def main():
             info["instance_message_nonempty"]=isinstance(m,str) and bool(m.strip())
             info.update({"instance_dismissed":i.get("state")=="dismissed","instance_path_match":i.get("location",{}).get("path")==r["path"],"instance_line_match":i.get("location",{}).get("start_line")==r["line"],"instance_message_match":sha(i.get("message",{}).get("text"))==r["message_sha256"]})
         emit("ALERT",info)
-        required=("rule_match","path_match","line_match","fp_match","message_match","alert_number_integer","owner_dismissal_verified","instance_identity","instance_dismissed","instance_path_match","instance_line_match")
+        required=("rule_match","path_match","line_match","fp_match","message_match","alert_number_integer","owner_dismissal_verified","exact_scoped_helper","instance_identity","instance_path_match","instance_line_match")
         allgood = allgood and len(matches)==1 and len(exact)==1 and all(info.get(k) is True for k in required)
     # Exercise the exact candidate production API adapter (read-only), with
     # authenticated historical head analysis count. Not raw base evaluation.
@@ -269,6 +276,15 @@ def main():
                        r["fingerprint_sha256"],r["message_sha256"]))==[n] for n,r in refs.items())
     emit("EXACT_CANDIDATE_ADAPTER",{"all_61":sum(map(len,adapter.values()))==61,"exact_nine":adapter_ok})
     allgood = allgood and adapter_ok
+    refreshed=native._scoped_alert_states(api)
+    for n,alert,row,exact_scoped in approved:
+        fresh=api.get(REPO+"/code-scanning/alerts/"+str(n))
+        if any(fresh[k]!=alert[k] for k in ("number","state","rule","tool","dismissed_by","dismissed_reason","dismissed_at","dismissed_comment")):
+            raise ValueError("dismissal changed")
+        if native._scoped_disposition(refreshed,n,fresh,row,SHA,KEY,category)!=exact_scoped:
+            raise ValueError("scoped dismissal changed")
+    emit("EXACT_SCOPED_HELPER",len(approved)==9)
+    allgood=allgood and len(approved)==9
     emit("EXACT_NINE_MAPPING",allgood)
     # A diagnostic success does not authorize or unblock anything.
     return 0 if allgood else 2
