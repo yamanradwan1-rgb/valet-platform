@@ -10,6 +10,7 @@ import {
   createTask,
   createTaskDispatchScope,
 } from "./task-dispatch-fixture.js";
+import { dropFixtureDatabase } from "./drop-fixture-database.js";
 
 interface PgError extends Error {
   code?: string;
@@ -29,6 +30,7 @@ const prismaCli = fileURLToPath(
 );
 let adminPool: Pool;
 let runtimePool: Pool;
+let databaseCreated = false;
 
 function scopedUrl(role?: string, password?: string): string {
   const url = new URL(adminUrl);
@@ -76,8 +78,12 @@ async function expectDenied(operation: Promise<unknown>): Promise<void> {
 beforeAll(async () => {
   const bootstrap = new Client({ connectionString: adminUrl });
   await bootstrap.connect();
-  await bootstrap.query(`CREATE DATABASE "${databaseName}"`);
-  await bootstrap.end();
+  try {
+    await bootstrap.query(`CREATE DATABASE "${databaseName}"`);
+    databaseCreated = true;
+  } finally {
+    await bootstrap.end();
+  }
   const migrationUrl = scopedUrl();
   const runtimeUrl = scopedUrl(runtimeRole, runtimePassword);
   await runScript([prismaCli, "migrate", "deploy"], migrationUrl);
@@ -91,13 +97,22 @@ beforeAll(async () => {
 }, 120_000);
 
 afterAll(async () => {
-  await runtimePool?.end();
-  await adminPool?.end();
+  const closed = await Promise.allSettled([
+    runtimePool?.end(),
+    adminPool?.end(),
+  ]);
   const bootstrap = new Client({ connectionString: adminUrl });
   await bootstrap.connect();
-  await bootstrap.query(`DROP DATABASE "${databaseName}" WITH (FORCE)`);
-  await bootstrap.query(`DROP ROLE IF EXISTS "${runtimeRole}"`);
-  await bootstrap.end();
+  try {
+    if (databaseCreated) {
+      await dropFixtureDatabase(bootstrap, databaseName);
+    }
+    await bootstrap.query(`DROP ROLE IF EXISTS "${runtimeRole}"`);
+  } finally {
+    await bootstrap.end();
+  }
+  const closeFailure = closed.find((result) => result.status === "rejected");
+  if (closeFailure?.status === "rejected") throw closeFailure.reason;
 }, 60_000);
 
 describe("DEC-034 runtime privileges", () => {
