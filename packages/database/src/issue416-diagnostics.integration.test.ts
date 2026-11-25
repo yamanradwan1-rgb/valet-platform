@@ -33,10 +33,19 @@ it("measures synthetic bind/error/cancellation exposure without reusable credent
     const settings = await context.admin.query(
       `SELECT current_setting('log_statement') AS statement,
               current_setting('log_parameter_max_length') AS bind,
-              current_setting('log_parameter_max_length_on_error') AS error_bind,
-              current_setting('shared_preload_libraries') AS preloads`,
+              current_setting('log_parameter_max_length_on_error') AS error_bind`,
     );
-    facts.settings = settings.rows[0];
+    const visibility = await context.admin.query<{ readable: boolean }>(
+      `SELECT r.rolsuper OR pg_has_role(current_user,'pg_read_all_settings','USAGE')
+              AS readable FROM pg_roles AS r WHERE r.rolname=current_user`,
+    );
+    const readable = visibility.rows[0]?.readable === true;
+    const preloads = readable
+      ? (await context.admin.query<{ preloads: string }>(
+          "SELECT current_setting('shared_preload_libraries') AS preloads",
+        )).rows[0]?.preloads
+      : null;
+    facts.settings = { ...settings.rows[0], preloads, preloadsReadable: readable };
     const result = await context.admin.query<{ length: number }>(
       "SELECT length($1::text) AS length",
       [canary],

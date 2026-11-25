@@ -8,6 +8,7 @@ import { Client, Pool } from "pg";
 import { expect } from "vitest";
 import { expectedMigrationDirectories } from "./migration-manifest.js";
 import { installDec103NonemptyTestIndexes } from "./dec103-nonempty-test-rollout.js";
+import { dropFixtureDatabase } from "./drop-fixture-database.js";
 
 interface PgError extends Error {
   code?: string;
@@ -162,9 +163,12 @@ export async function stopPhysicalResourceRuntime() {
   await adminPool?.end();
   const bootstrap = new Client({ connectionString: adminUrl });
   await bootstrap.connect();
-  await bootstrap.query(`DROP DATABASE "${databaseName}" WITH (FORCE)`);
-  await bootstrap.query(`DROP ROLE IF EXISTS "${runtimeRole}"`);
-  await bootstrap.end();
+  try {
+    await dropFixtureDatabase(bootstrap, databaseName);
+    await bootstrap.query(`DROP ROLE IF EXISTS "${runtimeRole}"`);
+  } finally {
+    await bootstrap.end();
+  }
   if (upgradeDirectory !== undefined) {
     if (
       !resolve(upgradeDirectory).startsWith(resolve(packageRoot, "tmp") + sep)

@@ -5,8 +5,8 @@ export async function dropFixtureDatabase(
   bootstrap: Pick<Client | Pool, "query">,
   databaseName: string,
 ): Promise<void> {
-  const uuidFixture = /^(?:valet_(?:t1|guest)_[a-z0-9_]+|valet_staff_activation_(?:upgrade|fresh)|valet_mgt_fix02_(?:upgrade|fresh)|vlt_309_photo_scope)_[0-9a-f]{32}$/;
-  const processFixture = /^(?:valet_(?:005a|006a|008d)_role_\d+_\d+|vlt_presence_\d+_[0-9a-f]{12})$/;
+  const uuidFixture = /^(?:valet_(?:t1|guest)_[a-z0-9_]+|valet_staff_activation_(?:upgrade|fresh)|valet_mgt_fix02_(?:upgrade|fresh)|valet_issue416_audit|vlt_309_photo_scope)_[0-9a-f]{32}$/;
+  const processFixture = /^(?:valet_(?:005a|006a|008d)_role_\d+_\d+|valet_mgt_232_role_\d+_\d+|vlt_presence_\d+_[0-9a-f]{12})$/;
   if (!uuidFixture.test(databaseName) && !processFixture.test(databaseName)) {
     throw new Error("Refusing to drop a database outside the fixture namespace.");
   }

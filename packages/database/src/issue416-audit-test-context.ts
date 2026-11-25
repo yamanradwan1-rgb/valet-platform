@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
 
 import { Client } from "pg";
+import { dropFixtureDatabase } from "./drop-fixture-database.js";
 
 const packageRoot = fileURLToPath(new URL("../", import.meta.url));
 const prismaCli = fileURLToPath(
@@ -82,9 +83,7 @@ export class Issue416AuditTestContext {
     await this.admin.end();
     try {
       if (this.databaseCreated) {
-        await this.bootstrap.query(
-          `DROP DATABASE "${this.databaseName}" WITH (FORCE)`,
-        );
+        await dropFixtureDatabase(this.bootstrap, this.databaseName);
       }
       await this.bootstrap.query(`DROP ROLE IF EXISTS "${this.runtimeRole}"`);
     } finally {
