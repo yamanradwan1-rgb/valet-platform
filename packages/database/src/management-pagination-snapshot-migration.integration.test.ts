@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { Client } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { dropFixtureDatabase } from "./drop-fixture-database.js";
 import { expectedMigrationDirectories } from "./migration-manifest.js";
 const adminUrl =
   process.env.TEST_DATABASE_URL ??
@@ -33,11 +34,11 @@ async function database(operation: "CREATE" | "DROP", name: string): Promise<voi
   const client = new Client({ connectionString: adminUrl });
   await client.connect();
   try {
-    await client.query(
-      operation === "CREATE"
-        ? `CREATE DATABASE "${name}"`
-        : `DROP DATABASE IF EXISTS "${name}" WITH (FORCE)`,
-    );
+    if (operation === "CREATE") {
+      await client.query(`CREATE DATABASE "${name}"`);
+    } else {
+      await dropFixtureDatabase(client, name);
+    }
   } finally {
     await client.end();
   }

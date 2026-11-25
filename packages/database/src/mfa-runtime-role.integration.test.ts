@@ -178,7 +178,7 @@ describe("MGT-BE-02 MFA runtime role", () => {
   it("supports the runtime MFA lifecycle without mutable secret material", async () => {
     const sessionId = randomUUID();
     const factorId = randomUUID();
-    await insertMfaRuntimeFixtureSession(runtime, userId, sessionId, "a");
+    await insertMfaRuntimeFixtureSession(admin, userId, sessionId, "a");
     await runtime.query(
       `INSERT INTO user_mfa_totp_factors(id,user_id,state,protected_secret,pending_enrollment_session_id)
        VALUES ($1,$2,'PENDING',$3,$4)`,
@@ -257,7 +257,7 @@ describe("MGT-BE-02 MFA runtime role", () => {
     const factorId = randomUUID();
     const ownerSessionId = randomUUID();
     await insertMfaRuntimeFixtureSession(
-      runtime,
+      admin,
       otherUserId,
       ownerSessionId,
       "f",

@@ -11,12 +11,25 @@ afterAll(() => context.cleanup(), 60_000);
 it("measures synthetic bind/error/cancellation exposure without reusable credentials", async () => {
   const canary = `issue416-public-diagnostic-${randomUUID()}`;
   const facts: Record<string, unknown> = {};
+  const writable = await context.admin.query<{
+    errorBind: boolean;
+    bind: boolean;
+    statement: boolean;
+  }>(
+    `SELECT has_parameter_privilege(current_user,'log_statement','SET') AS statement,
+            has_parameter_privilege(current_user,'log_parameter_max_length','SET') AS bind,
+            has_parameter_privilege(current_user,'log_parameter_max_length_on_error','SET') AS "errorBind"`,
+  );
+  const canSet = writable.rows[0]!;
+  facts.configurationWritable = canSet;
   try {
-    // Only this disposable owner's test connection changes logging settings.
-    // No production configuration or application observability is changed.
-    await context.admin.query("SET log_statement='all'");
-    await context.admin.query("SET log_parameter_max_length=-1");
-    await context.admin.query("SET log_parameter_max_length_on_error=-1");
+    // The test runs with the provisioned least-privilege CI admin role.
+    // Settings requiring superuser rights remain read-only in that environment.
+    if (canSet.statement) await context.admin.query("SET log_statement='all'");
+    if (canSet.bind) await context.admin.query("SET log_parameter_max_length=-1");
+    if (canSet.errorBind) {
+      await context.admin.query("SET log_parameter_max_length_on_error=-1");
+    }
     const settings = await context.admin.query(
       `SELECT current_setting('log_statement') AS statement,
               current_setting('log_parameter_max_length') AS bind,
@@ -61,8 +74,10 @@ it("measures synthetic bind/error/cancellation exposure without reusable credent
   } finally {
     await context.admin.query("ROLLBACK");
     await context.admin.query("RESET statement_timeout");
-    await context.admin.query("RESET log_statement");
-    await context.admin.query("RESET log_parameter_max_length");
-    await context.admin.query("RESET log_parameter_max_length_on_error");
+    if (canSet.statement) await context.admin.query("RESET log_statement");
+    if (canSet.bind) await context.admin.query("RESET log_parameter_max_length");
+    if (canSet.errorBind) {
+      await context.admin.query("RESET log_parameter_max_length_on_error");
+    }
   }
 });

@@ -2,7 +2,7 @@ import type { Client, Pool } from "pg";
 import { expect } from "vitest";
 
 export async function insertMfaRuntimeFixtureSession(
-  client: Client,
+  client: Client | Pool,
   userId: string,
   sessionId: string,
   hashCharacter: string,

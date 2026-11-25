@@ -6,6 +6,7 @@ import { Client } from "pg";
 
 import {
   createDisposableDatabase,
+  databaseAdminUrl,
   dropDisposableDatabase,
   seedT1Session,
 } from "./guest-browser-session-test-fixture.js";
@@ -95,18 +96,21 @@ export class GuestPushWorkerReplicaTestContext {
 
   async teardown(): Promise<void> {
     if (this.workerClient !== undefined) await this.workerClient.end();
-    if (this.adminClient !== undefined) {
-      for (const role of [this.workerRole, this.apiRole]) {
-        await this.adminClient.query(
-          await this.formattedStatement("DROP OWNED BY %I", [role]),
-        );
-        await this.adminClient.query(
-          await this.formattedStatement("DROP ROLE IF EXISTS %I", [role]),
-        );
-      }
-      await this.adminClient.end();
-    }
+    if (this.adminClient !== undefined) await this.adminClient.end();
     if (this.databaseName !== "") await dropDisposableDatabase(this.databaseName);
+    const bootstrap = new Client({ connectionString: databaseAdminUrl });
+    await bootstrap.connect();
+    try {
+      for (const role of [this.workerRole, this.apiRole]) {
+        const statement = await bootstrap.query<{ sql: string }>(
+          "SELECT format('DROP ROLE IF EXISTS %I', $1::text) AS sql",
+          [role],
+        );
+        await bootstrap.query(statement.rows[0]!.sql);
+      }
+    } finally {
+      await bootstrap.end();
+    }
   }
 
   async prepareDelivery(label: string): Promise<GuestPushPreparedDelivery> {
@@ -168,7 +172,8 @@ export class GuestPushWorkerReplicaTestContext {
   }
 
   async expireLease(deliveryId: string): Promise<void> {
-    await this.bypassGuards(
+    await this.mutateWithFixtureGuardDisabled(
+      "guest_push_deliveries", "guest_push_delivery_guard_trigger",
       `UPDATE guest_push_deliveries
        SET lease_expires_at = clock_timestamp() - interval '1 second'
        WHERE id = $1`,
@@ -177,7 +182,8 @@ export class GuestPushWorkerReplicaTestContext {
   }
 
   async setIntentLifetime(intentId: string, seconds: number): Promise<Date> {
-    await this.bypassGuards(
+    await this.mutateWithFixtureGuardDisabled(
+      "guest_push_intents", "guest_push_intent_immutable_guard_trigger",
       `UPDATE guest_push_intents
        SET expires_at = clock_timestamp() + make_interval(secs => $2)
        WHERE id = $1`,
@@ -193,7 +199,6 @@ export class GuestPushWorkerReplicaTestContext {
   private async forceReady(sessionId: string): Promise<Date> {
     await this.adminClient.query("BEGIN");
     try {
-      await this.adminClient.query("SET LOCAL session_replication_role = replica");
       const result = await this.adminClient.query<{ ready_at: Date }>(
         `UPDATE valet_sessions
          SET state = 'READY', ready_at = clock_timestamp(), updated_at = clock_timestamp()
@@ -208,11 +213,31 @@ export class GuestPushWorkerReplicaTestContext {
     }
   }
 
-  private async bypassGuards(sql: string, values: unknown[]): Promise<void> {
+  private async mutateWithFixtureGuardDisabled(
+    table: "guest_push_deliveries" | "guest_push_intents",
+    trigger: "guest_push_delivery_guard_trigger" | "guest_push_intent_immutable_guard_trigger",
+    sql: string,
+    values: unknown[],
+  ): Promise<void> {
     await this.adminClient.query("BEGIN");
     try {
-      await this.adminClient.query("SET LOCAL session_replication_role = replica");
+      // Only the disposable database owner may temporarily disable this exact user trigger.
+      const triggerState = async () => this.adminClient.query<{ enabled: string }>(
+        `SELECT tgenabled AS enabled FROM pg_catalog.pg_trigger
+         WHERE tgrelid = $1::regclass AND tgname = $2 AND NOT tgisinternal`,
+        [table, trigger],
+      );
+      const before = await triggerState();
+      if (before.rows.length !== 1 || before.rows[0]?.enabled !== "O") {
+        throw new Error("Guest Push fixture trigger was not enabled.");
+      }
+      await this.adminClient.query(`ALTER TABLE ${table} DISABLE TRIGGER ${trigger}`);
       await this.adminClient.query(sql, values);
+      await this.adminClient.query(`ALTER TABLE ${table} ENABLE TRIGGER ${trigger}`);
+      const after = await triggerState();
+      if (after.rows.length !== 1 || after.rows[0]?.enabled !== "O") {
+        throw new Error("Guest Push fixture trigger was not restored.");
+      }
       await this.adminClient.query("COMMIT");
     } catch (error) {
       await this.adminClient.query("ROLLBACK");

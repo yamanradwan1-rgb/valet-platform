@@ -8,6 +8,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { verifyMigrationConnectionTls } from "../scripts/database-connection-policy.mjs";
 
 import { expectedCurrentMigrationDirectories } from "./issue304-migration-source-appendix.js";
+import { unreachableManagementWriterProbe } from "./runtime-role-provisioner-probe.js";
 interface CommandResult {
   code: number | null;
   stderr: string;
@@ -301,7 +302,7 @@ describe("runtime PostgreSQL role boundary", () => {
     );
     expect(after.rows[0]?.count).toBe(before.rows[0]?.count);
   });
-  it("can rotate retained auth rows but cannot delete or truncate them", async () => {
+  it("restricts retained auth writes to legacy MFA session-assurance columns", async () => {
     const privileges = await adminPool.query<{
       can_delete: boolean;
       can_insert: boolean;
@@ -328,7 +329,7 @@ describe("runtime PostgreSQL role boundary", () => {
       },
       {
         can_delete: false,
-        can_insert: true,
+        can_insert: false,
         can_select: true,
         can_truncate: false,
         table_name: "staff_refresh_credentials",
@@ -359,20 +360,11 @@ describe("runtime PostgreSQL role boundary", () => {
        ORDER BY table_name, column_name`,
       [runtimeRole],
     );
-    expect(
-      updatePrivileges.rows
-        .filter((row) => row.allowed)
-        .map((row) => `${row.table_name}.${row.column_name}`),
-    ).toEqual([
-      "staff_auth_sessions.access_expires_at",
-      "staff_auth_sessions.current_access_token_hash",
-      "staff_auth_sessions.last_admin_activity_at",
-      "staff_auth_sessions.last_rotated_at",
-      "staff_auth_sessions.mfa_authenticated_at",
-      "staff_auth_sessions.mfa_factor_id",
-      "staff_auth_sessions.revoked_at",
-      "staff_refresh_credentials.consumed_at",
-      "staff_refresh_credentials.replaced_by_credential_id",
+    expect(updatePrivileges.rows.filter((row) => row.allowed)).toEqual([
+      { allowed: true, column_name: "last_admin_activity_at", table_name: "staff_auth_sessions" },
+      { allowed: true, column_name: "mfa_authenticated_at", table_name: "staff_auth_sessions" },
+      { allowed: true, column_name: "mfa_factor_id", table_name: "staff_auth_sessions" },
+      { allowed: true, column_name: "revoked_at", table_name: "staff_auth_sessions" },
     ]);
   });
 
@@ -802,6 +794,7 @@ describe("runtime PostgreSQL role boundary", () => {
         DATABASE_URL: hostileRuntime.toString(),
         MIGRATION_DATABASE_URL: unreachableMigration.toString(),
         NODE_ENV: "test",
+        ...unreachableManagementWriterProbe(unreachableMigration),
       },
     );
     const output = `${result.stdout}\n${result.stderr}`;
@@ -855,6 +848,7 @@ describe("runtime PostgreSQL role boundary", () => {
           DATABASE_URL: testCase.runtimeUrl,
           MIGRATION_DATABASE_URL: testCase.migrationUrl,
           NODE_ENV: "test",
+          ...unreachableManagementWriterProbe(unreachableMigration),
         },
       );
       const output = `${result.stdout}\n${result.stderr}`;
@@ -883,6 +877,7 @@ describe("runtime PostgreSQL role boundary", () => {
         DATABASE_URL: completeRuntimeUrl,
         MIGRATION_DATABASE_URL: unreachableMigration.toString(),
         NODE_ENV: "test",
+        ...unreachableManagementWriterProbe(unreachableMigration),
       },
     );
     const output = `${result.stdout}\n${result.stderr}`;
@@ -896,7 +891,7 @@ describe("runtime PostgreSQL role boundary", () => {
   it("enforces least privilege and fixed cleanup for ephemeral anti-abuse rows", async () => {
     const currentHash = `anti-abuse-hmac-sha256:v1:${"a".repeat(64)}`;
     const staleHash = `anti-abuse-hmac-sha256:v1:${"b".repeat(64)}`;
-    const inserted = await runtimePool.query<{ id: string }>(
+    const inserted = await adminPool.query<{ id: string }>(
       `INSERT INTO anti_abuse_events (scope, key_hash, state)
        VALUES ('v1:staff-client-address', $1, 'PENDING')
        RETURNING id::text`,
@@ -904,10 +899,13 @@ describe("runtime PostgreSQL role boundary", () => {
     );
     const id = inserted.rows[0]?.id;
     expect(id).toBeDefined();
-    await runtimePool.query(
+    await adminPool.query(
       `UPDATE anti_abuse_events SET state = 'COUNTED' WHERE id = $1`,
       [id],
     );
+    await expectPostgresDenial(runtimePool.query(
+      `UPDATE anti_abuse_events SET state='COUNTED' WHERE id=$1`, [id],
+    ));
     await expectPostgresDenial(
       runtimePool.query(
         `UPDATE anti_abuse_events SET key_hash = $1 WHERE id = $2`,
