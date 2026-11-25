@@ -227,9 +227,9 @@ def main():
     adapter = native._native_mapping(TraceRead(os.environ["GITHUB_TOKEN"]),
                     upload, SHA, SimpleNamespace(version="2.27.6", alerts=(None,)*61),
                     KEY, category)
-    adapter_ok = len(adapter)==61 and all(adapter.get((r["rule"],r["path"],r["line"],
-                       r["fingerprint_sha256"],r["message_sha256"]))==n for n,r in refs.items())
-    emit("EXACT_CANDIDATE_ADAPTER",{"all_61":len(adapter)==61,"exact_nine":adapter_ok})
+    adapter_ok = sum(map(len,adapter.values()))==61 and all(adapter.get((r["rule"],r["path"],r["line"],
+                       r["fingerprint_sha256"],r["message_sha256"]))==[n] for n,r in refs.items())
+    emit("EXACT_CANDIDATE_ADAPTER",{"all_61":sum(map(len,adapter.values()))==61,"exact_nine":adapter_ok})
     allgood = allgood and adapter_ok
     emit("EXACT_NINE_MAPPING",allgood)
     # A diagnostic success does not authorize or unblock anything.
