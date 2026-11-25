@@ -6,6 +6,8 @@ import {
   validArea,
   validPoint,
 } from "./map-setup-test-context";
+import { waitForPostgresBlockingEdge } from "./postgres-lock-observer";
+import { racePoolTransaction } from "./postgres-race-pool-client";
 
 interface PgError extends Error {
   readonly code?: string;
@@ -32,22 +34,6 @@ async function expectPgCode(
   }
 }
 
-async function waitForPointUpdateLock(): Promise<void> {
-  for (let attempt = 0; attempt < 100; attempt += 1) {
-    const activity = await context.database.adminPool.query<{ blocked: boolean }>(
-      `SELECT EXISTS (
-         SELECT 1 FROM pg_stat_activity
-         WHERE usename = $1 AND wait_event_type = 'Lock'
-           AND query LIKE '%map_setup_update_point%'
-       ) AS blocked`,
-      [context.database.runtimeRole],
-    );
-    if (activity.rows[0]?.blocked === true) return;
-    await new Promise((resolve) => setTimeout(resolve, 20));
-  }
-  throw new Error("Timed out waiting for the point update row lock.");
-}
-
 async function commitConcurrentPointChange(
   locker: PoolClient,
   pointId: string,
@@ -72,9 +58,12 @@ describe("VAL-007B final persistence review fixes", () => {
     );
     const pointId = String(created.body.id);
     const locker = await context.database.adminPool.connect();
+    const transaction = racePoolTransaction(locker);
+    let pending: ReturnType<typeof context.request> | undefined;
     try {
       await commitConcurrentPointChange(locker, pointId);
-      const pending = context.request(
+      const blockerPid = (await locker.query<{ pid: number }>("SELECT pg_backend_pid() AS pid")).rows[0]!.pid;
+      pending = context.request(
         "PATCH",
         `${pointPath(actor.fixture.locationId)}/${pointId}`,
         {
@@ -82,15 +71,16 @@ describe("VAL-007B final persistence review fixes", () => {
           token: actor.token,
         },
       );
-      await waitForPointUpdateLock();
-      await locker.query("COMMIT");
+      void pending.catch(() => undefined);
+      expect(await waitForPostgresBlockingEdge(context.database.adminPool, { blockerPid, timeoutMs: 2_000 })).toHaveLength(1);
+      await transaction.close("COMMIT");
       const response = await pending;
       expect(response.status).toBe(409);
       expect(response.body).toMatchObject({ code: "MAP_SETUP_CONFLICT" });
       expect(JSON.stringify(response.body)).not.toMatch(/updated_at|timestamp/i);
     } finally {
-      await locker.query("ROLLBACK");
-      locker.release();
+      await transaction.close("ROLLBACK").catch(() => undefined);
+      await pending?.catch(() => undefined);
     }
     const persisted = await context.database.adminPool.query(
       `SELECT label, active FROM location_map_points WHERE id = $1`,

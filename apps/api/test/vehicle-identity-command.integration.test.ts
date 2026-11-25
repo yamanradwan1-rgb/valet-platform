@@ -14,6 +14,8 @@ import {
   normalizePlateNumber,
   type VehicleIdentityCommandRequest,
 } from "../src/modules/vehicles/vehicle-identity-command";
+import { waitForPostgresBlockingEdge } from "./postgres-lock-observer";
+import { racePoolTransaction } from "./postgres-race-pool-client";
 
 interface Fixture {
   locationId: string;
@@ -284,26 +286,6 @@ async function addSharedVehicleSession(
   return sessionId;
 }
 
-async function waitForBlockedQuery(queryPattern: string): Promise<void> {
-  const deadline = Date.now() + 2_000;
-  while (Date.now() < deadline) {
-    const result = await adminPool.query<{ blocked: boolean }>(
-      `SELECT EXISTS (
-         SELECT 1
-         FROM pg_stat_activity
-         WHERE datname = current_database()
-           AND pid <> pg_backend_pid()
-           AND state = 'active'
-           AND wait_event_type = 'Lock'
-           AND query LIKE $1
-       ) AS blocked`,
-      [queryPattern],
-    );
-    if (result.rows[0]?.blocked === true) return;
-    await new Promise((resolvePromise) => setTimeout(resolvePromise, 10));
-  }
-  throw new Error(`Timed out waiting for blocked query ${queryPattern}.`);
-}
 
 function confirmedRequest(
   fixture: Fixture,
@@ -784,6 +766,8 @@ describe("vehicle identity conflicts and concurrency", () => {
     const siblingSessionId = await addSharedVehicleSession(fixture, sibling);
     const before = await readVehicle(fixture.vehicleId);
     const completionTransaction = await adminPool.connect();
+    const transaction = racePoolTransaction(completionTransaction);
+    let mutation: Promise<unknown> | undefined;
     try {
       await completionTransaction.query("BEGIN");
       await completionTransaction.query(
@@ -794,13 +778,14 @@ describe("vehicle identity conflicts and concurrency", () => {
         `SELECT id FROM vehicles WHERE id = $1 FOR SHARE`,
         [fixture.vehicleId],
       );
-      const mutation = createVehicleIdentityCommandExecutor(runtimePool)(
+      const blockerPid = (await completionTransaction.query<{ pid: number }>("SELECT pg_backend_pid() AS pid")).rows[0]!.pid;
+      mutation = createVehicleIdentityCommandExecutor(runtimePool)(
         confirmedRequest(fixture),
       ).then(
         (value) => ({ status: "fulfilled" as const, value }),
         (reason: unknown) => ({ status: "rejected" as const, reason }),
       );
-      await waitForBlockedQuery("%FROM vehicles%FOR UPDATE%");
+      expect(await waitForPostgresBlockingEdge(adminPool, { blockerPid, timeoutMs: 2_000 })).toHaveLength(1);
       await completionTransaction.query(
         `UPDATE valet_sessions
          SET state = 'AWAITING_PARKING',
@@ -810,16 +795,16 @@ describe("vehicle identity conflicts and concurrency", () => {
          WHERE id = $1 AND state = 'CHECKING_IN'`,
         [siblingSessionId],
       );
-      await completionTransaction.query("COMMIT");
+      await transaction.close("COMMIT");
       expect(await mutation).toMatchObject({
         reason: { code: "VEHICLE_IDENTITY_CUSTODY_CONFLICT" },
         status: "rejected",
       });
     } catch (error) {
-      await completionTransaction.query("ROLLBACK");
+      await transaction.close("ROLLBACK").catch(() => undefined);
       throw error;
     } finally {
-      completionTransaction.release();
+      await mutation?.catch(() => undefined);
     }
     expect(await readVehicle(fixture.vehicleId)).toEqual(before);
     expect(await countAudits(fixture.sessionId)).toBe(0);
@@ -834,13 +819,16 @@ describe("vehicle identity conflicts and concurrency", () => {
       const identified = await executeIdentity(confirmedRequest(fixture));
       const beforeCorrection = await readVehicle(fixture.vehicleId);
       const sessionGate = await adminPool.connect();
+      const transaction = racePoolTransaction(sessionGate);
+      let correction: Promise<unknown> | undefined;
       try {
         await sessionGate.query("BEGIN");
         await sessionGate.query(
           `SELECT id FROM valet_sessions WHERE id = $1 FOR UPDATE`,
           [fixture.sessionId],
         );
-        const correction = executeIdentity({
+        const blockerPid = (await sessionGate.query<{ pid: number }>("SELECT pg_backend_pid() AS pid")).rows[0]!.pid;
+        correction = executeIdentity({
           ...confirmedRequest(fixture),
           expectedVehicleUpdatedAt: identified.vehicleUpdatedAt,
           identity: {
@@ -853,7 +841,7 @@ describe("vehicle identity conflicts and concurrency", () => {
           (value) => ({ status: "fulfilled" as const, value }),
           (reason: unknown) => ({ status: "rejected" as const, reason }),
         );
-        await waitForBlockedQuery("%FROM valet_sessions AS session%FOR UPDATE%");
+        expect(await waitForPostgresBlockingEdge(adminPool, { blockerPid, timeoutMs: 2_000 })).toHaveLength(1);
         const intake = await createIntakeSessionCommandExecutor(runtimePool)({
           authenticatedUserId: sibling.userId,
           intakeOperationId: `intake:${randomUUID()}`,
@@ -866,16 +854,16 @@ describe("vehicle identity conflicts and concurrency", () => {
           },
         });
         expect(intake.vehicleId).toBe(fixture.vehicleId);
-        await sessionGate.query("COMMIT");
+        await transaction.close("COMMIT");
         expect(await correction).toMatchObject({
           reason: { code: "VEHICLE_IDENTITY_CUSTODY_CONFLICT" },
           status: "rejected",
         });
       } catch (error) {
-        await sessionGate.query("ROLLBACK");
+        await transaction.close("ROLLBACK").catch(() => undefined);
         throw error;
       } finally {
-        sessionGate.release();
+        await correction?.catch(() => undefined);
       }
       expect(await readVehicle(fixture.vehicleId)).toEqual(beforeCorrection);
       expect(await countAudits(fixture.sessionId)).toBe(1);

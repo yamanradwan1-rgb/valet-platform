@@ -3,6 +3,9 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { reconcileStaleStaffPushRegistrations } from "../src/modules/staff-push/staff-push-maintenance-repository";
 import { StaffPushApiFixture } from "./staff-push-api-fixture";
 import { withStaffPushFixtureGuardsDisabled } from "./staff-push-fixture-guard";
+import { waitForPostgresBlockingEdge } from "./postgres-lock-observer";
+import { waitForAdvisoryLock } from "./management-settings-lock-observer";
+import type { PoolClient } from "pg";
 
 const fixture = new StaffPushApiFixture();
 let sequence = 0;
@@ -35,28 +38,38 @@ async function installBlockingTrigger(
     `CREATE FUNCTION ${name}() RETURNS trigger LANGUAGE plpgsql AS
      'BEGIN PERFORM pg_advisory_xact_lock(${lockKey}); RETURN NEW; END'`,
   );
-  await fixture.query(
-    `CREATE TRIGGER ${name} BEFORE UPDATE ON staff_push_registrations
-     FOR EACH ROW WHEN (OLD.id = '${registrationId}'::uuid AND ${condition})
-     EXECUTE FUNCTION ${name}()`,
-  );
+  try {
+    await fixture.query(
+      `CREATE TRIGGER ${name} BEFORE UPDATE ON staff_push_registrations
+       FOR EACH ROW WHEN (OLD.id = '${registrationId}'::uuid AND ${condition})
+       EXECUTE FUNCTION ${name}()`,
+    );
+  } catch (error) {
+    await fixture.query(`DROP FUNCTION ${name}()`);
+    throw error;
+  }
   return async () => {
     await fixture.query(`DROP TRIGGER ${name} ON staff_push_registrations`);
     await fixture.query(`DROP FUNCTION ${name}()`);
   };
 }
 
-async function waitForBlockedUpdate(): Promise<void> {
-  for (let attempt = 0; attempt < 200; attempt += 1) {
-    const result = await fixture.query<{ count: string }>(
-      `SELECT count(*)::text AS count FROM pg_stat_activity
-       WHERE datname = current_database() AND wait_event = 'advisory'
-         AND query ILIKE '%staff_push_registrations%'`,
-    );
-    if (result.rows[0]!.count !== "0") return;
-    await new Promise((resolve) => setTimeout(resolve, 10));
+async function waitForBlockedUpdate(blockerPid: number): Promise<void> {
+  const [backendPid] = await waitForPostgresBlockingEdge(
+    fixture.databasePool(),
+    { blockerPid, timeoutMs: 2_000 },
+  );
+  await waitForAdvisoryLock(fixture.databasePool(), { backendPid: backendPid! }, "ExclusiveLock", false);
+}
+
+async function releaseBlocker(blocker: PoolClient, lockKey: number) {
+  try {
+    await blocker.query("SELECT pg_advisory_unlock($1)", [lockKey]);
+  } catch (error) {
+    blocker.release(true);
+    throw error;
   }
-  throw new Error("Timed out waiting for the controlled advisory-lock race.");
+  blocker.release();
 }
 
 beforeAll(() => fixture.start(), 120_000);
@@ -71,27 +84,32 @@ describe("DEC-076 confirmation and stale-maintenance races", () => {
     await ageRegistration(registrationId);
     const lockKey = 76_001;
     const blocker = await fixture.databasePool().connect();
-    const removeTrigger = await installBlockingTrigger(
-      registrationId,
-      lockKey,
-      "CONFIRMATION",
-    );
-    await blocker.query("SELECT pg_advisory_lock($1)", [lockKey]);
+    let removeTrigger: Awaited<ReturnType<typeof installBlockingTrigger>> | undefined;
+    let released = false;
+    let confirmation: ReturnType<typeof fixture.put> | undefined;
     try {
-      const confirmation = fixture.put(auth, body);
-      await waitForBlockedUpdate();
+      removeTrigger = await installBlockingTrigger(registrationId, lockKey, "CONFIRMATION");
+      await blocker.query("SELECT pg_advisory_lock($1)", [lockKey]);
+      const blockerPid = (await blocker.query<{ pid: number }>("SELECT pg_backend_pid() AS pid")).rows[0]!.pid;
+      confirmation = fixture.put(auth, body);
+      void confirmation.catch(() => undefined);
+      await waitForBlockedUpdate(blockerPid);
       await expect(
-        reconcileStaleStaffPushRegistrations(fixture.databasePool(), 30),
+        reconcileStaleStaffPushRegistrations(fixture.runtimeDatabasePool(), 30),
       ).resolves.toEqual({
         disabledRegistrations: 0,
         suppressedDeliveries: 0,
       });
-      await blocker.query("SELECT pg_advisory_unlock($1)", [lockKey]);
+      released = true;
+      await releaseBlocker(blocker, lockKey);
       expect((await confirmation).status).toBe(200);
     } finally {
-      await blocker.query("SELECT pg_advisory_unlock($1)", [lockKey]);
-      blocker.release();
-      await removeTrigger();
+      try {
+        if (!released) await releaseBlocker(blocker, lockKey);
+      } finally {
+        await confirmation?.catch(() => undefined);
+        await removeTrigger?.();
+      }
     }
     const row = (await fixture.registrations()).rows.find(
       (candidate) => candidate.id === registrationId,
@@ -113,20 +131,24 @@ describe("DEC-076 confirmation and stale-maintenance races", () => {
     await ageRegistration(registrationId);
     const lockKey = 76_002;
     const blocker = await fixture.databasePool().connect();
-    const removeTrigger = await installBlockingTrigger(
-      registrationId,
-      lockKey,
-      "STALE",
-    );
-    await blocker.query("SELECT pg_advisory_lock($1)", [lockKey]);
+    let removeTrigger: Awaited<ReturnType<typeof installBlockingTrigger>> | undefined;
+    let released = false;
+    let maintenance: ReturnType<typeof reconcileStaleStaffPushRegistrations> | undefined;
+    let confirmation: ReturnType<typeof fixture.put> | undefined;
     try {
-      const maintenance = reconcileStaleStaffPushRegistrations(
-        fixture.databasePool(),
+      removeTrigger = await installBlockingTrigger(registrationId, lockKey, "STALE");
+      await blocker.query("SELECT pg_advisory_lock($1)", [lockKey]);
+      const blockerPid = (await blocker.query<{ pid: number }>("SELECT pg_backend_pid() AS pid")).rows[0]!.pid;
+      maintenance = reconcileStaleStaffPushRegistrations(
+        fixture.runtimeDatabasePool(),
         30,
       );
-      await waitForBlockedUpdate();
-      const confirmation = fixture.put(auth, body);
-      await blocker.query("SELECT pg_advisory_unlock($1)", [lockKey]);
+      void maintenance.catch(() => undefined);
+      await waitForBlockedUpdate(blockerPid);
+      confirmation = fixture.put(auth, body);
+      void confirmation.catch(() => undefined);
+      released = true;
+      await releaseBlocker(blocker, lockKey);
       await expect(maintenance).resolves.toMatchObject({
         disabledRegistrations: 1,
       });
@@ -134,9 +156,13 @@ describe("DEC-076 confirmation and stale-maintenance races", () => {
       expect(replacement.status).toBe(200);
       expect(replacement.body?.registrationId).not.toBe(registrationId);
     } finally {
-      await blocker.query("SELECT pg_advisory_unlock($1)", [lockKey]);
-      blocker.release();
-      await removeTrigger();
+      try {
+        if (!released) await releaseBlocker(blocker, lockKey);
+      } finally {
+        await maintenance?.catch(() => undefined);
+        await confirmation?.catch(() => undefined);
+        await removeTrigger?.();
+      }
     }
     const rows = (await fixture.registrations()).rows.filter(
       (row) => row.installation_id === body.installationId,

@@ -76,7 +76,7 @@ describe("MGT-BE-11 company export final authorization boundary", () => {
     const state = successState;
     const staffContext = await context(state.user.id, state.auth);
     const rendered = artifact();
-    await inPostgresTransaction(fixture.databasePool(), (transaction) =>
+    await inPostgresTransaction(fixture.runtimeDatabasePool(), (transaction) =>
       finalizeCompanyReportExport(transaction, {
         artifact: rendered,
         context: staffContext,
@@ -123,7 +123,7 @@ describe("MGT-BE-11 company export final authorization boundary", () => {
       [state.membership.membershipId],
     );
     await expect(
-      inPostgresTransaction(fixture.databasePool(), (transaction) =>
+      inPostgresTransaction(fixture.runtimeDatabasePool(), (transaction) =>
         finalizeCompanyReportExport(transaction, {
           artifact: rendered,
           context: staffContext,
@@ -148,7 +148,7 @@ describe("MGT-BE-11 company export final authorization boundary", () => {
       [state.membership.organizationId],
     );
     await expect(
-      inPostgresTransaction(fixture.databasePool(), (transaction) =>
+      inPostgresTransaction(fixture.runtimeDatabasePool(), (transaction) =>
         finalizeCompanyReportExport(transaction, {
           artifact: rendered,
           context: staffContext,

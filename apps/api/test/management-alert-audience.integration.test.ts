@@ -8,6 +8,7 @@ import {
   type PhaseOneManagementAlertCategory,
 } from "../src/modules/dashboard/management-alert-audience-authorization";
 import { ManagementAlertMfaFixture } from "./management-alert-mfa-fixture";
+import { racePoolTransaction } from "./postgres-race-pool-client";
 
 const fixture = new ManagementAlertMfaFixture();
 
@@ -26,20 +27,19 @@ async function authorize(input: {
     input.sessionId,
     input.userId,
   );
-  const client = await fixture.databasePool().connect();
+  const client = await fixture.runtimeDatabasePool().connect();
+  const transaction = racePoolTransaction(client);
   try {
     await client.query("BEGIN");
     const authority = await authorizeManagementAlertPhaseOneAudience(
       client as unknown as PostgresTransaction,
       { category: input.category, context, locationId: input.locationId },
     );
-    await client.query("COMMIT");
+    await transaction.close("COMMIT");
     return authority;
   } catch (error) {
-    await client.query("ROLLBACK");
+    await transaction.close("ROLLBACK").catch(() => undefined);
     throw error;
-  } finally {
-    client.release();
   }
 }
 

@@ -1,7 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import type { PoolClient } from "pg";
 
 import { DashboardApiTestContext } from "./dashboard-api-test-context";
 import { analyticsSeedSession } from "./dashboard-analytics-seed";
+import { waitForPostgresBlockingEdge } from "./postgres-lock-observer";
+import { racePoolTransaction } from "./postgres-race-pool-client";
 
 const context = new DashboardApiTestContext("rating_analytics_location");
 const period = "from=2026-07-10&to=2026-07-10";
@@ -130,8 +133,10 @@ describe("Issue #313 Location Customer Feedback API authorization", () => {
     const login = await context.login(manager);
     const authorization = `Bearer ${String(login.body?.accessToken)}`;
     const revoker = await context.adminPool.connect();
-    await revoker.query("BEGIN");
+    const transaction = racePoolTransaction(revoker);
+    let reading: ReturnType<typeof context.request> | undefined;
     try {
+      await revoker.query("BEGIN");
       const version = await revoker.query<{ version: number }>(
         "SELECT version FROM organization_memberships WHERE id=$1",
         [manager.membershipId],
@@ -143,21 +148,15 @@ describe("Issue #313 Location Customer Feedback API authorization", () => {
           version.rows[0]!.version, [fixture.locationId], false],
       );
       expect(revoked.rows[0]?.result_code).toBe("OK");
-      const reading = context.request("GET", path(fixture.locationId), { authorization });
+      const blockerPid = (await revoker.query<{ pid: number }>("SELECT pg_backend_pid() AS pid")).rows[0]!.pid;
+      reading = context.request("GET", path(fixture.locationId), { authorization });
       void reading.catch(() => undefined);
-      await expect.poll(async () => {
-        const result = await context.adminPool.query<{ count: number }>(
-          `SELECT count(*)::integer AS count FROM pg_stat_activity
-           WHERE wait_event_type='Lock' AND datname=current_database()
-             AND usename<>current_user`,
-        );
-        return result.rows[0]?.count ?? 0;
-      }, { timeout: 4000, interval: 30 }).toBeGreaterThan(0);
-      await revoker.query("COMMIT");
+      expect(await waitForPostgresBlockingEdge(context.adminPool, { blockerPid, timeoutMs: 4_000 })).toHaveLength(1);
+      await transaction.close("COMMIT");
       expect((await reading).status).toBe(404);
     } finally {
-      await revoker.query("ROLLBACK").catch(() => undefined);
-      revoker.release();
+      await transaction.close("ROLLBACK").catch(() => undefined);
+      await reading?.catch(() => undefined);
     }
   }, 25_000);
 
@@ -168,51 +167,47 @@ describe("Issue #313 Location Customer Feedback API authorization", () => {
     const login = await context.login(manager);
     const authorization = `Bearer ${String(login.body?.accessToken)}`;
     const tableGate = await context.adminPool.connect();
-    const revoker = await context.adminPool.connect();
-    await tableGate.query("BEGIN");
-    await revoker.query("BEGIN");
+    const tableTransaction = racePoolTransaction(tableGate);
+    let revoker: PoolClient | undefined;
+    let revocationTransaction: ReturnType<typeof racePoolTransaction> | undefined;
+    let reading: ReturnType<typeof context.request> | undefined;
+    let revoke: Promise<unknown> | undefined;
     try {
+      revoker = await context.adminPool.connect();
+      revocationTransaction = racePoolTransaction(revoker);
+      await tableGate.query("BEGIN");
+      await revoker.query("BEGIN");
       // Block only the projection's table read, after its grant fence is held.
       await tableGate.query("LOCK TABLE public.guest_ratings IN ACCESS EXCLUSIVE MODE");
-      const reading = context.request("GET", path(fixture.locationId), { authorization });
+      const blockerPid = (await tableGate.query<{ pid: number }>("SELECT pg_backend_pid() AS pid")).rows[0]!.pid;
+      reading = context.request("GET", path(fixture.locationId), { authorization });
       void reading.catch(() => undefined);
-      await expect.poll(async () => {
-        const result = await context.adminPool.query<{ count: number }>(
-          `SELECT count(*)::integer AS count FROM pg_stat_activity
-           WHERE wait_event_type='Lock' AND datname=current_database()
-             AND usename<>current_user`,
-        );
-        return result.rows[0]?.count ?? 0;
-      }, { timeout: 4000, interval: 30 }).toBeGreaterThan(0);
+      const [readerPid] = await waitForPostgresBlockingEdge(context.adminPool, { blockerPid, timeoutMs: 4_000 });
       const version = await revoker.query<{ version: number }>(
         "SELECT version FROM organization_memberships WHERE id=$1",
         [manager.membershipId],
       );
       const pid = Number((await revoker.query("SELECT pg_backend_pid() AS pid")).rows[0]?.pid);
-      const revoke = revoker.query<{ result_code: string }>(
+      const revocation = revoker.query<{ result_code: string }>(
         `SELECT result_code FROM staff_management_set_location_access(
           $1::uuid,$2::uuid,$3::uuid,$4::integer,$5::uuid[],$6::boolean)`,
         [admin.membershipId, fixture.organizationId, manager.membershipId,
           version.rows[0]!.version, [fixture.locationId], false],
       );
+      revoke = revocation;
       void revoke.catch(() => undefined);
-      await expect.poll(async () => {
-        const result = await context.adminPool.query<{ event: string | null }>(
-          "SELECT wait_event_type AS event FROM pg_stat_activity WHERE pid=$1", [pid],
-        );
-        return result.rows[0]?.event;
-      }, { timeout: 4000, interval: 30 }).toBe("Lock");
-      await tableGate.query("COMMIT");
+      await waitForPostgresBlockingEdge(context.adminPool, { blockerPid: readerPid!, waiterPid: pid, timeoutMs: 4_000 });
+      await tableTransaction.close("COMMIT");
       expect((await reading).status).toBe(200);
-      expect((await revoke).rows[0]?.result_code).toBe("OK");
-      await revoker.query("COMMIT");
+      expect((await revocation).rows[0]?.result_code).toBe("OK");
+      await revocationTransaction.close("COMMIT");
       expect((await context.request("GET", path(fixture.locationId), { authorization })).status)
         .toBe(404);
     } finally {
-      await tableGate.query("ROLLBACK").catch(() => undefined);
-      await revoker.query("ROLLBACK").catch(() => undefined);
-      tableGate.release();
-      revoker.release();
+      await tableTransaction.close("ROLLBACK").catch(() => undefined);
+      await revoke?.catch(() => undefined);
+      await revocationTransaction?.close("ROLLBACK").catch(() => undefined);
+      await reading?.catch(() => undefined);
     }
   }, 25_000);
 });
