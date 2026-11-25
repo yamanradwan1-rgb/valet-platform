@@ -51,13 +51,13 @@ const worker = new StaffPushDeliveryWorker(
   () => performance.now(),
   async () => {
     if (crashPoint === "BEFORE_FINALIZE") {
-      process.send?.("BEFORE_FINALIZE");
+      process.send?.({ event: "BEFORE_FINALIZE", pid: process.pid });
       await new Promise<void>(() => undefined);
     }
   },
   async () => {
     if (crashPoint === "BEFORE_SEND") {
-      process.send?.("BEFORE_SEND");
+      process.send?.({ event: "BEFORE_SEND", pid: process.pid });
       await new Promise<void>(() => undefined);
     }
   },

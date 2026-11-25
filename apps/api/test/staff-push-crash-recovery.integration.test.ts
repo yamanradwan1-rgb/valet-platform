@@ -27,7 +27,7 @@ const childScript = resolve(
   process.cwd(),
   "test/fixtures/staff-push-crash-child.ts",
 );
-const tsxCli = resolve(process.cwd(), "node_modules/tsx/dist/cli.mjs");
+const children = new Set<ReturnType<typeof spawn>>();
 const providerServers: Server[] = [];
 
 async function startFakeProvider(): Promise<{
@@ -65,32 +65,68 @@ async function prepare(): Promise<string> {
   return result.rows[0]!.id;
 }
 
+function startCrashChild(providerUrl: string, crashPoint: "BEFORE_SEND" | "BEFORE_FINALIZE") {
+  // The worker itself must be the child we kill, not the tsx CLI launcher.
+  const child = spawn(process.execPath, ["--import", "tsx", childScript], {
+    env: {
+      ...process.env,
+      CRASH_TEST_DATABASE_URL: context.runtimeUrl,
+      CRASH_TEST_PROVIDER_URL: providerUrl,
+      CRASH_TEST_POINT: crashPoint,
+    },
+    stdio: ["ignore", "ignore", "ignore", "ipc"],
+    windowsHide: true,
+  });
+  children.add(child);
+  child.once("close", () => children.delete(child));
+  return child;
+}
+
 function waitForMessage(child: ReturnType<typeof spawn>, expected: string) {
   return new Promise<void>((resolve, reject) => {
-    const timer = setTimeout(
-      () => reject(new Error("Crash child timed out.")),
-      20_000,
-    );
-    child.on("message", (message) => {
-      if (message === expected) {
-        clearTimeout(timer);
-        resolve();
-      }
-    });
-    child.on("exit", (code, signal) => {
+    const timer = setTimeout(() => finish(new Error("Crash child timed out.")), 20_000);
+    const onMessage = (message: unknown) => {
+      if (typeof message !== "object" || message === null || !("event" in message) || message.event !== expected)
+        return;
+      if (!("pid" in message) || message.pid !== child.pid)
+        finish(new Error("Crash barrier did not originate from the owned worker PID."));
+      else finish();
+    };
+    const onExit = () => finish(new Error("Crash child exited before its barrier."));
+    const onError = () => finish(new Error("Crash child failed before its barrier."));
+    function finish(error?: Error) {
       clearTimeout(timer);
-      reject(
-        new Error(
-          `Crash child exited early: ${String(code)}/${String(signal)}`,
-        ),
-      );
-    });
+      child.off("message", onMessage);
+      child.off("exit", onExit);
+      child.off("error", onError);
+      if (error) reject(error);
+      else resolve();
+    }
+    child.on("message", onMessage);
+    child.once("exit", onExit);
+    child.once("error", onError);
   });
 }
 
-function waitForExit(child: ReturnType<typeof spawn>) {
-  return new Promise<{ signal: NodeJS.Signals | null }>((resolve) => {
-    child.once("exit", (_code, signal) => resolve({ signal }));
+async function killOwnedChild(child: ReturnType<typeof spawn>) {
+  if (child.exitCode !== null || child.signalCode !== null) return { signal: child.signalCode };
+  if (!children.has(child) || !child.pid || child.spawnfile !== process.execPath || !child.spawnargs.includes(childScript))
+    throw new Error("Refusing hard kill without exact owned worker identity.");
+  return new Promise<{ signal: NodeJS.Signals | null }>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      child.off("exit", onExit);
+      reject(new Error("Owned crash worker did not exit."));
+    }, 5_000);
+    function onExit(_code: number | null, signal: NodeJS.Signals | null) {
+      clearTimeout(timer);
+      resolve({ signal });
+    }
+    child.once("exit", onExit);
+    if (!child.kill("SIGKILL")) {
+      clearTimeout(timer);
+      child.off("exit", onExit);
+      reject(new Error("Owned crash worker hard kill failed."));
+    }
   });
 }
 
@@ -107,18 +143,22 @@ async function expireLease(deliveryId: string): Promise<void> {
 
 beforeAll(() => context.setup(), 120_000);
 afterEach(async () => {
-  await Promise.all(
-    providerServers
-      .splice(0)
-      .map(
-        (server) =>
-          new Promise<void>((resolveClose, reject) =>
-            server.close((error) =>
-              error === undefined ? resolveClose() : reject(error),
+  try {
+    await Promise.all([...children].map(killOwnedChild));
+  } finally {
+    await Promise.all(
+      providerServers
+        .splice(0)
+        .map(
+          (server) =>
+            new Promise<void>((resolveClose, reject) =>
+              server.close((error) =>
+                error === undefined ? resolveClose() : reject(error),
+              ),
             ),
-          ),
-      ),
-  );
+        ),
+    );
+  }
 });
 afterAll(() => context.teardown(), 60_000);
 
@@ -126,14 +166,7 @@ describe("Staff Push hard process-loss recovery", () => {
   it("reclaims after SIGKILL between provider acceptance and finalization", async () => {
     const deliveryId = await prepare();
     const fakeProvider = await startFakeProvider();
-    const child = spawn(process.execPath, [tsxCli, childScript], {
-      env: {
-        ...process.env,
-        CRASH_TEST_DATABASE_URL: context.runtimeUrl,
-        CRASH_TEST_PROVIDER_URL: fakeProvider.url,
-      },
-      stdio: ["ignore", "ignore", "ignore", "ipc"],
-    });
+    const child = startCrashChild(fakeProvider.url, "BEFORE_FINALIZE");
     await waitForMessage(child, "BEFORE_FINALIZE");
     expect(fakeProvider.requests()).toBe(1);
     const leased = await context.adminPool.query<{
@@ -144,9 +177,7 @@ describe("Staff Push hard process-loss recovery", () => {
        FROM staff_push_deliveries WHERE id = $1 AND state = 'LEASED'`,
       [deliveryId],
     );
-    const exit = waitForExit(child);
-    child.kill("SIGKILL");
-    await expect(exit).resolves.toEqual({ signal: "SIGKILL" });
+    await expect(killOwnedChild(child)).resolves.toEqual({ signal: "SIGKILL" });
 
     await expireLease(deliveryId);
 
@@ -194,20 +225,10 @@ describe("Staff Push hard process-loss recovery", () => {
   it("recovers after SIGKILL after claim and before provider I/O", async () => {
     const deliveryId = await prepare();
     const fakeProvider = await startFakeProvider();
-    const child = spawn(process.execPath, [tsxCli, childScript], {
-      env: {
-        ...process.env,
-        CRASH_TEST_DATABASE_URL: context.runtimeUrl,
-        CRASH_TEST_POINT: "BEFORE_SEND",
-        CRASH_TEST_PROVIDER_URL: fakeProvider.url,
-      },
-      stdio: ["ignore", "ignore", "ignore", "ipc"],
-    });
+    const child = startCrashChild(fakeProvider.url, "BEFORE_SEND");
     await waitForMessage(child, "BEFORE_SEND");
     expect(fakeProvider.requests()).toBe(0);
-    const exit = waitForExit(child);
-    child.kill("SIGKILL");
-    await expect(exit).resolves.toEqual({ signal: "SIGKILL" });
+    await expect(killOwnedChild(child)).resolves.toEqual({ signal: "SIGKILL" });
     await expireLease(deliveryId);
 
     const send = vi.fn<StaffPushProvider["send"]>().mockResolvedValue({
