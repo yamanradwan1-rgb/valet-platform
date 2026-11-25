@@ -181,9 +181,39 @@ test("Company Admin MFA enrollment, freshness loss, recovery, refresh and logout
   expect(refreshes).toBe(1);
 
   await controlFixture("age-mfa", "companyAdmin", "31");
-  await page.reload();
-  await expect(page.getByRole("status").filter({ hasText: "MFA status:" }))
-    .toContainText("Verification required");
+  // Keep failure evidence useful without recording recovery codes, tokens,
+  // response bodies, DOM content, cookies, or full URLs.
+  const authResponses: Array<{ endpoint: "refresh" | "mfa-state"; status: number }> = [];
+  const recordAuthResponse = (response: import("@playwright/test").Response) => {
+    const path = new URL(response.url()).pathname;
+    if (path === "/v1/staff/auth/refresh") {
+      authResponses.push({ endpoint: "refresh", status: response.status() });
+    } else if (path === "/v1/staff/auth/mfa/state") {
+      authResponses.push({ endpoint: "mfa-state", status: response.status() });
+    }
+  };
+  page.on("response", recordAuthResponse);
+  try {
+    await page.reload();
+    await expect(page.getByRole("status").filter({ hasText: "MFA status:" }))
+      .toContainText("Verification required");
+  } catch (error) {
+    const [signInVisible, chooserVisible, managementVisible, mfaStatusVisible, alertVisible] =
+      await Promise.all([
+        page.getByRole("heading", { name: "Sign in" }).isVisible(),
+        page.getByRole("heading", { name: "Choose your authorized workspace" }).isVisible(),
+        page.getByRole("navigation", { name: "Management navigation" }).isVisible(),
+        page.getByRole("status").filter({ hasText: "MFA status:" }).first().isVisible(),
+        page.getByRole("alert").first().isVisible(),
+      ]).catch(() => [null, null, null, null, null]);
+    console.info("MFA_FRESHNESS_RESTORE_FAILURE", JSON.stringify({
+      authResponses, signInVisible, chooserVisible, managementVisible,
+      mfaStatusVisible, alertVisible,
+    }));
+    throw error;
+  } finally {
+    page.off("response", recordAuthResponse);
+  }
   await page.getByLabel("Recovery code").fill(recoveryCodes[0]!);
   await page.getByRole("button", { name: "Use recovery code" }).click();
   await expect.poll(() => page.getByRole("heading", { name: "Authenticator setup" }).isVisible()).toBe(true);
