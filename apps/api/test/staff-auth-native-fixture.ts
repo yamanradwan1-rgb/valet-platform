@@ -3,6 +3,7 @@ import type { INestApplication } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { Pool, type QueryResult } from "pg";
 import { AppModule } from "../src/app.module";
+import { RUNTIME_POSTGRES_POOL } from "../src/common/database/runtime-database.module";
 import { runPnpm } from "./staff-auth-native-run-pnpm";
 import {
   requestAuth,
@@ -209,7 +210,11 @@ export class StaffAuthNativeFixture {
     if (this.adminPool === undefined) throw new Error("Fixture not started.");
     return this.adminPool;
   }
-
+  runtimeDatabasePool(): Pool {
+    if (this.app === undefined)
+      throw new Error("Fixture runtime is not started.");
+    return this.app.get<Pool>(RUNTIME_POSTGRES_POOL);
+  }
   migrationDatabaseUrl(): string {
     if (this.migrationUrl === "") throw new Error("Fixture not started.");
     return this.migrationUrl;

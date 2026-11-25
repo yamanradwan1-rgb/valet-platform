@@ -1,4 +1,3 @@
-
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
 import { inPostgresTransaction } from "../src/common/database/postgres-transaction";
@@ -119,7 +118,7 @@ describe("MGT-BE-03 Management activity and assurance", () => {
     const before = (await fixture.sessionSnapshot(state.auth.sessionId))
       .rows[0]!;
     const scope = await requireAuthorizedScope(
-      fixture.databasePool(),
+      fixture.runtimeDatabasePool(),
       state.user.id,
       state.location.locationId,
       context,
@@ -135,14 +134,14 @@ describe("MGT-BE-03 Management activity and assurance", () => {
 
   it("supports the reusable sensitive assurance requirement without changing normal reads", async () => {
     const state = await assuredAdmin();
-    const context = await staffContext(state.user.id, state.auth);
     await setRecentAssurance(
       state.auth.sessionId,
       "4 minutes 59 seconds",
       "1 minute",
     );
+    let context = await staffContext(state.user.id, state.auth);
     await expect(
-      inPostgresTransaction(fixture.databasePool(), (transaction) =>
+      inPostgresTransaction(fixture.runtimeDatabasePool(), (transaction) =>
         authorizeCompanyAdminManagement(transaction, context, {
           assurance: "SENSITIVE",
           capability: "STAFF_MANAGE_ELIGIBLE",
@@ -156,8 +155,9 @@ describe("MGT-BE-03 Management activity and assurance", () => {
       "5 minutes 1 second",
       "1 minute",
     );
+    context = await staffContext(state.user.id, state.auth);
     await expect(
-      inPostgresTransaction(fixture.databasePool(), (transaction) =>
+      inPostgresTransaction(fixture.runtimeDatabasePool(), (transaction) =>
         authorizeCompanyAdminManagement(transaction, context, {
           assurance: "SENSITIVE",
           capability: "STAFF_MANAGE_ELIGIBLE",

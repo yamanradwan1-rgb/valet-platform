@@ -62,7 +62,7 @@ async function enroll() {
 async function recordActivity(
   context: Awaited<ReturnType<typeof enroll>>["context"],
 ) {
-  const client = await fixture.databasePool().connect();
+  const client = await fixture.runtimeDatabasePool().connect();
   try {
     await client.query("BEGIN");
     await recordAdminActivityInTransaction(
@@ -89,6 +89,12 @@ describe("MGT-BE-02 admin activity recording", () => {
        WHERE id = $1`,
       [auth.sessionId],
     );
+    context.createdAt = (
+      await fixture.query<{ created_at: Date }>(
+        "SELECT created_at FROM staff_auth_sessions WHERE id = $1",
+        [auth.sessionId],
+      )
+    ).rows[0]!.created_at;
     const before = (await fixture.sessionSnapshot(auth.sessionId)).rows[0]!;
     await recordActivity(context);
     const after = (await fixture.sessionSnapshot(auth.sessionId)).rows[0]!;
@@ -199,6 +205,12 @@ describe("MGT-BE-02 admin activity recording", () => {
        WHERE id = $1`,
       [auth.sessionId],
     );
+    context.createdAt = (
+      await fixture.query<{ created_at: Date }>(
+        "SELECT created_at FROM staff_auth_sessions WHERE id = $1",
+        [auth.sessionId],
+      )
+    ).rows[0]!.created_at;
     const before = (await fixture.sessionSnapshot(auth.sessionId)).rows[0]!;
     await recordActivity(context);
     const after = (await fixture.sessionSnapshot(auth.sessionId)).rows[0]!;

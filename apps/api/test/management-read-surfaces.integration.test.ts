@@ -1,4 +1,3 @@
-
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
 import type { StaffSessionContext } from "../src/modules/auth/staff-session-context";
@@ -76,8 +75,7 @@ describe("MGT-BE-03 Company Admin existing read surfaces", () => {
 
   it("serves concurrent exact-Location analytics reads for a Company Admin", async () => {
     const state = await assuredAdmin();
-    const base =
-      `/v1/staff/dashboard/locations/${state.location.locationId}/analytics`;
+    const base = `/v1/staff/dashboard/locations/${state.location.locationId}/analytics`;
     const query = "from=2026-09-16&to=2026-09-16";
 
     for (let attempt = 0; attempt < 6; attempt += 1) {
@@ -98,7 +96,7 @@ describe("MGT-BE-03 Company Admin existing read surfaces", () => {
 
   it("audits a report export with the exact ORG_ADMIN membership", async () => {
     const state = await assuredAdmin();
-    const result = await generateReportExport(fixture.databasePool(), {
+    const result = await generateReportExport(fixture.runtimeDatabasePool(), {
       authenticatedUserId: state.user.id,
       locationId: state.location.locationId,
       request: { date: "2026-09-16", format: "CSV", kind: "DAILY" },
