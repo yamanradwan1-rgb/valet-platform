@@ -384,6 +384,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+          # The source-lock contract verifies the reviewed historical commit.
+          fetch-depth: 0
       - name: Test security gate contracts
         run: |
           python3 -m unittest discover -s scripts/security -p 'test_ci_gate.py' -v
