@@ -148,7 +148,7 @@ def _native_mapping(api, upload, scanned, scan, analysis_key, category):
             and analysis["category"] == category
             and analysis["tool"]["name"] == "CodeQL"
             and analysis["tool"]["version"] == scan.version
-            and analysis["error"] == "" and analysis["warning"] == ""
+            and analysis["error"] == "" and analysis.get("warning", "") == ""
             and analysis["results_count"] == len(scan.alerts))
     # GitHub returns a subset of uploaded SARIF plus alertNumber; it is used
     # solely to correlate identities, never as a replacement for raw scans.
@@ -207,7 +207,7 @@ def evaluate(*, head_path, base_path, root, scanned, base, upload, api,
                    row["primaryLocationLineHashSha256"], row["messageSha256"])
             require(mapping.get(key) == number)
             alert_path = API + "/code-scanning/alerts/" + str(number)
-            alert = api.get(alert_path, {"ref": REF})
+            alert = api.get(alert_path)
             require(alert["number"] == number and alert["rule"]["id"] == row["ruleId"]
                     and alert["rule"]["security_severity_level"] == "high"
                     and alert["tool"]["name"] == "CodeQL")

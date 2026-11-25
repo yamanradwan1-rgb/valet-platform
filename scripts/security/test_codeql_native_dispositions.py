@@ -154,6 +154,33 @@ class NativeDispositionTests(unittest.TestCase):
         self.assertEqual(out["remaining_blocked"],9)
         self.assertEqual(self.api.calls,[])
 
+    def test_native_alert_state_is_not_pr_instance_state(self):
+        self.instance()["state"]="open"
+        with self.assertRaises(gate.InvalidScan):
+            self.evaluate()
+        self.assertIn((native.API+"/code-scanning/alerts/50", None, False), self.api.calls)
+
+    def test_native_missing_optional_warning(self):
+        del self.analysis["warning"]
+        self.assertEqual(self.evaluate()["remaining_blocked"],0)
+
+    def test_native_warning_fails(self):
+        self.analysis["warning"]="synthetic warning"
+        with self.assertRaises(gate.InvalidScan):
+            self.evaluate()
+
+    def test_new_critical_with_nine_high_always_blocks(self):
+        other="js/unsafe-query"
+        for doc in (self.head_doc,self.base_doc):
+            doc["runs"][0]["tool"]["driver"]["rules"].append({
+                "id":other,"properties":{"tags":["security"],"security-severity":"9.5"}})
+        self.head_doc["runs"][0]["results"].append(finding(rule=other,file="src/unchanged.ts",hash_value="critical"))
+        self.analysis["results_count"]=10
+        out=self.evaluate()
+        self.assertEqual(out["native_false_positive"],9)
+        self.assertEqual(out["raw"]["blocked"],10)
+        self.assertEqual(out["remaining_blocked"],1)
+
     def test_duplicate_occurrence_fails(self):
         self.head_doc["runs"][0]["results"].append(deepcopy(self.raw[0]))
         with self.assertRaises(gate.InvalidScan):
