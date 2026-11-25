@@ -7,7 +7,7 @@ import {
   it,
   vi,
 } from "vitest";
-import type { PoolClient } from "pg";
+import { Pool, type PoolClient } from "pg";
 import { createRuntimePostgresPool } from "../src/common/database/postgres";
 import { runtimePoolSnapshot } from "../src/common/database/bounded-postgres-pool";
 import { inPostgresTransaction } from "../src/common/database/postgres-transaction";
@@ -15,7 +15,15 @@ import { withDatabaseDeadline } from "../src/common/database/runtime-database-de
 import { ShiftTestContext } from "./shift-test-context";
 
 const context = new ShiftTestContext("reset_phase_diagnostics");
-beforeAll(() => context.setup(), 120_000);
+beforeAll(async () => {
+  await context.setup();
+  // The Runtime role correctly has no INSERT on anti_abuse_events after T3.
+  // Give this rollback diagnostic its own disposable writable relation.
+  await context.adminPool.query(`
+    CREATE TABLE public.diagnostic_transaction_rollback_probe (value integer);
+    GRANT INSERT ON public.diagnostic_transaction_rollback_probe TO "${context.runtimeRole}";
+  `);
+}, 120_000);
 beforeEach(async () => {
   await context.runtimePool.end();
   context.runtimePool = createRuntimePostgresPool(context.runtimeUrl, {
@@ -84,13 +92,16 @@ describe("real PG reset failures, disposal races and scoped cancellation", () =>
   it("keeps reset ownership until a genuinely lost response times out and recovers", async () => {
     const pool = context.runtimePool;
     const client = await pool.connect();
+    // pg_stat_activity hides another role's query/state on PostgreSQL 17.
+    // A separate same-role observer sees the real pending RESET statement.
+    const observer = new Pool({ connectionString: context.runtimeUrl, max: 1 });
     const pid = (await client.query("SELECT pg_backend_pid() AS pid")).rows[0]
       .pid;
     pause(client);
     client.release();
     try {
       await vi.waitFor(async () => {
-        const result = await context.adminPool.query(
+        const result = await observer.query(
           "SELECT state, query LIKE 'RESET statement_timeout;%' AS resetting FROM pg_stat_activity WHERE pid=$1",
           [pid],
         );
@@ -118,6 +129,7 @@ describe("real PG reset failures, disposal races and scoped cancellation", () =>
       await drained();
     } finally {
       client.release(true);
+      await observer.end();
     }
   }, 7000);
 
@@ -187,7 +199,7 @@ describe("real PG reset failures, disposal races and scoped cancellation", () =>
       const action = inPostgresTransaction(pool, async (client) => {
         actions += 1;
         await client.query(
-          "INSERT INTO anti_abuse_events(scope,key_hash,state) VALUES ('v1:guest-token','anti-abuse-hmac-sha256:v1:'||repeat('b',64),'COUNTED')",
+          "INSERT INTO diagnostic_transaction_rollback_probe(value) VALUES (1)",
         );
         // Keep the transaction active without a competing query read timer.
         await suspended;
@@ -209,7 +221,7 @@ describe("real PG reset failures, disposal races and scoped cancellation", () =>
       expect(
         (
           await context.adminPool.query(
-            "SELECT count(*)::int AS count FROM anti_abuse_events",
+            "SELECT count(*)::int AS count FROM diagnostic_transaction_rollback_probe",
           )
         ).rows[0].count,
       ).toBe(0),

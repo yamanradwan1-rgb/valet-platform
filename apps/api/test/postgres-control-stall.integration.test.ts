@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import type { PoolClient } from "pg";
+import { Pool, type PoolClient } from "pg";
 import { createRuntimePostgresPool } from "../src/common/database/postgres";
 import { runtimePoolSnapshot } from "../src/common/database/bounded-postgres-pool";
 import { inPostgresTransaction } from "../src/common/database/postgres-transaction";
@@ -40,6 +40,9 @@ describe("real PG four-client COMMIT stall attribution (controlled fault, not ca
   it("identifies in-flight control ownership, native acquisition timeouts and complete recovery", async () => {
     const pool = context.runtimePool;
     const holder = await context.adminPool.connect();
+    // pg_stat_activity masks other roles' query/wait_event on PostgreSQL 17.
+    // Monitor the four blocked COMMITs with the actual runtime role.
+    const observer = new Pool({ connectionString: context.runtimeUrl, max: 1 });
     const clients: PoolClient[] = [];
     let work: Promise<PromiseSettledResult<void>[]> | undefined;
     try {
@@ -63,7 +66,7 @@ describe("real PG four-client COMMIT stall attribution (controlled fault, not ca
       work = Promise.allSettled(pending);
       await vi.waitFor(
         async () => {
-          const result = await context.adminPool.query(
+          const result = await observer.query(
             `SELECT count(*)::int AS count FROM pg_stat_activity
            WHERE usename=$1 AND query='COMMIT' AND wait_event_type='Lock'`,
             [context.runtimeRole],
@@ -100,6 +103,7 @@ describe("real PG four-client COMMIT stall attribution (controlled fault, not ca
       if (work)
         expect((await work).every((r) => r.status === "fulfilled")).toBe(true);
       for (const client of clients) client.release();
+      await observer.end();
     }
     await vi.waitFor(() => expect(runtimePoolSnapshot(pool).admitted).toBe(0));
     const after = runtimePoolSnapshot(pool);
