@@ -254,6 +254,32 @@ class NativeDispositionTests(unittest.TestCase):
         with self.assertRaises(gate.InvalidScan):
             self.evaluate()
 
+    def test_unrelated_existing_duplicate_enriched_keys_preserve_raw(self):
+        old=finding(rule=RULE,file="src/existing.ts",hash_value="existing-duplicate")
+        for doc in (self.head_doc,self.base_doc):
+            doc["runs"][0]["results"].extend([deepcopy(old),deepcopy(old)])
+        for n in (101,102):
+            enriched=deepcopy(old)
+            enriched["properties"]={"github/alertNumber":n}
+            self.rows.append(enriched)
+        self.analysis["results_count"]=11
+        out=self.evaluate()
+        self.assertEqual(out["raw"]["existing"],2)
+        self.assertEqual(out["raw"]["blocked"],9)
+        self.assertEqual(out["remaining_blocked"],0)
+
+    def test_duplicate_eligible_enriched_key_fails(self):
+        duplicate=deepcopy(self.rows[0])
+        duplicate["properties"]["github/alertNumber"]=101
+        self.rows.append(duplicate)
+        with self.assertRaises(gate.InvalidScan):
+            self.evaluate()
+
+    def test_duplicate_native_alert_number_fails(self):
+        self.rows[1]["properties"]["github/alertNumber"]=50
+        with self.assertRaises(gate.InvalidScan):
+            self.evaluate()
+
     def test_wrong_native_number_fails(self):
         self.rows[0]["properties"]["github/alertNumber"]=100
         with self.assertRaises(gate.InvalidScan):

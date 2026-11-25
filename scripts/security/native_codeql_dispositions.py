@@ -164,6 +164,7 @@ def _native_mapping(api, upload, scanned, scan, analysis_key, category):
     results = enriched["runs"][0]["results"]
     require(type(results) is list)
     mapping = {}
+    seen_numbers = set()
     for row in results:
         key = (row["ruleId"], gate._location(row),
                row["locations"][0]["physicalLocation"]["region"]["startLine"],
@@ -171,9 +172,12 @@ def _native_mapping(api, upload, scanned, scan, analysis_key, category):
                digest(row["message"]["text"]))
         number = row["properties"]["github/alertNumber"]
         require(type(key[2]) is int and key[2] > 0 and type(number) is int and number > 0
-                and key not in mapping)
-        mapping[key] = number
-    require(len(set(mapping.values())) == len(mapping))
+                and number not in seen_numbers)
+        seen_numbers.add(number)
+        mapping.setdefault(key, []).append(number)
+    # Preserve every occurrence. Historical unrelated results can share a
+    # fingerprint/location/message; only an exact singleton may reconcile.
+    # Duplicate native alert numbers remain invalid globally.
     return mapping
 
 
@@ -213,7 +217,7 @@ def evaluate(*, head_path, base_path, root, scanned, base, upload, api,
             require(entry == ("100644 blob " + reference["git_blob"] + "\t" + row["path"] + "\0").encode())
             key = (row["ruleId"], row["path"], row["line"],
                    row["primaryLocationLineHashSha256"], row["messageSha256"])
-            require(mapping.get(key) == number)
+            require(mapping.get(key) == [number])
             alert_path = API + "/code-scanning/alerts/" + str(number)
             alert = api.get(alert_path)
             require(alert["number"] == number and alert["rule"]["id"] == row["ruleId"]

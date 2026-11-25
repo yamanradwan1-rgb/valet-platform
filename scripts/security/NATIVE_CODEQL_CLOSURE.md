@@ -233,3 +233,15 @@ deployment or exception activation.
   Owner reviews workflow changes, no claim of independent trust boundary.
   Do not implement new infrastructure. No gate success may be treated as
   approval for merge; PR remains draft. No merge or deployment authorized.
+
+
+### Live adapter compatibility correction
+
+Diagnostic 45719957885 independently counted 61 valid enriched rows,
+61 distinct alert numbers, 60 distinct identity keys, one duplicated
+identity unrelated to the nine candidates; all nine were exact singletons.
+The adapter now preserves a list of native alert numbers for every key;
+duplicate alert numbers remain globally invalid and only a singleton
+equal to the exact reviewed number may reconcile. Unrelated existing
+duplicate identities do not manufacture an exception. The unchanged raw
+comparator still blocks every new unmatched High/Critical occurrence.
