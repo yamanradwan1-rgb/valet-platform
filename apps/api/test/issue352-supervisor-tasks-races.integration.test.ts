@@ -1,8 +1,10 @@
+import type { PoolClient } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { createOverviewCursorCodec } from "../src/modules/dashboard/overview-cursor";
 import { listDashboardTasks } from "../src/modules/dashboard/overview-retrieval-tasks-query";
 import { Issue352TakeoverTestContext } from "./issue352-takeover-test-context";
+import { waitForPostgresBlockingEdge } from "./postgres-lock-observer";
 
 const context = new Issue352TakeoverTestContext("supervisor_read_races");
 const cursorCodec = createOverviewCursorCodec("tasks");
@@ -10,25 +12,18 @@ const cursorCodec = createOverviewCursorCodec("tasks");
 beforeAll(() => context.setup(), 120_000);
 afterAll(() => context.teardown(), 60_000);
 
-async function waitForSupervisorReadToBlock(): Promise<void> {
-  const deadline = Date.now() + 8_000;
-  while (Date.now() < deadline) {
-    const activity = await context.adminPool.query<{ blocked: boolean }>(
-      `SELECT EXISTS (
-         SELECT 1 FROM pg_stat_activity
-         WHERE datname = current_database()
-           AND pid <> pg_backend_pid()
-           AND wait_event_type = 'Lock'
-           AND query LIKE '%membership.id::text%'
-           AND query LIKE '%shift_row%'
-       ) AS blocked`,
-    );
-    if (activity.rows[0]?.blocked) return;
-    await new Promise<void>((resolve) => setTimeout(resolve, 25));
-  }
-  throw new Error(
-    "Expected the Supervisor read to wait for a live eligibility writer.",
+async function waitForSupervisorReadToBlock(writer: PoolClient): Promise<void> {
+  const owner = await writer.query<{ pid: number }>(
+    "SELECT pg_backend_pid() AS pid",
   );
+  if (owner.rows.length !== 1) {
+    throw new Error("Expected the active Supervisor eligibility writer backend.");
+  }
+  const waiters = await waitForPostgresBlockingEdge(context.adminPool, {
+    blockerPid: owner.rows[0]!.pid,
+    timeoutMs: 8_000,
+  });
+  expect(waiters).toHaveLength(1);
 }
 
 describe("Issue #352 real PostgreSQL Supervisor Tasks read races", () => {
@@ -54,7 +49,7 @@ describe("Issue #352 real PostgreSQL Supervisor Tasks read races", () => {
         (value) => ({ ok: true as const, value }),
         (error: unknown) => ({ ok: false as const, error }),
       );
-      await waitForSupervisorReadToBlock();
+      await waitForSupervisorReadToBlock(writer);
       await writer.query("COMMIT");
       settled = true;
       expect(await pendingRead).toMatchObject({
@@ -86,7 +81,7 @@ describe("Issue #352 real PostgreSQL Supervisor Tasks read races", () => {
         locationId: source.locationId,
         limit: 50,
       });
-      await waitForSupervisorReadToBlock();
+      await waitForSupervisorReadToBlock(writer);
       await writer.query("ROLLBACK");
       settled = true;
       const result = await pendingRead;
@@ -119,7 +114,7 @@ describe("Issue #352 real PostgreSQL Supervisor Tasks read races", () => {
         (value) => ({ ok: true as const, value }),
         (error: unknown) => ({ ok: false as const, error }),
       );
-      await waitForSupervisorReadToBlock();
+      await waitForSupervisorReadToBlock(writer);
       await writer.query("COMMIT");
       settled = true;
       expect(await pendingRead).toMatchObject({

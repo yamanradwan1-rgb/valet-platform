@@ -1,12 +1,25 @@
 import type { Pool } from "pg";
 
 import type { Issue352TakeoverTestContext } from "./issue352-takeover-test-context";
+import { waitForPostgresBlockingEdge } from "./postgres-lock-observer";
+
+// An exact backend identity is recorded only while this fixture has paused
+// that backend immediately before COMMIT. Scope the ledger to the original
+// Pool object; unrelated fixtures (even on similarly named databases) do not
+// share observed holders.
+const heldCommitBackends = new WeakMap<Pool, Set<number>>();
 
 /** Holds the actual PostgreSQL transaction after its writes, immediately before COMMIT. */
 export function holdTakeoverCommit(
   pool: Pool,
   mode: "commit" | "rollback" | "lost-response" = "commit",
 ) {
+  let backends = heldCommitBackends.get(pool);
+  if (backends === undefined) {
+    backends = new Set<number>();
+    heldCommitBackends.set(pool, backends);
+  }
+  const heldBackends = backends;
   let entered!: () => void;
   let release!: () => void;
   const held = new Promise<void>((resolve, reject) => {
@@ -33,16 +46,29 @@ export function holdTakeoverCommit(
               if (property === "query") {
                 return async (...args: unknown[]) => {
                   if (args[0] === "COMMIT") {
+                    const backend = await client.query<{ pid: number }>(
+                      "SELECT pg_backend_pid() AS pid",
+                    );
+                    const backendPid = backend.rows[0]?.pid;
+                    if (backendPid === undefined ||
+                        !Number.isSafeInteger(backendPid) || backendPid <= 0) {
+                      throw new Error("Issue #352 commit gate lost its backend PID.");
+                    }
+                    heldBackends.add(backendPid);
                     entered();
-                    await gate;
-                    if (mode === "rollback") {
-                      throw new Error("Test-controlled pre-COMMIT failure.");
+                    try {
+                      await gate;
+                      if (mode === "rollback") {
+                        throw new Error("Test-controlled pre-COMMIT failure.");
+                      }
+                      const outcome = await Reflect.apply(client.query, client, args);
+                      if (mode === "lost-response") {
+                        throw new Error("Test-controlled lost response after COMMIT.");
+                      }
+                      return outcome;
+                    } finally {
+                      heldBackends.delete(backendPid);
                     }
-                    const outcome = await Reflect.apply(client.query, client, args);
-                    if (mode === "lost-response") {
-                      throw new Error("Test-controlled lost response after COMMIT.");
-                    }
-                    return outcome;
                   }
                   return Reflect.apply(client.query, client, args);
                 };
@@ -62,16 +88,15 @@ export function holdTakeoverCommit(
 
 export async function waitForIssue352DatabaseLock(
   context: Issue352TakeoverTestContext,
+  explicitBlockerPid?: number,
 ) {
-  const deadline = Date.now() + 10_000;
-  while (Date.now() < deadline) {
-    const blocked = await context.adminPool.query<{ count: number }>(
-      `SELECT count(*)::int AS count FROM pg_stat_activity
-       WHERE datname = current_database() AND pid <> pg_backend_pid()
-         AND wait_event_type = 'Lock'`,
-    );
-    if ((blocked.rows[0]?.count ?? 0) >= 1) return;
-    await new Promise((resolve) => setTimeout(resolve, 25));
+  let blockerPid = explicitBlockerPid;
+  if (blockerPid === undefined) {
+    const knownHolders = heldCommitBackends.get(context.runtimePool as Pool);
+    if (knownHolders?.size !== 1) {
+      throw new Error("Expected one exact Issue #352 pre-commit backend holder.");
+    }
+    blockerPid = [...knownHolders][0]!;
   }
-  throw new Error("Competing Issue #352 SQL did not block on PostgreSQL.");
+  await waitForPostgresBlockingEdge(context.adminPool, { blockerPid });
 }

@@ -161,14 +161,24 @@ describe("Issue #352 real PostgreSQL commit, replay and lock races", () => {
     const request = await context.request(source, initiator, replacement);
     const before = await context.snapshot(source.taskId);
     const blocker = await context.adminPool.connect();
+    let pending: ReturnType<ReturnType<typeof execute>> | undefined;
     try {
       await blocker.query("BEGIN");
-      await blocker.query(
+      const held = await blocker.query(
         `SELECT id FROM staff_auth_sessions WHERE id = $1 FOR UPDATE`,
         [request.staffSessionContext.staffAuthSessionId],
       );
-      const pending = execute()(request);
-      await waitForIssue352DatabaseLock(context);
+      expect(held.rowCount).toBe(1);
+      const owner = await blocker.query<{ pid: number }>(
+        "SELECT pg_backend_pid() AS pid",
+      );
+      const blockerPid = owner.rows[0]?.pid;
+      if (blockerPid === undefined) {
+        throw new Error("Cannot identify the held Staff session backend.");
+      }
+      pending = execute()(request);
+      void pending.catch(() => undefined);
+      await waitForIssue352DatabaseLock(context, blockerPid);
       await blocker.query(
         `UPDATE staff_auth_sessions SET revoked_at = clock_timestamp()
          WHERE id = $1`, [request.staffSessionContext.staffAuthSessionId],
@@ -178,6 +188,7 @@ describe("Issue #352 real PostgreSQL commit, replay and lock races", () => {
       expect(await context.snapshot(source.taskId)).toEqual(before);
     } finally {
       await blocker.query("ROLLBACK").catch(() => undefined);
+      await pending?.then(() => undefined, () => undefined);
       blocker.release();
     }
   });
