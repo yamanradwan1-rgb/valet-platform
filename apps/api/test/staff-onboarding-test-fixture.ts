@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import { performance } from "node:perf_hooks";
+import { setTimeout as pause } from "node:timers/promises";
 import { Client } from "pg";
 import { expect } from "vitest";
 import {
@@ -10,6 +12,7 @@ import {
   type ManagementTestRole,
 } from "./management-control-plane-test-fixture";
 import type { AuthHttpResult } from "./staff-auth-native-fixture";
+import { waitForPostgresBlockingEdge } from "./postgres-lock-observer";
 
 export function staffPath(org: string, member?: string) {
   return `/v1/staff/management/organizations/${org}/staff${member === undefined ? "" : `/${member}`}`;
@@ -118,6 +121,52 @@ export class StaffOnboardingTestFixture extends ManagementControlPlaneTestFixtur
     if (result.rowCount !== 1 || result.rows[0] === undefined)
       throw new Error("Missing activation fixture account.");
     return this.emailBarrier(result.rows[0].email);
+  }
+  async waitBehind(
+    blocker: Client,
+    expectedWaiters: number,
+    firstWaiterPid?: number,
+  ) {
+    const result = await blocker.query<{ readonly pid: number }>(
+      "SELECT pg_backend_pid() AS pid",
+    );
+    const blockerPid = result.rows[0]?.pid;
+    if (blockerPid === undefined) throw new Error("Race blocker PID is missing.");
+    if (firstWaiterPid !== undefined) {
+      // The second backend may queue directly behind the barrier (hard block),
+      // or behind the first waiter (soft queue edge). Prove either real edge
+      // while the first backend remains blocked behind the original barrier.
+      const deadline = performance.now() + 10_000;
+      while (performance.now() < deadline) {
+        const observed = await this.databasePool().query<{
+          pid: number;
+          blockers: number[];
+        }>(
+          `SELECT activity.pid, pg_blocking_pids(activity.pid) AS blockers
+           FROM pg_stat_activity AS activity
+           WHERE activity.datname = current_database()
+             AND activity.pid <> pg_backend_pid()`,
+        );
+        const first = observed.rows.find((row) => row.pid === firstWaiterPid);
+        if (first?.blockers.includes(blockerPid)) {
+          const second = observed.rows.find(
+            (row) =>
+              row.pid !== blockerPid &&
+              row.pid !== firstWaiterPid &&
+              (row.blockers.includes(blockerPid) ||
+                row.blockers.includes(firstWaiterPid)),
+          );
+          if (second !== undefined) return second.pid;
+        }
+        await pause(20);
+      }
+      throw new Error("Onboarding second waiter lacks a real causal queue edge.");
+    }
+    const waiters = await waitForPostgresBlockingEdge(this.databasePool(), {
+      blockerPid,
+      expectedWaiters,
+    });
+    return waiters[0]!;
   }
   async waitBlocked(count: number) {
     const deadline = Date.now() + 10_000;

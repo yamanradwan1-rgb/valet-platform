@@ -1,6 +1,4 @@
 import { randomUUID } from "node:crypto";
-import { setTimeout as pause } from "node:timers/promises";
-import { performance } from "node:perf_hooks";
 import { Client } from "pg";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { staffOnboardingCreateSchema } from "@valet/contracts";
@@ -14,58 +12,10 @@ import {
   hidden,
   issued,
 } from "./staff-onboarding-test-fixture";
-import { waitForPostgresBlockingEdge } from "./postgres-lock-observer";
 const fixture = new StaffOnboardingTestFixture();
 beforeAll(() => fixture.start(), 120_000);
 afterEach(() => fixture.resetLimits());
 afterAll(() => fixture.stop(), 60_000);
-
-async function waitBehind(
-  blocker: Client,
-  expectedWaiters: number,
-  firstWaiterPid?: number,
-) {
-  const result = await blocker.query<{ readonly pid: number }>(
-    "SELECT pg_backend_pid() AS pid",
-  );
-  const blockerPid = result.rows[0]?.pid;
-  if (blockerPid === undefined) throw new Error("Race blocker PID is missing.");
-  if (firstWaiterPid !== undefined) {
-    // The second backend may queue directly behind the barrier (hard block),
-    // or behind the first waiter (soft queue edge). Prove either real edge
-    // while the first backend remains blocked behind the original barrier.
-    const deadline = performance.now() + 10_000;
-    while (performance.now() < deadline) {
-      const observed = await fixture.databasePool().query<{
-        pid: number;
-        blockers: number[];
-      }>(
-        `SELECT activity.pid, pg_blocking_pids(activity.pid) AS blockers
-         FROM pg_stat_activity AS activity
-         WHERE activity.datname = current_database()
-           AND activity.pid <> pg_backend_pid()`,
-      );
-      const first = observed.rows.find((row) => row.pid === firstWaiterPid);
-      if (first?.blockers.includes(blockerPid)) {
-        const second = observed.rows.find(
-          (row) =>
-            row.pid !== blockerPid &&
-            row.pid !== firstWaiterPid &&
-            (row.blockers.includes(blockerPid) ||
-              row.blockers.includes(firstWaiterPid)),
-        );
-        if (second !== undefined) return second.pid;
-      }
-      await pause(20);
-    }
-    throw new Error("Onboarding second waiter lacks a real causal queue edge.");
-  }
-  const waiters = await waitForPostgresBlockingEdge(fixture.databasePool(), {
-    blockerPid,
-    expectedWaiters,
-  });
-  return waiters[0]!;
-}
 
 describe("T05-C real two connection serialization", () => {
   it("concurrent same-email creates in distinct tenants share one global pending User", async () => {
@@ -76,12 +26,12 @@ describe("T05-C real two connection serialization", () => {
     // Organization barrier cannot stop the other tenant proceeding first.
     const lock = await fixture.emailBarrier(command.email);
     const firstRequest = fixture.create(one, command);
-    const firstWaiterPid = await waitBehind(lock, 1);
+    const firstWaiterPid = await fixture.waitBehind(lock, 1);
     const secondRequest = fixture.create(
       two,
       fixture.command(two.locationId, { email: command.email.toUpperCase() }),
     );
-    await waitBehind(lock, 2, firstWaiterPid);
+    await fixture.waitBehind(lock, 2, firstWaiterPid);
     await lock.query("COMMIT");
     await lock.end();
     const first = issued(await firstRequest),
@@ -122,9 +72,9 @@ describe("T05-C real two connection serialization", () => {
           ? await fixture.emailBarrier(command.email)
           : await fixture.barrier(actor.organizationId);
       const firstRequest = fixture.create(actor, command);
-      const firstWaiterPid = await waitBehind(lock, 1);
+      const firstWaiterPid = await fixture.waitBehind(lock, 1);
       const secondRequest = fixture.create(actor, second);
-      await waitBehind(lock, 2, firstWaiterPid);
+      await fixture.waitBehind(lock, 2, firstWaiterPid);
       await lock.query("COMMIT");
       await lock.end();
       const first = issued(await firstRequest);
@@ -175,7 +125,7 @@ describe("T05-C real two connection serialization", () => {
       const request = pending
         ? fixture.resend(actor, pending.membershipId)
         : fixture.create(actor, command);
-      await waitBehind(lock, 1);
+      await fixture.waitBehind(lock, 1);
       await lock.query(
         "DELETE FROM membership_location_access WHERE membership_id=$1",
         [actor.membershipId],
@@ -212,7 +162,7 @@ describe("T05-C real two connection serialization", () => {
       const request = pending
         ? fixture.resend(actor, pending.membershipId)
         : fixture.create(actor);
-      await waitBehind(lock, 1);
+      await fixture.waitBehind(lock, 1);
       await lock.query(
         "UPDATE organization_subscriptions SET dashboard_access_enabled=FALSE WHERE organization_id=$1",
         [actor.organizationId],
@@ -228,9 +178,9 @@ describe("T05-C real two connection serialization", () => {
     const fresh = issued(await fixture.create(actor));
     const lock = await fixture.barrier(actor.organizationId);
     const one = fixture.resend(actor, fresh.membershipId);
-    const firstWaiterPid = await waitBehind(lock, 1);
+    const firstWaiterPid = await fixture.waitBehind(lock, 1);
     const two = fixture.resend(actor, fresh.membershipId);
-    await waitBehind(lock, 2, firstWaiterPid);
+    await fixture.waitBehind(lock, 2, firstWaiterPid);
     await lock.query("COMMIT");
     await lock.end();
     expect(
@@ -290,7 +240,7 @@ describe("T05-C real two connection serialization", () => {
         ],
       );
       const waiting = fixture.create(actor, command);
-      await waitBehind(client, 1);
+      await fixture.waitBehind(client, 1);
       await client.query("ROLLBACK");
       const result = issued(await waiting);
       expect(result.generation).toBe(1);
