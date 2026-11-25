@@ -25,6 +25,7 @@ describe("T05-F concurrent logical operation replay", () => {
         const gate = holdForceEndTestCommit(pool, rollback);
         let first: Promise<unknown> | undefined;
         let second: ReturnType<typeof fixture.force> | undefined;
+        let failed = false;
         try {
           first = new StaffShiftForceEndService(gate.pool)
             .execute(s.context, s.organizationId, s.shiftId, s.command)
@@ -37,7 +38,8 @@ describe("T05-F concurrent logical operation replay", () => {
                 ? { ...s.command, reason: "A different logical request" }
                 : { ...s.command, operationId: randomUUID() };
           second = fixture.force(s, command);
-          await waitForceEndTestBlocked(fixture);
+          void second.catch(() => undefined);
+          await waitForceEndTestBlocked(fixture, gate);
           gate.release();
           const original = await first;
           const response = await second;
@@ -65,11 +67,15 @@ describe("T05-F concurrent logical operation replay", () => {
             audit.rows[0]?.reason ===
               (rollback ? command.reason : s.command.reason),
           ).toBe(true);
+        } catch (error) {
+          failed = true;
+          throw error;
         } finally {
           gate.release();
-          await first;
-          await second;
-          await pool.end();
+          await Promise.allSettled([first, second].filter((request) => request !== undefined));
+          await pool.end().catch((error: unknown) => {
+            if (!failed) throw error;
+          });
         }
       },
       30_000,

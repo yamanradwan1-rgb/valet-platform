@@ -1,8 +1,10 @@
-import type { Pool } from "pg";
+import type { Client, Pool } from "pg";
 import type { StaffShiftForceEndTestFixture } from "./staff-shift-force-end-test-fixture";
+import { waitForStaffRaceBlockingTree } from "./staff-race-lock-observer";
 
 /** Pause the real executor at COMMIT while its actual PostgreSQL locks remain held. */
 export function holdForceEndTestCommit(pool: Pool, rollback = false) {
+  let heldBackendPid: number | undefined;
   let entered!: () => void;
   let release!: () => void;
   const held = new Promise<void>((resolve, reject) => {
@@ -19,6 +21,12 @@ export function holdForceEndTestCommit(pool: Pool, rollback = false) {
   const gate = new Promise<void>((resolve) => {
     release = resolve;
   });
+  let released = false;
+  const releaseOnce = () => {
+    if (released) return;
+    released = true;
+    release();
+  };
   const wrapped = new Proxy(pool, {
     get(target, key) {
       if (key === "connect")
@@ -29,10 +37,21 @@ export function holdForceEndTestCommit(pool: Pool, rollback = false) {
               if (property === "query")
                 return async (...args: unknown[]) => {
                   if (args[0] === "COMMIT") {
+                    const result = await connection.query<{ pid: number }>(
+                      "SELECT pg_backend_pid() AS pid",
+                    );
+                    const pid = result.rows[0]?.pid;
+                    if (pid === undefined || !Number.isSafeInteger(pid) || pid <= 0)
+                      throw new Error("Cannot identify Force End commit barrier backend.");
+                    heldBackendPid = pid;
                     entered();
-                    await gate;
-                    if (rollback)
-                      throw new Error("Test-controlled transaction rollback.");
+                    try {
+                      await gate;
+                      if (rollback)
+                        throw new Error("Test-controlled transaction rollback.");
+                    } finally {
+                      heldBackendPid = undefined;
+                    }
                   }
                   return Reflect.apply(connection.query, connection, args);
                 };
@@ -47,20 +66,26 @@ export function holdForceEndTestCommit(pool: Pool, rollback = false) {
       return typeof value === "function" ? value.bind(target) : value;
     },
   });
-  return { pool: wrapped, held, release };
+  return {
+    pool: wrapped,
+    held,
+    release: releaseOnce,
+    get blockerPid() {
+      if (heldBackendPid === undefined)
+        throw new Error("Force End commit barrier is not currently held.");
+      return heldBackendPid;
+    },
+  };
 }
 
 export async function waitForceEndTestBlocked(
   fixture: StaffShiftForceEndTestFixture,
+  blocker: Pick<Client, "query"> | { readonly blockerPid: number },
   count = 1,
 ) {
-  const deadline = Date.now() + 10_000;
-  while (Date.now() < deadline) {
-    const result = await fixture.query<{ n: number }>(`SELECT count(*)::int AS n
-      FROM pg_stat_activity WHERE datname=current_database()
-      AND pid<>pg_backend_pid() AND wait_event_type='Lock'`);
-    if ((result.rows[0]?.n ?? 0) >= count) return;
-    await new Promise((resolve) => setTimeout(resolve, 25));
-  }
-  throw new Error("Competing PostgreSQL transaction did not block.");
+  await waitForStaffRaceBlockingTree(
+    fixture.databasePool(),
+    "blockerPid" in blocker ? blocker.blockerPid : blocker,
+    count,
+  );
 }

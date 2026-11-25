@@ -9,6 +9,10 @@ import {
   holdForceEndTestCommit,
   waitForceEndTestBlocked,
 } from "./staff-shift-force-end-race-fixture";
+import {
+  staffRaceBarrierCloser,
+  trackStaffRaceRequest,
+} from "./staff-race-lock-observer";
 
 const fixture = new StaffShiftForceEndTestFixture();
 beforeAll(() => fixture.start(), 120_000);
@@ -54,12 +58,14 @@ describe("T05-F exact session, factor and grant proof held through closure", () 
         });
         let force: ReturnType<typeof fixture.force> | undefined;
         await client.connect();
+        const closing = staffRaceBarrierCloser(client);
+        const pending: Promise<unknown>[] = [];
         try {
           await client.query("BEGIN");
           await invalidate(client, s, loss);
-          force = fixture.force(s);
-          await waitForceEndTestBlocked(fixture);
-          await client.query(rollback ? "ROLLBACK" : "COMMIT");
+          force = trackStaffRaceRequest(pending, fixture.force(s));
+          await waitForceEndTestBlocked(fixture, client);
+          await closing.close(rollback ? "ROLLBACK" : "COMMIT");
           const result = await force;
           expect(result.status).toBe(
             rollback
@@ -76,9 +82,8 @@ describe("T05-F exact session, factor and grant proof held through closure", () 
             audits: rollback ? 1 : 0,
           });
         } finally {
-          await client.query("ROLLBACK").catch(() => undefined);
-          await force;
-          await client.end();
+          await closing.close("ROLLBACK").catch(() => undefined);
+          await Promise.allSettled(pending);
         }
       },
       30_000,
@@ -95,19 +100,22 @@ describe("T05-F exact session, factor and grant proof held through closure", () 
         });
         let force: Promise<unknown> | undefined,
           losing: Promise<void> | undefined;
+        let failed = false;
         await client.connect();
+        const closing = staffRaceBarrierCloser(client);
+        const pending: Promise<unknown>[] = [];
         try {
           force = new StaffShiftForceEndService(gate.pool)
             .execute(s.context, s.organizationId, s.shiftId, s.command)
             .catch((error: unknown) => error);
           await gate.held;
           await client.query("BEGIN");
-          losing = invalidate(client, s, loss);
-          await waitForceEndTestBlocked(fixture);
+          losing = trackStaffRaceRequest(pending, invalidate(client, s, loss));
+          await waitForceEndTestBlocked(fixture, gate);
           gate.release();
           await force;
           await losing;
-          await client.query("COMMIT");
+          await closing.close("COMMIT");
           expect(await fixture.snapshot(s.shiftId)).toMatchObject({
             status: rollback ? "ACTIVE" : "ENDED",
             closures: rollback ? 0 : 1,
@@ -117,13 +125,16 @@ describe("T05-F exact session, factor and grant proof held through closure", () 
           expect(denied.status).toBe(
             loss === "session" ? 401 : loss === "factor" ? 403 : 404,
           );
+        } catch (error) {
+          failed = true;
+          throw error;
         } finally {
           gate.release();
-          await force;
-          await losing;
-          await client.query("ROLLBACK").catch(() => undefined);
-          await client.end();
-          await pool.end();
+          await closing.close("ROLLBACK").catch(() => undefined);
+          await Promise.allSettled([force, ...pending].filter((request) => request !== undefined));
+          await pool.end().catch((error: unknown) => {
+            if (!failed) throw error;
+          });
         }
       },
       30_000,

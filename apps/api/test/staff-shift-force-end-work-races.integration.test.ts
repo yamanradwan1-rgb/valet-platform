@@ -21,6 +21,7 @@ describe("T05-F immutable closure vs real operational commands", () => {
       const gate = holdForceEndTestCommit(pool, rollback);
       let first: Promise<unknown> | undefined;
       let force: ReturnType<typeof fixture.force> | undefined;
+      let failed = false;
       try {
         first = createEndShiftCommandExecutor(gate.pool)({
           authenticatedUserId: s.targetUser.id,
@@ -29,7 +30,8 @@ describe("T05-F immutable closure vs real operational commands", () => {
         }).catch((error: unknown) => error);
         await gate.held;
         force = fixture.force(s);
-        await waitForceEndTestBlocked(fixture);
+        void force.catch(() => undefined);
+        await waitForceEndTestBlocked(fixture, gate);
         gate.release();
         await first;
         const result = await force;
@@ -38,11 +40,15 @@ describe("T05-F immutable closure vs real operational commands", () => {
         expect(state.cash_reported).toBe(rollback ? null : "7.000");
         expect(state.audits).toBe(rollback ? 1 : 0);
         expect(state.closures).toBe(rollback ? 1 : 0);
+      } catch (error) {
+        failed = true;
+        throw error;
       } finally {
         gate.release();
-        await first;
-        await force;
-        await pool.end();
+        await Promise.allSettled([first, force].filter((request) => request !== undefined));
+        await pool.end().catch((error: unknown) => {
+          if (!failed) throw error;
+        });
       }
     },
     30_000,
@@ -56,6 +62,7 @@ describe("T05-F immutable closure vs real operational commands", () => {
       const gate = holdForceEndTestCommit(pool, rollback);
       let first: Promise<unknown> | undefined,
         self: Promise<unknown> | undefined;
+      let failed = false;
       try {
         first = new StaffShiftForceEndService(gate.pool)
           .execute(s.context, s.organizationId, s.shiftId, s.command)
@@ -66,7 +73,7 @@ describe("T05-F immutable closure vs real operational commands", () => {
           shiftId: s.shiftId,
           cashReported: "7.000",
         }).catch((error: unknown) => error);
-        await waitForceEndTestBlocked(fixture);
+        await waitForceEndTestBlocked(fixture, gate);
         gate.release();
         await first;
         const result = await self;
@@ -78,11 +85,15 @@ describe("T05-F immutable closure vs real operational commands", () => {
         const state = await fixture.snapshot(s.shiftId);
         expect(state.cash_reported).toBe(rollback ? "7.000" : null);
         expect(state.audits).toBe(rollback ? 0 : 1);
+      } catch (error) {
+        failed = true;
+        throw error;
       } finally {
         gate.release();
-        await first;
-        await self;
-        await pool.end();
+        await Promise.allSettled([first, self].filter((request) => request !== undefined));
+        await pool.end().catch((error: unknown) => {
+          if (!failed) throw error;
+        });
       }
     },
     30_000,
@@ -97,6 +108,7 @@ describe("T05-F immutable closure vs real operational commands", () => {
       const gate = holdForceEndTestCommit(pool, rollback);
       let first: Promise<unknown> | undefined;
       let force: ReturnType<typeof fixture.force> | undefined;
+      let failed = false;
       try {
         first = createAssignTaskCommandExecutor(gate.pool)({
           authenticatedUserId: s.targetUser.id,
@@ -105,7 +117,8 @@ describe("T05-F immutable closure vs real operational commands", () => {
         }).catch((error: unknown) => error);
         await gate.held;
         force = fixture.force(s);
-        await waitForceEndTestBlocked(fixture);
+        void force.catch(() => undefined);
+        await waitForceEndTestBlocked(fixture, gate);
         gate.release();
         await first;
         const result = await force;
@@ -125,11 +138,15 @@ describe("T05-F immutable closure vs real operational commands", () => {
           status: rollback ? "QUEUED" : "ASSIGNED",
           version: rollback ? 1 : 2,
         });
+      } catch (error) {
+        failed = true;
+        throw error;
       } finally {
         gate.release();
-        await first;
-        await force;
-        await pool.end();
+        await Promise.allSettled([first, force].filter((request) => request !== undefined));
+        await pool.end().catch((error: unknown) => {
+          if (!failed) throw error;
+        });
       }
     },
     30_000,
@@ -144,6 +161,7 @@ describe("T05-F immutable closure vs real operational commands", () => {
       const gate = holdForceEndTestCommit(pool, rollback);
       let first: Promise<unknown> | undefined,
         assign: Promise<unknown> | undefined;
+      let failed = false;
       try {
         first = new StaffShiftForceEndService(gate.pool)
           .execute(s.context, s.organizationId, s.shiftId, s.command)
@@ -154,7 +172,7 @@ describe("T05-F immutable closure vs real operational commands", () => {
           taskId: task.taskId,
           expectedVersion: 1,
         }).catch((error: unknown) => error);
-        await waitForceEndTestBlocked(fixture);
+        await waitForceEndTestBlocked(fixture, gate);
         gate.release();
         await first;
         const result = await assign;
@@ -171,11 +189,15 @@ describe("T05-F immutable closure vs real operational commands", () => {
           status: rollback ? "ASSIGNED" : "QUEUED",
           version: rollback ? 2 : 1,
         });
+      } catch (error) {
+        failed = true;
+        throw error;
       } finally {
         gate.release();
-        await first;
-        await assign;
-        await pool.end();
+        await Promise.allSettled([first, assign].filter((request) => request !== undefined));
+        await pool.end().catch((error: unknown) => {
+          if (!failed) throw error;
+        });
       }
     },
     30_000,

@@ -2,6 +2,11 @@ import type { PoolClient } from "pg";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
 import { ManagementControlPlaneTestFixture } from "./management-control-plane-test-fixture";
+import {
+  staffRacePoolBarrierCloser,
+  trackStaffRaceRequest,
+  waitForStaffRaceBlockingTree,
+} from "./staff-race-lock-observer";
 
 const fixture = new ManagementControlPlaneTestFixture();
 
@@ -48,33 +53,6 @@ async function holdAuditBarrier(): Promise<PoolClient> {
   await client.query("BEGIN");
   await client.query("LOCK TABLE audit_events IN ACCESS EXCLUSIVE MODE");
   return client;
-}
-
-async function waitForBlockedAuditInsert(): Promise<void> {
-  const deadline = Date.now() + 10_000;
-  while (Date.now() < deadline) {
-    const result = await fixture.query<{ blocked: boolean }>(
-      `SELECT EXISTS (
-         SELECT 1 FROM pg_stat_activity
-         WHERE datname=current_database()
-           AND state='active'
-           AND wait_event_type='Lock'
-           AND query LIKE '%INSERT INTO audit_events%'
-       ) AS blocked`,
-    );
-    if (result.rows[0]?.blocked === true) return;
-  }
-  throw new Error(
-    "Timed out waiting for blocked Staff deactivation audit insert.",
-  );
-}
-
-async function releaseBarrier(client: PoolClient): Promise<void> {
-  try {
-    await client.query("COMMIT");
-  } finally {
-    client.release();
-  }
 }
 
 async function expectTenantIsolation(input: {
@@ -142,20 +120,20 @@ describe("MGT-BE-04 membership deactivation vs native refresh", () => {
     const actor = await assuredAdmin();
     const target = await twoOrganizationTarget(actor.membership.organizationId);
     const barrier = await holdAuditBarrier();
-    let barrierOpen = true;
+    const closing = staffRacePoolBarrierCloser(barrier);
+    const pending: Promise<unknown>[] = [];
     try {
-      const deactivation = fixture.managementPost(
+      const deactivation = trackStaffRaceRequest(pending, fixture.managementPost(
         `${staffPath(actor.membership.organizationId, target.membershipA)}/deactivate`,
         actor.auth.accessToken,
         { expectedVersion: 1 },
-      );
-      await waitForBlockedAuditInsert();
+      ));
+      await waitForStaffRaceBlockingTree(fixture.databasePool(), barrier, 1);
 
       const refreshed = await fixture.refresh(target.auth.refreshToken);
       expect(refreshed.status).toBe(200);
 
-      await releaseBarrier(barrier);
-      barrierOpen = false;
+      await closing.close("COMMIT");
       const deactivated = await deactivation;
       expect(deactivated.status).toBe(201);
       expect(deactivated.body).toMatchObject({
@@ -173,12 +151,9 @@ describe("MGT-BE-04 membership deactivation vs native refresh", () => {
         sessionId: target.auth.sessionId,
         userId: target.user.id,
       });
-    } catch (error) {
-      if (barrierOpen) {
-        await barrier.query("ROLLBACK").catch(() => undefined);
-        barrier.release();
-      }
-      throw error;
+    } finally {
+      await closing.close("ROLLBACK").catch(() => undefined);
+      await Promise.allSettled(pending);
     }
   }, 30_000);
 

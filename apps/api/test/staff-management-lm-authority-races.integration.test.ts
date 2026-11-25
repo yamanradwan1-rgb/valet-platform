@@ -2,6 +2,11 @@ import { Client } from "pg";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
 import { ManagementControlPlaneTestFixture } from "./management-control-plane-test-fixture";
+import {
+  staffRaceBarrierCloser,
+  trackStaffRaceRequest,
+  waitForStaffRaceBlockingTree,
+} from "./staff-race-lock-observer";
 
 const fixture = new ManagementControlPlaneTestFixture();
 
@@ -92,106 +97,91 @@ async function barrier(organizationId: string): Promise<Client> {
   return client;
 }
 
-async function waitBlocked(expected: number): Promise<void> {
-  const deadline = Date.now() + 10_000;
-  while (Date.now() < deadline) {
-    const blocked = await fixture.query<{ count: string }>(
-      `SELECT count(*)::text AS count FROM pg_stat_activity
-       WHERE datname=current_database() AND pid<>pg_backend_pid()
-         AND wait_event_type='Lock'`,
-    );
-    if (Number(blocked.rows[0]?.count ?? 0) >= expected) return;
-  }
-  throw new Error(`Timed out waiting for ${expected} blocked transactions.`);
-}
-
-async function release(client: Client) {
-  try {
-    await client.query("COMMIT");
-  } finally {
-    await client.end();
-  }
-}
-
 describe("T05-B LM staff authority serialization races", () => {
   it("actor grant revoke commits first, so a waiting LM command rechecks and fails", async () => {
     const current = await scenario("AB");
     const lock = await barrier(current.organizationId);
+    const closing = staffRaceBarrierCloser(lock);
+    const pending: Promise<unknown>[] = [];
     try {
-      const revoke = fixture.managementPost(
+      const revoke = trackStaffRaceRequest(pending, fixture.managementPost(
         `${managerBase(current)}/location-access/revoke`,
         current.adminAuth.accessToken,
         { expectedVersion: 1, locationIds: [current.locationB.locationId] },
-      );
-      await waitBlocked(1);
-      const command = fixture.managementPost(
+      ));
+      await waitForStaffRaceBlockingTree(fixture.databasePool(), lock, 1);
+      const command = trackStaffRaceRequest(pending, fixture.managementPost(
         `${targetBase(current)}/role`,
         current.managerAuth.accessToken,
         { expectedVersion: 1, role: "VALET_SUPERVISOR" },
-      );
-      await waitBlocked(2);
-      await release(lock);
+      ));
+      await waitForStaffRaceBlockingTree(fixture.databasePool(), lock, 2);
+      await closing.close("COMMIT");
       expect((await revoke).status).toBe(201);
       const denied = await command;
       expect(denied.status).toBe(404);
       expect(denied.body).toMatchObject({ code: "AUTHORIZATION_DENIED" });
     } finally {
-      await lock.query("ROLLBACK").catch(() => undefined);
-      await lock.end().catch(() => undefined);
+      await closing.close("ROLLBACK").catch(() => undefined);
+      await Promise.allSettled(pending);
     }
   }, 30_000);
 
   it("target becomes mixed first, so a waiting LM command cannot use stale preflight", async () => {
     const current = await scenario("A");
     const lock = await barrier(current.organizationId);
+    const closing = staffRaceBarrierCloser(lock);
+    const pending: Promise<unknown>[] = [];
     try {
-      const mix = fixture.managementPost(
+      const mix = trackStaffRaceRequest(pending, fixture.managementPost(
         `${targetBase(current)}/location-access/grant`,
         current.adminAuth.accessToken,
         { expectedVersion: 1, locationIds: [current.locationC.locationId] },
-      );
-      await waitBlocked(1);
-      const command = fixture.managementPost(
+      ));
+      await waitForStaffRaceBlockingTree(fixture.databasePool(), lock, 1);
+      const command = trackStaffRaceRequest(pending, fixture.managementPost(
         `${targetBase(current)}/role`,
         current.managerAuth.accessToken,
         { expectedVersion: 1, role: "VALET_SUPERVISOR" },
-      );
-      await waitBlocked(2);
-      await release(lock);
+      ));
+      await waitForStaffRaceBlockingTree(fixture.databasePool(), lock, 2);
+      await closing.close("COMMIT");
       expect((await mix).status).toBe(201);
       const denied = await command;
       expect(denied.status).toBe(404);
       expect(denied.body).toMatchObject({ code: "AUTHORIZATION_DENIED" });
     } finally {
-      await lock.query("ROLLBACK").catch(() => undefined);
-      await lock.end().catch(() => undefined);
+      await closing.close("ROLLBACK").catch(() => undefined);
+      await Promise.allSettled(pending);
     }
   }, 30_000);
 
   it("target reaches zero grants first, so a waiting LM status command stays concealed", async () => {
     const current = await scenario("A");
     const lock = await barrier(current.organizationId);
+    const closing = staffRaceBarrierCloser(lock);
+    const pending: Promise<unknown>[] = [];
     try {
-      const zero = fixture.managementPost(
+      const zero = trackStaffRaceRequest(pending, fixture.managementPost(
         `${targetBase(current)}/location-access/revoke`,
         current.adminAuth.accessToken,
         { expectedVersion: 1, locationIds: [current.locationA.locationId] },
-      );
-      await waitBlocked(1);
-      const command = fixture.managementPost(
+      ));
+      await waitForStaffRaceBlockingTree(fixture.databasePool(), lock, 1);
+      const command = trackStaffRaceRequest(pending, fixture.managementPost(
         `${targetBase(current)}/deactivate`,
         current.managerAuth.accessToken,
         { expectedVersion: 1 },
-      );
-      await waitBlocked(2);
-      await release(lock);
+      ));
+      await waitForStaffRaceBlockingTree(fixture.databasePool(), lock, 2);
+      await closing.close("COMMIT");
       expect((await zero).status).toBe(201);
       const denied = await command;
       expect(denied.status).toBe(404);
       expect(denied.body).toMatchObject({ code: "AUTHORIZATION_DENIED" });
     } finally {
-      await lock.query("ROLLBACK").catch(() => undefined);
-      await lock.end().catch(() => undefined);
+      await closing.close("ROLLBACK").catch(() => undefined);
+      await Promise.allSettled(pending);
     }
   }, 30_000);
 
@@ -237,27 +227,29 @@ describe("T05-B LM staff authority serialization races", () => {
         ?.updatedAt ?? (stopped.body as { updatedAt?: string }).updatedAt,
     );
     const lock = await barrier(current.organizationId);
+    const closing = staffRaceBarrierCloser(lock);
+    const pending: Promise<unknown>[] = [];
     try {
-      const deactivate = fixture.managementPost(
+      const deactivate = trackStaffRaceRequest(pending, fixture.managementPost(
         `${locationPath}/deactivate`,
         current.adminAuth.accessToken,
         { expectedUpdatedAt: stoppedAt },
-      );
-      await waitBlocked(1);
-      const command = fixture.managementPost(
+      ));
+      await waitForStaffRaceBlockingTree(fixture.databasePool(), lock, 1);
+      const command = trackStaffRaceRequest(pending, fixture.managementPost(
         `${targetBase(current)}/role`,
         current.managerAuth.accessToken,
         { expectedVersion: 1, role: "VALET_SUPERVISOR" },
-      );
-      await waitBlocked(2);
-      await release(lock);
+      ));
+      await waitForStaffRaceBlockingTree(fixture.databasePool(), lock, 2);
+      await closing.close("COMMIT");
       expect((await deactivate).status).toBe(201);
       const denied = await command;
       expect(denied.status).toBe(404);
       expect(denied.body).toMatchObject({ code: "AUTHORIZATION_DENIED" });
     } finally {
-      await lock.query("ROLLBACK").catch(() => undefined);
-      await lock.end().catch(() => undefined);
+      await closing.close("ROLLBACK").catch(() => undefined);
+      await Promise.allSettled(pending);
     }
   }, 30_000);
 });

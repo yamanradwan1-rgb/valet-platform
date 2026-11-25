@@ -14,6 +14,11 @@ import { createStartParkingCommandExecutor } from "../src/modules/parking/start-
 import { createEndShiftCommandExecutor } from "../src/modules/shifts/end-shift-command";
 import { createStartShiftCommandExecutor } from "../src/modules/shifts/start-shift-command";
 import { ManagementControlPlaneTestFixture } from "./management-control-plane-test-fixture";
+import {
+  staffRaceBarrierCloser,
+  trackStaffRaceRequest,
+  waitForStaffRaceBlockingTree,
+} from "./staff-race-lock-observer";
 
 const fixture = new ManagementControlPlaneTestFixture();
 let runtimePool: PostgresPool;
@@ -147,31 +152,12 @@ async function barrierClient(): Promise<Client> {
   return client;
 }
 
-async function waitForLockWait(): Promise<void> {
-  const deadline = Date.now() + 10_000;
-  while (Date.now() < deadline) {
-    const blocked = await fixture.query<{ count: string }>(
-      `SELECT count(*)::text AS count FROM pg_stat_activity
-       WHERE datname=current_database() AND pid<>pg_backend_pid()
-         AND wait_event_type='Lock'`,
-    );
-    if (Number(blocked.rows[0]?.count ?? 0) >= 1) return;
-  }
-  throw new Error("Timed out waiting for PostgreSQL lock wait.");
-}
-
-async function release(client: Client): Promise<void> {
-  try {
-    await client.query("COMMIT");
-  } finally {
-    await client.end();
-  }
-}
-
 describe("MGT-BE-04 physical key checkout vs Location access reduction", () => {
   it("keeps committed checkout/task responsibility authoritative and blocks revoke", async () => {
     const value = await scenario();
     const barrier = await barrierClient();
+    const closing = staffRaceBarrierCloser(barrier);
+    const pending: Promise<unknown>[] = [];
     try {
       await barrier.query(
         `SELECT pg_advisory_xact_lock(
@@ -179,8 +165,8 @@ describe("MGT-BE-04 physical key checkout vs Location access reduction", () => {
          )`,
         [value.adminMembership.organizationId],
       );
-      const lifecycle = revoke(value);
-      await waitForLockWait();
+      const lifecycle = trackStaffRaceRequest(pending, revoke(value));
+      await waitForStaffRaceBlockingTree(fixture.databasePool(), barrier, 1);
       const parking = await createStartParkingCommandExecutor(runtimePool)({
         authenticatedUserId: value.target.id,
         expectedSessionVersion: 2,
@@ -188,14 +174,13 @@ describe("MGT-BE-04 physical key checkout vs Location access reduction", () => {
         sessionId: value.sessionId,
       });
       expect(parking.taskStatus).toBe("IN_PROGRESS");
-      await release(barrier);
+      await closing.close("COMMIT");
       const result = await lifecycle;
       expect(result.status).toBe(409);
       expect(result.body).toMatchObject({ code: "STAFF_HANDOVER_REQUIRED" });
-    } catch (error) {
-      await barrier.query("ROLLBACK").catch(() => undefined);
-      await barrier.end().catch(() => undefined);
-      throw error;
+    } finally {
+      await closing.close("ROLLBACK").catch(() => undefined);
+      await Promise.allSettled(pending);
     }
     const custody = await fixture.query<{ count: string }>(
       `SELECT count(*)::text AS count FROM key_custody_events

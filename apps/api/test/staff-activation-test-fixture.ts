@@ -1,5 +1,6 @@
 import { Client } from "pg";
 import { StaffOnboardingTestFixture } from "./staff-onboarding-test-fixture";
+import { waitForStaffRaceBlockingTree } from "./staff-race-lock-observer";
 
 export const ACTIVATION_PASSWORD = "Chosen activation password 240D!";
 export function invitationToken(link: string) {
@@ -7,6 +8,9 @@ export function invitationToken(link: string) {
 }
 
 export class StaffActivationTestFixture extends StaffOnboardingTestFixture {
+  async waitActivationBlocked(count: number, blocker: Client) {
+    await waitForStaffRaceBlockingTree(this.databasePool(), blocker, count);
+  }
   activate(token: string, password = ACTIVATION_PASSWORD) {
     return this.request("/v1/staff/auth/activate", {
       origin: this.allowedOrigin,

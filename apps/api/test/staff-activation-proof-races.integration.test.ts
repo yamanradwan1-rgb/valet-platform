@@ -5,6 +5,7 @@ import {
   invitationToken,
 } from "./staff-activation-test-fixture";
 import { issued } from "./staff-onboarding-test-fixture";
+import { staffRaceBarrierCloser } from "./staff-race-lock-observer";
 
 const fixture = new StaffActivationTestFixture();
 beforeAll(() => fixture.start(), 120_000);
@@ -30,12 +31,15 @@ describe("T05-D authoritative proof rechecks after preflight", () => {
         ),
       );
       const lock = await fixture.userBarrier(invite.membershipId);
-      const request = fixture.activate(
-        invitationToken(invite.activationLink),
-        existing.password,
-      );
-      await fixture.waitBlocked(1);
+      const barrier = staffRaceBarrierCloser(lock);
+      let request: ReturnType<typeof fixture.activate> | undefined;
       try {
+        request = fixture.activate(
+          invitationToken(invite.activationLink),
+          existing.password,
+        );
+        void request.catch(() => undefined);
+        await fixture.waitActivationBlocked(1, lock);
         if (kind === "password")
           await lock.query("UPDATE users SET password_hash=$2 WHERE id=$1", [
             existing.id,
@@ -60,13 +64,14 @@ describe("T05-D authoritative proof rechecks after preflight", () => {
             "UPDATE staff_onboarding_invitations SET created_at=clock_timestamp()-interval '2 days',expires_at=clock_timestamp()-interval '1 day' WHERE id=$1",
             [invite.invitationId],
           );
-        await lock.query("COMMIT");
+        await barrier.close("COMMIT");
+        expect((await request).status).toBe(401);
+        const state = await fixture.snapshot(invite.membershipId);
+        expect([state.version, state.consumed, state.audits]).toEqual([1, 0, 0]);
       } finally {
-        await lock.end();
+        await barrier.close("ROLLBACK").catch(() => undefined);
+        await Promise.allSettled(request === undefined ? [] : [request]);
       }
-      expect((await request).status).toBe(401);
-      const state = await fixture.snapshot(invite.membershipId);
-      expect([state.version, state.consumed, state.audits]).toEqual([1, 0, 0]);
     },
     30_000,
   );
@@ -75,20 +80,27 @@ describe("T05-D authoritative proof rechecks after preflight", () => {
     const actor = await fixture.actor();
     const invite = issued(await fixture.create(actor));
     const lock = await fixture.userBarrier(invite.membershipId);
-    const request = fixture.activate(invitationToken(invite.activationLink));
-    await fixture.waitBlocked(1);
-    const established = await hashStaffPassword(
-      "A different owner's password!",
-    );
-    await lock.query(
-      "UPDATE users SET status='ACTIVE',password_hash=$2 WHERE id=(SELECT user_id FROM organization_memberships WHERE id=$1)",
-      [invite.membershipId, established],
-    );
-    await lock.query("COMMIT");
-    await lock.end();
-    expect((await request).status).toBe(401);
-    const state = await fixture.snapshot(invite.membershipId);
-    expect(state.password_hash === established).toBe(true);
-    expect([state.version, state.consumed, state.audits]).toEqual([1, 0, 0]);
+    const barrier = staffRaceBarrierCloser(lock);
+    let request: ReturnType<typeof fixture.activate> | undefined;
+    try {
+      request = fixture.activate(invitationToken(invite.activationLink));
+      void request.catch(() => undefined);
+      await fixture.waitActivationBlocked(1, lock);
+      const established = await hashStaffPassword(
+        "A different owner's password!",
+      );
+      await lock.query(
+        "UPDATE users SET status='ACTIVE',password_hash=$2 WHERE id=(SELECT user_id FROM organization_memberships WHERE id=$1)",
+        [invite.membershipId, established],
+      );
+      await barrier.close("COMMIT");
+      expect((await request).status).toBe(401);
+      const state = await fixture.snapshot(invite.membershipId);
+      expect(state.password_hash === established).toBe(true);
+      expect([state.version, state.consumed, state.audits]).toEqual([1, 0, 0]);
+    } finally {
+      await barrier.close("ROLLBACK").catch(() => undefined);
+      await Promise.allSettled(request === undefined ? [] : [request]);
+    }
   }, 30_000);
 });

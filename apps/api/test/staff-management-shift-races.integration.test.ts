@@ -5,6 +5,11 @@ import type { PostgresPool } from "../src/common/database/postgres";
 import { createRuntimePostgresPool } from "../src/common/database/postgres";
 import { createStartShiftCommandExecutor } from "../src/modules/shifts/start-shift-command";
 import { ManagementControlPlaneTestFixture } from "./management-control-plane-test-fixture";
+import {
+  staffRaceBarrierCloser,
+  trackStaffRaceRequest,
+  waitForStaffRaceBlockingTree,
+} from "./staff-race-lock-observer";
 
 const fixture = new ManagementControlPlaneTestFixture();
 let runtimePool: PostgresPool;
@@ -88,27 +93,6 @@ async function holdAuditWrites(client: Client) {
   await client.query("LOCK TABLE audit_events IN ACCESS EXCLUSIVE MODE");
 }
 
-async function waitForBlockedTransactions(expected: number): Promise<void> {
-  const deadline = Date.now() + 10_000;
-  while (Date.now() < deadline) {
-    const blocked = await fixture.query<{ count: string }>(
-      `SELECT count(*)::text AS count FROM pg_stat_activity
-       WHERE datname=current_database() AND pid<>pg_backend_pid()
-         AND wait_event_type='Lock'`,
-    );
-    if (Number(blocked.rows[0]?.count ?? 0) >= expected) return;
-  }
-  throw new Error(`Timed out waiting for ${expected} blocked transactions.`);
-}
-
-async function release(client: Client): Promise<void> {
-  try {
-    await client.query("COMMIT");
-  } finally {
-    await client.end();
-  }
-}
-
 const reductions: readonly Reduction[] = ["ROLE", "DEACTIVATE", "REVOKE"];
 
 describe("MGT-BE-04 Shift start vs access reduction", () => {
@@ -116,51 +100,53 @@ describe("MGT-BE-04 Shift start vs access reduction", () => {
     it(`${reduction}: committed Shift start becomes a handover blocker`, async () => {
       const current = await scenario();
       const barrier = await barrierClient();
+      const closing = staffRaceBarrierCloser(barrier);
+      const pending: Promise<unknown>[] = [];
       try {
         await holdManagementOrganization(barrier, current.actor.membership.organizationId);
-        const lifecycle = reduce(current, reduction);
-        await waitForBlockedTransactions(1);
+        const lifecycle = trackStaffRaceRequest(pending, reduce(current, reduction));
+        await waitForStaffRaceBlockingTree(fixture.databasePool(), barrier, 1);
         const shift = await createStartShiftCommandExecutor(runtimePool)({
           authenticatedUserId: current.target.id,
           targetLocationId: current.locationId,
         });
         expect(shift.status).toBe("ACTIVE");
-        await release(barrier);
+        await closing.close("COMMIT");
         const result = await lifecycle;
         expect(result.status).toBe(409);
         expect(result.body).toMatchObject({ code: "STAFF_HANDOVER_REQUIRED" });
-      } catch (error) {
-        await barrier.query("ROLLBACK").catch(() => undefined);
-        await barrier.end().catch(() => undefined);
-        throw error;
+      } finally {
+        await closing.close("ROLLBACK").catch(() => undefined);
+        await Promise.allSettled(pending);
       }
     }, 30_000);
 
     it(`${reduction}: committed access reduction makes queued Shift start ineligible`, async () => {
       const current = await scenario();
       const barrier = await barrierClient();
+      const closing = staffRaceBarrierCloser(barrier);
+      const pending: Promise<unknown>[] = [];
       try {
         await holdAuditWrites(barrier);
-        const lifecycle = reduce(current, reduction);
-        await waitForBlockedTransactions(1);
-        const shiftOutcome = createStartShiftCommandExecutor(runtimePool)({
+        const lifecycle = trackStaffRaceRequest(pending, reduce(current, reduction));
+        await waitForStaffRaceBlockingTree(fixture.databasePool(), barrier, 1);
+        const shiftOutcome = trackStaffRaceRequest(pending, createStartShiftCommandExecutor(runtimePool)({
           authenticatedUserId: current.target.id,
           targetLocationId: current.locationId,
         }).then(
           (value) => ({ status: "fulfilled" as const, value }),
           (error: unknown) => ({ error, status: "rejected" as const }),
-        );
-        await waitForBlockedTransactions(2);
-        await release(barrier);
+        ));
+        await waitForStaffRaceBlockingTree(fixture.databasePool(), barrier, 2);
+        await closing.close("COMMIT");
         expect((await lifecycle).status).toBe(201);
         await expect(shiftOutcome).resolves.toMatchObject({
           error: { name: "ShiftOperationError" },
           status: "rejected",
         });
-      } catch (error) {
-        await barrier.query("ROLLBACK").catch(() => undefined);
-        await barrier.end().catch(() => undefined);
-        throw error;
+      } finally {
+        await closing.close("ROLLBACK").catch(() => undefined);
+        await Promise.allSettled(pending);
       }
       const active = await fixture.query<{ count: string }>(
         `SELECT count(*)::text AS count FROM shifts
