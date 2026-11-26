@@ -27,8 +27,8 @@ Prime confirmed with authenticated GitHub issue, PR and Actions job readback and
 
 | Workstream | Current execution status |
 |---|---|
-| W1 — PostgreSQL 009b cleanup | Isolated correction branch `codex/issue467-w1-009b-nonforce`; candidate and actual PG17 proof pending review. |
-| W2 — Staff Push finalization fidelity | Isolated correction branch `fix/issue-467-w2-staff-push-outage`; candidate and actual PG17 proof pending review. |
+| W1 — PostgreSQL 009b cleanup | Isolated uncommitted candidate; typecheck, architecture check and diff check passed. Fresh PG17 attested, restricted bootstrap underway; no real four-case pass or cleanup receipt credited. |
+| W2 — Staff Push finalization fidelity | Isolated uncommitted candidate; typecheck and targeted ESLint passed. First focused PG17 attempt failed beforeAll on missing separate management-writer URL, both cases skipped; no runtime test pass credited. |
 | W3 — Application CodeQL | Four exact occurrences reviewed: strong source-supported false-positive candidates; no alert or gate change. |
 | W4 — Fixture CodeQL | Five exact occurrences reviewed: source-supported false-positive candidates; no test or gate change. |
 | W5 — Required-check enforcement | Read-only review complete: live ruleset disabled, branch unprotected, owner restoration prepared; W9 independent cross-review agrees, conditional on owner activation and negative enforcement proof. |
