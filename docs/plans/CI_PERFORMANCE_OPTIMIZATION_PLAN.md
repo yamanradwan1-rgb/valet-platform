@@ -2,14 +2,14 @@
 
 | Field | Value |
 |---|---|
-| Version | 1.1 |
+| Version | 1.2 |
 | Status | **CONDITIONALLY APPROVED ROADMAP — PHASE 0 ONLY; NO-GO** |
-| Date | 2026-11-26, Asia/Amman. Current main CI and Security evidence cut 03:59–04:00. |
+| Date | 2026-11-26, Asia/Amman. COS Phase 0 execution takeover after the v1.1 evidence cut. |
 | Tracking | [Issue #467][i467] |
 | Audit source / integration tip | `cc507a5b25779e12934a3ead846ceb2c8ddff16b` |
 | Initial audit source | `e57c48e9381dd8744bc203bb4e543c425f1ffa7f` |
 | Historical comparison | `2413e11590a7f588aae7319ee5baf9fa2f2164b3` |
-| Scope | CI orchestration, disposable fixtures, test scheduling, security analysis execution and evidence. Planning only. |
+| Scope | Phase 0 correctness remediation and qualification; later CI performance work remains planning only. |
 | Decision | **NO-GO — UNRESOLVED CRITICAL BLOCKERS** for optimization execution. Approve or revise the proposal separately from clearing its phase gates. |
 
 ## Executive summary
@@ -18,6 +18,30 @@ The latest integrated source retains the 30-minute Race job limit, fresh migrati
 
 Prioritize a green reference, then instrument and try a fixture-local subprocess reduction that keeps the actual deploy and provision contracts. Trial deterministic Race shards on separate attested PostgreSQL services and parallel CodeQL analyses independently. Prototype migrated templates only for positively classified fixtures that pass full catalog, role and isolation equivalence. Preserve the real #414 timing in a required lane if moving it demonstrably shortens the critical path. The 8–12-minute objective is a budget to test on official GitHub Actions.
 
+
+## Phase 0 determination — v1.2 (COS execution)
+
+**Phase 0 NO-GO — B0.1 historical verification complete; B0.2 remains blocked; 0/3 qualifying repetitions.** The owner expressly transferred execution from Codex to COS and authorized separately scoped correctness candidates, isolated tests, independent reviews, reviewed draft PRs, official verification and planning updates. This does not authorize merging, deployment, activation, ruleset changes, extending/dismissing CodeQL dispositions, weakening security gates or starting Phases 1–9. The 8–12 minute objective is unchanged. See the [persistent execution handoff](CI_PERFORMANCE_PHASE0_EXECUTION_HANDOFF.md) for ownership and resume steps.
+
+Prime confirmed with authenticated GitHub issue, PR and Actions job readback and git ls-remote/fetch that source main remains `cc507a5b25779e12934a3ead846ceb2c8ddff16b`; no later main changes were found. PR #466 is closed and merged at this SHA. The documentation ref initially remained `3a54782f1de97c80f1791abe749614579f245c37`. Issue #467 remains open and its v1.0/v1.1 comments were recovered. Main CI and Security failures and final PR cancellation/scoped Security success were independently revalidated. The original local main and prior integration/planning worktrees were preserved.
+
+| Workstream | Current execution status |
+|---|---|
+| W1 — PostgreSQL 009b cleanup | Isolated correction branch `codex/issue467-w1-009b-nonforce`; candidate and actual PG17 proof pending review. |
+| W2 — Staff Push finalization fidelity | Isolated correction branch `fix/issue-467-w2-staff-push-outage`; candidate and actual PG17 proof pending review. |
+| W3 — Application CodeQL | Four exact occurrences reviewed: strong source-supported false-positive candidates; no alert or gate change. |
+| W4 — Fixture CodeQL | Five exact occurrences reviewed: source-supported false-positive candidates; no test or gate change. |
+| W5 — Required-check enforcement | Read-only review complete: live ruleset disabled, branch unprotected, owner restoration prepared; W9 independent cross-review pending. |
+| W6/W8 — Independent PostgreSQL review | W6 browser bootstrap failed; replacement W8 active, read-only review in progress. |
+| W7/W9 — Independent Security/CI review | W7 browser bootstrap failed; replacement W9 assigned. |
+
+The nine HIGH CodeQL findings remain unresolved for the main push gate. W5 independently observed raw totals 61/52/9/9 in main and final PR official job logs, and the PR-only native reconciliation 9/9/0. Original BASE `bfb4fdccf9d557c371313c9e357faa52e0a71014` must be preserved for remediation evidence; a newer comparison cannot substitute. No previous disposition is extended. A main-push qualification on a corrected SHA necessarily requires a separate owner-authorized integration; the Prime cannot merge. Three comparable full repetitions plus applicable PR and main-push evidence and effective enforcement are mandatory.
+
+W5 reported live owner UI and API readback: ruleset 28117363 Disabled, target `~DEFAULT_BRANCH`, strict `quality` and `security-gate` contexts from GitHub Actions app ID 15368, native CodeQL HIGH-or-higher / Errors, zero bypass actors, PR required with zero approving reviews and deletion/non-fast-forward protection configured. Main reports `protected=false` and the authenticated Branches UI showed no classic rules. Direct branch-protection REST returned 403 for the integration and the effective-rules endpoint was blocked by its connector allowlist; W9 independently obtained the effective-rules API readback with zero applied rules. W5's smallest owner action is to activate the existing ruleset without changing its contents, then re-read and demonstrate failed/missing/cancelled/stale checks prevent merge in an unmerged verification PR. Actual saved enforcement and account billing entitlement have not been tested. No settings write has been performed.
+
+W3/W4 completed the four application and five fixture occurrence reviews, respectively. Their exact committed-byte source hashes, location fingerprints and data-flow findings are recorded in the [handoff ledger](CI_PERFORMANCE_PHASE0_EXECUTION_HANDOFF.md#codeql-occurrence-ledger). SHA-256 operations consume already-verified Argon2id PHC values or canonical protocol frames; fixture SHA-256 operations are independent protocol comparators/golden vectors. These are source-supported false-positive candidates for CWE-916, not owner-approved dispositions. W9 independently recovered both official archives and verified matching sanitized content and the distinct PR-only reconciliation record. Final independent semantic cross-review remains pending. No production source, fixture, alert, policy or security gate change was authorized or made for these findings.
+
+No new correction commit, reviewed candidate, draft PR or qualifying workflow is credited in this checkpoint. The v1.1 determination below remains the historical evidence ledger and original diagnosis; it is not an authorization to repeat the PR-specific exception or begin optimization.
 
 ## Phase 0 determination — v1.1
 
