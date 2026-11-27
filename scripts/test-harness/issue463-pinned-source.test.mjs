@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
+import process from "node:process";
 import test from "node:test";
+import { URL } from "node:url";
 
 import {
   ISSUE463_P2_REVIEWED_SQL_SHA256,

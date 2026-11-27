@@ -5,6 +5,7 @@ import {
   removeRunState,
 } from "./ownership-state.mjs";
 import { postgresEndpointIdentity } from "./postgres-endpoint.mjs";
+import { URL } from "node:url";
 import { isIssue463SharedRole } from "./issue463-shared-role-policy.mjs";
 
 const sharedProtectedRoles = new Set([

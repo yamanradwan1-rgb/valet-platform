@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import { URL } from "node:url";
 
 import { ISSUE463_SHARED_ROLES } from "./issue463-shared-role-policy.mjs";
 
