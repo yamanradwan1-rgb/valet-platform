@@ -194,6 +194,7 @@ export async function runP7Step(root, name, command, args, env, state, timeoutMs
     const permitted = [
       "TARGET_ATTESTED", "API_READY", "LEGACY_ABI", "NOTICE_DENIED",
       "APPS_READY", "GUEST_COMMITTED", "DASHBOARD_DISCLOSED", "READ_SCOPE_PARITY", "LEDGER_SQL_RECONCILED",
+      "RETRIES_VERIFIED", "LEDGER_RATED", "LEDGER_APPROVED", "LEDGER_PENDING", "LEDGER_INTENT", "LEDGER_APPLY", "LEDGER_RECEIPT",
     ];
     let stdout = "";
     let stderr = "";
@@ -228,9 +229,10 @@ export async function runP7Step(root, name, command, args, env, state, timeoutMs
         // Only allowlisted structural diagnostics, never raw messages or values.
         const count = stderr.match(/"result":"FAIL","assertions":(\d{1,4})/u)?.[1];
         const code = stderr.match(/"(?:errorCode|code)":"([A-Z0-9_]{1,30})"/u)?.[1];
+        const ledgerHttpStatus = stdout.match(/P7_LEDGER_HTTP_STATUS ([1-5][0-9]{2})/u)?.[1];
         const line = (stderr + "\n" + stdout).match(/issue463-[a-z0-9-]+\.(?:mjs|ts):(\d{1,4}):\d{1,4}/u)?.[0];
         console.log("P7_FAILURE_METADATA " + JSON.stringify({
-          step: name, assertions: count ?? null, code: code ?? null, location: line ?? null,
+          step: name, assertions: count ?? null, code: code ?? null, location: line ?? null, ledgerHttpStatus: ledgerHttpStatus ?? null,
         }));
         fail(error);
       } else if (name.endsWith(".mjs") && name.startsWith("issue463-") &&

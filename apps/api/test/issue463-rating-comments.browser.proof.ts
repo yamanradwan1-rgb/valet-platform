@@ -88,6 +88,7 @@ describe.runIf(enabled)("Issue463 owned production browser proof", () => {
           expect(deniedRows.rows).toEqual([{ratings:0,comments:0}]);
           console.info("P7_MILESTONE NOTICE_DENIED");
           await verifyIssue463GuestRetries(target, proxy.origin);
+          console.info("P7_MILESTONE RETRIES_VERIFIED");
           await verifyIssue463LedgerSql(target, proxy.origin);
           console.info("P7_MILESTONE LEDGER_SQL_RECONCILED");
           const apps = await startIssue463BrowserApps(proxy.origin,customerPort,dashboardPort);

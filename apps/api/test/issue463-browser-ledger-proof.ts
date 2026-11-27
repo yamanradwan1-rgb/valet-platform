@@ -33,7 +33,9 @@ export async function verifyIssue463LedgerSql(target: Target, apiOrigin: string)
     body: JSON.stringify({ rating: 5, expectedValetSessionId: visit.id, comment: text }),
     signal: AbortSignal.timeout(10_000),
   });
+  console.info("P7_LEDGER_HTTP_STATUS " + write.status);
   expect(write.status).toBe(200);
+  console.info("P7_MILESTONE LEDGER_RATED");
   const a = new Client({ connectionString: target.approverUrl, connectionTimeoutMillis: 5000 });
   const e = new Client({ connectionString: target.executorUrl, connectionTimeoutMillis: 5000 });
   try {
@@ -43,6 +45,7 @@ export async function verifyIssue463LedgerSql(target: Target, apiOrigin: string)
       [approval, org.organizationId, org.locationId, visit.id, caseId],
     );
     expect(approved.rows).toEqual([{ outcome: "APPROVED" }]);
+    console.info("P7_MILESTONE LEDGER_APPROVED");
     const scope = { approvalId: approval, caseId, commandId, organizationId: org.organizationId,
       locationId: org.locationId, visitId: visit.id, action: "ERASE" as const };
     async function inspect(id: string): Promise<DispositionReceiptMetadata | null> {
@@ -61,6 +64,7 @@ export async function verifyIssue463LedgerSql(target: Target, apiOrigin: string)
     }
     const pending = await inspect(approval);
     if (!pending || pending.outcome !== null || pending.completedAt !== null) throw Error("Issue463 expected pending SQL case.");
+    console.info("P7_MILESTONE LEDGER_PENDING");
     const { store, crypt, anchor } = await fixture();
     let calls = 0;
     const adapter = createDispositionSqlAdapter({
@@ -80,17 +84,21 @@ export async function verifyIssue463LedgerSql(target: Target, apiOrigin: string)
     expect((await inspect(approval))?.completedAt).toBeNull();
     store.failure = null;
     const proof = await appendDispositionIntent(store, crypt, anchor, input);
+    console.info("P7_MILESTONE LEDGER_INTENT");
     expect(await applyAfterDurableIntent(store, crypt, anchor, proof, adapter)).toBe("UNKNOWN");
     expect(calls).toBe(1);
+    console.info("P7_MILESTONE LEDGER_APPLY");
     await expect(prepareQuarantinedRestore(store, crypt, anchor)).rejects.toMatchObject({ reason: "UNRESOLVED_INTENT" });
     expect(await applyAfterDurableIntent(store, crypt, anchor, proof, adapter)).toBe("COMMITTED");
     expect(calls).toBe(1);
+    console.info("P7_MILESTONE LEDGER_APPLY");
     const committed = await inspect(approval);
     if (committed?.outcome !== "ERASED" || !committed.completedAt || !committed.executedBy)
       throw Error("Issue463 exact committed SQL receipt missing.");
     await appendDispositionReceipt(store, crypt, anchor, { ...scope, eventId: randomUUID(),
       intentEventId: input.eventId, executorId: committed.executedBy, executedAt: committed.completedAt,
       outcome: "ERASED", recordedAt: new Date().toISOString() }, adapter);
+    console.info("P7_MILESTONE LEDGER_RECEIPT");
     const plan = await prepareQuarantinedRestore(store, crypt, anchor);
     expect(plan.admission).toBe("DENY");
     expect(plan.terminalErases).toEqual([{ approvalId: approval, caseId,
