@@ -31,9 +31,24 @@ export interface ReceiptInput extends DispositionScope {
   readonly recordedAt: string;
 }
 
+/** Durable non-erasure outcome. Never presented as SQL commit or erasure. */
+export type NoOpReason =
+  | "EXPIRED_UNAPPLIED" | "DENIED_UNAPPLIED"
+  | "CANCELLED_UNAPPLIED" | "SUPERSEDED_NO_RECORD";
+export interface NoOpInput extends DispositionScope {
+  readonly eventId: string;
+  readonly intentEventId: string;
+  readonly inspectorId: string;
+  readonly observedAt: string;
+  readonly reason: NoOpReason;
+  readonly successorIntentEventId: string | null;
+  readonly recordedAt: string;
+}
+
 export type LedgerPayload =
   | (IntentInput & { readonly kind: "INTENT" })
-  | (ReceiptInput & { readonly kind: "RECEIPT" });
+  | (ReceiptInput & { readonly kind: "RECEIPT" })
+  | (NoOpInput & { readonly kind: "NOOP" });
 
 export type LedgerEvent = LedgerPayload & {
   readonly version: 1;
@@ -90,7 +105,10 @@ export interface TrustedLedgerAnchor {
 
 /** This callback must read an already COMMITTED SQL receipt, not apply SQL. */
 export interface CommittedDispositionReceiptReader {
-  confirmCommitted(input: ReceiptInput): Promise<boolean>;
+  confirmCommitted(
+    intent: LedgerEvent & { readonly kind: "INTENT" },
+    input: ReceiptInput,
+  ): Promise<boolean>;
 }
 
 /** The adapter is the only layer that may call the P-owned SQL function. */
@@ -99,7 +117,40 @@ export interface DispositionSqlApplier {
   lookupCommittedIntent(intent: LedgerEvent & { readonly kind: "INTENT" }):
     Promise<"COMMITTED" | "PENDING" | "UNKNOWN">;
   applyVerifiedIntent(intent: LedgerEvent & { readonly kind: "INTENT" }):
-    Promise<"COMMITTED" | "UNKNOWN" | "DENIED">;
+    Promise<"COMMITTED" | "UNKNOWN" | "DENIED" | "NO_RECORD_WAIT" | "EXPIRED">;
+}
+
+/** Result must be attested under an independent, scoped, concurrency-fenced
+ * inspector. W2 E/A/R SQL roles cannot directly provide this authority. */
+export interface FencedNoOpEvidence {
+  readonly approvalId: string;
+  readonly commandId: string;
+  readonly organizationId: string;
+  readonly locationId: string;
+  readonly visitId: string;
+  readonly caseId: string;
+  readonly action: DispositionAction;
+  readonly approvedBy: string;
+  readonly approvedAt: string;
+  readonly validUntil: string;
+  readonly inspectorId: string;
+  readonly observedAt: string;
+  readonly reason: NoOpReason;
+  readonly basis:
+    | "EXPIRY_FENCED" | "DENIAL_FENCED"
+    | "CANCELLATION_FENCED" | "SUCCESSOR_CLOSED_FENCED";
+  readonly noCommittedReceipt: true;
+  readonly futureExecutionFenced: true;
+}
+
+export interface AuthorizedNoOpInspector {
+  /** Credential-bound principal; cannot be nominated by caller input. */
+  readonly inspectorId: string;
+  /** No reading from a rolled-back backup; must fence in-flight SQL execution. */
+  attestFencedNoOp(
+    intent: LedgerEvent & { readonly kind: "INTENT" },
+    closure: NoOpInput,
+  ): Promise<FencedNoOpEvidence | null>;
 }
 
 export class DispositionLedgerBlocked extends Error {

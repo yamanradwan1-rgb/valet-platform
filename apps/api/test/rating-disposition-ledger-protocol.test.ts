@@ -112,6 +112,16 @@ test("no replay of commandId, including same intent with new event ID", async ()
   })), isBlocked("DUPLICATE_COMMAND"));
 });
 
+test("one SQL approval ID cannot be claimed by two independently signed intents", async () => {
+  const { store, crypt, anchor } = await fixture();
+  await appendDispositionIntent(store, crypt, anchor, intent());
+  await assert.rejects(appendDispositionIntent(store, crypt, anchor, intent({
+    eventId: "aaaaaaaa-0000-4000-8000-000000000001",
+    commandId: "aaaaaaaa-0000-4000-8000-000000000002",
+  })), isBlocked("DUPLICATE_COMMAND"));
+  assert.equal(store.events.length, 1);
+});
+
 test("independent monotone witness rejects signed head rollback even if static floor is old", async () => {
   const { store, crypt, anchor } = await fixture();
   await appendDispositionIntent(store, crypt, anchor, intent());

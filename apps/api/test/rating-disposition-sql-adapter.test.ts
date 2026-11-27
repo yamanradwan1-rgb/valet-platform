@@ -96,9 +96,9 @@ test("NO_RECORD_WAIT and EXPIRED have no completion receipt", async () => {
     ctx.executor.response = result;
     const adapter = createDispositionSqlAdapter(ctx.executor, ctx.inspector);
     assert.equal(await applyAfterDurableIntent(
-      ctx.store, ctx.crypt, ctx.anchor, ctx.proof, adapter), "DENIED");
+      ctx.store, ctx.crypt, ctx.anchor, ctx.proof, adapter), result);
     assert.equal(ctx.getApplied(), 1);
-    assert.equal(await adapter.confirmCommitted(ctx.input), false);
+    assert.equal(await adapter.confirmCommitted(ctx.proof.event, ctx.input), false);
   }
 });
 
@@ -108,18 +108,36 @@ test("unknown SQL outcome, missing/foreign receipt and lost readback block closu
   const adapter = createDispositionSqlAdapter(ctx.executor, ctx.inspector);
   assert.equal(await applyAfterDurableIntent(
     ctx.store, ctx.crypt, ctx.anchor, ctx.proof, adapter), "UNKNOWN");
-  assert.equal(await adapter.confirmCommitted(ctx.input), false);
+  assert.equal(await adapter.confirmCommitted(ctx.proof.event, ctx.input), false);
 
   const another = await setup();
   const committed = createDispositionSqlAdapter(another.executor, another.inspector);
   await applyAfterDurableIntent(
     another.store, another.crypt, another.anchor, another.proof, committed);
   another.row.completedAt = "2026-11-01T00:00:00.000Z";
-  assert.equal(await committed.confirmCommitted(another.input), false);
+  assert.equal(await committed.confirmCommitted(another.proof.event, another.input), false);
   another.row.completedAt = another.input.executedAt;
   another.row.executedBy = "unrelated-executor";
-  assert.equal(await committed.confirmCommitted(another.input), false);
+  assert.equal(await committed.confirmCommitted(another.proof.event, another.input), false);
   another.row.executedBy = another.input.executorId;
   another.inspector.readExactApproval = async () => { throw new Error("db lost"); };
-  assert.equal(await committed.confirmCommitted(another.input), false);
+  assert.equal(await committed.confirmCommitted(another.proof.event, another.input), false);
+});
+
+test("committed receipt binds approver and approved/expiry times to signed INTENT", async () => {
+  for (const mismatch of [
+    { approvedBy: "other.privacy.approver" },
+    { approvedAt: "2026-01-01T00:00:00.000Z" },
+    { validUntil: "2027-01-01T00:00:00.000Z" },
+  ]) {
+    const ctx = await setup();
+    const adapter = createDispositionSqlAdapter(ctx.executor, ctx.inspector);
+    assert.equal(await applyAfterDurableIntent(
+      ctx.store, ctx.crypt, ctx.anchor, ctx.proof, adapter), "COMMITTED");
+    Object.assign(ctx.row, mismatch);
+    assert.equal(await adapter.confirmCommitted(ctx.proof.event, ctx.input), false);
+    await assert.rejects(appendDispositionReceipt(
+      ctx.store, ctx.crypt, ctx.anchor, ctx.input, adapter),
+    (error) => error?.reason === "UNVERIFIED_SQL_RECEIPT");
+  }
 });

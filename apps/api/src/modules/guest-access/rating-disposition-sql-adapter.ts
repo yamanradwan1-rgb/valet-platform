@@ -110,10 +110,13 @@ export function createDispositionSqlAdapter(
           APPLY_APPROVED_DISPOSITION_SQL, [intent.approvalId],
         );
         if (!response || !outcomeIsValid(intent.action, response.outcome)) {
-          // Includes NO_RECORD_WAIT, EXPIRED, DENIED, foreign status.
-          return response?.outcome === "NO_RECORD_WAIT" ||
-            response?.outcome === "EXPIRED" || response?.outcome === "DENIED"
-            ? "DENIED" : "UNKNOWN";
+          // None of these statuses has a W2 committed SQL completion row.
+          // They are distinct from successful erasure and need fenced
+          // no-op evidence before any ledger terminal closure.
+          if (response?.outcome === "NO_RECORD_WAIT") return "NO_RECORD_WAIT";
+          if (response?.outcome === "EXPIRED") return "EXPIRED";
+          if (response?.outcome === "DENIED") return "DENIED";
+          return "UNKNOWN";
         }
         const committed = await inspector.readExactApproval(intent.approvalId);
         if (!matchesIntent(intent, committed) ||
@@ -122,10 +125,14 @@ export function createDispositionSqlAdapter(
         return "COMMITTED";
       } catch { return "UNKNOWN"; }
     },
-    async confirmCommitted(input: ReceiptInput) {
+    async confirmCommitted(
+      intent: LedgerEvent & { kind: "INTENT" }, input: ReceiptInput,
+    ) {
       try {
         const row = await inspector.readExactApproval(input.approvalId);
-        return row !== null &&
+        return matchesIntent(intent, row) &&
+          intent.eventId === input.intentEventId &&
+          intent.commandId === input.commandId &&
           row.approvalId === input.approvalId &&
           row.organizationId === input.organizationId &&
           row.locationId === input.locationId &&

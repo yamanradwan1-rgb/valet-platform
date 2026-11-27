@@ -63,6 +63,10 @@ export function fakeRestoreTarget() {
         ratingAbsent: true,
       };
     },
+    async verifyFencedNoOpClosure() {
+      calls.push("NOOP_FENCE");
+      return "VERIFIED";
+    },
     async recomputeExpiredTextFromServerTime() {
       calls.push("EXPIRY");
       return "VERIFIED";

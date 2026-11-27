@@ -27,6 +27,10 @@ const receiptKeys = [
   ...scopeKeys, "kind", "eventId", "intentEventId", "executorId",
   "executedAt", "outcome", "recordedAt",
 ];
+const noOpKeys = [
+  ...scopeKeys, "kind", "eventId", "intentEventId", "inspectorId",
+  "observedAt", "reason", "successorIntentEventId", "recordedAt",
+];
 const eventKeys = [
   "version", "ledgerId", "epoch", "sequence", "previousDigest",
 ];
@@ -71,7 +75,8 @@ function validScope(payload: LedgerPayload): void {
 
 /** Never serialize unknown keys (including text, text hash or free-form reason). */
 export function assertLedgerPayload(input: LedgerPayload): void {
-  exactKeys(input, input.kind === "INTENT" ? intentKeys : receiptKeys);
+  exactKeys(input, input.kind === "INTENT" ? intentKeys :
+    input.kind === "RECEIPT" ? receiptKeys : noOpKeys);
   validScope(input);
   if (input.kind === "INTENT") {
     if (typeof input.approvedBy !== "string" || !actor.test(input.approvedBy) ||
@@ -79,6 +84,20 @@ export function assertLedgerPayload(input: LedgerPayload): void {
         input.validUntil <= input.approvedAt ||
         input.recordedAt < input.approvedAt ||
         input.recordedAt >= input.validUntil) deny();
+    return;
+  }
+  if (input.kind === "NOOP") {
+    if (typeof input.intentEventId !== "string" ||
+        !uuid.test(input.intentEventId) ||
+        typeof input.inspectorId !== "string" || !actor.test(input.inspectorId) ||
+        !validTime(input.observedAt) || input.recordedAt < input.observedAt ||
+        !["EXPIRED_UNAPPLIED", "DENIED_UNAPPLIED",
+          "CANCELLED_UNAPPLIED", "SUPERSEDED_NO_RECORD"]
+          .includes(input.reason) ||
+        (input.reason === "SUPERSEDED_NO_RECORD"
+          ? typeof input.successorIntentEventId !== "string" ||
+            !uuid.test(input.successorIntentEventId)
+          : input.successorIntentEventId !== null)) deny();
     return;
   }
   if (input.kind !== "RECEIPT" ||
@@ -89,13 +108,14 @@ export function assertLedgerPayload(input: LedgerPayload): void {
   const outcomes: Record<DispositionAction, readonly string[]> = {
     HOLD: ["HELD"],
     RELEASE: ["RELEASED", "ERASED"],
-    ERASE: ["ERASED", "HELD_PENDING", "NO_RECORD_WAIT", "NO_RECORD_CLOSED"],
+    ERASE: ["ERASED", "HELD_PENDING", "NO_RECORD_CLOSED"],
   };
   if (!outcomes[input.action].includes(input.outcome)) deny();
 }
 
 export function assertLedgerEvent(event: LedgerEvent): void {
-  exactKeys(event, [...eventKeys, ...(event.kind === "INTENT" ? intentKeys : receiptKeys)]);
+  exactKeys(event, [...eventKeys, ...(event.kind === "INTENT" ? intentKeys :
+    event.kind === "RECEIPT" ? receiptKeys : noOpKeys)]);
   if (event.version !== 1 ||
       typeof event.ledgerId !== "string" || !uuid.test(event.ledgerId) ||
       typeof event.epoch !== "string" || !uuid.test(event.epoch) ||
@@ -118,8 +138,11 @@ export function canonicalEvent(event: LedgerEvent): string {
   ];
   return JSON.stringify(event.kind === "INTENT"
     ? [...common, event.approvedBy, event.approvedAt, event.validUntil]
-    : [...common, event.intentEventId, event.executorId,
-      event.executedAt, event.outcome]);
+    : event.kind === "RECEIPT"
+      ? [...common, event.intentEventId, event.executorId,
+        event.executedAt, event.outcome]
+      : [...common, event.intentEventId, event.inspectorId, event.observedAt,
+        event.reason, event.successorIntentEventId]);
 }
 
 export function ledgerEventDigest(event: LedgerEvent): string {

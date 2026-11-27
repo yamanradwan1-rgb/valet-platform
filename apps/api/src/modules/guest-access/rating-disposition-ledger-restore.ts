@@ -4,6 +4,7 @@ import {
   type DispositionLedgerStore,
   type LedgerCheckpointAuthenticator,
   type LedgerEvent,
+  type NoOpInput,
   type SignedLedgerCheckpoint,
   type TrustedLedgerAnchor,
 } from "./rating-disposition-ledger-types";
@@ -31,6 +32,7 @@ export interface RestoreReplayPlan {
   readonly pendingHeldErases: readonly PendingHeldErase[];
   readonly releasedCases: readonly CaseScopedVisit[];
   readonly closedNoRecords: readonly CaseScopedVisit[];
+  readonly verifiedNoOps: readonly (NoOpInput & { kind: "NOOP" })[];
   readonly admission: "DENY";
 }
 
@@ -56,6 +58,10 @@ export interface QuarantinedRestoreTarget {
     readonly original24hWindowClosed: boolean;
     readonly ratingAbsent: boolean;
   }>;
+  /** Re-evaluate approval, expiry, execution fence and original no-op
+   * against the authorized source; a rolled-back DB snapshot is insufficient. */
+  verifyFencedNoOpClosure(closure: NoOpInput):
+    Promise<"VERIFIED" | "UNKNOWN">;
   recomputeExpiredTextFromServerTime(): Promise<"VERIFIED" | "UNKNOWN">;
   verifyNoVisibleText(visit: RestrictedVisit): Promise<boolean>;
 }
@@ -66,7 +72,6 @@ interface VisitHistory {
   hold: CaseScopedVisit | null;
   pendingErase: PendingHeldErase | null;
   release: CaseScopedVisit | null;
-  noRecordWait: CaseScopedVisit | null;
   noRecordClosed: CaseScopedVisit | null;
 }
 
@@ -96,13 +101,17 @@ export async function prepareQuarantinedRestore(
 ): Promise<RestoreReplayPlan> {
   const history = await loadVerifiedLedger(store, crypt, anchor);
   const intents = new Map<string, LedgerEvent & { kind: "INTENT" }>();
-  const receipts = new Set<string>();
+  const resolved = new Set<string>();
+  const noOps: (NoOpInput & { kind: "NOOP" })[] = [];
   const visits = new Map<string, VisitHistory>();
   for (const event of history.events) {
     if (event.kind === "INTENT") intents.set(event.eventId, event);
-    else receipts.add(event.intentEventId);
+    else {
+      resolved.add(event.intentEventId);
+      if (event.kind === "NOOP") noOps.push(event);
+    }
   }
-  if (intents.size !== receipts.size)
+  if (intents.size !== resolved.size)
     throw new DispositionLedgerBlocked("UNRESOLVED_INTENT");
 
   for (const event of history.events) {
@@ -112,23 +121,23 @@ export async function prepareQuarantinedRestore(
     const visitKey = key(event);
     const current = visits.get(visitKey) ?? {
       scope: scoped(event), erased: null, hold: null, pendingErase: null,
-      release: null, noRecordWait: null, noRecordClosed: null,
+      release: null, noRecordClosed: null,
     };
     const scope = scoped(event);
     if (current.erased || current.noRecordClosed) invalid();
     switch (event.outcome) {
       case "HELD":
-        if (current.hold || current.noRecordWait) invalid();
+        if (current.hold) invalid();
         current.hold = scope;
         current.release = null;
         break;
       case "HELD_PENDING":
-        if (!current.hold || current.pendingErase || current.noRecordWait) invalid();
+        if (!current.hold || current.pendingErase) invalid();
         current.pendingErase = { ...scope, holdCaseId: current.hold.caseId };
         break;
       case "RELEASED":
         if (!current.hold || current.hold.caseId !== intent.caseId ||
-            current.pendingErase || current.noRecordWait) invalid();
+            current.pendingErase) invalid();
         current.hold = null;
         current.release = scope;
         break;
@@ -140,26 +149,16 @@ export async function prepareQuarantinedRestore(
         current.hold = null;
         current.pendingErase = null;
         current.release = null;
-        current.noRecordWait = null;
-        break;
-      case "NO_RECORD_WAIT":
-        if (current.hold || current.noRecordWait || current.release) invalid();
-        current.noRecordWait = scope;
         break;
       case "NO_RECORD_CLOSED":
-        if (current.hold || current.release ||
-            (current.noRecordWait &&
-             current.noRecordWait.caseId !== event.caseId)) invalid();
+        if (current.hold || current.release) invalid();
         current.noRecordClosed = scope;
-        current.noRecordWait = null;
         break;
       default:
         invalid();
     }
     visits.set(visitKey, current);
   }
-  if ([...visits.values()].some((visit) => visit.noRecordWait))
-    throw new DispositionLedgerBlocked("UNRESOLVED_INTENT");
   return {
     checkpoint: history.checkpoint,
     terminalErases: [...visits.values()].flatMap((v) => v.erased ? [v.erased] : []),
@@ -170,6 +169,7 @@ export async function prepareQuarantinedRestore(
       v.release ? [v.release] : []),
     closedNoRecords: [...visits.values()].flatMap((v) =>
       v.noRecordClosed ? [v.noRecordClosed] : []),
+    verifiedNoOps: noOps,
     admission: "DENY",
   };
 }
@@ -188,6 +188,10 @@ export async function replayInQuarantine(
   try {
     await target.keepAllFeedbackTrafficClosed();
     const plan = await prepareQuarantinedRestore(store, crypt, anchor);
+    for (const closure of plan.verifiedNoOps) {
+      if (await target.verifyFencedNoOpClosure(closure) !== "VERIFIED")
+        throw new DispositionLedgerBlocked("UNRESOLVED_INTENT");
+    }
     for (const visit of plan.terminalErases) {
       const result = await target.eraseTextAndKeepTombstone(visit);
       if (result === "UNKNOWN" || !await target.verifyTerminalErased(visit) ||

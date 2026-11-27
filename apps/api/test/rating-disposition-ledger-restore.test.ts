@@ -64,7 +64,8 @@ test("unsigned/pending intent blocks the ENTIRE restore, not just the visit", as
 
 test("NO_RECORD_WAIT without a later exact closure receipt fails closed", async () => {
   const { store, crypt, anchor } = await fixture();
-  await recordCompleted(store, crypt, anchor, "ERASE", "NO_RECORD_WAIT");
+  // Actual W2 returns this status without writing completed_at/outcome.
+  await appendDispositionIntent(store, crypt, anchor, intent());
   await assert.rejects(prepareQuarantinedRestore(store, crypt, anchor),
     denied("UNRESOLVED_INTENT"));
 });
@@ -144,22 +145,12 @@ test("signed wrong-case release and ERASE while held cannot forge terminal state
     second.store, second.crypt, second.anchor), denied("CHAIN_TAMPER"));
 });
 
-test("original NO_RECORD_WAIT followed by exact case closure is rechecked", async () => {
+test("later approved NO_RECORD_CLOSED alone cannot erase earlier missing receipt", async () => {
   const { store, crypt, anchor } = await fixture();
-  await recordCompleted(store, crypt, anchor, "ERASE", "NO_RECORD_WAIT", "7");
+  await appendDispositionIntent(store, crypt, anchor, intent());
   await recordCompleted(store, crypt, anchor, "ERASE", "NO_RECORD_CLOSED", "9");
-  const plan = await prepareQuarantinedRestore(store, crypt, anchor);
-  assert.equal(plan.closedNoRecords.length, 1);
-  assert.equal((await replayInQuarantine(
-    store, crypt, anchor, fakeRestoreTarget())).admission, "DENY");
-  const foreign = await fixture();
-  await recordCompleted(foreign.store, foreign.crypt, foreign.anchor,
-    "ERASE", "NO_RECORD_WAIT", "7");
-  await recordCompleted(foreign.store, foreign.crypt, foreign.anchor,
-    "ERASE", "NO_RECORD_CLOSED", "9",
-    { caseId: "99999999-aaaa-4aaa-8aaa-999999999999" });
-  await assert.rejects(prepareQuarantinedRestore(
-    foreign.store, foreign.crypt, foreign.anchor), denied("CHAIN_TAMPER"));
+  await assert.rejects(prepareQuarantinedRestore(store, crypt, anchor),
+    denied("UNRESOLVED_INTENT"));
 });
 
 test("forged caller replay plan is never accepted as restore authority", async () => {
