@@ -230,6 +230,15 @@ describe("Guest T4 health and drain boundary", () => {
     ).rejects.toBeInstanceOf(RuntimeDatabaseUnavailableError);
   });
 
+  it("denies the new API readiness if only legacy capabilities are healthy", async () => {
+    const query = vi.fn().mockResolvedValue({
+      rowCount: 1, rows: [{ anti_abuse_ready: true, guest_browser_ready: true }],
+    });
+    await expect(verifyRuntimeDatabaseReadiness({ query } as unknown as PostgresPool))
+      .rejects.toBeInstanceOf(RuntimeDatabaseUnavailableError);
+    expect(query).toHaveBeenCalledOnce();
+  });
+
   it("bounds an unresponsive database readiness probe", async () => {
     vi.useFakeTimers();
     const query = vi.fn(() => new Promise(() => undefined));

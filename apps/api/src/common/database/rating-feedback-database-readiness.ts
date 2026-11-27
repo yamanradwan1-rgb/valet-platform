@@ -77,6 +77,26 @@ export function ratingFeedbackReadinessQuery(mode:RatingFeedbackReadinessMode):s
     AND (SELECT COUNT(*)=1 FROM pg_catalog.pg_proc
       WHERE proowner=(SELECT oid FROM pg_catalog.pg_roles
         WHERE rolname='vaylet_staff_session_lock_owner'))
+    AND NOT EXISTS(
+      SELECT 1 FROM required x
+      LEFT JOIN pg_catalog.pg_proc p ON p.oid=pg_catalog.to_regprocedure(x.signature)
+      LEFT JOIN pg_catalog.pg_roles role ON role.oid=p.proowner
+      WHERE p.oid IS NULL OR p.prosecdef IS DISTINCT FROM true
+        OR CASE WHEN x.signature IN (
+          'public.rating_feedback_is_protected()','${readSignature}')
+        THEN role.rolname IS DISTINCT FROM 'vaylet_rating_feedback_reader_owner'
+          OR p.provolatile IS DISTINCT FROM 'v'
+          OR p.proconfig IS DISTINCT FROM ARRAY['search_path=pg_catalog']::text[]
+        ELSE p.proowner IS DISTINCT FROM (
+          SELECT d.datdba FROM pg_catalog.pg_database d WHERE d.datname=current_database())
+        END
+    )
+    AND COALESCE((
+      SELECT r.rolname='vaylet_staff_session_lock_owner' AND p.prosecdef
+      FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_roles r ON r.oid=p.proowner
+      WHERE p.oid=pg_catalog.to_regprocedure(
+        'public.staff_auth_lock_current_session(uuid,uuid,text,timestamptz,text)')
+    ),false)
     AND NOT EXISTS(SELECT 1 FROM pg_catalog.pg_roles
       WHERE rolname IN ('vaylet_rating_feedback_reader_owner',
                         'vaylet_rating_feedback_privacy_owner')
@@ -96,7 +116,7 @@ export function ratingFeedbackReadinessQuery(mode:RatingFeedbackReadinessMode):s
       ('public.guest_rating_comment_privacy_commands'),
       ('public.guest_rating_comment_notice_approvals')) AS denied(name)
       WHERE COALESCE(pg_catalog.has_table_privilege(current_user,
-        pg_catalog.to_regclass(denied.name),'DELETE,TRUNCATE,TRIGGER'),true))
+        pg_catalog.to_regclass(denied.name),'DELETE,TRUNCATE,TRIGGER,MAINTAIN'),true))
     AND NOT COALESCE(pg_catalog.has_column_privilege(
       'vaylet_rating_feedback_privacy_owner','public.guest_rating_comments',
       'comment_text','SELECT'),true)
