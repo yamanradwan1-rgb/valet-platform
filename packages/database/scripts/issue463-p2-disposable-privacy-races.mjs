@@ -27,6 +27,18 @@ try {
     [target.database,"issue463_p7_migrator",target.system],
     "own PG17 instance");
   const org=id(101), loc=id(201);
+  // A denied approval must never create an executable case after timestamp rounding.
+  const precisionId=id(879);
+  const precisionSql="SELECT public.approve_guest_rating_comment_disposition($1,$2,$3,$4,'ERASE',$5,"+
+    "date_trunc('milliseconds',clock_timestamp()+interval '1 hour')+interval '1 microsecond') result";
+  eq((await one(a,precisionSql,[precisionId,org,loc,id(706),id(880)])).result,
+    "DENIED","noncanonical sub-millisecond approval rejected before insert");
+  eq((await one(m,"SELECT count(*)::int n FROM guest_rating_comment_privacy_commands WHERE approval_id=$1",[precisionId])).n,
+    0,"precision denial creates no executable command");
+  eq((await one(a,"SELECT public.approve_guest_rating_comment_disposition($1,$2,$3,$4,'ERASE',$5,'infinity'::timestamptz) result",
+    [precisionId,org,loc,id(706),id(880)])).result,"DENIED","infinite validity rejected");
+  eq((await one(m,"SELECT count(*)::int n FROM guest_rating_comment_privacy_commands WHERE approval_id=$1",[precisionId])).n,
+    0,"invalid validity creates no executable command");
   const dueIds=[id(704),id(705)];
   for(const visit of dueIds){
     await m.query("INSERT INTO public.guest_ratings(organization_id,location_id,valet_session_id,rating,rated_at) VALUES($1,$2,$3,4,clock_timestamp()-interval '31 days')",

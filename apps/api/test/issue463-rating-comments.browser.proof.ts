@@ -1,4 +1,3 @@
-/// <reference lib="dom" />
 import "reflect-metadata";
 import { createRequire } from "node:module";
 import { resolve } from "node:path";
@@ -12,6 +11,13 @@ import { verifyIssue463RatingReads } from "./issue463-browser-rating-reads";
 import { verifyIssue463GuestRetries } from "./issue463-browser-submission-reads";
 import { verifyIssue463LedgerSql } from "./issue463-browser-ledger-proof";
 import { createIssue463BrowserEvidence } from "./issue463-browser-evidence";
+
+// These browser-only globals exist in Playwright page.evaluate callbacks.
+// Keep declarations module-local so the Node API does not acquire DOM Fetch overloads.
+declare const document: { readonly fonts: { readonly ready: Promise<unknown> };
+  readonly documentElement: { readonly scrollWidth: number } };
+declare const innerWidth: number;
+declare function dispatchEvent(event: Event): boolean;
 
 const requireDashboard = createRequire(resolve(process.cwd(), "../dashboard/package.json"));
 const enabled = process.env.ISSUE463_BROWSER_QA === "I_OWN_DISPOSABLE_463";

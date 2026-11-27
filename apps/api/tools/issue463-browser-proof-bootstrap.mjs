@@ -228,13 +228,13 @@ export async function runP7Step(root, name, command, args, env, state, timeoutMs
         // Only allowlisted structural diagnostics, never raw messages or values.
         const count = stderr.match(/"result":"FAIL","assertions":(\d{1,4})/u)?.[1];
         const code = stderr.match(/"(?:errorCode|code)":"([A-Z0-9_]{1,30})"/u)?.[1];
-        const line = stderr.match(/issue463-[a-z0-9-]+\.(?:mjs|ts):(\d{1,4}):\d{1,4}/u)?.[0];
+        const line = (stderr + "\n" + stdout).match(/issue463-[a-z0-9-]+\.(?:mjs|ts):(\d{1,4}):\d{1,4}/u)?.[0];
         console.log("P7_FAILURE_METADATA " + JSON.stringify({
           step: name, assertions: count ?? null, code: code ?? null, location: line ?? null,
         }));
         fail(error);
       } else if (name.endsWith(".mjs") && name.startsWith("issue463-") &&
-          !/"result":"PASS","assertions":(?:230|22|7|52)(?:,|\})/u.test(stdout)) {
+          !/"result":"PASS","assertions":(?:230|26|7|52)(?:,|\})/u.test(stdout)) {
         fail(new Error("Issue463 SQL proof did not report its assertion receipt: " + name));
       } else if (name === "real Issue463 browser proof" &&
           !/Tests\s+1 passed\s+\(1\)/u.test(

@@ -31,8 +31,8 @@ import {
 
 const here = dirname(fileURLToPath(import.meta.url));
 const harnessRoot = resolve(here, "../..");
-const sourceRoot = resolve(here, "../../../issue463-impl-w9-concurrent-proof");
-const expectedCommit = "14238ea441c1317f00df34d1f828adacafc57e41";
+const sourceRoot = harnessRoot;
+const expectedCommit = process.env.ISSUE463_W9_EXPECTED_CANDIDATE;
 const cli = join(harnessRoot, "packages/database/node_modules/prisma/build/index.js");
 const config = join(
   harnessRoot, "packages/database/issue463-w9-concurrent-proof.prisma.config.ts");
@@ -65,7 +65,7 @@ async function sourceIdentity() {
   const changed = (await checked([
     "git", "-C", sourceRoot, "status", "--porcelain",
   ])).stdout.trim();
-  if (rev !== expectedCommit || changed !== "")
+  if (!/^[a-f0-9]{40}$/.test(expectedCommit ?? "") || rev !== expectedCommit || changed !== "")
     throw new Error("W2 source worktree is not the expected clean commit.");
   return assertSource(rev);
 }

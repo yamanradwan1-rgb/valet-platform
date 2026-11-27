@@ -12,11 +12,10 @@ export const ISSUE463_SHARED_ROLES = Object.freeze([
   "vaylet_rating_feedback_privacy_executor",
 ]);
 
-// Exact LF-canonical Git blob of W2 committed source 14238ea4, PostgreSQL17
-// P2. The Windows CRLF checkout has raw SHA c0d7cc5d... (different bytes).
+// Exact LF-canonical reviewed Issue463 P2 with approval precision fence.
 // A changed normalized source fails closed; no configurable pin or fallback.
 export const ISSUE463_P2_REVIEWED_SQL_SHA256 =
-  "23213576884348808b85c01bec545787469199e0b8491bbd6ec4fa6d16d05b1a";
+  "70da2ce34c04a26ea2252e4993a8b1a4958a372e83fbd7df5419ccefd80cdf2f";
 
 const sharedRoles = new Set(ISSUE463_SHARED_ROLES);
 

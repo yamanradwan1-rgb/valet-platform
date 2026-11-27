@@ -39,7 +39,7 @@ export async function verifyIssue463LedgerSql(target: Target, apiOrigin: string)
   try {
     await a.connect(); await e.connect();
     const approved = await a.query<{ outcome: string }>(
-      "SELECT public.approve_guest_rating_comment_disposition($1,$2,$3,$4,'ERASE',$5,clock_timestamp()+interval '10 minutes') AS outcome",
+      "SELECT public.approve_guest_rating_comment_disposition($1,$2,$3,$4,'ERASE',$5,date_trunc('milliseconds',clock_timestamp()+interval '10 minutes')) AS outcome",
       [approval, org.organizationId, org.locationId, visit.id, caseId],
     );
     expect(approved.rows).toEqual([{ outcome: "APPROVED" }]);

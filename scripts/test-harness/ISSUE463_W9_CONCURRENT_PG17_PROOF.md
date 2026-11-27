@@ -72,3 +72,18 @@ The results support shared-cluster correctness under the tested PG17 schedule
 and creator/member graph. They do not establish production provider, tenant
 activation, global deadlock freedom under every workload, legal policy, P5
 RELEASE, merge eligibility, or a production deployment.
+
+## Corrected-candidate replay (2026-11-27)
+
+Historical results above remain bound to W2 14238ea4. After the unreleased P2
+approval timestamp precision fence, the runner requires the exact clean
+integrated worktree and explicit candidate SHA, instead of the older W2 source
+checkout. The P2 source remains strictly pinned in the shared-role policy
+module. Prior 155 migration files and the original proof record are unchanged.
+No current-candidate PASS is inferred from historical results.
+
+```powershell
+$env:ISSUE463_W9_EXPECTED_CANDIDATE=(git rev-parse HEAD)
+$env:ISSUE463_W9_DISPOSABLE='I_OWN_DISPOSABLE_W9'
+node scripts/test-harness/issue463-w9-concurrent-proof.mjs
+```

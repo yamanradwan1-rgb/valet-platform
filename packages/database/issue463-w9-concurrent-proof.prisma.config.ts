@@ -1,7 +1,8 @@
 /** Isolated, owner-attested Issue463 W9 verification only.
  * The W2 committed schema/migrations are read from a separate Git worktree.
  * No production datasource or source mutation is accepted. */
-import { isAbsolute, join } from "node:path";
+import { isAbsolute, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { existsSync } from "node:fs";
 import { defineConfig } from "prisma/config";
 
@@ -9,7 +10,7 @@ const root = process.env.ISSUE463_W9_PROOF_ROOT;
 const migrationUrl = process.env.MIGRATION_DATABASE_URL;
 if (process.env.NODE_ENV !== "test" ||
     typeof root !== "string" || !isAbsolute(root) ||
-    !root.replaceAll("\\", "/").endsWith("/issue463-impl-w9-concurrent-proof") ||
+    resolve(root) !== resolve(fileURLToPath(new URL("../..", import.meta.url))) ||
     typeof migrationUrl !== "string") {
   throw new Error("Issue463 W9 proof requires an isolated pinned test worktree.");
 }

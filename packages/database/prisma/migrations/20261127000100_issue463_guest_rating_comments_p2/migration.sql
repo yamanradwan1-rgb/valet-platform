@@ -506,7 +506,9 @@ BEGIN
  IF NOT public.rating_feedback_is_protected() OR current_setting('transaction_isolation')<>'read committed' OR session_user<>'vaylet_rating_feedback_privacy_approver' THEN RAISE EXCEPTION 'denied' USING ERRCODE='42501';END IF;
  IF p_id IS NULL OR p_org IS NULL OR p_loc IS NULL OR p_visit IS NULL
     OR p_action IS NULL OR p_action NOT IN ('HOLD','ERASE','RELEASE')
-    OR p_case IS NULL OR p_until IS NULL OR p_until<=clock_timestamp()
+    OR p_case IS NULL OR p_until IS NULL OR NOT isfinite(p_until)
+    OR p_until IS DISTINCT FROM date_trunc('milliseconds',p_until)
+    OR p_until<=clock_timestamp()
  THEN RETURN 'DENIED';END IF;
  INSERT INTO public.guest_rating_comment_privacy_commands(approval_id,organization_id,location_id,visit_id,action,case_id,valid_until,approved_by)
  VALUES(p_id,p_org,p_loc,p_visit,p_action,p_case,p_until,session_user) ON CONFLICT DO NOTHING;
