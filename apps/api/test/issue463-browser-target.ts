@@ -186,8 +186,10 @@ export async function acquireIssue463BrowserTarget() {
   }
   const migration = urls[0]!;
   const runtime = urls[1]!;
-  if (migration.username !== "issue463_p7_migrator" ||
-      runtime.username !== "issue463_p7_runtime") {
+  const expectedRoles = ["issue463_p7_migrator", "issue463_p7_runtime",
+    "vaylet_staff_auth_writer", "vaylet_mfa_writer", "vaylet_management_writer",
+    "vaylet_rating_feedback_privacy_approver", "vaylet_rating_feedback_privacy_executor"];
+  if (urls.some((url, index) => url.username !== expectedRoles[index])) {
     throw new Error("Issue463 fixture principal name mismatch.");
   }
   const inside = docker(["exec", id, "psql", "-X", "-Atq", "-U", "postgres",

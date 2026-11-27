@@ -57,9 +57,29 @@ function awaitBuild(pkg: string, env: NodeJS.ProcessEnv): Promise<void> {
     const record = (chunk: Buffer) => { tail = (tail + chunk.toString()).slice(-6000); };
     child.stdout?.on("data", record);
     child.stderr?.on("data", record);
-    child.once("error", reject);
+    let expired = false;
+    const watchdog = setTimeout(() => {
+      expired = true;
+      // Only the live process spawned above and its descendant tree.
+      if (!child.pid || child.exitCode !== null || child.signalCode !== null) return;
+      try {
+        if (process.platform === "win32") {
+          execFileSync("taskkill.exe", ["/PID", String(child.pid), "/T", "/F"], {
+            timeout: 5_000, windowsHide: true, stdio: "ignore",
+          });
+        } else {
+          child.kill("SIGKILL");
+        }
+      } catch {
+        // Do not claim cleanup; outer P7 supervisor owns the entire tree.
+        reject(new Error("Issue463 build deadline; owned process cleanup not confirmed."));
+      }
+    }, 300_000);
+    child.once("error", (error) => { clearTimeout(watchdog); reject(error); });
     child.once("close", (code) => {
-      if (code === 0) done();
+      clearTimeout(watchdog);
+      if (expired) reject(new Error("Issue463 production build exceeded deadline: " + pkg));
+      else if (code === 0) done();
       else reject(new Error("Issue463 production build failed: " + pkg + " exit=" + code + "\n" + tail));
     });
   });

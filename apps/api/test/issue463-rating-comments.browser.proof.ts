@@ -17,6 +17,9 @@ describe.runIf(enabled)("Issue463 owned production browser proof", () => {
     try {
       const fixture = await seedIssue463Browser(target);
       const first = await fixture.completedVisit();
+      const legacy = await fixture.completedVisit();
+      const deniedFixture = await seedIssue463Browser(target, false);
+      const denied = await deniedFixture.completedVisit();
       const second = await fixture.completedVisit();
       const lost = await fixture.completedVisit();
       const customerPort = await unusedIssue463Port();
@@ -32,8 +35,42 @@ describe.runIf(enabled)("Issue463 owned production browser proof", () => {
       try {
         await app.listen(0,"127.0.0.1");
         const address = app.getHttpServer().address() as {port:number};
-        const proxy = await startIssue463BrowserProxy(`http://127.0.0.1:${address.port}`);
+        const apiOrigin = `http://127.0.0.1:${address.port}`;
+        expect((await fetch(apiOrigin + "/health/ready", {
+          signal: AbortSignal.timeout(5_000),
+        })).status).toBe(200);
+        const proxy = await startIssue463BrowserProxy(apiOrigin);
         try {
+          async function bearerRate(token: string, body: object) {
+            return fetch(proxy.origin + "/v1/guest/session/rating", {
+              method: "POST",
+              headers: { authorization: "Bearer " + token, "content-type": "application/json" },
+              body: JSON.stringify(body),
+              signal: AbortSignal.timeout(10_000),
+            });
+          }
+          const legacyResponse = await bearerRate(legacy.token, { rating: 4 });
+          expect(legacyResponse.status).toBe(200);
+          const legacyBody = await legacyResponse.json() as Record<string, unknown>;
+          expect(Object.keys(legacyBody).sort()).toEqual(["ratedAt","rating","valetSessionId"]);
+          expect(legacyBody).toMatchObject({ rating: 4, valetSessionId: legacy.id });
+          expect((await bearerRate(legacy.token, { rating: 4 })).status).toBe(200);
+          expect((await bearerRate(legacy.token, { rating: 5 })).status).toBe(409);
+          const legacyRows = await target.client.query(`SELECT r.rating,c.comment_text,c.state
+            FROM guest_ratings r LEFT JOIN guest_rating_comments c ON
+            c.organization_id=r.organization_id AND c.location_id=r.location_id AND c.valet_session_id=r.valet_session_id
+            WHERE r.organization_id=$1 AND r.location_id=$2 AND r.valet_session_id=$3`,
+            [fixture.organizationId,fixture.locationId,legacy.id]);
+          expect(legacyRows.rows).toEqual([{rating:4,comment_text:null,state:null}]);
+          const rejected = await bearerRate(denied.token, {
+            rating: 5, expectedValetSessionId: denied.id, comment: "Synthetic denied notice proof.",
+          });
+          expect(rejected.status).toBe(400);
+          expect(await rejected.json()).toMatchObject({code:"REQUEST_INVALID"});
+          const deniedRows = await target.client.query(`SELECT
+            (SELECT count(*)::integer FROM guest_ratings WHERE valet_session_id=$1) AS ratings,
+            (SELECT count(*)::integer FROM guest_rating_comments WHERE valet_session_id=$1) AS comments`, [denied.id]);
+          expect(deniedRows.rows).toEqual([{ratings:0,comments:0}]);
           const apps = await startIssue463BrowserApps(proxy.origin,customerPort,dashboardPort);
           try {
             const { chromium } = requireDashboard("@playwright/test");

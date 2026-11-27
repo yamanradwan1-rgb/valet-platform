@@ -6,7 +6,7 @@ import type { acquireIssue463BrowserTarget } from "./issue463-browser-target";
 
 type Target = Awaited<ReturnType<typeof acquireIssue463BrowserTarget>>;
 
-export async function seedIssue463Browser(target: Target) {
+export async function seedIssue463Browser(target: Target, approveNotice = true) {
   const { client } = target;
   const organizationId = randomUUID();
   const locationId = randomUUID();
@@ -44,14 +44,17 @@ export async function seedIssue463Browser(target: Target) {
     await client.query("ROLLBACK");
     throw error;
   }
-  const approver = new Client({ connectionString: target.approverUrl });
-  try {
-    await approver.connect();
-    const result = await approver.query<{ outcome: string }>(
-      "SELECT public.approve_guest_rating_comment_notice($1::uuid,$2::uuid,1,$3::uuid) AS outcome",
-      [organizationId,locationId,randomUUID()]);
-    if (result.rows[0]?.outcome !== "APPROVED") throw new Error("Synthetic notice approval rejected.");
-  } finally { await approver.end(); }
+  if (approveNotice) await approve();
+  async function approve() {
+    const approver = new Client({ connectionString: target.approverUrl });
+    try {
+      await approver.connect();
+      const result = await approver.query<{ outcome: string }>(
+        "SELECT public.approve_guest_rating_comment_notice($1::uuid,$2::uuid,1,$3::uuid) AS outcome",
+        [organizationId,locationId,randomUUID()]);
+      if (result.rows[0]?.outcome !== "APPROVED") throw new Error("Synthetic notice approval rejected.");
+    } finally { await approver.end(); }
+  }
 
   async function completedVisit() {
     const id = randomUUID();
