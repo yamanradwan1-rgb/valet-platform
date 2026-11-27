@@ -67,7 +67,7 @@ export async function checkIntegratedCandidate(root, expectedSha) {
     throw new Error("Issue463 P7 requires merged P2 and P5 migrations.");
   }
   for (const [packageName, dependency] of [
-    ["database", "pg"], ["database", "prisma"],
+    ["database", "pg"], ["database", "prisma/build/index.js"],
     ["api", "vitest"], ["dashboard", "@playwright/test"],
   ]) {
     try {
