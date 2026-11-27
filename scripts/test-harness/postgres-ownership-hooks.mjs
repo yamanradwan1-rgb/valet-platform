@@ -1,5 +1,13 @@
 import { createHash } from "node:crypto";
 import { createPostgresOwnershipRouter } from "./postgres-ownership-target-router.mjs";
+import {
+  assertReviewedIssue463P2Source,
+  executePinnedIssue463Migration,
+  isIssue463P2Source,
+} from "./issue463-pinned-migration.mjs";
+import {
+  isIssue463SharedRole,
+} from "./issue463-shared-role-policy.mjs";
 
 // These exact migrations verify their cluster-scoped NOLOGIN owners.
 // The isolated service provisions them before scratch migrations fan out.
@@ -61,6 +69,27 @@ function patchQuery(prototype, router, connectionLimit) {
     const created = text === undefined ? [] : createdResources(text);
     const dropped = text === undefined ? [] : droppedResources(text);
     const action = originalQuery.bind(this);
+    // P2's fixed cluster-wide principals cannot be claimed by one scratch DB
+    // or adopted via the regular absence-proven cleanup ledger. A future
+    // exception requires W2's final, exact pinned SQL and a verified CI-owned
+    // role inventory, as for the two existing pinned shared owner migrations.
+    if (isIssue463P2Source(text)) {
+      assertReviewedIssue463P2Source(text);
+      return executePinnedIssue463Migration(action, args);
+    }
+    if (created.some((resource) =>
+      resource.kind === "role" && isIssue463SharedRole(resource.name))) {
+      throw new Error(
+        "Issue463 shared roles require a reviewed pinned migration and " +
+        "pre-attested cluster role reuse; refusing per-test role creation.",
+      );
+    }
+    if (dropped.some((resource) =>
+      resource.kind === "role" && isIssue463SharedRole(resource.name))) {
+      throw new Error(
+        "Issue463 shared roles are cluster-owned; refusing per-test DROP ROLE.",
+      );
+    }
     if (isPinnedSharedRoleMigration(text, created)) {
       return executePinnedSharedRoleMigration(action, args, created[0]);
     }
