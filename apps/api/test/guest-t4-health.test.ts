@@ -51,7 +51,7 @@ function readyPool(ready = true): PostgresPool {
       fields: [],
       oid: 0,
       rowCount: 1,
-      rows: [{ anti_abuse_ready: ready, guest_browser_ready: ready }],
+      rows: [{ anti_abuse_ready: ready, guest_browser_ready: ready, phase_ready: ready, functions_ready: ready, owner_ready: ready, grants_safe: ready, guards_ready: ready }],
     })),
   } as unknown as PostgresPool;
 }
@@ -190,7 +190,7 @@ describe("Guest T4 health and drain boundary", () => {
     drain.beginDrain();
     resolveQuery({
       rowCount: 1,
-      rows: [{ anti_abuse_ready: true, guest_browser_ready: true }],
+      rows: [{ anti_abuse_ready: true, guest_browser_ready: true, phase_ready: true, functions_ready: true, owner_ready: true, grants_safe: true, guards_ready: true }],
     });
 
     await expect(readiness).resolves.toBe(false);

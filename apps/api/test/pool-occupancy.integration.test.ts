@@ -50,7 +50,9 @@ describe("real PostgreSQL occupancy measurement and isolated admission", () => {
     const next = await pending;
     next.release();
     await vi.waitFor(() => expect(runtimePoolSnapshot(pool).admitted).toBe(0));
-    await expect(verifyRuntimeDatabaseReadiness(pool)).resolves.toBeUndefined();
+    // This fixture is intentionally dormant, so the new API must not be ready.
+    await expect(verifyRuntimeDatabaseReadiness(pool)).rejects.toMatchObject({ reason: "DATABASE_UNAVAILABLE" });
+    await expect(pool.query("SELECT 1 AS ok")).resolves.toMatchObject({ rows: [{ ok: 1 }] });
     await vi.waitFor(() => expect(runtimePoolSnapshot(pool).admitted).toBe(0));
     expect(pool.waitingCount).toBe(0);
     expect(pool.totalCount).toBe(1);

@@ -8,7 +8,7 @@ import { GuestAuthOriginPolicy } from "../src/modules/guest-access/guest-browser
 
 const ready = () => ({
   rowCount: 1,
-  rows: [{ anti_abuse_ready: true, guest_browser_ready: true }],
+  rows: [{ anti_abuse_ready: true, guest_browser_ready: true, phase_ready: true, functions_ready: true, owner_ready: true, grants_safe: true, guards_ready: true }],
 });
 
 function serviceFor(
@@ -63,7 +63,7 @@ describe("T4 API readiness concurrent work", () => {
     await vi.waitFor(() => expect(query).toHaveBeenCalledTimes(1));
     complete({
       rowCount: 1,
-      rows: [{ anti_abuse_ready: true, guest_browser_ready: true }],
+      rows: [{ anti_abuse_ready: true, guest_browser_ready: true, phase_ready: true, functions_ready: true, owner_ready: true, grants_safe: true, guards_ready: true }],
     });
     expect(await Promise.all(checks)).toEqual(Array(100).fill(true));
     expect(query).toHaveBeenCalledTimes(1);
@@ -76,7 +76,7 @@ describe("T4 API readiness concurrent work", () => {
       .mockResolvedValueOnce(ready())
       .mockResolvedValueOnce({
         rowCount: 1,
-        rows: [{ anti_abuse_ready: false, guest_browser_ready: true }],
+        rows: [{ anti_abuse_ready: false, guest_browser_ready: true, phase_ready: true, functions_ready: true, owner_ready: true, grants_safe: true, guards_ready: true }],
       })
       .mockResolvedValueOnce(ready());
     const service = serviceFor(query);

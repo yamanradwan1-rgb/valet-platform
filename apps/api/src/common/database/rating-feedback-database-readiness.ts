@@ -5,7 +5,7 @@ import {
 } from "./runtime-database-deadline";
 
 type RatingFeedbackReadinessMode = "write" | "read";
-interface FeedbackReadinessRow {
+export interface FeedbackReadinessRow {
   phase_ready: boolean;
   functions_ready: boolean;
   owner_ready: boolean;
@@ -14,6 +14,8 @@ interface FeedbackReadinessRow {
 }
 
 const writeSignatures = [
+  "public.guest_rating_submit(text,integer)",
+  "public.guest_browser_rating_submit(text,integer)",
   "public.rating_feedback_is_protected()",
   "public.guest_rating_submit(text,integer,text,uuid)",
   "public.guest_browser_rating_submit(text,integer,text,uuid)",
@@ -33,9 +35,9 @@ const readGuards = [
     ]),
 ];
 
-// Explicitly activated by the new Guest/Management consumers only.
-// The legacy runtime health check remains exactly unchanged.
-function readinessQuery(mode:RatingFeedbackReadinessMode):string{
+// Exact additive feature capability probe; mounted health requires read mode.
+// The previous release retains its own unchanged legacy readiness probe.
+export function ratingFeedbackReadinessQuery(mode:RatingFeedbackReadinessMode):string{
   const names=[...writeSignatures,...(mode==="read"?[readSignature]:[])];
   const guards=[...writeGuards,...(mode==="read"?readGuards:[])];
   const functionValues=names.map(name=>`('${name}')`).join(",");
@@ -89,6 +91,12 @@ function readinessQuery(mode:RatingFeedbackReadinessMode):string{
     AND NOT COALESCE(pg_catalog.has_any_column_privilege(current_user,
       'public.guest_rating_comment_notice_approvals',
       'SELECT,INSERT,UPDATE,REFERENCES'),true)
+    AND NOT EXISTS(SELECT 1 FROM (VALUES
+      ('public.guest_rating_comments'),
+      ('public.guest_rating_comment_privacy_commands'),
+      ('public.guest_rating_comment_notice_approvals')) AS denied(name)
+      WHERE COALESCE(pg_catalog.has_table_privilege(current_user,
+        pg_catalog.to_regclass(denied.name),'DELETE,TRUNCATE,TRIGGER'),true))
     AND NOT COALESCE(pg_catalog.has_column_privilege(
       'vaylet_rating_feedback_privacy_owner','public.guest_rating_comments',
       'comment_text','SELECT'),true)
@@ -132,7 +140,7 @@ export async function verifyRatingFeedbackDatabaseReadiness(
     throw Error("Invalid rating feedback readiness mode.");
   try{
     const result=await withGeneralDatabaseDeadline(2_500,()=>
-      pool.query<FeedbackReadinessRow>(readinessQuery(mode)));
+      pool.query<FeedbackReadinessRow>(ratingFeedbackReadinessQuery(mode)));
     const row=result.rows[0];
     if(result.rowCount!==1||row?.phase_ready!==true||
       row.functions_ready!==true||row.owner_ready!==true||
