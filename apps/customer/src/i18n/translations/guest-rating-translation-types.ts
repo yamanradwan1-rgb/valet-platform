@@ -8,4 +8,6 @@ export interface GuestRatingTranslationTypes {
   'rating.unavailable': string;
   'rating.failed': string;
   'rating.selectStar': string;
+  'rating.commentLabel': string;
+  'rating.commentPlaceholder': string;
 }

@@ -26,6 +26,8 @@ export type IntelligenceRequestDescriptor =
       readonly endpointFamily: IntelligenceAnalyticsEndpointFamily;
       readonly from: string;
       readonly to: string;
+      /** Rating-only expanded read is a distinct authorization/data generation. */
+      readonly representation?: "WITH_COMMENTS";
     }
   | {
       readonly endpointFamily: IntelligenceReportEndpointFamily;
@@ -72,7 +74,9 @@ export function intelligenceRequestKey(
 function descriptorIdentity(
   descriptor: IntelligenceRequestDescriptor,
 ): readonly string[] {
-  if ("from" in descriptor) return [descriptor.from, descriptor.to];
+  if ("from" in descriptor) return descriptor.representation === "WITH_COMMENTS"
+    ? [descriptor.from, descriptor.to, descriptor.representation]
+    : [descriptor.from, descriptor.to];
   if (!("reportKind" in descriptor)) return ["current"];
   return [
     descriptor.reportKind,

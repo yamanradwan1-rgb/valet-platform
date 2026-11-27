@@ -1,9 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { DashboardApiClient } from "../../lib/api/dashboard-api-client";
+import { customerFeedbackAnalyticsWithCommentsResponseSchema } from "@valet/contracts";
 import {
   readCompanyCustomerFeedback,
+  readCompanyCustomerFeedbackWithComments,
   readLocationCustomerFeedback,
+  readLocationCustomerFeedbackWithComments,
 } from "./customer-feedback-api";
 import { intelligenceRequestKey } from "./intelligence-query-identity";
 
@@ -15,6 +18,39 @@ function mockApi() {
 }
 
 describe("Issue #313 Customer Feedback read lifecycle", () => {
+  it("opts in on the same exact two routes with a distinct strict response and no legacy mutation", async () => {
+    const { api, request } = mockApi();
+    const signal = new AbortController().signal;
+    await readCompanyCustomerFeedbackWithComments(api, "org / A", period, signal);
+    await readLocationCustomerFeedbackWithComments(api, "loc / A", period, signal);
+    expect(request.mock.calls.map((call) => call[0])).toEqual([
+      "/v1/staff/management/organizations/org%20%2F%20A/analytics/ratings",
+      "/v1/staff/dashboard/locations/loc%20%2F%20A/analytics/ratings",
+    ]);
+    for (const call of request.mock.calls) {
+      expect(call[1]).toBe(customerFeedbackAnalyticsWithCommentsResponseSchema);
+      expect(call[2]).toEqual({ query: { ...period, includeComments: "true" }, signal });
+    }
+    await readLocationCustomerFeedback(api, "loc / A", period, signal);
+    expect(request.mock.calls[2]?.[2]).toEqual({ query: period, signal });
+    expect(request.mock.calls[2]?.[1]).not.toBe(customerFeedbackAnalyticsWithCommentsResponseSchema);
+  });
+
+  it("separates eager private-text representation from the legacy request generation", () => {
+    const common = {
+      identityGeneration: 1, retryRevision: 0, selectionRevision: 1, sessionGeneration: 2,
+      scope: { kind: "LOCATION" as const, organizationId: "org", locationId: "loc" },
+    };
+    const legacy = intelligenceRequestKey({ ...common,
+      descriptor: { endpointFamily: "LOCATION_RATINGS", ...period },
+    });
+    const expanded = intelligenceRequestKey({ ...common,
+      descriptor: { endpointFamily: "LOCATION_RATINGS", ...period,
+        representation: "WITH_COMMENTS" },
+    });
+    expect(expanded).not.toBe(legacy);
+  });
+
   it("uses only existing authorized Company/Location routes with abort signals", async () => {
     const { api, request } = mockApi();
     const signal = new AbortController().signal;

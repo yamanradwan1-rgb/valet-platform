@@ -28,6 +28,32 @@ const payment = {
 afterEach(() => vi.restoreAllMocks());
 
 describe('T5 real Guest rating transport', () => {
+  it('sends typed scoped optional feedback without mutating legacy transport', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify(rating), { status: 200 }),
+    );
+    const client = GuestApiClient.browserSession(base);
+    await expect(client.submitFeedback({
+      rating: 4, expectedValetSessionId: visitId, comment: '  خدمة ممتازة\r\n  شكراً  ',
+    })).resolves.toEqual(rating);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(fetchSpy.mock.calls[0]?.[1]).toEqual(expect.objectContaining({
+      method: 'POST', cache: 'no-store', credentials: 'same-origin',
+      body: JSON.stringify({ rating: 4, expectedValetSessionId: visitId,
+        comment: 'خدمة ممتازة\n  شكراً' }),
+    }));
+  });
+
+  it('rejects invalid scoped payload before transport, never downgrades to stars-only', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
+    const client = GuestApiClient.browserSession(base);
+    await expect(client.submitFeedback({ rating: 5, expectedValetSessionId: 'wrong', comment: 'text' }))
+      .rejects.toThrow();
+    await expect(client.submitFeedback({ rating: 5, expectedValetSessionId: visitId,
+      comment: 'a'.repeat(1001) })).rejects.toThrow();
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
   it('posts exactly one 1–5 rating through cookie/CSRF authority', async () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
       new Response(JSON.stringify(rating), { status: 200 }),

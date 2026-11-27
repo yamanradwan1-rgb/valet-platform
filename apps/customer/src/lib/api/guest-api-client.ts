@@ -7,6 +7,7 @@ import {
   guestHandoffMaterialResponseSchema,
   guestInformationResponseSchema,
   guestPaymentProjectionResponseSchema,
+  guestRatingScopedFeedbackRequestSchema,
   guestRatingSubmissionRequestSchema,
   guestRatingSubmissionResponseSchema,
   guestSafeSessionResponseSchema,
@@ -17,10 +18,12 @@ import {
   type GuestPaymentProjectionResponse,
   type GuestInformationResponse,
   type GuestRatingSubmissionResponse,
+  type GuestRatingScopedFeedbackRequest,
 } from "@valet/contracts";
 
 import { getGuestApiBaseUrl } from "./api-config";
 import { GuestApiError } from "./api-error";
+import type { GuestRequestOptions } from './guest-api-request-options';
 import { executeGuestHttpRequest } from './guest-http-transport';
 import type { Locale } from '../../i18n/locale';
 import {
@@ -32,15 +35,6 @@ import type {
   GuestSafeSession,
   HandoffStandardMethod,
 } from "./guest-api-types";
-
-interface RequestOptions {
-  method?: "GET" | "POST" | undefined;
-  body?: unknown;
-  signal?: AbortSignal | undefined;
-  omitAuthorization?: boolean | undefined;
-  requireBrowserCsrf?: boolean | undefined;
-  allowBrowserContextChange?: boolean | undefined;
-}
 
 export { GUEST_CONTEXT_CHANGED_EVENT } from "./guest-browser-context-marker";
 
@@ -71,7 +65,7 @@ export class GuestApiClient {
 
   private async request<T>(
     path: string,
-    options: RequestOptions = {},
+    options: GuestRequestOptions = {},
     parse?: (raw: unknown) => T,
   ): Promise<T> {
     const {
@@ -249,7 +243,14 @@ export class GuestApiClient {
     rating: number,
     signal?: AbortSignal | undefined,
   ): Promise<GuestRatingSubmissionResponse> {
-    const body = guestRatingSubmissionRequestSchema.parse({ rating });
+    return this.postRating(guestRatingSubmissionRequestSchema.parse({ rating }), signal);
+  }
+
+  async submitFeedback(payload: GuestRatingScopedFeedbackRequest, signal?: AbortSignal): Promise<GuestRatingSubmissionResponse> {
+    return this.postRating(guestRatingScopedFeedbackRequestSchema.parse(payload), signal);
+  }
+
+  private postRating(body: unknown, signal?: AbortSignal): Promise<GuestRatingSubmissionResponse> {
     return this.request<GuestRatingSubmissionResponse>('/session/rating', {
       method: 'POST', body, signal,
     }, (raw) => guestRatingSubmissionResponseSchema.parse(raw));

@@ -24,6 +24,28 @@ export class GuestRatingSubmission {
     rating: number,
     onOutcome: (outcome: RatingOutcome) => void,
   ): Promise<boolean> {
+    return this.run(client, visitId, rating, () => client.submitRating(rating), onOutcome, false);
+  }
+
+  async submitFeedback(
+    client: GuestApiClient,
+    visitId: string,
+    rating: number,
+    comment: string | null,
+    onOutcome: (outcome: RatingOutcome) => void,
+  ): Promise<boolean> {
+    const snapshot = { rating, expectedValetSessionId: visitId, comment };
+    return this.run(client, visitId, rating, () => client.submitFeedback(snapshot), onOutcome, true);
+  }
+
+  private async run(
+    client: GuestApiClient,
+    visitId: string,
+    rating: number,
+    send: () => ReturnType<GuestApiClient['submitFeedback']>,
+    onOutcome: (outcome: RatingOutcome) => void,
+    checkRating: boolean,
+  ): Promise<boolean> {
     if (this.inFlight?.client === client && this.inFlight.visitId === visitId) {
       return false; // duplicate press cannot issue another POST
     }
@@ -35,9 +57,10 @@ export class GuestRatingSubmission {
     };
     notify('saving');
     try {
-      const response = await client.submitRating(rating);
+      const response = await send();
       if (this.inFlight !== current) return true;
-      notify(response.valetSessionId === visitId ? 'saved' : 'unknown');
+      notify(response.valetSessionId === visitId && (!checkRating || response.rating === rating)
+        ? 'saved' : 'unknown');
     } catch (error) {
       if (this.inFlight !== current) return true;
       const conflict = error instanceof GuestApiError && error.code === 'GUEST_RATING_CONFLICT';

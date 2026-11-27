@@ -160,6 +160,8 @@ export const enTranslations: TranslationDictionary = {
   'rating.unavailable': 'Rating is available only for your completed authorized visit.',
   'rating.failed': "We couldn't submit your rating. Try again.",
   'rating.selectStar': 'Select {star} out of 5 stars',
+  'rating.commentLabel': 'Comments about the service (optional)',
+  'rating.commentPlaceholder': 'Share your feedback about your experience...',
 
   // System & Error Screens
   'system.networkUnavailableTitle': 'Network unavailable',

@@ -135,6 +135,7 @@ export function AnalyticsPage() {
 
       <CustomerFeedbackSection
         data={feedback.data}
+        requestKey={feedback.requestKey}
         error={feedback.error}
         loading={feedback.loading}
         locale={locale}

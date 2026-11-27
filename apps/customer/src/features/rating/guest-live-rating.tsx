@@ -1,13 +1,16 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import { guestRatingScopedFeedbackRequestSchema } from '@valet/contracts';
 
 import { Btn } from '../../components/primitives/btn';
 import { SectionTitle } from '../../components/primitives/typography-primitives';
 import { useTranslation } from '../../i18n/use-translation';
+import { readBrowserContextMarker } from '../../lib/api/guest-browser-context-marker';
 import type { GuestApiClient } from '../../lib/api/guest-api-client';
 import { C } from '../../lib/theme/colors';
 import { GuestRatingSubmission, type RatingOutcome } from './guest-rating-submission';
+import styles from './guest-rating-comment.module.css';
 
 interface ScopedOutcome {
   readonly client: GuestApiClient;
@@ -23,14 +26,37 @@ const starLabelKeys = [
   'rating.star5',
 ] as const;
 
-/** T5 real-authority rating flow. Not mounted in production until the UI delta is approved. */
-export function GuestLiveRating({ client, visitId, canRate, onBack }: {
+const clientIds = new WeakMap<GuestApiClient, number>();
+let nextClientId = 0;
+
+function clientKey(client: GuestApiClient | null): number {
+  if (!client) return 0;
+  let id = clientIds.get(client);
+  if (id === undefined) {
+    id = ++nextClientId;
+    clientIds.set(client, id);
+  }
+  return id;
+}
+
+interface RatingProps {
   readonly client: GuestApiClient | null;
   readonly visitId: string | null;
   readonly canRate: boolean;
   readonly onBack: () => void;
-}) {
+}
+
+/** A new visit, client or browser-session marker mounts an empty draft immediately. */
+export function GuestLiveRating(props: RatingProps) {
+  const marker = typeof document !== 'undefined' && typeof document.cookie === 'string'
+    ? readBrowserContextMarker() : null;
+  const scope = `${clientKey(props.client)}:${props.visitId ?? ''}:${marker ?? ''}:${props.canRate}`;
+  return <ScopedRatingForm key={scope} {...props} />;
+}
+
+function ScopedRatingForm({ client, visitId, canRate, onBack }: RatingProps) {
   const { t } = useTranslation();
+  const [comment, setComment] = useState('');
   const [stars, setStars] = useState<number | null>(null);
   const [outcome, setOutcome] = useState<ScopedOutcome | null>(null);
   const submission = useRef(new GuestRatingSubmission());
@@ -39,7 +65,7 @@ export function GuestLiveRating({ client, visitId, canRate, onBack }: {
     const controller = submission.current;
     controller.invalidate();
     return () => { controller.invalidate(); };
-  }, [client, visitId]);
+  }, []);
 
   // Render-time scope fence: even before effect cleanup, old-visit success can
   // never be represented as success for another client/browser generation.
@@ -51,9 +77,22 @@ export function GuestLiveRating({ client, visitId, canRate, onBack }: {
 
   const submit = async () => {
     if (locked || stars === null || !client || !visitId) return;
-    await submission.current.submit(client, visitId, stars, (value) => {
-      setOutcome({ client, visitId, value });
+    const parsed = guestRatingScopedFeedbackRequestSchema.safeParse({
+      rating: stars, expectedValetSessionId: visitId, comment,
     });
+    if (!parsed.success) {
+      setOutcome({ client, visitId, value: 'failed' });
+      return;
+    }
+    await submission.current.submitFeedback(client, visitId, parsed.data.rating,
+      parsed.data.comment ?? null, (value) => {
+        setOutcome({ client, visitId, value });
+      });
+  };
+
+  const back = () => {
+    submission.current.invalidate();
+    onBack();
   };
 
   const feedback = !canRate || visible === 'unavailable' ? 'rating.unavailable' : visible === 'saved' ? 'rating.saved'
@@ -77,6 +116,18 @@ export function GuestLiveRating({ client, visitId, canRate, onBack }: {
           </button>
         ))}
       </div>
+      <div>
+        <label className={styles.label} htmlFor="rating-comment">{t('rating.commentLabel')}</label>
+        <textarea
+          id="rating-comment"
+          className={styles.comment}
+          rows={3}
+          value={comment}
+          disabled={locked}
+          onChange={(event) => setComment(event.target.value)}
+          placeholder={t('rating.commentPlaceholder')}
+        />
+      </div>
       {feedback && (
         <p role="status" aria-live="polite" style={{ margin: 0, color: C.textSecondary, fontSize: 14 }}>
           {t(feedback)}
@@ -85,7 +136,7 @@ export function GuestLiveRating({ client, visitId, canRate, onBack }: {
       <Btn onClick={() => void submit()} disabled={locked || stars === null} loading={visible === 'saving'}>
         {t('rating.submit')}
       </Btn>
-      <Btn variant="secondary" onClick={onBack}>{t('common.back')}</Btn>
+      <Btn variant="secondary" onClick={back}>{t('common.back')}</Btn>
     </div>
   );
 }

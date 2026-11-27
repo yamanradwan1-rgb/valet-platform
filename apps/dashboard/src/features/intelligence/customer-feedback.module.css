@@ -140,6 +140,39 @@
 .recentMeta { margin: 4px 0 0; color: var(--f1-muted); font-size: 11px; line-height: 1.55; }
 .ratingChip { white-space: nowrap; color: #8b5b07; background: #fff4d9; border-radius: 7px; padding: 7px 10px; font-size: 12px; font-weight: 780; direction: ltr; }
 
+.commentActions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.commentToggle {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--f1-border);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--f1-muted);
+  cursor: pointer;
+  transition: background-color .15s, color .15s;
+}
+.commentToggle:hover, .commentToggle[aria-expanded="true"] { background: var(--f1-track); color: var(--f1-text); }
+.commentToggle:focus-visible {
+  outline: 2px solid var(--focus, #69a1ff);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+.commentToggle svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.commentPanel { grid-column: 1 / -1; border: 1px solid var(--f1-border); background: var(--bg); padding: 12px; border-radius: 8px; min-width: 0; }
+.commentPanel[hidden] { display: none; }
+.commentPanelTitle { display: block; font-size: 11px; font-weight: 700; color: var(--f1-muted); margin-bottom: 6px; }
+.commentPanel p { margin: 0; font-size: 12px; line-height: 1.65; color: var(--f1-text); white-space: pre-wrap; overflow-wrap: anywhere; text-align: start; }
+
 .empty {
   display: grid;
   place-items: center;
@@ -185,6 +218,8 @@
   .average { font-size: 62px; }
   .distRow { gap: 7px; }
 }
+
+@media (max-width: 400px) { .commentActions { gap: 5px; } }
 
 @media (prefers-reduced-motion: reduce) {
   .section *, .section *::before, .section *::after { animation: none !important; transition: none !important; }

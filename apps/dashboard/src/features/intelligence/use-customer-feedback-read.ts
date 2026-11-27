@@ -1,11 +1,11 @@
 "use client";
 
-import type { CustomerFeedbackAnalyticsResponse } from "@valet/contracts";
+import type { CustomerFeedbackAnalyticsWithCommentsResponse } from "@valet/contracts";
 
 import { useProtectedDashboard } from "../../components/foundation/protected-dashboard-context";
 import {
-  readCompanyCustomerFeedback,
-  readLocationCustomerFeedback,
+  readCompanyCustomerFeedbackWithComments,
+  readLocationCustomerFeedbackWithComments,
 } from "./customer-feedback-api";
 import { intelligenceScope } from "./intelligence-scope";
 import { useIntelligenceRead } from "./use-intelligence-read";
@@ -16,9 +16,10 @@ export function useCustomerFeedbackRead(input: {
   const dashboard = useProtectedDashboard();
   const scope = intelligenceScope(dashboard.selectedScope);
   const period = input.period;
-  return useIntelligenceRead<CustomerFeedbackAnalyticsResponse>({
+  return useIntelligenceRead<CustomerFeedbackAnalyticsWithCommentsResponse>({
     descriptor: {
       endpointFamily: scope?.kind === "LOCATION" ? "LOCATION_RATINGS" : "COMPANY_RATINGS",
+      representation: "WITH_COMMENTS",
       from: period?.from ?? "",
       to: period?.to ?? "",
     },
@@ -26,8 +27,8 @@ export function useCustomerFeedbackRead(input: {
     load: ({ api, scope: readScope, signal }) => {
       if (period === null) throw new Error("Feedback period is missing.");
       return readScope.kind === "COMPANY"
-        ? readCompanyCustomerFeedback(api, readScope.organizationId, period, signal)
-        : readLocationCustomerFeedback(api, readScope.locationId, period, signal);
+        ? readCompanyCustomerFeedbackWithComments(api, readScope.organizationId, period, signal)
+        : readLocationCustomerFeedbackWithComments(api, readScope.locationId, period, signal);
     },
   });
 }

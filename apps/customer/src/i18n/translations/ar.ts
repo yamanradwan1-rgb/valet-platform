@@ -160,6 +160,8 @@ export const arTranslations: TranslationDictionary = {
   'rating.unavailable': 'يتوفر التقييم فقط لزيارتك المكتملة والمصرّح بها.',
   'rating.failed': 'تعذّر إرسال تقييمك. حاول مرة أخرى.',
   'rating.selectStar': 'اختيار {star} من أصل 5 نجوم',
+  'rating.commentLabel': 'ملاحظاتك عن الخدمة (اختياري)',
+  'rating.commentPlaceholder': 'شاركنا ملاحظاتك عن تجربتك...',
 
   // System & Error Screens
   'system.networkUnavailableTitle': 'الاتصال غير متاح',
