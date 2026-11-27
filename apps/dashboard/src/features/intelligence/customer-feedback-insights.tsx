@@ -11,7 +11,7 @@ type InsightsData = Pick<CustomerFeedbackAnalyticsResponse,
 export function CustomerFeedbackInsights(props: { readonly data: InsightsData; readonly locale: DashboardLocale }) {
   const { data, locale } = props;
   const t = customerFeedbackCopy(locale);
-  const [open, setOpen] = useState<string | null>(null);
+  const [open, setOpen] = useState<number | null>(null);
   const panelPrefix = useId();
   const distribution = [
     { star: 5, count: data.distribution.five },
@@ -48,13 +48,13 @@ export function CustomerFeedbackInsights(props: { readonly data: InsightsData; r
       <section className={styles.insightCard} aria-labelledby="feedback-recent-heading">
         <h3 className={styles.insightTitle} id="feedback-recent-heading">{t.recent}</h3>
         <div className={styles.recentList} data-testid="feedback-recent-list" role="list">
-          {data.recentRatings.length > 0 ? data.recentRatings.slice(0, 4).map((record) => {
+          {data.recentRatings.length > 0 ? data.recentRatings.slice(0, 4).map((record, index) => {
             const comment = "comment" in record && typeof record.comment === "string"
               ? record.comment : null;
-            const panelId = `${panelPrefix}-comment-${record.visitReference}`;
-            const expanded = open === record.visitReference;
+            const panelId = `${panelPrefix}-comment-${index}`;
+            const expanded = open === index;
             return (
-              <div className={styles.recentItem} key={record.visitReference} role="listitem">
+              <div className={styles.recentItem} key={index} role="listitem">
                 <div>
                   <div className={styles.recentId} dir="ltr">{record.visitReference}</div>
                   <p className={styles.recentMeta}>
@@ -72,8 +72,8 @@ export function CustomerFeedbackInsights(props: { readonly data: InsightsData; r
                       aria-controls={panelId}
                       aria-expanded={expanded}
                       className={styles.commentToggle}
-                      onClick={() => setOpen((current) => current === record.visitReference
-                        ? null : record.visitReference)}
+                      onClick={() => setOpen((current) => current === index
+                        ? null : index)}
                       title={locale === "ar" ? "عرض تعليق الزيارة" : "View visit comment"}
                       type="button"
                     >

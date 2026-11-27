@@ -46,4 +46,17 @@ describe("#463 frozen Customer Feedback disclosure", () => {
     expect(markup).toContain("VISIT-223456789ABC");
     expect(markup).toContain('aria-label="5 نجوم"');
   });
+  it("keeps duplicate display references in separate disclosure panels", () => {
+    const duplicate = { ...data, recentRatings: [
+      { ...record, comment: "First comment" },
+      { ...record, comment: "Second comment" },
+    ] };
+    const markup = renderToStaticMarkup(<CustomerFeedbackInsights data={duplicate} locale="en" />);
+    const ids = [...markup.matchAll(/aria-controls="([^"]+)"/g)].map(match => match[1]);
+    expect(ids).toHaveLength(2);
+    expect(new Set(ids).size).toBe(2);
+    for (const id of ids) expect(markup).toContain(`id="${id}"`);
+    expect(markup).toContain("First comment");
+    expect(markup).toContain("Second comment");
+  });
 });
