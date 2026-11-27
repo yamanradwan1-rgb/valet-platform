@@ -64,7 +64,7 @@ export async function seedIssue463Browser(target: Target, approveNotice = true) 
       VALUES ($1,$2,'Synthetic test vehicle',clock_timestamp())`, [vehicleId,organizationId]);
     await client.query(`INSERT INTO valet_sessions(id,customer_access_token_hash,customer_access_expires_at,customer_access_generation,
       organization_id,location_id,vehicle_id,state,checked_in_by_membership_id,completed_at,created_at,updated_at)
-      VALUES ($1,$2,clock_timestamp()+interval '1 hour',$3,$4,$5,'COMPLETED',$6,
+      VALUES ($1,$2,clock_timestamp()+interval '1 hour',1,$3,$4,$5,'COMPLETED',$6,
       clock_timestamp()-interval '10 seconds',clock_timestamp()-interval '2 minutes',clock_timestamp())`,
     [id,hashGuestAccessToken(token),organizationId,locationId,vehicleId,membershipId]);
     return { id, token };
