@@ -185,7 +185,7 @@ export async function assertFunctionAcl(
   client,
   runtimeRole,
   protectedRoles,
-  { requireRuntimeExecute = true } = {},
+  { requireRuntimeExecute = true,allowFeedbackReaderExecutor = false } = {},
 ) {
   const metadata = await client.query(
     `SELECT function.prosecdef,owner.rolname AS owner,function.proconfig,
@@ -227,14 +227,32 @@ export async function assertFunctionAcl(
     : explicitRuntime.length === 0 ||
       (explicitRuntime.length === 1 &&
         explicitRuntime[0]?.is_grantable === false);
+  const feedbackReader = "vaylet_rating_feedback_reader_owner";
+  const explicitFeedback = acl.rows.filter(
+    ({grantee})=>grantee===feedbackReader,
+  );
+  const feedbackInventorySafe = allowFeedbackReaderExecutor
+    ? explicitFeedback.length===1 &&
+      explicitFeedback[0]?.is_grantable===false
+    : explicitFeedback.length===0;
   if (
     !runtimeInventorySafe ||
+    !feedbackInventorySafe ||
     acl.rows.some(
       ({ grantee }) =>
-        grantee !== runtimeRole && grantee !== staffSessionLockOwner,
+        grantee !== runtimeRole && grantee !== staffSessionLockOwner &&
+        grantee !== feedbackReader,
     )
   ) {
     throw new Error("Staff session lock EXECUTE inventory is unsafe.");
+  }
+  if(allowFeedbackReaderExecutor){
+    const access=await client.query(
+      "SELECT has_function_privilege($1,$2,'EXECUTE') AS allowed",
+      [feedbackReader,staffSessionLockFunction],
+    );
+    if(access.rowCount!==1||access.rows[0]?.allowed!==true)
+      throw new Error("Staff session lock feedback reader EXECUTE is unsafe.");
   }
   for (const role of protectedRoles) {
     const access = await client.query(
