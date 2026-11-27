@@ -8,6 +8,7 @@ import { seedIssue463Browser } from "./issue463-browser-seed";
 import { startIssue463BrowserProxy } from "./issue463-browser-proxy.mjs";
 import { startIssue463BrowserApps, unusedIssue463Port } from "./issue463-browser-apps";
 import { verifyIssue463RatingReads } from "./issue463-browser-rating-reads";
+import { verifyIssue463GuestRetries } from "./issue463-browser-submission-reads";
 import { createIssue463BrowserEvidence } from "./issue463-browser-evidence";
 
 const requireDashboard = createRequire(resolve(process.cwd(), "../dashboard/package.json"));
@@ -78,6 +79,7 @@ describe.runIf(enabled)("Issue463 owned production browser proof", () => {
             (SELECT count(*)::integer FROM guest_rating_comments WHERE valet_session_id=$1) AS comments`, [denied.id]);
           expect(deniedRows.rows).toEqual([{ratings:0,comments:0}]);
           console.info("P7_MILESTONE NOTICE_DENIED");
+          await verifyIssue463GuestRetries(target, proxy.origin);
           const apps = await startIssue463BrowserApps(proxy.origin,customerPort,dashboardPort);
           console.info("P7_MILESTONE APPS_READY");
           try {
