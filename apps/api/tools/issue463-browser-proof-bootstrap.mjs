@@ -196,6 +196,7 @@ export async function runP7Step(root, name, command, args, env, state, timeoutMs
       "APPS_READY", "GUEST_COMMITTED", "DASHBOARD_DISCLOSED", "READ_SCOPE_PARITY",
     ];
     let stdout = "";
+    let stderr = "";
     child.stdout?.on("data", (chunk) => {
       stdout = (stdout + chunk.toString("utf8")).slice(-24000);
       if (name === "real Issue463 browser proof") {
@@ -224,6 +225,13 @@ export async function runP7Step(root, name, command, args, env, state, timeoutMs
       finished = true; clearTimeout(deadline); state.child = null;
       state.stopChild = null;
       if (error) {
+        // Only allowlisted structural diagnostics, never raw messages or values.
+        const count = stderr.match(/"result":"FAIL","assertions":(\d{1,4})/u)?.[1];
+        const code = stderr.match(/"(?:errorCode|code)":"([A-Z0-9_]{1,30})"/u)?.[1];
+        const line = stderr.match(/issue463-[a-z0-9-]+\.(?:mjs|ts):(\d{1,4}):\d{1,4}/u)?.[0];
+        console.log("P7_FAILURE_METADATA " + JSON.stringify({
+          step: name, assertions: count ?? null, code: code ?? null, location: line ?? null,
+        }));
         fail(error);
       } else if (name.endsWith(".mjs") && name.startsWith("issue463-") &&
           !/"result":"PASS","assertions":(?:230|22|7|52)(?:,|\})/u.test(stdout)) {
@@ -236,7 +244,9 @@ export async function runP7Step(root, name, command, args, env, state, timeoutMs
       } else { console.log("PASS " + name); done(); }
     };
     // Never print subprocess output: it could contain URI secrets or raw Guest text.
-    child.stderr?.resume();
+    child.stderr?.on("data", chunk => {
+      stderr = (stderr + chunk.toString("utf8")).slice(-24000);
+    });
     child.once("error", () => close(new Error("Issue463 failed starting " + name)));
     child.once("close", (code) => close(
       code === 0 && !state.interrupted ? undefined :

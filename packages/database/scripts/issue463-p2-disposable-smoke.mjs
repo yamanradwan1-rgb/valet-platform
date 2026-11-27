@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import pg from "pg";
 import { assertP7SqlTarget } from "../../../apps/api/tools/issue463-browser-proof-sql-target.mjs";
+import { seedP2Fixture } from "./issue463-p2-disposable-fixture.mjs";
 const target=await assertP7SqlTarget();
 const id = (n) => "00000000-0000-4000-8000-" + String(n).padStart(12,"0");
 const org=id(101), loc=id(201);
@@ -68,6 +69,7 @@ try {
     const args=legacy?[token,stars]:[token,stars,comment,visit];
     return row(runtime,sql,args);
   }
+  await seedP2Fixture(migration);
   const tokenB="B".repeat(43), visitB=id(702);
   eq((await guest(tokenB,5,"مرحبا\r\nhello",visitB)).result_code,
     "FEEDBACK_UNAVAILABLE","pre-notice complete pair blocked");
