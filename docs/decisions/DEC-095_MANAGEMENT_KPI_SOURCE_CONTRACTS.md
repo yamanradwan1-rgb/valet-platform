@@ -221,3 +221,20 @@ formulas.
 `docs/08_DECISIONS_LOG.md`, `docs/23_MANAGEMENT_BACKEND_216_EXECUTION_PLAN.md`,
 Management settings, retrieval request persistence, Dashboard analytics,
 contracts, database migration/runtime privilege verification, and focused tests.
+
+## Owner-approved Issue #463 amendment (2026-11-27; controlled implementation)
+
+Numeric rating aggregates, cohort semantics and the default strict numeric
+response remain unchanged. Only an explicit rating-specific opt-in may expose
+the private canonical service comment for at most the existing latest four
+rating rows, under the exact current Management staff bearer, Organization,
+Location, role, entitlement and applicable MFA authority. The protected
+projection binds exact persisted visit identities before presentation, never a
+truncated pseudonym join. Held, erased, expired and absent text is null.
+Existing numeric SQL projection remains comment-free; no arbitrary-scope text
+reader, export, new audience or general analytics field is approved.
+
+The exact dedicated definer/guard/lock/ACL and staged provisioning contract
+is in [Master Plan v1.3](../plans/ISSUE_463_GUEST_RATING_COMMENTS_IMPLEMENTATION_PLAN.md)
+sections 7 and 17-18. Production PREPARE remains dormant in both Option C phases;
+PROTECTED RELEASE and collection require separate owner approval and Gate C.

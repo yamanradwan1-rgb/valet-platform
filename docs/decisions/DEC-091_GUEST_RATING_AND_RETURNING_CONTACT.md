@@ -69,3 +69,22 @@ See the canonical DEC-024 amendment and
 historical Guest quota/allocation and address-reservation mechanics only for
 T3 admission. It changes no credential, authorization, custody, business retry,
 audit, foreground notification or handoff-proof contract in this decision.
+
+## Owner-approved Issue #463 amendment (2026-11-27; controlled implementation)
+
+The immutable numeric rating remains guest-only, one per completed visit. The
+optional service comment is accepted only atomically with the first rating, as
+a separately stored private one-to-one child. New requests assert the intended
+visit without granting authority; legacy stars-only requests retain their
+exact response. Canonical equality governs retries while retained; no append,
+edit, normal delete or overwrite is allowed. Terminal erasure of the comment
+by the separately approved privacy case process is the sole exception to
+comment immutability, never a change to numeric rating. Every subsequent retry
+variant after terminal erasure conflicts safely after current credential
+authorization. No erased content or content-derived digest is retained.
+
+The exact canonicalization, state, retry and authorization contract is in
+[Master Plan v1.3](../plans/ISSUE_463_GUEST_RATING_COMMENTS_IMPLEMENTATION_PLAN.md)
+sections 5-7 and 17-18, with the explicit owner approvals and unresolved task-specific
+legal decisions in the implementation handoff. No production activation is
+authorized. Existing custody, contact, authorization and T3 rules remain.

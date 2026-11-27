@@ -3578,3 +3578,17 @@ all 35 applicable writer-family privilege closures, simultaneous Staff
 session/refresh/Push revocation and anonymous audit, 21 actual two-connection
 races or L1/L2 controlled cutover. These remain blocked until a separately
 attested and authorized PG17 source/role/test environment exists.
+
+## Issue #463 - approved dormant rating-feedback architecture
+
+The accepted narrow DEC-091/095 amendments authorize the private 1:1 child,
+case/receipt and notice approval metadata, exact F/P NOLOGIN ownership and
+A/E separated case authority in Master Plan v1.3 sections 6-7 and 17-18. Existing
+`guest_ratings`, parent trigger, legacy numeric projection and historical
+migrations remain unchanged. Exact non-grantable nested locker EXECUTE and
+constant guard-column UPDATE permissions serve only the reviewed lock path;
+no direct ordinary runtime comment access or raw credential read. Such guard
+UPDATEs may rewrite tuples. PREPARE grants no new production R/A/E execution;
+disposable attested TEST and separate atomic PROTECTED RELEASE are distinct.
+Actual schema changes wait for affected legal architecture prerequisites;
+these docs do not assert migration or provider qualification.

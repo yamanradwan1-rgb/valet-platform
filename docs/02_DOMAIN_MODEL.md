@@ -813,3 +813,13 @@ alternate approval. These predicates govern exception-assisted END, without
 rewriting ordinary safe-own-End. GPS-B must forward-reconcile early expiry and
 minimal denied-result storage; this is accepted planned behavior, not GPS-A
 enforcement. Full UI/backend contract is inside the canonical implementation plan.
+
+## Issue #463 - approved optional rating comment direction
+
+DEC-091's Issue #463 amendment preserves the immutable numeric GuestRating
+parent. The optional private one-to-one comment child is created only in the
+same atomic first rating write, is exact-visit scoped, and has PRESENT, HELD
+and terminal ERASED states. Only the controlled privacy disposition may clear
+text; no staff edit, ordinary deletion, late append or resurrection. See the
+Issue #463 master plan and implementation handoff for task-specific legal
+prerequisites. This is an approved direction, not deployed schema.
