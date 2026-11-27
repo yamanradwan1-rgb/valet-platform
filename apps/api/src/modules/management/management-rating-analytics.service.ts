@@ -7,24 +7,41 @@ import type { StaffSessionContext } from "../auth/staff-session-context";
 import { recordAdminActivityInTransaction } from "../auth/mfa/mfa-assurance-policy";
 import type { AnalyticsPeriod } from "../dashboard/analytics-period";
 import { authorizeCompanyAdminManagement } from "./management-authorization";
-import { queryRatingAnalyticsProjection } from "./rating-analytics-projection-query";
+import {
+  boundProtectedRatingFeedbackLockWait,
+  mapProtectedRatingFeedbackContention,
+  queryProtectedRatingFeedbackProjection,
+  queryRatingAnalyticsProjection,
+} from "./rating-analytics-projection-query";
 
 @Injectable()
 export class ManagementRatingAnalyticsService {
   constructor(@Inject(RUNTIME_POSTGRES_POOL) private readonly pool: PostgresPool) {}
 
-  allLocations(context: StaffSessionContext, organizationId: string, period: AnalyticsPeriod) {
+  allLocations(
+    context: StaffSessionContext,
+    organizationId: string,
+    period: AnalyticsPeriod,
+    includeComments = false,
+  ) {
     return inPostgresTransaction(this.pool, async (transaction) => {
+      if (includeComments) await boundProtectedRatingFeedbackLockWait(transaction);
       // READ COMMITTED is needed for the post-lock membership/revocation check.
       const scope = await authorizeCompanyAdminManagement(transaction, context, {
         capability: "ANALYTICS_READ",
         organizationId,
       });
-      const projection = await queryRatingAnalyticsProjection(
-        transaction, scope.organizationId, null, period,
-      );
+      const projection = includeComments
+        ? await queryProtectedRatingFeedbackProjection(
+          transaction, context, scope.membershipId, scope.organizationId, null, period,
+        )
+        : await queryRatingAnalyticsProjection(
+          transaction, scope.organizationId, null, period,
+        );
       await recordAdminActivityInTransaction(transaction, context);
       return { ...projection, from: period.from, to: period.to, scope: "COMPANY" };
+    }).catch((error: unknown) => {
+      throw includeComments ? mapProtectedRatingFeedbackContention(error) : error;
     });
   }
 }
