@@ -1,4 +1,3 @@
-// @ts-nocheck -- adversarial SQL response doubles use invalid runtime values.
 import assert from "node:assert/strict";
 import { test } from "vitest";
 
@@ -6,19 +5,22 @@ import {
   appendDispositionIntent,
   appendDispositionReceipt,
   applyAfterDurableIntent,
-} from "../src/modules/guest-access/rating-disposition-ledger-protocol.ts";
+} from "../src/modules/guest-access/rating-disposition-ledger-protocol";
 import {
   APPLY_APPROVED_DISPOSITION_SQL,
   createDispositionSqlAdapter,
-} from "../src/modules/guest-access/rating-disposition-sql-adapter.ts";
+} from "../src/modules/guest-access/rating-disposition-sql-adapter";
 import { fixture, intent, receipt } from "./rating-disposition-ledger-fixture.mjs";
+import type { DispositionReceiptMetadata } from
+  "../src/modules/guest-access/rating-disposition-sql-adapter";
 
 async function setup() {
   const { store, crypt, anchor } = await fixture();
   const proof = await appendDispositionIntent(store, crypt, anchor, intent());
   const input = receipt();
   let applied = 0;
-  const row = {
+  const row: { -readonly [K in keyof DispositionReceiptMetadata]:
+    DispositionReceiptMetadata[K] } = {
     approvalId: proof.event.approvalId,
     organizationId: proof.event.organizationId,
     locationId: proof.event.locationId,
@@ -32,7 +34,9 @@ async function setup() {
   };
   const executor = {
     response: "ERASED",
-    async executeCommitted(sql, params) {
+    async executeCommitted(
+      sql: typeof APPLY_APPROVED_DISPOSITION_SQL, params: readonly [string],
+    ) {
       assert.equal(sql, APPLY_APPROVED_DISPOSITION_SQL);
       assert.deepEqual(params, [proof.event.approvalId]);
       applied += 1;
@@ -45,7 +49,7 @@ async function setup() {
     },
   };
   const inspector = {
-    async readExactApproval(approvalId) {
+    async readExactApproval(approvalId: string) {
       assert.equal(approvalId, proof.event.approvalId);
       return row;
     },
@@ -138,6 +142,8 @@ test("committed receipt binds approver and approved/expiry times to signed INTEN
     assert.equal(await adapter.confirmCommitted(ctx.proof.event, ctx.input), false);
     await assert.rejects(appendDispositionReceipt(
       ctx.store, ctx.crypt, ctx.anchor, ctx.input, adapter),
-    (error) => error?.reason === "UNVERIFIED_SQL_RECEIPT");
+    (error: unknown) =>
+      error instanceof Error && "reason" in error &&
+      error.reason === "UNVERIFIED_SQL_RECEIPT");
   }
 });

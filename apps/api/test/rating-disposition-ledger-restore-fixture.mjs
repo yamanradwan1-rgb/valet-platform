@@ -51,7 +51,7 @@ export function fakeRestoreTarget() {
       calls.push("HELD_PENDING");
       return held.has(key(v)) ? "VERIFIED" : "UNKNOWN";
     },
-    async reconcileHistoricalRelease(v) {
+    async reconcileHistoricalRelease() {
       calls.push("RELEASE");
       return "VERIFIED";
     },

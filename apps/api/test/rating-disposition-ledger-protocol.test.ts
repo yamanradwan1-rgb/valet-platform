@@ -1,4 +1,3 @@
-// @ts-nocheck -- runtime-contract adversarial values intentionally violate TS.
 import assert from "node:assert/strict";
 import { test } from "vitest";
 
@@ -7,12 +6,13 @@ import {
   appendDispositionReceipt,
   applyAfterDurableIntent,
   loadVerifiedLedger,
-} from "../src/modules/guest-access/rating-disposition-ledger-protocol.ts";
-import { ledgerEventDigest } from "../src/modules/guest-access/rating-disposition-ledger-codec.ts";
+} from "../src/modules/guest-access/rating-disposition-ledger-protocol";
+import { ledgerEventDigest } from "../src/modules/guest-access/rating-disposition-ledger-codec";
 import { fixture, intent, receipt } from "./rating-disposition-ledger-fixture.mjs";
 
-const isBlocked = (reason) => (error) =>
-  error?.name === "DispositionLedgerBlocked" && error.reason === reason;
+const isBlocked = (reason: string) => (error: unknown) =>
+  error instanceof Error && error.name === "DispositionLedgerBlocked" &&
+  "reason" in error && error.reason === reason;
 
 test("signed immutable intent precedes SQL and independently checked SQL receipt", async () => {
   const { store, crypt, anchor } = await fixture();
@@ -51,7 +51,7 @@ test("unknown after durable commit reconciles signed intent and witnessed head",
   assert.equal(proof.event.sequence, 1);
   assert.equal(anchor.witness.minimum.sequence, 1);
   const history = await loadVerifiedLedger(store, crypt, anchor);
-  assert.equal(history.events[0].kind, "INTENT");
+  assert.equal(history.events[0]?.kind, "INTENT");
   assert.equal(history.events.length, 1);
 });
 
@@ -184,8 +184,12 @@ test("pre-apply committed readback skips mutation; stale restored receipt denies
   const proof = await appendDispositionIntent(store, crypt, anchor, intent());
   let mutations = 0;
   const sql = {
-    async lookupCommittedIntent() { return "COMMITTED"; },
-    async applyVerifiedIntent() { mutations++; return "COMMITTED"; },
+    async lookupCommittedIntent(): Promise<"COMMITTED" | "PENDING"> {
+      return "COMMITTED";
+    },
+    async applyVerifiedIntent(): Promise<"COMMITTED"> {
+      mutations++; return "COMMITTED";
+    },
   };
   assert.equal(await applyAfterDurableIntent(store, crypt, anchor, proof, sql),
     "COMMITTED");
@@ -202,7 +206,8 @@ test("tampering, missing events, signer change and signed rollback are denied", 
   const { store, crypt, anchor } = await fixture();
   const p = await appendDispositionIntent(store, crypt, anchor, intent());
   const trusted = { ...anchor, minimum: p.checkpoint };
-  store.events[0].caseId = "99999999-9999-4999-8999-999999999999";
+  (store.events[0] as unknown as { caseId: string }).caseId =
+    "99999999-9999-4999-8999-999999999999";
   await assert.rejects(loadVerifiedLedger(store, crypt, trusted),
     isBlocked("ROLLBACK"));
   store.events.length = 0;
@@ -227,7 +232,8 @@ test("untrusted metadata cannot add text, hash, freeform fields or coerce values
   for (const mutation of values) {
     const { store, crypt, anchor } = await fixture();
     await assert.rejects(
-      appendDispositionIntent(store, crypt, anchor, intent(mutation)),
+      appendDispositionIntent(store, crypt, anchor, intent(
+        mutation as unknown as Parameters<typeof intent>[0])),
       isBlocked("INVALID_METADATA"),
     );
     assert.equal(store.events.length, 0);
@@ -236,13 +242,16 @@ test("untrusted metadata cannot add text, hash, freeform fields or coerce values
 
 test("checkpoint digest and signature reject coercion and unknown keys", async () => {
   const { store, crypt, anchor } = await fixture();
-  store.head = { ...anchor.minimum, headDigest: ["0".repeat(64)] };
+  store.head = { ...anchor.minimum, headDigest: ["0".repeat(64)] } as unknown as
+    typeof store.head;
   await assert.rejects(loadVerifiedLedger(store, crypt, anchor),
     isBlocked("INVALID_METADATA"));
-  store.head = { ...anchor.minimum, signature: ["A".repeat(90)] };
+  store.head = { ...anchor.minimum, signature: ["A".repeat(90)] } as unknown as
+    typeof store.head;
   await assert.rejects(loadVerifiedLedger(store, crypt, anchor),
     isBlocked("INVALID_METADATA"));
-  store.head = { ...anchor.minimum, rogueMetadata: "text" };
+  store.head = { ...anchor.minimum, rogueMetadata: "text" } as unknown as
+    typeof store.head;
   await assert.rejects(loadVerifiedLedger(store, crypt, anchor),
     isBlocked("INVALID_METADATA"));
 });

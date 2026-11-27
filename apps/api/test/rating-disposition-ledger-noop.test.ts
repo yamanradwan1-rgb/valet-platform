@@ -1,15 +1,16 @@
-// @ts-nocheck -- invalid evidence and forged metadata are deliberate test inputs.
 import assert from "node:assert/strict";
 import { test } from "vitest";
 
 import {
   appendDispositionIntent, appendDispositionReceipt, appendDispositionNoOp,
   applyAfterDurableIntent, loadVerifiedLedger,
-} from "../src/modules/guest-access/rating-disposition-ledger-protocol.ts";
+} from "../src/modules/guest-access/rating-disposition-ledger-protocol";
 import {
   prepareQuarantinedRestore, replayInQuarantine,
-} from "../src/modules/guest-access/rating-disposition-ledger-restore.ts";
+} from "../src/modules/guest-access/rating-disposition-ledger-restore";
 import { fixture, intent, receipt } from "./rating-disposition-ledger-fixture.mjs";
+import type { FencedNoOpEvidence, DispositionSqlApplier } from
+  "../src/modules/guest-access/rating-disposition-ledger-types";
 import {
   expiredIntent, inspectorFor, noOpFrom,
 } from "./rating-disposition-ledger-noop-fixture.mjs";
@@ -17,8 +18,9 @@ import {
   fakeRestoreTarget, recordCompleted,
 } from "./rating-disposition-ledger-restore-fixture.mjs";
 
-const denied = (reason) => (error) =>
-  error?.name === "DispositionLedgerBlocked" && error.reason === reason;
+const denied = (reason: string) => (error: unknown) =>
+  error instanceof Error && error.name === "DispositionLedgerBlocked" &&
+  "reason" in error && error.reason === reason;
 const successorId = "99999999-7777-4777-8777-999999999999";
 
 test("actual W2 NO_RECORD_WAIT has no SQL completion and blocks restore", async () => {
@@ -137,7 +139,8 @@ test("independently authenticated no-op evidence must attest exact approval", as
       store, crypt, anchor, expiredIntent());
     await assert.rejects(appendDispositionNoOp(
       store, crypt, anchor, noOpFrom(original.event),
-      inspectorFor(original.event, changed)),
+      inspectorFor(original.event, changed as unknown as
+        Partial<FencedNoOpEvidence>)),
     denied("UNRESOLVED_INTENT"));
     assert.equal(store.events.length, 1);
   }
@@ -176,20 +179,22 @@ test("no-op evidence with a future expiry or wrong basis never passes", async ()
 });
 
 test("denial and unknown SQL response cannot become an unverified terminal event", async () => {
-  for (const sqlStatus of ["DENIED", "UNKNOWN", "EXPIRED"]) {
+  for (const sqlStatus of ["DENIED", "UNKNOWN", "EXPIRED"] as const) {
     const { store, crypt, anchor } = await fixture();
     const original = await appendDispositionIntent(
       store, crypt, anchor, intent());
     assert.equal(await applyAfterDurableIntent(
       store, crypt, anchor, original, {
         lookupCommittedIntent: async () => "PENDING",
-        applyVerifiedIntent: async () => sqlStatus,
+        applyVerifiedIntent: async (): ReturnType<
+          DispositionSqlApplier["applyVerifiedIntent"]> => sqlStatus,
       }), sqlStatus);
     const closure = noOpFrom(original.event, {
       reason: "DENIED_UNAPPLIED",
     });
     await assert.rejects(appendDispositionNoOp(
       store, crypt, anchor, closure, {
+        inspectorId: "independent.privacy.inspector",
         attestFencedNoOp: async () => null,
       }), denied("UNRESOLVED_INTENT"));
     await assert.rejects(prepareQuarantinedRestore(store, crypt, anchor),

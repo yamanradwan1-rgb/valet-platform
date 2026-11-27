@@ -1,22 +1,22 @@
-// @ts-nocheck -- tamper/unknown-outcome test doubles intentionally violate TS.
 import assert from "node:assert/strict";
 import { test } from "vitest";
 
 import {
   appendDispositionIntent,
-} from "../src/modules/guest-access/rating-disposition-ledger-protocol.ts";
+} from "../src/modules/guest-access/rating-disposition-ledger-protocol";
 import {
   prepareQuarantinedRestore,
   replayInQuarantine,
-} from "../src/modules/guest-access/rating-disposition-ledger-restore.ts";
+} from "../src/modules/guest-access/rating-disposition-ledger-restore";
 import { fixture, intent, scope } from "./rating-disposition-ledger-fixture.mjs";
 import {
   fakeRestoreTarget,
   recordCompleted,
 } from "./rating-disposition-ledger-restore-fixture.mjs";
 
-const denied = (reason) => (error) =>
-  error?.name === "DispositionLedgerBlocked" && error.reason === reason;
+const denied = (reason: string) => (error: unknown) =>
+  error instanceof Error && error.name === "DispositionLedgerBlocked" &&
+  "reason" in error && error.reason === reason;
 
 test("completed ERASE produces terminal replay; repeat remains idempotent and DENY", async () => {
   const { store, crypt, anchor } = await fixture();
@@ -109,7 +109,7 @@ test("HELD_PENDING remains suppressed and case-bound, then RELEASE ERASED is ter
   const pendingPlan = await prepareQuarantinedRestore(store, crypt, anchor);
   assert.equal(pendingPlan.activeHolds.length, 1);
   assert.equal(pendingPlan.pendingHeldErases.length, 1);
-  assert.equal(pendingPlan.pendingHeldErases[0].holdCaseId, scope.caseId);
+  assert.equal(pendingPlan.pendingHeldErases[0]?.holdCaseId, scope.caseId);
   const pendingTarget = fakeRestoreTarget();
   await replayInQuarantine(store, crypt, anchor, pendingTarget);
   assert.ok(pendingTarget.calls.includes("HELD_PENDING"));
@@ -162,7 +162,9 @@ test("forged caller replay plan is never accepted as restore authority", async (
     activeHolds: [], admission: "DENY",
   };
   const target = fakeRestoreTarget();
-  await assert.rejects(replayInQuarantine(forged, crypt, anchor, target),
+  await assert.rejects(replayInQuarantine(
+    forged as unknown as Parameters<typeof replayInQuarantine>[0],
+    crypt, anchor, target),
     denied("LEDGER_UNAVAILABLE"));
   assert.deepEqual(target.calls, ["QUARANTINE"]);
   const incomplete = fakeRestoreTarget();
@@ -212,7 +214,6 @@ test("foreign signed head, unavailable provider, truncation and old rollback den
 test("untrusted restored data, failure or unknown expiry keeps admission denied", async () => {
   const { store, crypt, anchor } = await fixture();
   await recordCompleted(store, crypt, anchor, "ERASE", "ERASED");
-  const plan = await prepareQuarantinedRestore(store, crypt, anchor);
   const target = fakeRestoreTarget();
   target.verifyNoVisibleText = async () => false;
   await assert.rejects(replayInQuarantine(store, crypt, anchor, target),

@@ -1,4 +1,5 @@
 import { generateKeyPairSync, sign, verify } from "node:crypto";
+import { Buffer } from "node:buffer";
 
 import {
   EMPTY_LEDGER_DIGEST,
@@ -62,17 +63,17 @@ export function testAuthenticator() {
 /** Never attach this double to deployment config or real storage. */
 export class InMemoryUnqualifiedLedger {
   constructor(head) {
-    this.head = structuredClone(head);
+    this.head = globalThis.structuredClone(head);
     this.events = [];
     this.failure = null;
   }
   async readHead() {
     if (this.failure === "HEAD_UNAVAILABLE") throw new Error("in-memory unavailable");
-    return structuredClone(this.head);
+    return globalThis.structuredClone(this.head);
   }
   async readEvents(first, last) {
     if (this.failure === "READ_UNAVAILABLE") throw new Error("in-memory unavailable");
-    return structuredClone(this.events.filter(
+    return globalThis.structuredClone(this.events.filter(
       (e) => e.sequence >= first && e.sequence <= last));
   }
   async conditionalAppend(expected, event, next) {
@@ -81,8 +82,8 @@ export class InMemoryUnqualifiedLedger {
         this.head.headDigest !== expected.headDigest ||
         this.head.epoch !== expected.epoch) return "CONFLICT";
     if (this.failure !== "LIE_ABOUT_COMMIT") {
-      this.events.push(structuredClone(event));
-      this.head = structuredClone(next);
+      this.events.push(globalThis.structuredClone(event));
+      this.head = globalThis.structuredClone(next);
     }
     if (this.failure === "UNKNOWN_AFTER") return "UNKNOWN";
     return "COMMITTED";
@@ -97,11 +98,11 @@ export async function fixture() {
   }, crypt);
   const store = new InMemoryUnqualifiedLedger(genesis);
   const independentWitness = {
-    minimum: structuredClone(genesis),
+    minimum: globalThis.structuredClone(genesis),
     failure: null,
     async readMinimum() {
       if (this.failure === "READ") throw new Error("witness unavailable");
-      return structuredClone(this.minimum);
+      return globalThis.structuredClone(this.minimum);
     },
     async conditionalAdvance(expected, checkpoint) {
       if (this.failure === "UNKNOWN") return "UNKNOWN";
@@ -113,7 +114,7 @@ export async function fixture() {
       if (this.minimum.sequence > checkpoint.sequence ||
           (this.minimum.sequence === checkpoint.sequence &&
            this.minimum.headDigest !== checkpoint.headDigest)) return "CONFLICT";
-      this.minimum = structuredClone(checkpoint);
+      this.minimum = globalThis.structuredClone(checkpoint);
       if (this.failure === "UNKNOWN_AFTER_ADVANCE") return "UNKNOWN";
       return "ADVANCED";
     },
