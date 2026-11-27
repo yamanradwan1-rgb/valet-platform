@@ -1,3 +1,4 @@
+import { URL } from "node:url";
 import { createServer, request } from "node:http";
 
 const ratingPath = "/v1/guest/session/rating";
