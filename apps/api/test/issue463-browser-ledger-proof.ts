@@ -143,7 +143,7 @@ export async function verifyIssue463LedgerSql(target: Target, apiOrigin: string)
     else console.info("P7_LEDGER_REASON NON_LEDGER_FAILURE");
     throw error;
   } finally {
-    await restored?.close();
-    await Promise.allSettled([a.end(), e.end()]);
+    try { await restored?.close(); }
+    finally { await Promise.allSettled([a.end(), e.end()]); }
   }
 }
