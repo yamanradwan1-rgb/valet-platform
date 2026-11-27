@@ -102,6 +102,7 @@ async function execute() {
       "issue463-p2-disposable-privacy-races.mjs",
       "issue463-p5-disposable-projection.mjs",
       "issue463-p5-disposable-ma-lk.mjs",
+      "issue463-p5-final-races.mjs",
     ]) {
       await runP7Step(root, file, process.execPath,
         ["packages/database/scripts/" + file], proofEnv, state, 180000);

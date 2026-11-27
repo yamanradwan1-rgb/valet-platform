@@ -7,7 +7,9 @@ import type { acquireIssue463BrowserTarget } from "./issue463-browser-target";
 import {
   appendDispositionIntent, appendDispositionReceipt, applyAfterDurableIntent,
 } from "../src/modules/guest-access/rating-disposition-ledger-protocol";
-import { prepareQuarantinedRestore } from "../src/modules/guest-access/rating-disposition-ledger-restore";
+import { prepareQuarantinedRestore, replayInQuarantine } from "../src/modules/guest-access/rating-disposition-ledger-restore";
+import { snapshotQuarantinedIssue463Restore } from "./issue463-browser-restore-pg";
+import { DispositionLedgerBlocked } from "../src/modules/guest-access/rating-disposition-ledger-types";
 import { createDispositionSqlAdapter } from "../src/modules/guest-access/rating-disposition-sql-adapter";
 import type { DispositionReceiptMetadata } from "../src/modules/guest-access/rating-disposition-sql-adapter";
 
@@ -38,6 +40,7 @@ export async function verifyIssue463LedgerSql(target: Target, apiOrigin: string)
   console.info("P7_MILESTONE LEDGER_RATED");
   const a = new Client({ connectionString: target.approverUrl, connectionTimeoutMillis: 5000 });
   const e = new Client({ connectionString: target.executorUrl, connectionTimeoutMillis: 5000 });
+  let restored: Awaited<ReturnType<typeof snapshotQuarantinedIssue463Restore>> | undefined;
   try {
     await a.connect(); await e.connect();
     const approved = await a.query<{ outcome: string }>(
@@ -66,6 +69,7 @@ export async function verifyIssue463LedgerSql(target: Target, apiOrigin: string)
     if (!pending || pending.outcome !== null || pending.completedAt !== null) throw Error("Issue463 expected pending SQL case.");
     console.info("P7_MILESTONE LEDGER_PENDING");
     const { store, crypt, anchor } = await fixture();
+    console.info("P7_MILESTONE LEDGER_FIXTURE_READY");
     let calls = 0;
     const adapter = createDispositionSqlAdapter({
       async executeCommitted(sql, parameters) {
@@ -76,19 +80,33 @@ export async function verifyIssue463LedgerSql(target: Target, apiOrigin: string)
         throw Error("Synthetic lost executor acknowledgement");
       },
     }, { readExactApproval: inspect });
+    // The disposable proof records observed database time for its synthetic
+    // ledger, avoiding host/VM clock skew in a timestamp-ordering fixture.
+    const observedTime = async () => {
+      const rows = await target.client.query<{ at: Date }>(
+        "SELECT date_trunc('milliseconds',clock_timestamp()) AS at");
+      if (!rows.rows[0]) throw Error("Issue463 observed clock unavailable.");
+      return rows.rows[0].at.toISOString();
+    };
     const input = { ...scope, eventId: randomUUID(), approvedBy: pending.approvedBy,
-      approvedAt: pending.approvedAt, validUntil: pending.validUntil, recordedAt: new Date().toISOString() };
+      approvedAt: pending.approvedAt, validUntil: pending.validUntil, recordedAt: await observedTime() };
     store.failure = "UNKNOWN_BEFORE";
-    await expect(appendDispositionIntent(store, crypt, anchor, input)).rejects.toThrow();
+    await expect(appendDispositionIntent(store, crypt, anchor, input)).rejects.toMatchObject({ reason: "UNKNOWN_APPEND" });
+    console.info("P7_MILESTONE LEDGER_UNKNOWN_BLOCKED");
     expect(calls).toBe(0);
     expect((await inspect(approval))?.completedAt).toBeNull();
     store.failure = null;
     const proof = await appendDispositionIntent(store, crypt, anchor, input);
     console.info("P7_MILESTONE LEDGER_INTENT");
+    restored = await snapshotQuarantinedIssue463Restore(target, scope, text);
+    console.info("P7_MILESTONE RESTORE_SNAPSHOT");
     expect(await applyAfterDurableIntent(store, crypt, anchor, proof, adapter)).toBe("UNKNOWN");
     expect(calls).toBe(1);
     console.info("P7_MILESTONE LEDGER_APPLY");
     await expect(prepareQuarantinedRestore(store, crypt, anchor)).rejects.toMatchObject({ reason: "UNRESOLVED_INTENT" });
+    await expect(replayInQuarantine(store, crypt, anchor, restored.replayTarget))
+      .rejects.toMatchObject({ reason: "UNRESOLVED_INTENT" });
+    expect((await restored.state()).state).toBe("PRESENT");
     expect(await applyAfterDurableIntent(store, crypt, anchor, proof, adapter)).toBe("COMMITTED");
     expect(calls).toBe(1);
     console.info("P7_MILESTONE LEDGER_APPLY");
@@ -97,7 +115,7 @@ export async function verifyIssue463LedgerSql(target: Target, apiOrigin: string)
       throw Error("Issue463 exact committed SQL receipt missing.");
     await appendDispositionReceipt(store, crypt, anchor, { ...scope, eventId: randomUUID(),
       intentEventId: input.eventId, executorId: committed.executedBy, executedAt: committed.completedAt,
-      outcome: "ERASED", recordedAt: new Date().toISOString() }, adapter);
+      outcome: "ERASED", recordedAt: await observedTime() }, adapter);
     console.info("P7_MILESTONE LEDGER_RECEIPT");
     const plan = await prepareQuarantinedRestore(store, crypt, anchor);
     expect(plan.admission).toBe("DENY");
@@ -109,7 +127,23 @@ export async function verifyIssue463LedgerSql(target: Target, apiOrigin: string)
       [org.organizationId, org.locationId, visit.id]);
     expect(erased.rows).toEqual([{ rating: 5, state: "ERASED", comment_text: null, erased: true }]);
     expect(JSON.stringify(store.events)).not.toContain(text);
+    store.failure = "HEAD_UNAVAILABLE";
+    await expect(replayInQuarantine(store, crypt, anchor, restored.replayTarget)).rejects.toThrow();
+    expect((await restored.state()).state).toBe("PRESENT");
+    store.failure = null;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      expect(await replayInQuarantine(store, crypt, anchor, restored.replayTarget))
+        .toEqual({replayVerified:true,admission:"DENY"});
+      expect(await restored.state()).toEqual({rating:5,state:"ERASED",comment_text:null,outcome:"ERASED",case_id:caseId});
+    }
+    console.info("P7_MILESTONE RESTORE_VERIFIED");
+  } catch (error) {
+    if (error instanceof DispositionLedgerBlocked)
+      console.info("P7_LEDGER_REASON " + error.reason);
+    else console.info("P7_LEDGER_REASON NON_LEDGER_FAILURE");
+    throw error;
   } finally {
+    await restored?.close();
     await Promise.allSettled([a.end(), e.end()]);
   }
 }

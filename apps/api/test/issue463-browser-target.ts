@@ -58,7 +58,7 @@ interface ContainerIdentity {
   NetworkSettings: { Ports: Record<string, { HostIp: string; HostPort: string }[]> };
 }
 
-function assertContainer(id: string, owner: string): string {
+export function assertContainer(id: string, owner: string): string {
   if (docker(["context", "show"]) !== "desktop-linux" ||
       docker(["context", "inspect", "--format", "{{.Endpoints.docker.Host}}"]) !==
         "npipe:////./pipe/dockerDesktopLinuxEngine") {
