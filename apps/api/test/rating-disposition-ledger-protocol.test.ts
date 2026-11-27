@@ -23,6 +23,7 @@ test("signed immutable intent precedes SQL and independently checked SQL receipt
   assert.equal(p.checkpoint.headDigest, ledgerEventDigest(p.event));
   assert.equal((await loadVerifiedLedger(store, crypt, anchor)).events.length, 1);
   assert.equal(await applyAfterDurableIntent(store, crypt, anchor, p, {
+    async lookupCommittedIntent() { return "PENDING"; },
     async applyVerifiedIntent() { sqlCalls++; return "COMMITTED"; },
   }), "COMMITTED");
   assert.equal(sqlCalls, 1);
@@ -42,14 +43,13 @@ test("signed immutable intent precedes SQL and independently checked SQL receipt
   assert.equal(store.events.length, 2);
 });
 
-test("unknown durable intent outcome fails closed; no SQL invoked", async () => {
+test("unknown after durable commit reconciles signed intent and witnessed head", async () => {
   const { store, crypt, anchor } = await fixture();
   store.failure = "UNKNOWN_AFTER";
-  await assert.rejects(appendDispositionIntent(store, crypt, anchor, intent()),
-    isBlocked("UNKNOWN_APPEND"));
+  const proof = await appendDispositionIntent(store, crypt, anchor, intent());
   assert.equal(store.events.length, 1);
-  // Even though the fake store received the event, UNKNOWN is not an ACK and
-  // callers get no VerifiedIntent proof to pass to the SQL adapter.
+  assert.equal(proof.event.sequence, 1);
+  assert.equal(anchor.witness.minimum.sequence, 1);
   const history = await loadVerifiedLedger(store, crypt, anchor);
   assert.equal(history.events[0].kind, "INTENT");
   assert.equal(history.events.length, 1);
@@ -78,6 +78,7 @@ test("no success receipt without committed SQL readback or with wrong case", asy
     isBlocked("UNVERIFIED_SQL_RECEIPT"),
   );
   assert.equal(await applyAfterDurableIntent(store, crypt, anchor, p, {
+    lookupCommittedIntent: async () => "PENDING",
     applyVerifiedIntent: async () => { throw new Error("lost DB response"); },
   }), "UNKNOWN");
   assert.equal(store.events.length, 1);
@@ -94,18 +95,97 @@ test("two concurrent writers are serialized by conditional expected head", async
     appendDispositionIntent(store, crypt, anchor, intent()),
     appendDispositionIntent(store, crypt, anchor, second),
   ]);
-  assert.equal(outcomes.filter((x) => x.status === "fulfilled").length, 1);
-  assert.equal(outcomes.filter((x) => x.status === "rejected").length, 1);
-  assert.equal(store.events.length, 1);
-  assert.equal((await loadVerifiedLedger(store, crypt, anchor)).checkpoint.sequence, 1);
+  assert.equal(outcomes.filter((x) => x.status === "fulfilled").length, 2);
+  assert.equal(outcomes.filter((x) => x.status === "rejected").length, 0);
+  assert.equal(store.events.length, 2);
+  assert.equal((await loadVerifiedLedger(store, crypt, anchor)).checkpoint.sequence, 2);
 });
 
 test("no replay of commandId, including same intent with new event ID", async () => {
   const { store, crypt, anchor } = await fixture();
-  await appendDispositionIntent(store, crypt, anchor, intent());
+  const first = await appendDispositionIntent(store, crypt, anchor, intent());
+  const replay = await appendDispositionIntent(store, crypt, anchor, intent());
+  assert.equal(first.event.eventId, replay.event.eventId);
+  assert.equal(store.events.length, 1);
   await assert.rejects(appendDispositionIntent(store, crypt, anchor, intent({
     eventId: "aaaaaaaa-0000-4000-8000-000000000001",
   })), isBlocked("DUPLICATE_COMMAND"));
+});
+
+test("independent monotone witness rejects signed head rollback even if static floor is old", async () => {
+  const { store, crypt, anchor } = await fixture();
+  await appendDispositionIntent(store, crypt, anchor, intent());
+  store.head = anchor.minimum;
+  await assert.rejects(loadVerifiedLedger(store, crypt, anchor), isBlocked("ROLLBACK"));
+});
+
+test("unknown before CAS cannot certify intent and cannot reach SQL", async () => {
+  const { store, crypt, anchor } = await fixture();
+  store.failure = "UNKNOWN_BEFORE";
+  await assert.rejects(appendDispositionIntent(store, crypt, anchor, intent()),
+    isBlocked("UNKNOWN_APPEND"));
+  assert.equal(store.events.length, 0);
+});
+
+test("witness failure prevents verified proof even with object committed", async () => {
+  const { store, crypt, anchor } = await fixture();
+  anchor.witness.failure = "UNKNOWN";
+  await assert.rejects(appendDispositionIntent(store, crypt, anchor, intent()),
+    isBlocked("UNTRUSTED_CHECKPOINT"));
+  assert.equal(store.events.length, 1);
+});
+
+test("lost monotone witness ACK is reconciled by independent signed readback", async () => {
+  const { store, crypt, anchor } = await fixture();
+  anchor.witness.failure = "UNKNOWN_AFTER_ADVANCE";
+  const original = await appendDispositionIntent(store, crypt, anchor, intent());
+  assert.equal(anchor.witness.minimum.headDigest, original.checkpoint.headDigest);
+  anchor.witness.failure = null;
+  const retry = await appendDispositionIntent(store, crypt, anchor, intent());
+  assert.equal(retry.event.sequence, original.event.sequence);
+  assert.equal(store.events.length, 1);
+});
+
+test("conditional witness conflict before persistence cannot authorize SQL", async () => {
+  const { store, crypt, anchor } = await fixture();
+  anchor.witness.failure = "CONFLICT_BEFORE";
+  await assert.rejects(appendDispositionIntent(store, crypt, anchor, intent()),
+    isBlocked("UNTRUSTED_CHECKPOINT"));
+  assert.equal(store.events.length, 1);
+  assert.equal(anchor.witness.minimum.sequence, 0);
+});
+
+test("replay of old exact event after later commands verifies ancestry", async () => {
+  const { store, crypt, anchor } = await fixture();
+  const original = await appendDispositionIntent(store, crypt, anchor, intent());
+  await appendDispositionIntent(store, crypt, anchor, intent({
+    eventId: "aaaaaaaa-0000-4000-8000-000000000001",
+    approvalId: "aaaaaaaa-0000-4000-8000-000000000002",
+    commandId: "aaaaaaaa-0000-4000-8000-000000000003",
+  }));
+  const replay = await appendDispositionIntent(store, crypt, anchor, intent());
+  assert.equal(replay.event.sequence, 1);
+  assert.equal(replay.checkpoint.headDigest, original.checkpoint.headDigest);
+  assert.equal(store.events.length, 2);
+});
+
+test("pre-apply committed readback skips mutation; stale restored receipt denies", async () => {
+  const { store, crypt, anchor } = await fixture();
+  const proof = await appendDispositionIntent(store, crypt, anchor, intent());
+  let mutations = 0;
+  const sql = {
+    async lookupCommittedIntent() { return "COMMITTED"; },
+    async applyVerifiedIntent() { mutations++; return "COMMITTED"; },
+  };
+  assert.equal(await applyAfterDurableIntent(store, crypt, anchor, proof, sql),
+    "COMMITTED");
+  assert.equal(mutations, 0);
+  await appendDispositionReceipt(store, crypt, anchor, receipt(),
+    { confirmCommitted: async () => true });
+  sql.lookupCommittedIntent = async () => "PENDING";
+  assert.equal(await applyAfterDurableIntent(store, crypt, anchor, proof, sql),
+    "UNKNOWN");
+  assert.equal(mutations, 0);
 });
 
 test("tampering, missing events, signer change and signed rollback are denied", async () => {

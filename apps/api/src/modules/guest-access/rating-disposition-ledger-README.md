@@ -1,7 +1,7 @@
 # Issue 463 W4 — isolated disposition ledger contract
 
 Status: controlled implementation, provider-neutral, unmounted. No cloud
-provider, DB, restore coordinator, production secrets or release wiring.
+provider, production DB, restore coordinator, production secrets or release wiring.
 In-memory signed test doubles are NOT proof of provider durability.
 
 ## Personal reading receipt
@@ -22,35 +22,57 @@ In-memory signed test doubles are NOT proof of provider durability.
 ## Implemented contract, not active provider
 
 - types: strict typed scope, intent, receipt, action, controlled outcome,
-  signed checkpoint, independent witness, injected store/signer/verifier,
-  P-only SQL adapter and committed receipt reader.
+  signed checkpoint, independent monotone CAS witness, injected
+  store/signer/verifier, P-only SQL adapter and committed receipt reader.
 - codec: canonical metadata-only digest (NOT comment hash), exact allowed
   field/type/UTC validation, cryptographic signature interface.
-- protocol: independent trusted minimum checkpoint, signed full chain,
-  conditional append CAS, durable intent and readback before SQL callback,
-  independently verified committed SQL receipt before completion append.
-  Unknown or conflicting results block, not success.
-- restore: quarantined plan for ERASED/HELD, expiry recomputation, idempotent
-  replay, full fail-closed behavior and admission DENY even after mock success.
-  RELEASED, HELD_PENDING, NO_RECORD, unresolved intent need current
-  controller/legal authorization and are deliberately denied, not automated.
-- fixtures: explicitly nonproduction in-memory CAS + generated Ed25519 key;
-  tests cover tamper, stale signer/head, signed rollback, gaps, unknown,
-  concurrency, validation coercions, repeated replay and quarantine failures.
+- protocol: independently trusted signed monotone witness and full chain,
+  conditional append CAS, verified exact-payload idempotent replay, bounded
+  verified CAS rebase, unknown-commit readback and witness ACK reconciliation.
+  Durable witnessed intent is mandatory before any SQL; exact committed SQL
+  readback is required before signed completion receipt. Unverifiable unknown
+  results fail closed.
+- W2 SQL adapter: one exact parameterized E-only P-owned function
+  public.apply_guest_rating_comment_disposition(uuid), strict status
+  allowlist and exact metadata-only approval/committed receipt inspection.
+  The P-owned SQL function owns locking, final expiry, case and same-XID
+  commit. An independently authorized inspector is required for pre-apply
+  and completion verification. W2 A/E/R have no direct receipt-table SELECT;
+  no new grants or function were added to circumvent this.
+- restore: no caller-supplied plan is accepted for execution. Fresh verified
+  independently signed checkpoint in quarantine is rechecked after replay.
+  ERASED requires NULL, tombstone, case receipt and invisibility proof;
+  HELD_PENDING must retain hold and pending erase case; RELEASED requires
+  exact historical case reconciliation; NO_RECORD_CLOSED requires original
+  24h window closed, exact committed case and confirmed no rating. Intermediate
+  fully resolved histories do not block; unresolved intents, NO_RECORD_WAIT,
+  unknown or contradictory states always block. Admission remains DENY.
+- fixtures: explicitly nonproduction in-memory ledger/witness CAS + generated
+  Ed25519 key; tests cover forged replay plan, wrong-case RELEASE, ERASE during
+  HOLD, HELD_PENDING, NO_RECORD closure, unknown ACKs, independent witness
+  rollback, race and stale SQL receipt, idempotent retry and quarantine failures.
 
 ## Integration boundaries (pending and not authorized here)
 
 Provider: separately attested write-once independent store/recovery domain,
-signer/key custody and rotation, retained immutable checkpoint, provider
-receipt semantics and backup/WAL residual evidence. No S3 provider qualified.
+signer/key custody and rotation, atomic monotone witness CAS, verifiable highest
+committed immutable head, provider receipt semantics, rollback resistance and
+backup/WAL residual evidence. A witness and ledger write are not atomic:
+the store must retain any committed object across a crash before witness
+advancement, and the recovery inventory must detect it. No S3 provider qualified.
 
-P SQL: Prime/W2 must supply exact authorized A/E case and tenant binding,
-transaction-scoped visit/child lock, no comment SELECT by P, noncontent
-committed receipt and failclosed expired/held/no-record workflow.
+P SQL: W2 exact five controlled routines and private metadata receipt table
+were inspected (20261127000100 P2 draft). A/E cannot directly SELECT receipt
+metadata. The unmounted W4 adapter requires a separately authorized inspector
+that binds approval, tenant, visit, case, actors, action, timestamps, outcome and
+verified transaction commit. Until that approved reader and real PG transaction
+adapter exist, no runtime mounting or durability claim. W2 draft returns
+NO_RECORD_WAIT without writing a completion row; do not sign it as completion.
 
 Restore: operational SRE/controller process must independently establish
-legal hold/rights authority, complete ledger and backup retention, repeat
-safe replay, and separate Gate C release approval before ANY served traffic.
+legal hold/rights authority, complete ledger, exact-case recovery callbacks,
+actual SQL tombstone and committed receipt proof, backup retention, repeat-safe
+replay, and separate Gate C approval before ANY served traffic.
 These pure functions DO NOT authorize opening traffic.
 
 Legal: notice/consent, cryptographic-erasure/key model, backup copy lifetime,
@@ -58,8 +80,6 @@ hold authority, identity checks remain task-specific owner/counsel decisions.
 
 ## Verification
 
-Focused Vitest api-non-postgres: 2 suites, 17/17 PASS with in-memory doubles.
-Focused strict TypeScript noEmit for four new source files: PASS.
-Full API typecheck attempted but could not pass: isolated dependency graph
-cannot resolve zod and reports unrelated repository-wide errors. Therefore
-NO full build/CI claim. No database/provider/HTTP/deployment tests.
+Focused Vitest api-non-postgres and six-source TypeScript noEmit were run for
+this continuation; exact final counts and SHA are reported at final handoff.
+No full build/CI, DB provider, HTTP, independent PG restore, or deployment claim.

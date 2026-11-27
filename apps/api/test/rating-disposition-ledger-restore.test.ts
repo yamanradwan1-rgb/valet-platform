@@ -4,63 +4,19 @@ import { test } from "vitest";
 
 import {
   appendDispositionIntent,
-  appendDispositionReceipt,
 } from "../src/modules/guest-access/rating-disposition-ledger-protocol.ts";
 import {
   prepareQuarantinedRestore,
   replayInQuarantine,
 } from "../src/modules/guest-access/rating-disposition-ledger-restore.ts";
-import { fixture, intent, receipt, scope } from "./rating-disposition-ledger-fixture.mjs";
+import { fixture, intent, scope } from "./rating-disposition-ledger-fixture.mjs";
+import {
+  fakeRestoreTarget,
+  recordCompleted,
+} from "./rating-disposition-ledger-restore-fixture.mjs";
 
 const denied = (reason) => (error) =>
   error?.name === "DispositionLedgerBlocked" && error.reason === reason;
-
-async function recordCompleted(store, crypt, anchor, action, outcome, suffix = "7") {
-  const eventId = suffix.repeat(8) + "-7777-4777-8777-" + suffix.repeat(12);
-  const receiptId = suffix.repeat(8) + "-8888-4888-8888-" + suffix.repeat(12);
-  const approvalId = suffix.repeat(8) + "-5555-4555-8555-" + suffix.repeat(12);
-  const commandId = suffix.repeat(8) + "-6666-4666-8666-" + suffix.repeat(12);
-  await appendDispositionIntent(store, crypt, anchor, intent({
-    action, eventId, approvalId, commandId,
-  }));
-  await appendDispositionReceipt(store, crypt, anchor, receipt({
-    action, outcome, intentEventId: eventId, eventId: receiptId,
-    approvalId, commandId,
-  }), { confirmCommitted: async () => true });
-}
-
-function fakeRestoreTarget() {
-  const erased = new Set();
-  const held = new Set();
-  const calls = [];
-  const key = (v) => v.organizationId + ":" + v.locationId + ":" + v.visitId;
-  return {
-    calls,
-    async keepAllFeedbackTrafficClosed() { calls.push("QUARANTINE"); },
-    async eraseTextAndKeepTombstone(v) {
-      const k = key(v);
-      calls.push("ERASE");
-      if (erased.has(k)) return "ALREADY";
-      erased.add(k);
-      return "APPLIED";
-    },
-    async suppressHeldText(v) {
-      const k = key(v);
-      calls.push("HOLD");
-      if (held.has(k)) return "ALREADY";
-      held.add(k);
-      return "APPLIED";
-    },
-    async recomputeExpiredTextFromServerTime() {
-      calls.push("EXPIRY");
-      return "VERIFIED";
-    },
-    async verifyNoVisibleText(v) {
-      calls.push("VERIFY");
-      return erased.has(key(v)) || held.has(key(v));
-    },
-  };
-}
 
 test("completed ERASE produces terminal replay; repeat remains idempotent and DENY", async () => {
   const { store, crypt, anchor } = await fixture();
@@ -71,16 +27,18 @@ test("completed ERASE produces terminal replay; repeat remains idempotent and DE
     organizationId: scope.organizationId,
     locationId: scope.locationId,
     visitId: scope.visitId,
+    caseId: scope.caseId,
+    approvalId: "77777777-5555-4555-8555-777777777777",
   }]);
   assert.deepEqual(plan.activeHolds, []);
   const target = fakeRestoreTarget();
-  const first = await replayInQuarantine(plan, target);
-  const second = await replayInQuarantine(plan, target);
+  const first = await replayInQuarantine(store, crypt, anchor, target);
+  const second = await replayInQuarantine(store, crypt, anchor, target);
   assert.deepEqual(first, { replayVerified: true, admission: "DENY" });
   assert.deepEqual(second, { replayVerified: true, admission: "DENY" });
   assert.deepEqual(target.calls, [
-    "QUARANTINE", "ERASE", "VERIFY", "EXPIRY",
-    "QUARANTINE", "ERASE", "VERIFY", "EXPIRY",
+    "QUARANTINE", "ERASE", "TOMBSTONE", "VERIFY", "EXPIRY", "QUARANTINE",
+    "QUARANTINE", "ERASE", "TOMBSTONE", "VERIFY", "EXPIRY", "QUARANTINE",
   ]);
 });
 
@@ -91,8 +49,10 @@ test("a completed HOLD is suppressed but never authorizes serving text", async (
   assert.equal(plan.activeHolds.length, 1);
   assert.equal(plan.terminalErases.length, 0);
   const target = fakeRestoreTarget();
-  await replayInQuarantine(plan, target);
-  assert.deepEqual(target.calls, ["QUARANTINE", "HOLD", "VERIFY", "EXPIRY"]);
+  await replayInQuarantine(store, crypt, anchor, target);
+  assert.deepEqual(target.calls, [
+    "QUARANTINE", "HOLD", "VERIFY", "EXPIRY", "QUARANTINE",
+  ]);
 });
 
 test("unsigned/pending intent blocks the ENTIRE restore, not just the visit", async () => {
@@ -102,27 +62,140 @@ test("unsigned/pending intent blocks the ENTIRE restore, not just the visit", as
     denied("UNRESOLVED_INTENT"));
 });
 
-test("known HELD_PENDING and NO_RECORD_WAIT receipts also fail closed", async () => {
-  for (const outcome of ["HELD_PENDING", "NO_RECORD_WAIT"]) {
-    const { store, crypt, anchor } = await fixture();
-    await recordCompleted(store, crypt, anchor, "ERASE", outcome);
-    await assert.rejects(prepareQuarantinedRestore(store, crypt, anchor),
-      denied("UNRESOLVED_INTENT"));
-  }
-});
-
-test("NO_RECORD_CLOSED cannot auto-authorize collection after old snapshot restore", async () => {
+test("NO_RECORD_WAIT without a later exact closure receipt fails closed", async () => {
   const { store, crypt, anchor } = await fixture();
-  await recordCompleted(store, crypt, anchor, "ERASE", "NO_RECORD_CLOSED");
+  await recordCompleted(store, crypt, anchor, "ERASE", "NO_RECORD_WAIT");
   await assert.rejects(prepareQuarantinedRestore(store, crypt, anchor),
     denied("UNRESOLVED_INTENT"));
 });
 
-test("historical release requires current case/hold legal reconciliation", async () => {
+test("NO_RECORD_CLOSED only reconciles with actual closed 24h window and no row", async () => {
+  const { store, crypt, anchor } = await fixture();
+  await recordCompleted(store, crypt, anchor, "ERASE", "NO_RECORD_CLOSED");
+  const target = fakeRestoreTarget();
+  const plan = await prepareQuarantinedRestore(store, crypt, anchor);
+  assert.equal(plan.closedNoRecords.length, 1);
+  assert.equal((await replayInQuarantine(store, crypt, anchor, target)).admission, "DENY");
+  const pending = fakeRestoreTarget();
+  pending.verifyClosedNoRecord = async () => ({
+    exactCommittedCase: true, original24hWindowClosed: false, ratingAbsent: true,
+  });
+  await assert.rejects(replayInQuarantine(store, crypt, anchor, pending),
+    denied("UNRESOLVED_INTENT"));
+});
+
+test("historical RELEASED resolves only under exact case and recovery SQL proof", async () => {
   const { store, crypt, anchor } = await fixture();
   await recordCompleted(store, crypt, anchor, "HOLD", "HELD", "7");
   await recordCompleted(store, crypt, anchor, "RELEASE", "RELEASED", "9");
-  await assert.rejects(prepareQuarantinedRestore(store, crypt, anchor),
+  const plan = await prepareQuarantinedRestore(store, crypt, anchor);
+  assert.equal(plan.releasedCases.length, 1);
+  const target = fakeRestoreTarget();
+  assert.equal((await replayInQuarantine(store, crypt, anchor, target)).admission, "DENY");
+  assert.ok(target.calls.includes("RELEASE"));
+  const unknown = fakeRestoreTarget();
+  unknown.reconcileHistoricalRelease = async () => "UNKNOWN";
+  await assert.rejects(replayInQuarantine(store, crypt, anchor, unknown),
+    denied("UNRESOLVED_INTENT"));
+});
+
+test("HELD_PENDING remains suppressed and case-bound, then RELEASE ERASED is terminal", async () => {
+  const { store, crypt, anchor } = await fixture();
+  await recordCompleted(store, crypt, anchor, "HOLD", "HELD", "7");
+  await recordCompleted(store, crypt, anchor, "ERASE", "HELD_PENDING", "8", {
+    caseId: "88888888-aaaa-4aaa-8aaa-888888888888",
+  });
+  const pendingPlan = await prepareQuarantinedRestore(store, crypt, anchor);
+  assert.equal(pendingPlan.activeHolds.length, 1);
+  assert.equal(pendingPlan.pendingHeldErases.length, 1);
+  assert.equal(pendingPlan.pendingHeldErases[0].holdCaseId, scope.caseId);
+  const pendingTarget = fakeRestoreTarget();
+  await replayInQuarantine(store, crypt, anchor, pendingTarget);
+  assert.ok(pendingTarget.calls.includes("HELD_PENDING"));
+  const noProof = fakeRestoreTarget();
+  noProof.reconcileHeldPending = async () => "UNKNOWN";
+  await assert.rejects(replayInQuarantine(store, crypt, anchor, noProof),
+    denied("UNRESOLVED_INTENT"));
+
+  await recordCompleted(store, crypt, anchor, "RELEASE", "ERASED", "9");
+  const finalPlan = await prepareQuarantinedRestore(store, crypt, anchor);
+  assert.equal(finalPlan.terminalErases.length, 1);
+  assert.equal(finalPlan.pendingHeldErases.length, 0);
+  assert.equal(finalPlan.activeHolds.length, 0);
+  assert.equal((await replayInQuarantine(
+    store, crypt, anchor, fakeRestoreTarget())).admission, "DENY");
+});
+
+test("signed wrong-case release and ERASE while held cannot forge terminal state", async () => {
+  const first = await fixture();
+  await recordCompleted(first.store, first.crypt, first.anchor, "HOLD", "HELD");
+  await recordCompleted(
+    first.store, first.crypt, first.anchor, "RELEASE", "ERASED", "9",
+    { caseId: "99999999-aaaa-4aaa-8aaa-999999999999" },
+  );
+  await assert.rejects(prepareQuarantinedRestore(
+    first.store, first.crypt, first.anchor), denied("CHAIN_TAMPER"));
+
+  const second = await fixture();
+  await recordCompleted(second.store, second.crypt, second.anchor, "HOLD", "HELD");
+  await recordCompleted(second.store, second.crypt, second.anchor,
+    "ERASE", "ERASED", "9");
+  await assert.rejects(prepareQuarantinedRestore(
+    second.store, second.crypt, second.anchor), denied("CHAIN_TAMPER"));
+});
+
+test("original NO_RECORD_WAIT followed by exact case closure is rechecked", async () => {
+  const { store, crypt, anchor } = await fixture();
+  await recordCompleted(store, crypt, anchor, "ERASE", "NO_RECORD_WAIT", "7");
+  await recordCompleted(store, crypt, anchor, "ERASE", "NO_RECORD_CLOSED", "9");
+  const plan = await prepareQuarantinedRestore(store, crypt, anchor);
+  assert.equal(plan.closedNoRecords.length, 1);
+  assert.equal((await replayInQuarantine(
+    store, crypt, anchor, fakeRestoreTarget())).admission, "DENY");
+  const foreign = await fixture();
+  await recordCompleted(foreign.store, foreign.crypt, foreign.anchor,
+    "ERASE", "NO_RECORD_WAIT", "7");
+  await recordCompleted(foreign.store, foreign.crypt, foreign.anchor,
+    "ERASE", "NO_RECORD_CLOSED", "9",
+    { caseId: "99999999-aaaa-4aaa-8aaa-999999999999" });
+  await assert.rejects(prepareQuarantinedRestore(
+    foreign.store, foreign.crypt, foreign.anchor), denied("CHAIN_TAMPER"));
+});
+
+test("forged caller replay plan is never accepted as restore authority", async () => {
+  const { store, crypt, anchor } = await fixture();
+  await recordCompleted(store, crypt, anchor, "ERASE", "ERASED");
+  const forged = {
+    terminalErases: [{ organizationId: scope.organizationId,
+      locationId: scope.locationId, visitId: scope.visitId }],
+    activeHolds: [], admission: "DENY",
+  };
+  const target = fakeRestoreTarget();
+  await assert.rejects(replayInQuarantine(forged, crypt, anchor, target),
+    denied("LEDGER_UNAVAILABLE"));
+  assert.deepEqual(target.calls, ["QUARANTINE"]);
+  const incomplete = fakeRestoreTarget();
+  incomplete.verifyTerminalErased = async () => false;
+  await assert.rejects(replayInQuarantine(
+    store, crypt, anchor, incomplete), denied("UNRESOLVED_INTENT"));
+});
+
+test("new signed case during quarantine replay invalidates old checkpoint", async () => {
+  const { store, crypt, anchor } = await fixture();
+  await recordCompleted(store, crypt, anchor, "ERASE", "ERASED");
+  const target = fakeRestoreTarget();
+  const original = target.eraseTextAndKeepTombstone;
+  target.eraseTextAndKeepTombstone = async (visit) => {
+    const outcome = await original(visit);
+    await appendDispositionIntent(store, crypt, anchor, intent({
+      eventId: "aaaaaaaa-0000-4000-8000-000000000001",
+      approvalId: "aaaaaaaa-0000-4000-8000-000000000002",
+      commandId: "aaaaaaaa-0000-4000-8000-000000000003",
+      visitId: "aaaaaaaa-0000-4000-8000-000000000004",
+    }));
+    return outcome;
+  };
+  await assert.rejects(replayInQuarantine(store, crypt, anchor, target),
     denied("UNRESOLVED_INTENT"));
 });
 
@@ -151,15 +224,15 @@ test("untrusted restored data, failure or unknown expiry keeps admission denied"
   const plan = await prepareQuarantinedRestore(store, crypt, anchor);
   const target = fakeRestoreTarget();
   target.verifyNoVisibleText = async () => false;
-  await assert.rejects(replayInQuarantine(plan, target),
+  await assert.rejects(replayInQuarantine(store, crypt, anchor, target),
     denied("UNRESOLVED_INTENT"));
   assert.equal(target.calls[0], "QUARANTINE");
   const expiring = fakeRestoreTarget();
   expiring.recomputeExpiredTextFromServerTime = async () => "UNKNOWN";
-  await assert.rejects(replayInQuarantine(plan, expiring),
+  await assert.rejects(replayInQuarantine(store, crypt, anchor, expiring),
     denied("UNRESOLVED_INTENT"));
   const failing = fakeRestoreTarget();
   failing.eraseTextAndKeepTombstone = async () => { throw new Error("DB lost"); };
-  await assert.rejects(replayInQuarantine(plan, failing),
+  await assert.rejects(replayInQuarantine(store, crypt, anchor, failing),
     denied("LEDGER_UNAVAILABLE"));
 });

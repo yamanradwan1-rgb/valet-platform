@@ -16,15 +16,17 @@ export const scope = Object.freeze({
   commandId: "66666666-6666-4666-8666-666666666666",
   action: "ERASE",
 });
+const clock = Date.now();
+const stamp = (offset) => new Date(clock + offset).toISOString();
 
 export function intent(overrides = {}) {
   return {
     ...scope,
     eventId: "77777777-7777-4777-8777-777777777777",
     approvedBy: "operator.approver",
-    approvedAt: "2026-11-27T16:00:00.000Z",
-    validUntil: "2026-11-27T16:30:00.000Z",
-    recordedAt: "2026-11-27T16:00:01.000Z",
+    approvedAt: stamp(-60_000),
+    validUntil: stamp(15 * 60_000),
+    recordedAt: stamp(-59_000),
     ...overrides,
   };
 }
@@ -35,9 +37,9 @@ export function receipt(overrides = {}) {
     eventId: "88888888-8888-4888-8888-888888888888",
     intentEventId: "77777777-7777-4777-8777-777777777777",
     executorId: "operator.executor",
-    executedAt: "2026-11-27T16:00:03.000Z",
+    executedAt: stamp(-57_000),
     outcome: "ERASED",
-    recordedAt: "2026-11-27T16:00:04.000Z",
+    recordedAt: stamp(-56_000),
     ...overrides,
   };
 }
@@ -94,6 +96,28 @@ export async function fixture() {
     headDigest: EMPTY_LEDGER_DIGEST,
   }, crypt);
   const store = new InMemoryUnqualifiedLedger(genesis);
-  const anchor = { ledgerId, epoch, minimum: genesis };
+  const independentWitness = {
+    minimum: structuredClone(genesis),
+    failure: null,
+    async readMinimum() {
+      if (this.failure === "READ") throw new Error("witness unavailable");
+      return structuredClone(this.minimum);
+    },
+    async conditionalAdvance(expected, checkpoint) {
+      if (this.failure === "UNKNOWN") return "UNKNOWN";
+      if (this.failure === "CONFLICT_BEFORE") return "CONFLICT";
+      if (this.minimum.sequence !== expected.sequence ||
+          this.minimum.headDigest !== expected.headDigest ||
+          this.minimum.ledgerId !== expected.ledgerId ||
+          this.minimum.epoch !== expected.epoch) return "CONFLICT";
+      if (this.minimum.sequence > checkpoint.sequence ||
+          (this.minimum.sequence === checkpoint.sequence &&
+           this.minimum.headDigest !== checkpoint.headDigest)) return "CONFLICT";
+      this.minimum = structuredClone(checkpoint);
+      if (this.failure === "UNKNOWN_AFTER_ADVANCE") return "UNKNOWN";
+      return "ADVANCED";
+    },
+  };
+  const anchor = { ledgerId, epoch, minimum: genesis, witness: independentWitness };
   return { crypt, store, anchor };
 }

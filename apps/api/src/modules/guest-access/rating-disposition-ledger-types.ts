@@ -77,6 +77,15 @@ export interface TrustedLedgerAnchor {
   readonly ledgerId: string;
   readonly epoch: string;
   readonly minimum: SignedLedgerCheckpoint;
+  /** Independent signer/witness domain. Provider must attest monotonic CAS. */
+  readonly witness: {
+    readMinimum(): Promise<SignedLedgerCheckpoint>;
+    /** Atomic compare-and-advance. Never regress or replace a signed fork. */
+    conditionalAdvance(
+      expected: SignedLedgerCheckpoint,
+      next: SignedLedgerCheckpoint,
+    ): Promise<"ADVANCED" | "CONFLICT" | "UNKNOWN">;
+  };
 }
 
 /** This callback must read an already COMMITTED SQL receipt, not apply SQL. */
@@ -86,6 +95,9 @@ export interface CommittedDispositionReceiptReader {
 
 /** The adapter is the only layer that may call the P-owned SQL function. */
 export interface DispositionSqlApplier {
+  /** Exact scoped committed P-owned approval receipt, read through authorized boundary. */
+  lookupCommittedIntent(intent: LedgerEvent & { readonly kind: "INTENT" }):
+    Promise<"COMMITTED" | "PENDING" | "UNKNOWN">;
   applyVerifiedIntent(intent: LedgerEvent & { readonly kind: "INTENT" }):
     Promise<"COMMITTED" | "UNKNOWN" | "DENIED">;
 }

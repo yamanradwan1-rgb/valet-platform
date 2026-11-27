@@ -4,6 +4,7 @@ import {
   type DispositionLedgerStore,
   type LedgerCheckpointAuthenticator,
   type LedgerEvent,
+  type SignedLedgerCheckpoint,
   type TrustedLedgerAnchor,
 } from "./rating-disposition-ledger-types";
 
@@ -13,29 +14,81 @@ export interface RestrictedVisit {
   readonly visitId: string;
 }
 
+export interface CaseScopedVisit extends RestrictedVisit {
+  readonly caseId: string;
+  readonly approvalId: string;
+}
+
+export interface PendingHeldErase extends CaseScopedVisit {
+  readonly holdCaseId: string;
+}
+
 export interface RestoreReplayPlan {
-  readonly terminalErases: readonly RestrictedVisit[];
-  readonly activeHolds: readonly RestrictedVisit[];
-  /** No operation from this plan is authority to open public/API traffic. */
+  /** Checkpoint is informational. The replay function never accepts a caller plan. */
+  readonly checkpoint: SignedLedgerCheckpoint;
+  readonly terminalErases: readonly CaseScopedVisit[];
+  readonly activeHolds: readonly CaseScopedVisit[];
+  readonly pendingHeldErases: readonly PendingHeldErase[];
+  readonly releasedCases: readonly CaseScopedVisit[];
+  readonly closedNoRecords: readonly CaseScopedVisit[];
   readonly admission: "DENY";
 }
 
-/** All calls must operate only against an independently quarantined restore. */
+/**
+ * The authorized P-side recovery adapter must operate on exact tenant, visit,
+ * approval and case, and independently verify committed receipt and row state.
+ * No method here can return permission to serve traffic.
+ */
 export interface QuarantinedRestoreTarget {
   keepAllFeedbackTrafficClosed(): Promise<void>;
-  eraseTextAndKeepTombstone(visit: RestrictedVisit): Promise<"APPLIED" | "ALREADY" | "UNKNOWN">;
-  suppressHeldText(visit: RestrictedVisit): Promise<"APPLIED" | "ALREADY" | "UNKNOWN">;
+  eraseTextAndKeepTombstone(visit: CaseScopedVisit):
+    Promise<"APPLIED" | "ALREADY" | "UNKNOWN">;
+  /** Exact SQL row proof: child state ERASED, comment NULL, tombstone and case receipt. */
+  verifyTerminalErased(visit: CaseScopedVisit): Promise<boolean>;
+  suppressHeldText(visit: CaseScopedVisit):
+    Promise<"APPLIED" | "ALREADY" | "UNKNOWN">;
+  reconcileHeldPending(visit: PendingHeldErase):
+    Promise<"VERIFIED" | "UNKNOWN">;
+  reconcileHistoricalRelease(visit: CaseScopedVisit):
+    Promise<"VERIFIED" | "UNKNOWN">;
+  verifyClosedNoRecord(visit: CaseScopedVisit): Promise<{
+    readonly exactCommittedCase: boolean;
+    readonly original24hWindowClosed: boolean;
+    readonly ratingAbsent: boolean;
+  }>;
   recomputeExpiredTextFromServerTime(): Promise<"VERIFIED" | "UNKNOWN">;
   verifyNoVisibleText(visit: RestrictedVisit): Promise<boolean>;
 }
 
-function key(event: LedgerEvent): string {
-  return [
-    event.organizationId, event.locationId, event.visitId,
-  ].join(":");
+interface VisitHistory {
+  readonly scope: RestrictedVisit;
+  erased: CaseScopedVisit | null;
+  hold: CaseScopedVisit | null;
+  pendingErase: PendingHeldErase | null;
+  release: CaseScopedVisit | null;
+  noRecordWait: CaseScopedVisit | null;
+  noRecordClosed: CaseScopedVisit | null;
 }
 
-/** Requires the COMPLETE independently signed history, not DB-local receipts. */
+function scoped(event: LedgerEvent): CaseScopedVisit {
+  return {
+    organizationId: event.organizationId,
+    locationId: event.locationId,
+    visitId: event.visitId,
+    caseId: event.caseId,
+    approvalId: event.approvalId,
+  };
+}
+
+function key(event: LedgerEvent): string {
+  return [event.organizationId, event.locationId, event.visitId].join(":");
+}
+
+function invalid(): never {
+  throw new DispositionLedgerBlocked("CHAIN_TAMPER");
+}
+
+/** History verification includes complete chain, signature, witness and ACL-free metadata. */
 export async function prepareQuarantinedRestore(
   store: DispositionLedgerStore,
   crypt: Pick<LedgerCheckpointAuthenticator, "verify">,
@@ -43,82 +96,102 @@ export async function prepareQuarantinedRestore(
 ): Promise<RestoreReplayPlan> {
   const history = await loadVerifiedLedger(store, crypt, anchor);
   const intents = new Map<string, LedgerEvent & { kind: "INTENT" }>();
-  const receipts = new Map<string, LedgerEvent & { kind: "RECEIPT" }>();
-  const visits = new Map<string, {
-    scope: RestrictedVisit; erased: boolean; holdCaseId: string | null;
-  }>();
+  const receipts = new Set<string>();
+  const visits = new Map<string, VisitHistory>();
   for (const event of history.events) {
-    if (event.kind === "INTENT") {
-      intents.set(event.eventId, event);
-    } else {
-      receipts.set(event.intentEventId, event);
-    }
+    if (event.kind === "INTENT") intents.set(event.eventId, event);
+    else receipts.add(event.intentEventId);
   }
-  // A pending SQL outcome, lost receipt or incomplete approved HOLD is not
-  // sufficient proof of erasure/release. Hold the ENTIRE restore admission.
   if (intents.size !== receipts.size)
     throw new DispositionLedgerBlocked("UNRESOLVED_INTENT");
+
   for (const event of history.events) {
     if (event.kind !== "RECEIPT") continue;
-    const intent = intents.get(event.intentEventId)!;
+    const intent = intents.get(event.intentEventId);
+    if (!intent) invalid();
     const visitKey = key(event);
-    const previous = visits.get(visitKey);
-    const state = previous ?? {
-      scope: {
-        organizationId: event.organizationId,
-        locationId: event.locationId,
-        visitId: event.visitId,
-      },
-      erased: false,
-      holdCaseId: null,
+    const current = visits.get(visitKey) ?? {
+      scope: scoped(event), erased: null, hold: null, pendingErase: null,
+      release: null, noRecordWait: null, noRecordClosed: null,
     };
-    if (state.erased && event.outcome !== "ERASED")
-      throw new DispositionLedgerBlocked("CHAIN_TAMPER");
-    if (event.outcome === "NO_RECORD_WAIT" ||
-        event.outcome === "HELD_PENDING") {
-      throw new DispositionLedgerBlocked("UNRESOLVED_INTENT");
+    const scope = scoped(event);
+    if (current.erased || current.noRecordClosed) invalid();
+    switch (event.outcome) {
+      case "HELD":
+        if (current.hold || current.noRecordWait) invalid();
+        current.hold = scope;
+        current.release = null;
+        break;
+      case "HELD_PENDING":
+        if (!current.hold || current.pendingErase || current.noRecordWait) invalid();
+        current.pendingErase = { ...scope, holdCaseId: current.hold.caseId };
+        break;
+      case "RELEASED":
+        if (!current.hold || current.hold.caseId !== intent.caseId ||
+            current.pendingErase || current.noRecordWait) invalid();
+        current.hold = null;
+        current.release = scope;
+        break;
+      case "ERASED":
+        if (event.action === "RELEASE") {
+          if (!current.hold || current.hold.caseId !== event.caseId) invalid();
+        } else if (current.hold) invalid();
+        current.erased = scope;
+        current.hold = null;
+        current.pendingErase = null;
+        current.release = null;
+        current.noRecordWait = null;
+        break;
+      case "NO_RECORD_WAIT":
+        if (current.hold || current.noRecordWait || current.release) invalid();
+        current.noRecordWait = scope;
+        break;
+      case "NO_RECORD_CLOSED":
+        if (current.hold || current.release ||
+            (current.noRecordWait &&
+             current.noRecordWait.caseId !== event.caseId)) invalid();
+        current.noRecordClosed = scope;
+        current.noRecordWait = null;
+        break;
+      default:
+        invalid();
     }
-    if (event.outcome === "ERASED") {
-      state.erased = true;
-      state.holdCaseId = null;
-    } else if (event.outcome === "HELD") {
-      if (state.holdCaseId !== null)
-        throw new DispositionLedgerBlocked("CHAIN_TAMPER");
-      state.holdCaseId = event.caseId;
-    } else if (event.outcome === "RELEASED") {
-      if (state.holdCaseId !== intent.caseId)
-        throw new DispositionLedgerBlocked("CHAIN_TAMPER");
-      // A historical release is NOT current legal authority after restore.
-      throw new DispositionLedgerBlocked("UNRESOLVED_INTENT");
-    } else if (event.outcome === "NO_RECORD_CLOSED") {
-      // A rights case cannot certify the absence of a future/newer rating
-      // without rechecking original 24h close and the restored visit.
-      throw new DispositionLedgerBlocked("UNRESOLVED_INTENT");
-    }
-    visits.set(visitKey, state);
+    visits.set(visitKey, current);
   }
+  if ([...visits.values()].some((visit) => visit.noRecordWait))
+    throw new DispositionLedgerBlocked("UNRESOLVED_INTENT");
   return {
-    terminalErases: [...visits.values()].filter((v) => v.erased)
-      .map((v) => v.scope),
-    activeHolds: [...visits.values()].filter((v) =>
-      !v.erased && v.holdCaseId !== null).map((v) => v.scope),
+    checkpoint: history.checkpoint,
+    terminalErases: [...visits.values()].flatMap((v) => v.erased ? [v.erased] : []),
+    activeHolds: [...visits.values()].flatMap((v) => v.hold ? [v.hold] : []),
+    pendingHeldErases: [...visits.values()].flatMap((v) =>
+      v.pendingErase ? [v.pendingErase] : []),
+    releasedCases: [...visits.values()].flatMap((v) =>
+      v.release ? [v.release] : []),
+    closedNoRecords: [...visits.values()].flatMap((v) =>
+      v.noRecordClosed ? [v.noRecordClosed] : []),
     admission: "DENY",
   };
 }
 
 /**
- * Fail-closed even on success: a qualified external restore controller must
- * separately verify legal holds, backup lifetime, operator identities and
- * release readiness. In-memory mocks NEVER authorize traffic.
+ * Never accept a replay plan from a caller: derive it from the independently
+ * signed ledger after closing all feedback traffic on the quarantined DB.
+ * Operational admission remains DENY even when every reconciliation succeeds.
  */
 export async function replayInQuarantine(
-  plan: RestoreReplayPlan, target: QuarantinedRestoreTarget,
+  store: DispositionLedgerStore,
+  crypt: Pick<LedgerCheckpointAuthenticator, "verify">,
+  anchor: TrustedLedgerAnchor,
+  target: QuarantinedRestoreTarget,
 ): Promise<{ readonly replayVerified: true; readonly admission: "DENY" }> {
-  await target.keepAllFeedbackTrafficClosed();
   try {
+    await target.keepAllFeedbackTrafficClosed();
+    const plan = await prepareQuarantinedRestore(store, crypt, anchor);
     for (const visit of plan.terminalErases) {
       const result = await target.eraseTextAndKeepTombstone(visit);
-      if (result === "UNKNOWN" || !await target.verifyNoVisibleText(visit))
+      if (result === "UNKNOWN" || !await target.verifyTerminalErased(visit) ||
+          !await target.verifyNoVisibleText(visit))
         throw new DispositionLedgerBlocked("UNRESOLVED_INTENT");
     }
     for (const visit of plan.activeHolds) {
@@ -126,8 +199,32 @@ export async function replayInQuarantine(
       if (result === "UNKNOWN" || !await target.verifyNoVisibleText(visit))
         throw new DispositionLedgerBlocked("UNRESOLVED_INTENT");
     }
+    for (const visit of plan.pendingHeldErases) {
+      if (await target.reconcileHeldPending(visit) !== "VERIFIED" ||
+          !await target.verifyNoVisibleText(visit))
+        throw new DispositionLedgerBlocked("UNRESOLVED_INTENT");
+    }
+    for (const visit of plan.releasedCases) {
+      if (await target.reconcileHistoricalRelease(visit) !== "VERIFIED")
+        throw new DispositionLedgerBlocked("UNRESOLVED_INTENT");
+    }
+    for (const visit of plan.closedNoRecords) {
+      const evidence = await target.verifyClosedNoRecord(visit);
+      if (evidence.exactCommittedCase !== true ||
+          evidence.original24hWindowClosed !== true ||
+          evidence.ratingAbsent !== true)
+        throw new DispositionLedgerBlocked("UNRESOLVED_INTENT");
+    }
     if (await target.recomputeExpiredTextFromServerTime() !== "VERIFIED")
       throw new DispositionLedgerBlocked("UNRESOLVED_INTENT");
+    // A new case during replay requires re-planning, not approval based on an old head.
+    const latest = await loadVerifiedLedger(store, crypt, anchor);
+    if (latest.checkpoint.ledgerId !== plan.checkpoint.ledgerId ||
+        latest.checkpoint.epoch !== plan.checkpoint.epoch ||
+        latest.checkpoint.sequence !== plan.checkpoint.sequence ||
+        latest.checkpoint.headDigest !== plan.checkpoint.headDigest)
+      throw new DispositionLedgerBlocked("UNRESOLVED_INTENT");
+    await target.keepAllFeedbackTrafficClosed();
     return { replayVerified: true, admission: "DENY" };
   } catch (error) {
     if (error instanceof DispositionLedgerBlocked) throw error;
