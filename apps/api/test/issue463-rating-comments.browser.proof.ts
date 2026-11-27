@@ -8,6 +8,7 @@ import { seedIssue463Browser } from "./issue463-browser-seed";
 import { startIssue463BrowserProxy } from "./issue463-browser-proxy.mjs";
 import { startIssue463BrowserApps, unusedIssue463Port } from "./issue463-browser-apps";
 import { verifyIssue463RatingReads } from "./issue463-browser-rating-reads";
+import { createIssue463BrowserEvidence } from "./issue463-browser-evidence";
 
 const requireDashboard = createRequire(resolve(process.cwd(), "../dashboard/package.json"));
 const enabled = process.env.ISSUE463_BROWSER_QA === "I_OWN_DISPOSABLE_463";
@@ -16,6 +17,8 @@ describe.runIf(enabled)("Issue463 owned production browser proof", () => {
   it("persists real Guest text, discloses it through real Manager UI, and never retries a lost commit", async () => {
     const target = await acquireIssue463BrowserTarget();
     try {
+      console.info("P7_MILESTONE TARGET_ATTESTED");
+      const evidence = await createIssue463BrowserEvidence(target);
       const fixture = await seedIssue463Browser(target);
       const first = await fixture.completedVisit();
       const legacy = await fixture.completedVisit();
@@ -40,6 +43,7 @@ describe.runIf(enabled)("Issue463 owned production browser proof", () => {
         expect((await fetch(apiOrigin + "/health/ready", {
           signal: AbortSignal.timeout(5_000),
         })).status).toBe(200);
+        console.info("P7_MILESTONE API_READY");
         const proxy = await startIssue463BrowserProxy(apiOrigin);
         try {
           async function bearerRate(token: string, body: object) {
@@ -63,6 +67,7 @@ describe.runIf(enabled)("Issue463 owned production browser proof", () => {
             WHERE r.organization_id=$1 AND r.location_id=$2 AND r.valet_session_id=$3`,
             [fixture.organizationId,fixture.locationId,legacy.id]);
           expect(legacyRows.rows).toEqual([{rating:4,comment_text:null,state:null}]);
+          console.info("P7_MILESTONE LEGACY_ABI");
           const rejected = await bearerRate(denied.token, {
             rating: 5, expectedValetSessionId: denied.id, comment: "Synthetic denied notice proof.",
           });
@@ -72,7 +77,9 @@ describe.runIf(enabled)("Issue463 owned production browser proof", () => {
             (SELECT count(*)::integer FROM guest_ratings WHERE valet_session_id=$1) AS ratings,
             (SELECT count(*)::integer FROM guest_rating_comments WHERE valet_session_id=$1) AS comments`, [denied.id]);
           expect(deniedRows.rows).toEqual([{ratings:0,comments:0}]);
+          console.info("P7_MILESTONE NOTICE_DENIED");
           const apps = await startIssue463BrowserApps(proxy.origin,customerPort,dashboardPort);
+          console.info("P7_MILESTONE APPS_READY");
           try {
             const { chromium } = requireDashboard("@playwright/test");
             const browser = await chromium.launch({headless:true});
@@ -87,8 +94,10 @@ describe.runIf(enabled)("Issue463 owned production browser proof", () => {
                   await page.goto(`${apps.customerOrigin}/#guestToken=${visit.token}`);
                   const rating = page.getByRole("group",{name:"Rate your experience"});
                   await rating.waitFor();
+                  if (visit.id === first.id) await evidence.capture(page, "guest-en-light-empty");
                   await rating.getByRole("button",{name:"5 stars",exact:true}).click();
                   if (text !== null) await page.locator("#rating-comment").fill(text);
+                  if (visit.id === first.id) await evidence.capture(page, "guest-en-light-populated");
                   const before = proxy.observations();
                   if (drop) proxy.armLostRatingResponse();
                   await page.getByRole("button",{name:"Submit rating",exact:true}).click();
@@ -109,6 +118,7 @@ describe.runIf(enabled)("Issue463 owned production browser proof", () => {
               await rate(first,comment);
               await rate(second,null);
               await rate(lost,"Issue463 synthetic lost-response proof.",true);
+              console.info("P7_MILESTONE GUEST_COMMITTED");
               const context = await browser.newContext({viewport:{width:1440,height:900},serviceWorkers:"block"});
               try {
                 await context.addInitScript(() => localStorage.setItem("vaylet_dashboard_locale","en"));
@@ -130,12 +140,14 @@ describe.runIf(enabled)("Issue463 owned production browser proof", () => {
                 await feedback.waitFor();
                 const toggles = feedback.getByRole("button",{name:/View comment for/});
                 await expect.poll(() => toggles.count()).toBe(2);
+                await evidence.capture(page, "dashboard-en-light-collapsed");
                 const names = await toggles.all();
                 let found = false;
                 for (const toggle of names) {
                   await toggle.click();
                   if (await feedback.getByText(comment,{exact:true}).isVisible()) {
                     found = true;
+                    await evidence.capture(page, "dashboard-en-light-expanded");
                     expect(await toggle.getAttribute("aria-expanded")).toBe("true");
                     await toggle.click();
                     expect(await feedback.getByText(comment,{exact:true}).isVisible()).toBe(false);
@@ -143,8 +155,10 @@ describe.runIf(enabled)("Issue463 owned production browser proof", () => {
                   }
                 }
                 expect(found).toBe(true);
+                console.info("P7_MILESTONE DASHBOARD_DISCLOSED");
               } finally { await context.close(); }
               await verifyIssue463RatingReads(target, proxy.origin, apps.dashboardOrigin, fixture, deniedFixture, comment);
+              console.info("P7_MILESTONE READ_SCOPE_PARITY");
             } finally { await browser.close(); }
           } finally { await apps.close(); }
         } finally { await proxy.close(); }

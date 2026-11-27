@@ -190,9 +190,23 @@ export async function runP7Step(root, name, command, args, env, state, timeoutMs
       cwd: root, env, windowsHide: true, stdio: ["ignore", "pipe", "pipe"],
     });
     state.child = child;
+    const milestones = new Set();
+    const permitted = [
+      "TARGET_ATTESTED", "API_READY", "LEGACY_ABI", "NOTICE_DENIED",
+      "APPS_READY", "GUEST_COMMITTED", "DASHBOARD_DISCLOSED", "READ_SCOPE_PARITY",
+    ];
     let stdout = "";
     child.stdout?.on("data", (chunk) => {
       stdout = (stdout + chunk.toString("utf8")).slice(-24000);
+      if (name === "real Issue463 browser proof") {
+        for (const item of permitted) {
+          if (!milestones.has(item) &&
+              stdout.includes("P7_MILESTONE " + item)) {
+            milestones.add(item);
+            console.log("P7_MILESTONE " + item);
+          }
+        }
+      }
     });
     let finished = false;
     const stop = () => {
