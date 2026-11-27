@@ -7,6 +7,7 @@ import { acquireIssue463BrowserTarget } from "./issue463-browser-target";
 import { seedIssue463Browser } from "./issue463-browser-seed";
 import { startIssue463BrowserProxy } from "./issue463-browser-proxy.mjs";
 import { startIssue463BrowserApps, unusedIssue463Port } from "./issue463-browser-apps";
+import { verifyIssue463RatingReads } from "./issue463-browser-rating-reads";
 
 const requireDashboard = createRequire(resolve(process.cwd(), "../dashboard/package.json"));
 const enabled = process.env.ISSUE463_BROWSER_QA === "I_OWN_DISPOSABLE_463";
@@ -143,6 +144,7 @@ describe.runIf(enabled)("Issue463 owned production browser proof", () => {
                 }
                 expect(found).toBe(true);
               } finally { await context.close(); }
+              await verifyIssue463RatingReads(target, proxy.origin, apps.dashboardOrigin, fixture, deniedFixture, comment);
             } finally { await browser.close(); }
           } finally { await apps.close(); }
         } finally { await proxy.close(); }
