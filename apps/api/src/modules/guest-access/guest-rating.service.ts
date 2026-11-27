@@ -1,11 +1,13 @@
 import { inPostgresTransaction } from "../../common/database/postgres-transaction";
 import { Inject, Injectable } from "@nestjs/common";
+import type { GuestRatingScopedFeedbackRequest } from "@valet/contracts";
 
 import type {
   PostgresPool,
   PostgresTransaction,
 } from "../../common/database/postgres";
 import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
+import { ApiTransportValidationError } from "../../common/http/api-errors";
 import {
   AntiAbuseService,
   AntiAbuseUnavailableError,
@@ -23,8 +25,15 @@ import type { GuestCredentialInput } from "./guest-credential";
 
 type GuestRatingOperationResult =
   | { readonly kind: "INVALID_ACCESS" }
-  | { readonly error: GuestRatingError; readonly kind: "INVALID_STATE" }
+  | {
+      readonly error: GuestRatingError | ApiTransportValidationError;
+      readonly kind: "INVALID_STATE";
+    }
   | { readonly kind: "SUCCESS"; readonly rating: GuestRatingCommandResult };
+
+type ScopedFeedback = Pick<
+  GuestRatingScopedFeedbackRequest, "expectedValetSessionId" | "comment"
+>;
 
 @Injectable()
 export class GuestRatingService {
@@ -38,9 +47,10 @@ export class GuestRatingService {
     reservation: AntiAbuseReservation,
     credential: GuestCredentialInput,
     rating: number,
+    scoped?: ScopedFeedback,
   ) {
     const result = await this.inTransaction((transaction) =>
-      this.executeInTransaction(transaction, reservation, credential, rating),
+      this.executeInTransaction(transaction, reservation, credential, rating, scoped),
     );
     if (result.kind === "INVALID_ACCESS") {
       throw new GuestAccessError("GUEST_ACCESS_INVALID");
@@ -58,6 +68,7 @@ export class GuestRatingService {
     reservation: AntiAbuseReservation,
     credential: GuestCredentialInput,
     rating: number,
+    scoped?: ScopedFeedback,
   ): Promise<GuestRatingOperationResult> {
     const resolved =
       await this.guestAccess.resolveAndLockCredentialInTransaction(
@@ -75,6 +86,7 @@ export class GuestRatingService {
         credential,
         resolved.session,
         rating,
+        scoped,
       );
       await this.finalize(transaction, reservation, "IGNORED");
       return { kind: "SUCCESS", rating: result };
@@ -82,6 +94,10 @@ export class GuestRatingService {
       if (error instanceof GuestAccessError) {
         await this.finalize(transaction, reservation, "COUNTED");
         return { kind: "INVALID_ACCESS" };
+      }
+      if (error instanceof ApiTransportValidationError) {
+        await this.finalize(transaction, reservation, "COUNTED");
+        return { error, kind: "INVALID_STATE" };
       }
       if (!(error instanceof GuestRatingError)) throw error;
       await this.finalize(transaction, reservation, "IGNORED");
