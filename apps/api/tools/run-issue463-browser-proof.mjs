@@ -96,6 +96,16 @@ async function execute() {
     await provisionP7(root, env, state);
     if (state.interrupted) throw new Error("Issue463 P7 interrupted before browser test.");
     console.log("PASS provisioned P2_TEST then P5_TEST; never RELEASE");
+    const proofEnv = { ...env, RATING_FEEDBACK_STAGE: "P5_TEST" };
+    for (const file of [
+      "issue463-p2-disposable-smoke.mjs",
+      "issue463-p2-disposable-privacy-races.mjs",
+      "issue463-p5-disposable-projection.mjs",
+      "issue463-p5-disposable-ma-lk.mjs",
+    ]) {
+      await runP7Step(root, file, process.execPath,
+        ["packages/database/scripts/" + file], proofEnv, state, 180000);
+    }
     await runP7Step(root, "real Issue463 browser proof", "pnpm", [
       "--dir", "apps/api", "exec", "vitest", "run", "--config",
       "vitest.issue463-browser.config.mjs",

@@ -2,26 +2,8 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import pg from "pg";
-
-for (const k of [
-  "ISSUE463_P2_DISPOSABLE_ATTEST", "MIGRATION_DATABASE_URL",
-  "ISSUE463_TEST_RUNTIME_DATABASE_URL", "ISSUE463_TEST_APPROVER_DATABASE_URL",
-  "ISSUE463_TEST_EXECUTOR_DATABASE_URL",
-]) if (!process.env[k]) throw Error("Disposable Issue463 test target required");
-if (process.env.NODE_ENV !== "test") throw Error("P2 privacy races are test-only");
-for (const [name,principal] of [
-  ["MIGRATION_DATABASE_URL","p0463_migrator"],
-  ["ISSUE463_TEST_RUNTIME_DATABASE_URL","p0463_runtime"],
-  ["ISSUE463_TEST_APPROVER_DATABASE_URL","vaylet_rating_feedback_privacy_approver"],
-  ["ISSUE463_TEST_EXECUTOR_DATABASE_URL","vaylet_rating_feedback_privacy_executor"],
-]) {
-  const url=new URL(process.env[name]);
-  if(!["postgresql:","postgres:"].includes(url.protocol)||
-     url.hostname!=="127.0.0.1"||url.pathname!=="/p0463_w2_db"||
-     url.username!==principal||!/^\d{4,5}$/.test(url.port)){
-    throw Error("P2 privacy races require exact loopback fixture principals");
-  }
-}
+import { assertP7SqlTarget } from "../../../apps/api/tools/issue463-browser-proof-sql-target.mjs";
+const target=await assertP7SqlTarget();
 const id=n=>"00000000-0000-4000-8000-"+String(n).padStart(12,"0");
 const clients=[];
 let assertions=0;
@@ -36,13 +18,13 @@ const one=async(c,sql,p=[])=>(await c.query(sql,p)).rows[0];
 let m,r,a,e,blocker;
 try {
   m=await connect("MIGRATION_DATABASE_URL");
-  r=await connect("ISSUE463_TEST_RUNTIME_DATABASE_URL");
-  a=await connect("ISSUE463_TEST_APPROVER_DATABASE_URL");
-  e=await connect("ISSUE463_TEST_EXECUTOR_DATABASE_URL");
+  r=await connect("DATABASE_URL");
+  a=await connect("RATING_FEEDBACK_APPROVER_DATABASE_URL");
+  e=await connect("RATING_FEEDBACK_EXECUTOR_DATABASE_URL");
   blocker=await connect("MIGRATION_DATABASE_URL");
   const guard=await one(m,"SELECT current_database() db,current_user usr,system_identifier::text system FROM pg_control_system()");
   eq([guard.db,guard.usr,guard.system],
-    ["p0463_w2_db","p0463_migrator",process.env.ISSUE463_P2_DISPOSABLE_ATTEST],
+    [target.database,"issue463_p7_migrator",target.system],
     "own PG17 instance");
   const org=id(101), loc=id(201);
   const dueIds=[id(704),id(705)];

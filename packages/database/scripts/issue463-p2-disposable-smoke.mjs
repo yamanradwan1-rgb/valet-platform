@@ -2,30 +2,8 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import pg from "pg";
-
-const required = [
-  "ISSUE463_P2_DISPOSABLE_ATTEST", "MIGRATION_DATABASE_URL",
-  "ISSUE463_TEST_RUNTIME_DATABASE_URL", "ISSUE463_TEST_APPROVER_DATABASE_URL",
-  "ISSUE463_TEST_EXECUTOR_DATABASE_URL",
-];
-for (const name of required) {
-  if (!process.env[name]) throw Error("P2 isolated target config required");
-}
-if (process.env.NODE_ENV !== "test") throw Error("P2 smoke is test-only");
-for (const [name,principal] of [
-  ["MIGRATION_DATABASE_URL","p0463_migrator"],
-  ["ISSUE463_TEST_RUNTIME_DATABASE_URL","p0463_runtime"],
-  ["ISSUE463_TEST_APPROVER_DATABASE_URL","vaylet_rating_feedback_privacy_approver"],
-  ["ISSUE463_TEST_EXECUTOR_DATABASE_URL","vaylet_rating_feedback_privacy_executor"],
-]) {
-  const url = new URL(process.env[name]);
-  if (!["postgresql:","postgres:"].includes(url.protocol) ||
-      url.hostname !== "127.0.0.1" ||
-      url.pathname !== "/p0463_w2_db" || url.username !== principal ||
-      !/^\d{4,5}$/.test(url.port)) {
-    throw Error("P2 smoke requires exact loopback isolated fixture principals");
-  }
-}
+import { assertP7SqlTarget } from "../../../apps/api/tools/issue463-browser-proof-sql-target.mjs";
+const target=await assertP7SqlTarget();
 const id = (n) => "00000000-0000-4000-8000-" + String(n).padStart(12,"0");
 const org=id(101), loc=id(201);
 const clients = [];
@@ -52,12 +30,12 @@ async function denied(client,sql,args=[]) {
 let migration,runtime,approver,executor;
 try {
   migration=await db("MIGRATION_DATABASE_URL");
-  runtime=await db("ISSUE463_TEST_RUNTIME_DATABASE_URL");
-  approver=await db("ISSUE463_TEST_APPROVER_DATABASE_URL");
-  executor=await db("ISSUE463_TEST_EXECUTOR_DATABASE_URL");
+  runtime=await db("DATABASE_URL");
+  approver=await db("RATING_FEEDBACK_APPROVER_DATABASE_URL");
+  executor=await db("RATING_FEEDBACK_EXECUTOR_DATABASE_URL");
   const where=await row(migration,"SELECT current_database() db,current_user principal,current_setting('server_version_num')::int pg,system_identifier::text sid FROM pg_control_system()");
   eq([where.db,where.principal,where.pg,where.sid],
-     ["p0463_w2_db","p0463_migrator",170011,process.env.ISSUE463_P2_DISPOSABLE_ATTEST],
+     [target.database,"issue463_p7_migrator",170011,target.system],
      "fresh W2 attestation");
   const migrations=await row(migration,"SELECT count(*)::int n,count(*) FILTER(WHERE finished_at IS NOT NULL)::int ok FROM _prisma_migrations");
   eq([migrations.n,migrations.ok],[157,157],"complete official migration ledger");
@@ -141,7 +119,7 @@ try {
   eq((await guest(tokenB,5,null,null,true)).result_code,"CONFLICT","legacy erased denial");
   const erased=await row(migration,"SELECT comment_text,state,erased_at IS NOT NULL erased FROM guest_rating_comments WHERE valet_session_id=$1",[visitB]);
   eq(erased,{comment_text:null,state:"ERASED",erased:true},"terminal content cleared");
-  const grants=await row(migration,"SELECT has_column_privilege('vaylet_rating_feedback_privacy_owner','public.guest_rating_comments','comment_text','SELECT') can_read,has_table_privilege('p0463_runtime','public.guest_rating_comments','UPDATE') can_write");
+  const grants=await row(migration,"SELECT has_column_privilege('vaylet_rating_feedback_privacy_owner','public.guest_rating_comments','comment_text','SELECT') can_read,has_table_privilege('issue463_p7_runtime','public.guest_rating_comments','UPDATE') can_write");
   eq(grants,{can_read:false,can_write:false},"least privilege after erasure");
   console.log(JSON.stringify({result:"PASS",assertions,canonicalVectors:parity,
     unsupportedJsOnly:incompatible,scope:"P2 SQL: legacy/new4, notice, immutable pair, privacy HOLD/ERASE/RELEASE"}));

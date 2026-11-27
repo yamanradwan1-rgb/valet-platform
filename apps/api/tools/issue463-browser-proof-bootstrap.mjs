@@ -225,6 +225,9 @@ export async function runP7Step(root, name, command, args, env, state, timeoutMs
       state.stopChild = null;
       if (error) {
         fail(error);
+      } else if (name.endsWith(".mjs") && name.startsWith("issue463-") &&
+          !/"result":"PASS","assertions":(?:230|22|7|52)(?:,|\})/u.test(stdout)) {
+        fail(new Error("Issue463 SQL proof did not report its assertion receipt: " + name));
       } else if (name === "real Issue463 browser proof" &&
           !/Tests\s+1 passed\s+\(1\)/u.test(
             stdout.replaceAll("\u001b", "").replace(/\[[0-9;]*m/gu, ""),

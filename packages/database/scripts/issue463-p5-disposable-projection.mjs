@@ -1,27 +1,11 @@
 // Bounded P5 projection / legacy numeric parity on owned synthetic PG17 only.
 import assert from "node:assert/strict";
 import pg from "pg";
-
-if (process.env.NODE_ENV !== "test" ||
-    !process.env.ISSUE463_P2_DISPOSABLE_ATTEST ||
-    !process.env.MIGRATION_DATABASE_URL ||
-    !process.env.ISSUE463_TEST_RUNTIME_DATABASE_URL) {
-  throw Error("P5 needs an attested, disposable PostgreSQL test target");
-}
-for(const [name,principal] of [
-  ["MIGRATION_DATABASE_URL","p0463_migrator"],
-  ["ISSUE463_TEST_RUNTIME_DATABASE_URL","p0463_runtime"],
-]){
-  const url=new URL(process.env[name]);
-  if(!["postgresql:","postgres:"].includes(url.protocol)||
-     url.hostname!=="127.0.0.1"||url.pathname!=="/p0463_w2_db"||
-     url.username!==principal||!/^\d{4,5}$/.test(url.port)){
-    throw Error("P5 test requires exact loopback fixture identity");
-  }
-}
+import { assertP7SqlTarget } from "../../../apps/api/tools/issue463-browser-proof-sql-target.mjs";
+const target=await assertP7SqlTarget();
 const id=n=>"00000000-0000-4000-8000-"+String(n).padStart(12,"0");
 const m=new pg.Client({connectionString:process.env.MIGRATION_DATABASE_URL});
-const r=new pg.Client({connectionString:process.env.ISSUE463_TEST_RUNTIME_DATABASE_URL});
+const r=new pg.Client({connectionString:process.env.DATABASE_URL});
 let assertions=0;
 function eq(actual,expected,label){
   assert.deepEqual(actual,expected,label);
@@ -33,7 +17,7 @@ try {
     "SELECT current_database() db,current_user usr,system_identifier::text system FROM pg_control_system()"
   )).rows[0];
   eq([identity.db,identity.usr,identity.system],[
-    "p0463_w2_db","p0463_migrator",process.env.ISSUE463_P2_DISPOSABLE_ATTEST,
+    target.database,"issue463_p7_migrator",target.system,
   ],"disposable target");
   const day=(await r.query("SELECT CURRENT_DATE AS today")).rows[0].today;
   const scope=id(101), member=id(401);
