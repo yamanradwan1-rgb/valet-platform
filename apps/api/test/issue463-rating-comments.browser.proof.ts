@@ -76,7 +76,7 @@ describe.runIf(enabled)("Issue463 owned production browser proof", () => {
                 await context.addInitScript(() => localStorage.setItem("vaylet_dashboard_locale","en"));
                 const page = await context.newPage();
                 page.setDefaultTimeout(25_000);
-                await page.goto(apps.dashboardOrigin+"/analytics");
+                await page.goto(apps.dashboardOrigin+"/analytics?preset=LAST_30_DAYS");
                 await page.getByLabel("Email").fill(fixture.email);
                 await page.getByLabel("Password").fill(fixture.password);
                 await page.getByRole("button",{name:"Sign in"}).click();
