@@ -535,6 +535,7 @@ model Organization {
   id                          String                      @id @default(uuid()) @db.Uuid
   name                        String
   status                      OrganizationStatus          @default(ACTIVE)
+  ratingFeedbackLockGuard     BigInt                      @default(0) @map("rating_feedback_lock_guard")
   timezone                    String
   checkInPhotosRequired       Boolean                     @default(false) @map("check_in_photos_required")
   handoffStandardMethodPolicy HandoffStandardMethodPolicy @default(EITHER) @map("handoff_standard_method_policy")
@@ -633,6 +634,7 @@ model Location {
   timezone                            String
   currency                            String
   status                              LocationStatus               @default(INACTIVE)
+  ratingFeedbackLockGuard             BigInt                       @default(0) @map("rating_feedback_lock_guard")
   checkInPhotosRequiredOverride       Boolean?                     @map("check_in_photos_required_override")
   handoffStandardMethodPolicyOverride HandoffStandardMethodPolicy? @map("handoff_standard_method_policy_override")
   trackingEnabledOverride             Boolean?                     @map("tracking_enabled_override")
@@ -745,6 +747,7 @@ model GuestLocationPrivacy {
   revision Int @default(0)
   publishedVersion Int? @map("published_version")
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  ratingFeedbackNoticeLockGuard BigInt @default(0) @map("rating_feedback_notice_lock_guard")
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, map: "guest_location_privacy_organization_id_fkey")
   location Location @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, map: "guest_location_privacy_location_fkey")
@@ -769,6 +772,7 @@ model GuestPrivacyPublication {
   location Location @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, map: "guest_privacy_publications_location_fkey")
   privacy GuestLocationPrivacy @relation("GuestPrivacyHistory", fields: [organizationId, locationId], references: [organizationId, locationId], onDelete: Restrict, map: "guest_privacy_publications_privacy_fkey")
   activeFor GuestLocationPrivacy[] @relation("GuestPrivacyActive")
+  ratingCommentApprovals GuestRatingCommentNoticeApproval[]
 
   @@id([organizationId, locationId, version])
   @@index([organizationId, locationId, publishedAt(sort: Desc)], map: "guest_privacy_publications_scope_date_idx")
@@ -861,6 +865,7 @@ model UserMfaTotpFactor {
   id                    String             @id @default(uuid()) @db.Uuid
   userId                String             @map("user_id") @db.Uuid
   state                 MfaTotpFactorState @default(PENDING)
+  ratingFeedbackLockGuard BigInt           @default(0) @map("rating_feedback_lock_guard")
   protectedSecret       String             @map("protected_secret")
   pendingEnrollmentSessionId String?        @map("pending_enrollment_session_id") @db.Uuid
   lastAcceptedStep      BigInt?            @map("last_accepted_step")
@@ -924,6 +929,7 @@ model OrganizationMembership {
   lastName       String?          @map("last_name")
   role           MembershipRole
   status         MembershipStatus @default(ACTIVE)
+  ratingFeedbackLockGuard BigInt   @default(0) @map("rating_feedback_lock_guard")
   version        Int              @default(1)
   createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
@@ -1047,6 +1053,7 @@ model MembershipLocationAccess {
   organizationId String   @map("organization_id") @db.Uuid
   membershipId   String   @map("membership_id") @db.Uuid
   locationId     String   @map("location_id") @db.Uuid
+  ratingFeedbackLockGuard BigInt @default(0) @map("rating_feedback_lock_guard")
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
   organization Organization           @relation(fields: [organizationId], references: [id], onDelete: Restrict)
@@ -1236,6 +1243,7 @@ model ValetSession {
   completedAt                             DateTime?         @map("completed_at") @db.Timestamptz(3)
   version                                 Int               @default(1)
   updatedAt                               DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+  ratingFeedbackPrivacyLockGuard          BigInt            @default(0) @map("rating_feedback_privacy_lock_guard")
 
   organization                Organization             @relation(fields: [organizationId], references: [id], onDelete: Restrict, map: "valet_sessions_organization_id_fkey")
   location                    Location                 @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, map: "valet_sessions_org_location_id_fkey")
@@ -1269,6 +1277,8 @@ model ValetSession {
   geofenceEvents              GeofenceEvent[]
   staffPushIntents            StaffPushIntent[]
   guestRatings                GuestRating[]
+  guestRatingComments         GuestRatingComment[]
+  guestRatingPrivacyCommands  GuestRatingCommentPrivacyCommand[]
   guestBrowserEnrollments     GuestBrowserEnrollment[]
   guestBrowserSessions        GuestBrowserSession[]
   guestPushRegistrations      GuestPushRegistration[]
@@ -1334,9 +1344,79 @@ model GuestRating {
   ratedAt        DateTime @default(dbgenerated("clock_timestamp()")) @map("rated_at") @db.Timestamptz(3)
 
   valetSession ValetSession @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "guest_ratings_org_location_session_id_fkey")
+  comment GuestRatingComment?
 
   @@index([organizationId, locationId, valetSessionId], map: "guest_ratings_org_location_session_id_idx")
   @@map("guest_ratings")
+}
+
+enum GuestRatingCommentState {
+  PRESENT
+  HELD
+  ERASED
+
+  @@map("guest_rating_comment_state")
+}
+
+// Optional one-to-one private comment; original numeric GuestRating remains immutable.
+model GuestRatingComment {
+  organizationId String @map("organization_id") @db.Uuid
+  locationId String @map("location_id") @db.Uuid
+  valetSessionId String @id @map("valet_session_id") @db.Uuid
+  commentText String? @map("comment_text") @db.Text
+  state GuestRatingCommentState
+  retentionExpiresAt DateTime @map("retention_expires_at") @db.Timestamptz(3)
+  noticeVersion Int @map("notice_version")
+  holdCaseId String? @map("hold_case_id") @db.Uuid
+  erasePending Boolean @default(false) @map("erase_pending")
+  erasedAt DateTime? @map("erased_at") @db.Timestamptz(3)
+  ratingFeedbackLockGuard BigInt @default(0) @map("rating_feedback_lock_guard")
+
+  rating GuestRating @relation(fields: [valetSessionId], references: [valetSessionId], onDelete: Restrict, onUpdate: Restrict)
+  valetSession ValetSession @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "guest_rating_comments_visit_fkey")
+  noticeApproval GuestRatingCommentNoticeApproval @relation(fields: [organizationId, locationId, noticeVersion], references: [organizationId, locationId, publishedVersion], onDelete: Restrict, onUpdate: Restrict, map: "guest_rating_comments_notice_fkey")
+
+  @@map("guest_rating_comments")
+}
+
+// Approval is version-scoped, terminally revocable, and contains no Guest text.
+model GuestRatingCommentNoticeApproval {
+  organizationId String @map("organization_id") @db.Uuid
+  locationId String @map("location_id") @db.Uuid
+  publishedVersion Int @map("published_version")
+  approvalCaseId String @map("approval_case_id") @db.Uuid
+  approvedAt DateTime @map("approved_at") @db.Timestamptz(3)
+  approverRef String @map("approver_ref") @db.Text
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz(3)
+  revocationCaseId String? @map("revocation_case_id") @db.Uuid
+  revokedByRef String? @map("revoked_by_ref") @db.Text
+
+  publication GuestPrivacyPublication @relation(fields: [organizationId, locationId, publishedVersion], references: [organizationId, locationId, version], onDelete: Restrict, onUpdate: Restrict)
+  comments GuestRatingComment[]
+
+  @@id([organizationId, locationId, publishedVersion], map: "guest_rating_comment_notice_approvals_pkey")
+  @@map("guest_rating_comment_notice_approvals")
+}
+
+// Append-only approved case plus single terminal outcome receipt. No content,
+// content hash/length, free-form reason or guest credential is stored here.
+model GuestRatingCommentPrivacyCommand {
+  approvalId String @id @map("approval_id") @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  locationId String @map("location_id") @db.Uuid
+  visitId String @map("visit_id") @db.Uuid
+  action String @db.Text
+  caseId String @map("case_id") @db.Uuid
+  approvedAt DateTime @default(dbgenerated("clock_timestamp()")) @map("approved_at") @db.Timestamptz(3)
+  validUntil DateTime @map("valid_until") @db.Timestamptz(3)
+  approvedBy String @map("approved_by") @db.Text
+  completedAt DateTime? @map("completed_at") @db.Timestamptz(3)
+  executedBy String? @map("executed_by") @db.Text
+  outcome String? @db.Text
+
+  valetSession ValetSession @relation(fields: [organizationId, locationId, visitId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "guest_rating_comment_commands_visit_fkey")
+
+  @@map("guest_rating_comment_privacy_commands")
 }
 
 model KeyCustodyEvent {
@@ -2551,6 +2631,7 @@ model OrganizationSubscription {
   planCode               String                         @map("plan_code")
   status                 OrganizationSubscriptionStatus
   dashboardAccessEnabled Boolean                        @map("dashboard_access_enabled")
+  ratingFeedbackLockGuard BigInt                        @default(0) @map("rating_feedback_lock_guard")
   reportExportsEnabled   Boolean                        @map("report_exports_enabled")
   basicBrandingEnabled   Boolean                        @map("basic_branding_enabled")
   createdAt              DateTime                       @default(now()) @map("created_at") @db.Timestamptz(3)
