@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isCanonicalGuestRatingComment } from "./guest-rating-comment.js";
 import { utf16StringMax } from "./utf16-string-max.js";
 
 const nonNegativeCount = z.number().int().nonnegative().safe();
@@ -66,4 +67,24 @@ export const customerFeedbackAnalyticsResponseSchema = z.object({
 
 export type CustomerFeedbackAnalyticsResponse = z.infer<
   typeof customerFeedbackAnalyticsResponseSchema
+>;
+
+/**
+ * Opt-in only: the default schema above still rejects all comment fields.
+ * The existing metrics refinements run for both response variants.
+ */
+export const customerFeedbackRatingRowWithCommentSchema =
+  customerFeedbackRatingRowSchema.safeExtend({
+    comment: z.string()
+      .refine(isCanonicalGuestRatingComment, "Comment must be canonical.")
+      .nullable(),
+  });
+
+export const customerFeedbackAnalyticsWithCommentsResponseSchema =
+  customerFeedbackAnalyticsResponseSchema.safeExtend({
+    recentRatings: z.array(customerFeedbackRatingRowWithCommentSchema).max(4),
+  });
+
+export type CustomerFeedbackAnalyticsWithCommentsResponse = z.infer<
+  typeof customerFeedbackAnalyticsWithCommentsResponseSchema
 >;
