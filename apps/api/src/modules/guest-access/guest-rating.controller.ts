@@ -9,7 +9,7 @@ import {
 } from "@nestjs/common";
 import {
   emptyRequestSchema,
-  guestRatingSubmissionRequestSchema,
+  guestRatingSubmissionUnionSchema,
   guestRatingSubmissionResponseSchema,
 } from "@valet/contracts";
 
@@ -25,6 +25,7 @@ import {
 } from "../../common/http/no-store-response";
 import { GuestCredentialAuthorizer } from "./guest-credential-authorizer";
 import { GuestRatingService } from "./guest-rating.service";
+import { requireScopedRatingRawUtf8 } from "./guest-rating-scoped-raw-body";
 
 function parseQuery(value: unknown): void {
   if (!emptyRequestSchema.safeParse(value === undefined ? {} : value).success) {
@@ -53,15 +54,25 @@ export class GuestRatingController {
       guestOperation("GUEST_RATING_SUBMIT"),
       request,
       async () => {
-        const parsed = guestRatingSubmissionRequestSchema.safeParse(body);
+        const parsed = guestRatingSubmissionUnionSchema.safeParse(body);
         if (!parsed.success) throw new ApiTransportValidationError();
         parseQuery(query);
+        if ("expectedValetSessionId" in parsed.data) {
+          requireScopedRatingRawUtf8(request);
+        }
         return guestRatingSubmissionResponseSchema.parse(
           await this.authorizer.authorize(
             request,
             { mutation: true },
-            (reservation, credential) =>
-              this.service.submit(reservation, credential, parsed.data.rating),
+            (reservation, credential) => {
+              const submitted = parsed.data;
+              return "expectedValetSessionId" in submitted
+                ? this.service.submit(reservation, credential, submitted.rating, {
+                    expectedValetSessionId: submitted.expectedValetSessionId,
+                    comment: submitted.comment,
+                  })
+                : this.service.submit(reservation, credential, submitted.rating);
+            },
           ),
         );
       },

@@ -4197,6 +4197,11 @@ Session rating exists only within the 24-hour `COMPLETED` post-visit scope and
 must pass the same function-only least-privilege database authorization;
 `CANCELLED` has no rating scope.
 
+Owner-approved Issue #463 amendment (2026-11-27): atomic optional private
+comment child, immutable numeric parent, terminal privacy-only removal, safe
+conflict on all retries after erasure. Controlled implementation only; see
+full contract and handoff for unresolved legal task prerequisites.
+
 Full contract:
 `docs/decisions/DEC-091_GUEST_RATING_AND_RETURNING_CONTACT.md`.
 
@@ -4253,6 +4258,11 @@ anchored at the authoritative retrieval-request transition. Key Exceptions are
 exactly four controlled Incident types. Cars per Active Employee uses only the
 explicit approved immutable actor-at-time operational evidence union; final
 handoffs remain sourced from the persisted completing membership.
+
+Owner-approved Issue #463 amendment (2026-11-27): optional exact protected
+latest-four comment projection with unchanged default numeric response,
+cohort and aggregates. Exact Option C least-privilege contract; dormant
+PREPARE, separate PROTECTED RELEASE; no production activation.
 
 Full contract:
 `docs/decisions/DEC-095_MANAGEMENT_KPI_SOURCE_CONTRACTS.md`.

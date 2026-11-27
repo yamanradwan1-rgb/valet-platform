@@ -1,5 +1,6 @@
 import { databaseFailureReason } from "./database-failure-reason";
 import type { PostgresPool } from "./postgres";
+import { ratingFeedbackReadinessQuery, type FeedbackReadinessRow } from "./rating-feedback-database-readiness";
 import {
   RuntimeDatabaseUnavailableError,
   withDatabaseDeadline,
@@ -7,12 +8,12 @@ import {
 
 const readinessDeadlineMs = 2_500;
 
-interface RuntimeReadinessRow {
+interface RuntimeReadinessRow extends FeedbackReadinessRow {
   readonly anti_abuse_ready: boolean;
   readonly guest_browser_ready: boolean;
 }
 
-const readinessQuery = `SELECT
+const legacyReadinessQuery = `SELECT
   to_regclass('public.anti_abuse_events') IS NOT NULL
     AND has_table_privilege(current_user, 'public.anti_abuse_events', 'SELECT')
     AND NOT has_any_column_privilege(current_user,'public.anti_abuse_events','INSERT')
@@ -60,6 +61,8 @@ const readinessQuery = `SELECT
     ) AS required(name)
   ) AS guest_browser_ready`;
 
+const readinessQuery = `SELECT legacy.*, feedback.* FROM (${legacyReadinessQuery}) legacy CROSS JOIN (${ratingFeedbackReadinessQuery("read")}) feedback`;
+
 export async function verifyRuntimeDatabaseReadiness(
   pool: Pick<PostgresPool, "query">,
 ): Promise<void> {
@@ -71,7 +74,9 @@ export async function verifyRuntimeDatabaseReadiness(
     if (
       result.rowCount !== 1 ||
       row?.anti_abuse_ready !== true ||
-      row.guest_browser_ready !== true
+      row.guest_browser_ready !== true ||
+      row.phase_ready !== true || row.functions_ready !== true ||
+      row.owner_ready !== true || row.grants_safe !== true || row.guards_ready !== true
     ) {
       throw new RuntimeDatabaseUnavailableError();
     }

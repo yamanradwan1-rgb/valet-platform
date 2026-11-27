@@ -16,7 +16,7 @@ const roles = [
   "vaylet_management_writer",
 ];
 
-function client({ runtimeExecute }) {
+function client({ runtimeExecute,readerExecute=false }) {
   return {
     async query(sql, values) {
       if (sql.includes("SELECT function.prosecdef")) {
@@ -38,12 +38,21 @@ function client({ runtimeExecute }) {
         if (runtimeExecute) {
           rows.push({ grantee: runtime, is_grantable: false });
         }
+        if (readerExecute) {
+          rows.push({
+            grantee: "vaylet_rating_feedback_reader_owner",
+            is_grantable: false,
+          });
+        }
         return { rowCount: rows.length, rows };
       }
       if (sql.includes("has_function_privilege")) {
         return {
           rowCount: 1,
-          rows: [{ allowed: runtimeExecute && values[0] === runtime }],
+          rows: [{ allowed:
+            (runtimeExecute && values[0] === runtime) ||
+            (readerExecute && values[0] === "vaylet_rating_feedback_reader_owner"),
+          }],
         };
       }
       throw new Error("Unexpected SQL: " + sql);
@@ -66,6 +75,19 @@ test("LEGACY readiness accepts owner-only session lock EXECUTE before retirement
 
 test("PROTECTED verification requires the narrow Runtime EXECUTE grant", async () => {
   await assertFunctionAcl(client({ runtimeExecute: true }), runtime, roles);
+});
+
+test("feedback nested grant requires explicit validated P5 stage exception",async()=>{
+  const active=client({runtimeExecute:true,readerExecute:true});
+  await assert.rejects(
+    assertFunctionAcl(active,runtime,roles),/EXECUTE inventory is unsafe/);
+  await assertFunctionAcl(active,runtime,roles,{
+    allowFeedbackReaderExecutor:true,
+  });
+  await assert.rejects(assertFunctionAcl(
+    client({runtimeExecute:true}),runtime,roles,{
+      allowFeedbackReaderExecutor:true,
+    }),/EXECUTE inventory is unsafe/);
 });
 
 test("LEGACY provisioning grants only the verified session lock to Runtime", async () => {

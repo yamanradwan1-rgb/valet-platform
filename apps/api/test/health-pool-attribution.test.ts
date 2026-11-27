@@ -139,7 +139,7 @@ describe("private readiness pool-failure attribution", () => {
     expect(query).toHaveBeenCalledTimes(1);
     finish({
       rowCount: 1,
-      rows: [{ anti_abuse_ready: true, guest_browser_ready: true }],
+      rows: [{ anti_abuse_ready: true, guest_browser_ready: true, phase_ready: true, functions_ready: true, owner_ready: true, grants_safe: true, guards_ready: true }],
     });
     const results = await Promise.all(outcomes);
     expect(

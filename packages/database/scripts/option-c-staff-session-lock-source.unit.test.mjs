@@ -114,7 +114,15 @@ test("Runtime ACL excludes the verifier and all protected session updates", () =
   );
   assert.match(
     lockAclVerification,
-    /access\.rows\[0\]\?\.allowed !== \(role === runtimeRole\)/,
+    /access\.rows\[0\]\?\.allowed !== expected/,
+  );
+  assert.match(
+    lockAclVerification,
+    /role === runtimeRole[\s\S]*?requireRuntimeExecute \|\| explicitRuntime\.length === 1/,
+  );
+  assert.match(
+    lockAclVerification,
+    /allowFeedbackReaderExecutor[\s\S]*?explicitFeedback\.length===1/,
   );
 });
 

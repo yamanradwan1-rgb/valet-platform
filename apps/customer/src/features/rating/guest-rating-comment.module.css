@@ -1,0 +1,31 @@
+.label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--v-text);
+}
+
+.comment {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin-top: 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--v-border);
+  background-color: var(--v-surface);
+  color: var(--v-text);
+  font-size: 14px;
+  font-family: inherit;
+  line-height: 1.5;
+  resize: vertical;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+
+.comment::placeholder { color: var(--v-text-secondary); }
+.comment:disabled { opacity: .65; }
+.comment:focus-visible {
+  outline: 2px solid var(--brand-focus, var(--v-blue));
+  outline-offset: 2px;
+}

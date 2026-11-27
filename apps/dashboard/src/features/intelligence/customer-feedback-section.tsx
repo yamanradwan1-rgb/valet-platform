@@ -15,6 +15,7 @@ export interface CustomerFeedbackSectionProps {
   readonly data: CustomerFeedbackAnalyticsResponse | null;
   readonly loading: boolean;
   readonly error: unknown;
+  readonly requestKey?: string | null;
   readonly onRetry: () => void;
 }
 
@@ -52,7 +53,7 @@ export function CustomerFeedbackSection(props: CustomerFeedbackSectionProps) {
         {state === "ready" && props.data ? (
           <>
             <CustomerFeedbackSummary data={props.data} locale={props.locale} />
-            <CustomerFeedbackInsights data={props.data} locale={props.locale} />
+            <CustomerFeedbackInsights key={props.requestKey ?? "legacy"} data={props.data} locale={props.locale} />
             <p className={styles.note}>{t.cohort}</p>
           </>
         ) : (

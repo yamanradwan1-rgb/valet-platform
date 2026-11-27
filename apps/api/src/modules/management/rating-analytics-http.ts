@@ -1,5 +1,5 @@
 import { UnauthorizedException } from "@nestjs/common";
-import { analyticsPeriodQuerySchema } from "@valet/contracts";
+import { ratingFeedbackReadQuerySchema } from "@valet/contracts";
 
 import { ApiTransportValidationError } from "../../common/http/api-errors";
 import type { ApiRequest } from "../../common/http/api-request";
@@ -25,8 +25,12 @@ export function requireRatingAnalyticsAuthorization(request: ApiRequest): void {
   if (count !== 1) throw new UnauthorizedException();
 }
 
-export function ratingAnalyticsPeriod(rawQuery: unknown) {
-  const parsed = analyticsPeriodQuerySchema.safeParse(rawQuery ?? {});
+export function ratingAnalyticsReadQuery(rawQuery: unknown) {
+  const parsed = ratingFeedbackReadQuerySchema.safeParse(rawQuery ?? {});
   if (!parsed.success) throw new ApiTransportValidationError();
-  return validateAnalyticsPeriod(parsed.data.from, parsed.data.to);
+  return {
+    includeComments: "includeComments" in parsed.data &&
+      parsed.data.includeComments === "true",
+    period: validateAnalyticsPeriod(parsed.data.from, parsed.data.to),
+  };
 }

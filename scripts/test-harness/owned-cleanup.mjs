@@ -5,6 +5,8 @@ import {
   removeRunState,
 } from "./ownership-state.mjs";
 import { postgresEndpointIdentity } from "./postgres-endpoint.mjs";
+import { URL } from "node:url";
+import { isIssue463SharedRole } from "./issue463-shared-role-policy.mjs";
 
 const sharedProtectedRoles = new Set([
   "vap1_proof_owner",
@@ -175,6 +177,14 @@ function assertSafeCleanupPlan(plan, databaseUrl, requireAttestedTarget) {
   ) {
     throw new Error(
       "PostgreSQL cleanup cannot drop its own administrative identity.",
+    );
+  }
+  // A run or stale-owner ledger cannot prove ownership over these fixed
+  // cluster principals. Reject even with an attested target rather than
+  // dropping a role that another test database still depends upon.
+  if (plan.roles.some((role) => isIssue463SharedRole(role.name))) {
+    throw new Error(
+      "PostgreSQL cleanup refuses Issue463 cluster-owned shared roles.",
     );
   }
   if (

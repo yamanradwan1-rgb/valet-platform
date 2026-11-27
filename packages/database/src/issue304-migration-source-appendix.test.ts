@@ -9,13 +9,14 @@ import {
   issue435AppendedMigrationDirectories,
   issue416AppendedMigrationDirectories,
   optionCAppendedMigrationDirectories,
+  issue463AppendedMigrationDirectories,
   issue304AppendedMigrationDirectories,
   subsequentAppendedMigrationDirectories,
 } from "./issue304-migration-source-appendix.js";
 import { expectedMigrationDirectories } from "./migration-manifest.js";
 
 describe("append-only migration source history", () => {
-  it("preserves migrations 1..111 and enumerates dormant Issue416 sources", () => {
+  it("preserves historical migrations and enumerates all forward-only sources", () => {
     expect(expectedMigrationDirectories).toHaveLength(93);
     expect(issue300AppendedMigrationDirectories).toEqual([
       "20261018009400_issue_300_u05_birth_xid",
@@ -93,7 +94,11 @@ describe("append-only migration source history", () => {
       "20261118000100_option_c_management_mfa_step_up_contract",
       "20261118000200_option_c_management_authority_freshness",
     ]);
-    expect(expectedCurrentMigrationDirectories).toHaveLength(155);
+    expect(issue463AppendedMigrationDirectories).toEqual([
+      "20261127000100_issue463_guest_rating_comments_p2",
+      "20261127000200_issue463_management_feedback_reader_p5",
+    ]);
+    expect(expectedCurrentMigrationDirectories).toHaveLength(157);
     const migrationRoot = fileURLToPath(
       new URL("../prisma/migrations/", import.meta.url),
     );

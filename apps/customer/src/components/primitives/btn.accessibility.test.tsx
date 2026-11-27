@@ -136,17 +136,18 @@ describe('shared Guest Btn accessibility', () => {
     ['ar', 'إرسال التقييم', 'saved'],
     ['ar', 'إرسال التقييم', 'failed'],
   ] as const)('keeps rating identity in %s (%s) through saving to %s', async (locale, action, outcome) => {
-    let resolve!: (result: { valetSessionId: string }) => void;
+    const visitId = '123e4567-e89b-12d3-a456-426614174000';
+    let resolve!: (result: { valetSessionId: string; rating: number }) => void;
     let reject!: (reason: Error) => void;
-    const pending = new Promise<{ valetSessionId: string }>((yes, no) => {
+    const pending = new Promise<{ valetSessionId: string; rating: number }>((yes, no) => {
       resolve = yes;
       reject = no;
     });
-    const submitRating = vi.fn(() => pending);
-    const client = { submitRating } as unknown as GuestApiClient;
+    const submitFeedback = vi.fn(() => pending);
+    const client = { submitFeedback } as unknown as GuestApiClient;
     await mount(
       <LocaleProvider initialLocale={locale}>
-        <GuestLiveRating client={client} visitId="visit-360" canRate onBack={() => {}} />
+        <GuestLiveRating client={client} visitId={visitId} canRate onBack={() => {}} />
       </LocaleProvider>,
     );
     const buttons = container.querySelectorAll('button');
@@ -156,10 +157,12 @@ describe('shared Guest Btn accessibility', () => {
     expect(isDisabled(submit)).toBe(false);
     await act(async () => { invokeReactClick(submit); });
     expectLoadingName(action, submit);
-    expect(submitRating).toHaveBeenCalledWith(5);
+    expect(submitFeedback).toHaveBeenCalledWith({
+      rating: 5, expectedValetSessionId: visitId, comment: null,
+    });
 
     await act(async () => {
-      if (outcome === 'saved') resolve({ valetSessionId: 'visit-360' });
+      if (outcome === 'saved') resolve({ valetSessionId: visitId, rating: 5 });
       else reject(new Error('rating failed'));
       await pending.catch(() => undefined);
     });

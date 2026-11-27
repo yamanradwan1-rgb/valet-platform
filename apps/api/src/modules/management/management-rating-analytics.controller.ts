@@ -1,5 +1,8 @@
 import { Controller, Get, Headers, Inject, Param, Query, Req, Res } from "@nestjs/common";
-import { customerFeedbackAnalyticsResponseSchema } from "@valet/contracts";
+import {
+  customerFeedbackAnalyticsResponseSchema,
+  customerFeedbackAnalyticsWithCommentsResponseSchema,
+} from "@valet/contracts";
 
 import { ApiOperationRunner } from "../../common/http/api-operation-runner";
 import type { ApiRequest } from "../../common/http/api-request";
@@ -10,7 +13,7 @@ import {
 } from "../auth/staff-session-context";
 import { ManagementRatingAnalyticsService } from "./management-rating-analytics.service";
 import {
-  ratingAnalyticsPeriod,
+  ratingAnalyticsReadQuery,
   ratingAnalyticsUuid,
   requireRatingAnalyticsAuthorization,
 } from "./rating-analytics-http";
@@ -35,11 +38,14 @@ export class ManagementRatingAnalyticsController {
     setNoStoreResponseHeaders(response);
     return this.runner.run("MANAGEMENT_RATING_ANALYTICS_READ", request, async () => {
       requireRatingAnalyticsAuthorization(request);
-      const period = ratingAnalyticsPeriod(rawQuery);
+      const { period, includeComments } = ratingAnalyticsReadQuery(rawQuery);
       const context = await this.sessions.resolve(authorization);
-      return customerFeedbackAnalyticsResponseSchema.parse(
-        await this.service.allLocations(context, ratingAnalyticsUuid(organizationId), period),
+      const projection = await this.service.allLocations(
+        context, ratingAnalyticsUuid(organizationId), period, includeComments,
       );
+      return includeComments
+        ? customerFeedbackAnalyticsWithCommentsResponseSchema.parse(projection)
+        : customerFeedbackAnalyticsResponseSchema.parse(projection);
     });
   }
 }

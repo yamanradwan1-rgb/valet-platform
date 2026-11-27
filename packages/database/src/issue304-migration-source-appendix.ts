@@ -89,6 +89,13 @@ export const optionCAppendedMigrationDirectories = [
   "20261118000200_option_c_management_authority_freshness",
 ] as const;
 
+// Issue #463's staged P2/P5 SQL is part of the append-only source inventory.
+// Source inclusion is not activation, production deployment or RELEASE.
+export const issue463AppendedMigrationDirectories = [
+  "20261127000100_issue463_guest_rating_comments_p2",
+  "20261127000200_issue463_management_feedback_reader_p5",
+] as const;
+
 export const expectedCurrentMigrationDirectories = [
   ...expectedMigrationDirectories,
   ...issue300AppendedMigrationDirectories,
@@ -98,4 +105,5 @@ export const expectedCurrentMigrationDirectories = [
   ...issue435AppendedMigrationDirectories,
   ...issue416AppendedMigrationDirectories,
   ...optionCAppendedMigrationDirectories,
+  ...issue463AppendedMigrationDirectories,
 ] as const;

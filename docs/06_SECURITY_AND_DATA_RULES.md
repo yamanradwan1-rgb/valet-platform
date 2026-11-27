@@ -1492,3 +1492,26 @@ checks remain mandatory; the explicitly removed Phase 7 physical-device QA
 cannot be claimed completed. Provider billing/privacy/egress, remote drain,
 operator credential-human binding, alert routing and production activation
 require independent evidence and approval before OCR can be switched ON.
+
+## Issue #463 - approved controlled feedback security/privacy direction
+
+Optional service feedback only; existing exact Management audience only.
+Canonical text is bounded before and after normalization; no raw comment in
+logs, traces, errors, audit, exports or durable client storage. No general
+permission expansion. Dedicated exact feedback and disposition definers,
+shared-only protected reader fences, constant guard columns, separated case
+approval/execution, immutable numeric parent and terminal comment removal
+follow Master Plan v1.3 sections 5-7 and 17-18. Production PREPARE stays dormant; separate
+PROTECTED RELEASE is not authorized.
+
+Approved operational targets: active retention 30 days, immediate hide at
+expiry, due purge within 24h, approved erasure within seven days subject to
+law/hold, hold review every 30 days, proposed maximum recoverable-copy
+residual 30 days after logical erasure. These are not legal conclusions or
+physical-erasure guarantees. No premature NO_RECORD closure before original
+24h submission window. Require independent durable metadata-only intent and
+completion records, signed monotonic checkpoint, fail-closed quarantine
+restore, no text/digest retention, no reuse of photo credentials. Provider
+qualification and infrastructure are not approved. Architecture-changing
+legal questions (notice/consent, erasure/key model, hold/rights/identity)
+remain prerequisites to affected tasks. No unapproved visible UI change.
