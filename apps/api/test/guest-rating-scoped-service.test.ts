@@ -99,15 +99,15 @@ describe("Issue #463 scoped GuestRatingService atomic transaction policy", () =>
     );
   });
 
-  it.each(["REQUEST_INVALID", "FEEDBACK_UNAVAILABLE"])(
-    "handles SQL %s as definite 400 after counted anti-abuse finalization",
-    async (code) => {
+  it.each([["REQUEST_INVALID", "COUNTED"], ["FEEDBACK_UNAVAILABLE", "IGNORED"]] as const)(
+    "handles SQL %s as definite 400 with %s anti-abuse finalization",
+    async (code, state) => {
       const target = fixture(code);
       await expect(target.service.submit(reservation, bearer, 4, {
         expectedValetSessionId: visit, comment: "private",
       })).rejects.toMatchObject({ name: "ApiTransportValidationError" });
       expect(target.finalizeInTransaction).toHaveBeenCalledWith(
-        expect.anything(), reservation, "COUNTED",
+        expect.anything(), reservation, state,
       );
       expect(target.query).toHaveBeenCalledWith("COMMIT");
     },

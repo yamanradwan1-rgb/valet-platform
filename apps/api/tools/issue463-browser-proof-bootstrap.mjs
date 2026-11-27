@@ -193,7 +193,7 @@ export async function runP7Step(root, name, command, args, env, state, timeoutMs
     const milestones = new Set();
     const permitted = [
       "TARGET_ATTESTED", "API_READY", "LEGACY_ABI", "NOTICE_DENIED",
-      "APPS_READY", "GUEST_COMMITTED", "DASHBOARD_DISCLOSED", "READ_SCOPE_PARITY",
+      "APPS_READY", "GUEST_COMMITTED", "DASHBOARD_DISCLOSED", "READ_SCOPE_PARITY", "LEDGER_SQL_RECONCILED",
     ];
     let stdout = "";
     let stderr = "";

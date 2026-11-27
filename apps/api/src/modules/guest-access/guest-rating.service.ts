@@ -16,6 +16,7 @@ import {
 } from "../anti-abuse/anti-abuse.service";
 import { GuestAccessError } from "../valet-sessions/guest-access-command";
 import {
+  GuestFeedbackUnavailableError,
   GuestRatingError,
   submitGuestRating,
   type GuestRatingCommandResult,
@@ -94,6 +95,10 @@ export class GuestRatingService {
       if (error instanceof GuestAccessError) {
         await this.finalize(transaction, reservation, "COUNTED");
         return { kind: "INVALID_ACCESS" };
+      }
+      if (error instanceof GuestFeedbackUnavailableError) {
+        await this.finalize(transaction, reservation, "IGNORED");
+        return { error, kind: "INVALID_STATE" };
       }
       if (error instanceof ApiTransportValidationError) {
         await this.finalize(transaction, reservation, "COUNTED");

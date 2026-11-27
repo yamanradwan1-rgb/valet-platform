@@ -1,3 +1,4 @@
+/// <reference lib="dom" />
 import "reflect-metadata";
 import { createRequire } from "node:module";
 import { resolve } from "node:path";
@@ -9,6 +10,7 @@ import { startIssue463BrowserProxy } from "./issue463-browser-proxy.mjs";
 import { startIssue463BrowserApps, unusedIssue463Port } from "./issue463-browser-apps";
 import { verifyIssue463RatingReads } from "./issue463-browser-rating-reads";
 import { verifyIssue463GuestRetries } from "./issue463-browser-submission-reads";
+import { verifyIssue463LedgerSql } from "./issue463-browser-ledger-proof";
 import { createIssue463BrowserEvidence } from "./issue463-browser-evidence";
 
 const requireDashboard = createRequire(resolve(process.cwd(), "../dashboard/package.json"));
@@ -80,6 +82,8 @@ describe.runIf(enabled)("Issue463 owned production browser proof", () => {
           expect(deniedRows.rows).toEqual([{ratings:0,comments:0}]);
           console.info("P7_MILESTONE NOTICE_DENIED");
           await verifyIssue463GuestRetries(target, proxy.origin);
+          await verifyIssue463LedgerSql(target, proxy.origin);
+          console.info("P7_MILESTONE LEDGER_SQL_RECONCILED");
           const apps = await startIssue463BrowserApps(proxy.origin,customerPort,dashboardPort);
           console.info("P7_MILESTONE APPS_READY");
           try {
@@ -96,7 +100,31 @@ describe.runIf(enabled)("Issue463 owned production browser proof", () => {
                   await page.goto(`${apps.customerOrigin}/#guestToken=${visit.token}`);
                   const rating = page.getByRole("group",{name:"Rate your experience"});
                   await rating.waitFor();
-                  if (visit.id === first.id) await evidence.capture(page, "guest-en-light-empty");
+                  if (visit.id === first.id) {
+                    for (const locale of ["ar","en"]) {
+                      for (const theme of ["dark","light"]) {
+                        await page.evaluate(({locale,theme}: {locale:string;theme:string}) => {
+                          localStorage.setItem("vaylet_guest_locale",locale);
+                          localStorage.setItem("vaylet_guest_theme",theme);
+                          dispatchEvent(new Event("vaylet_locale_change"));
+                          dispatchEvent(new Event("vaylet_theme_change"));
+                        },{locale,theme});
+                        await expect.poll(() => page.locator("html").getAttribute("dir")).toBe(locale==="ar"?"rtl":"ltr");
+                        await expect.poll(() => page.locator("html").getAttribute("data-theme")).toBe(theme);
+                        await page.evaluate(() => document.fonts.ready);
+                        await evidence.capture(page,"guest-"+locale+"-"+theme+"-empty");
+                      }
+                    }
+                    for (const width of [320,390,1280,1440]) {
+                      await page.setViewportSize({width,height:844});
+                      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+                      await evidence.capture(page,"guest-en-light-width-"+width);
+                    }
+                    await page.setViewportSize({width:390,height:420});
+                    await page.locator("#rating-comment").focus();
+                    await evidence.capture(page,"guest-en-light-keyboard-reduced-viewport");
+                    await page.setViewportSize({width:390,height:844});
+                  }
                   await rating.getByRole("button",{name:"5 stars",exact:true}).click();
                   if (text !== null) await page.locator("#rating-comment").fill(text);
                   if (visit.id === first.id) await evidence.capture(page, "guest-en-light-populated");
@@ -157,6 +185,33 @@ describe.runIf(enabled)("Issue463 owned production browser proof", () => {
                   }
                 }
                 expect(found).toBe(true);
+                for (const locale of ["ar","en"]) {
+                  for (const theme of ["dark","light"]) {
+                    await page.evaluate(({locale,theme}: {locale:string;theme:string}) => {
+                      localStorage.setItem("vaylet_dashboard_locale",locale);
+                      localStorage.setItem("vaylet_dashboard_theme",theme);
+                      dispatchEvent(new Event("vaylet-dashboard-locale-change"));
+                      dispatchEvent(new Event("vaylet-dashboard-theme-change"));
+                    },{locale,theme});
+                    await expect.poll(() => page.locator("html").getAttribute("dir")).toBe(locale==="ar"?"rtl":"ltr");
+                    await expect.poll(() => page.locator("html").getAttribute("data-theme")).toBe(theme);
+                    const disclosures = feedback.locator('button[aria-expanded][aria-controls]');
+                    await expect.poll(() => disclosures.count()).toBe(2);
+                    if (!(locale==="en" && theme==="light")) {
+                      await evidence.capture(page,"dashboard-"+locale+"-"+theme+"-collapsed");
+                    }
+                    await disclosures.first().focus();
+                    await page.keyboard.press("Enter");
+                    await expect.poll(() => disclosures.first().getAttribute("aria-expanded")).toBe("true");
+                    await evidence.capture(page,"dashboard-"+locale+"-"+theme+"-keyboard-expanded");
+                    await page.keyboard.press("Enter");
+                    await expect.poll(() => disclosures.first().getAttribute("aria-expanded")).toBe("false");
+                  }
+                }
+                for (const width of [320,390,768,1440]) {
+                  await page.setViewportSize({width,height:900});
+                  await evidence.capture(page,"dashboard-en-light-width-"+width);
+                }
                 console.info("P7_MILESTONE DASHBOARD_DISCLOSED");
               } finally { await context.close(); }
               await verifyIssue463RatingReads(target, proxy.origin, apps.dashboardOrigin, fixture, deniedFixture, comment);

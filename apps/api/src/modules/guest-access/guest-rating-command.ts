@@ -23,6 +23,8 @@ export class GuestRatingError extends Error {
   }
 }
 
+export class GuestFeedbackUnavailableError extends ApiTransportValidationError {}
+
 type ScopedFeedback = Pick<
   GuestRatingScopedFeedbackRequest, "expectedValetSessionId" | "comment"
 >;
@@ -60,10 +62,11 @@ function readGuestRatingResult(
   if (row?.result_code === "NOT_COMPLETED") {
     throw new GuestRatingError("GUEST_RATING_NOT_AVAILABLE");
   }
-  if (row?.result_code === "REQUEST_INVALID" ||
-      row?.result_code === "FEEDBACK_UNAVAILABLE") {
-    // Missing/revoked notice is a definite failure, not an incomplete visit.
-    // Preserve the existing 400/failed Guest UI status without reflecting text.
+  if (row?.result_code === "FEEDBACK_UNAVAILABLE") {
+    // Valid credential and payload: an absent/revoked notice is not abuse.
+    throw new GuestFeedbackUnavailableError();
+  }
+  if (row?.result_code === "REQUEST_INVALID") {
     throw new ApiTransportValidationError();
   }
   if (
